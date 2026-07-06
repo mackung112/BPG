@@ -10,7 +10,6 @@ export default function LessonViewer() {
   const [subject, setSubject] = useState(null);
   const [currentLesson, setCurrentLesson] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   useEffect(() => {
     // Find the subject
@@ -22,20 +21,27 @@ export default function LessonViewer() {
     
     setSubject(sub);
 
+    // Filter chapters and lessons to only show those that have real content
+    const visibleChapters = sub.chapters
+      .map(ch => ({ ...ch, lessons: ch.lessons.filter(l => !l.contentUrl.includes('placeholder.html')) }))
+      .filter(ch => ch.lessons.length > 0);
+
     // Find the lesson, if not specified, default to first lesson of first chapter
     let targetLesson = null;
     
     if (lessonId) {
-      for (const chapter of sub.chapters) {
+      for (const chapter of visibleChapters) {
         const lesson = chapter.lessons.find(l => l.id === lessonId);
         if (lesson) {
           targetLesson = lesson;
           break;
         }
       }
-    } else if (sub.chapters.length > 0 && sub.chapters[0].lessons.length > 0) {
+    } 
+    
+    if (!targetLesson && visibleChapters.length > 0 && visibleChapters[0].lessons.length > 0) {
       // Default to first lesson
-      targetLesson = sub.chapters[0].lessons[0];
+      targetLesson = visibleChapters[0].lessons[0];
       // Update URL without reloading
       navigate(`/subject/${categoryId}/${subjectId}/lesson/${targetLesson.id}`, { replace: true });
     }
@@ -49,6 +55,11 @@ export default function LessonViewer() {
   }, [categoryId, subjectId, lessonId, navigate]);
 
   if (!subject) return <div className="loading">กำลังโหลด...</div>;
+
+  // Filter for rendering
+  const visibleChapters = subject.chapters
+    .map(ch => ({ ...ch, lessons: ch.lessons.filter(l => !l.contentUrl.includes('placeholder.html')) }))
+    .filter(ch => ch.lessons.length > 0);
 
   return (
     <div className="viewer-layout fade-in">
@@ -67,7 +78,7 @@ export default function LessonViewer() {
           <h2 className="subject-title text-gradient">{subject.name}</h2>
           
           <div className="chapters-list">
-            {subject.chapters.map((chapter) => (
+            {visibleChapters.map((chapter) => (
               <div key={chapter.id} className="chapter-group">
                 <h3 className="chapter-title">{chapter.name}</h3>
                 <ul className="lessons-list">
@@ -88,7 +99,7 @@ export default function LessonViewer() {
               </div>
             ))}
             
-            {subject.chapters.length === 0 && (
+            {visibleChapters.length === 0 && (
               <p className="no-content">ยังไม่มีบทเรียนในวิชานี้</p>
             )}
           </div>
@@ -111,28 +122,6 @@ export default function LessonViewer() {
               className="simulator-iframe"
               allowFullScreen
             ></iframe>
-            
-            {/* Info Button Overlay */}
-            <button 
-              className="info-toggle-btn glass-panel"
-              onClick={() => setIsInfoOpen(!isInfoOpen)}
-            >
-              <span className="icon">ℹ️</span>
-              <span className="text">คำอธิบาย</span>
-            </button>
-
-            {/* Info Drawer/Modal */}
-            {isInfoOpen && (
-              <div className="info-drawer glass-panel slide-up">
-                <div className="info-header">
-                  <h3>{currentLesson.name}</h3>
-                  <button className="btn-icon" onClick={() => setIsInfoOpen(false)}>✕</button>
-                </div>
-                <div className="info-body">
-                  <p>{currentLesson.description || 'ไม่มีคำอธิบายเพิ่มเติมสำหรับบทเรียนนี้'}</p>
-                </div>
-              </div>
-            )}
           </div>
         ) : (
           <div className="empty-lesson">

@@ -33,10 +33,66 @@
           ]
         },
         {
-          "id": "comp-1",
-          "name": "วิทยาการคอมพิวเตอร์",
-          "description": "พื้นฐานการเขียนโปรแกรม",
-          "chapters": []
+          "id": "programming-21902",
+          "name": "หลักการเขียนโปรแกรมภาษาคอมพิวเตอร์",
+          "description": "รหัสวิชา 21902-2001 การเขียนโปรแกรมด้วยภาษา Python",
+          "chapters": [
+            {
+              "id": "u1",
+              "name": "Unit 1: หลักการเขียนโปรแกรมเบื้องต้น",
+              "lessons": [
+                { "id": "u1-1", "name": "1.1 แนะนำภาษาคอมพิวเตอร์และโปรแกรม", "type": "simulator", "contentUrl": "/simulators/programming-21902/1.1-intro/index.html", "description": "องค์ประกอบของภาษาและวิวัฒนาการ" },
+                { "id": "u1-2", "name": "1.2 ระดับของภาษาคอมพิวเตอร์", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "ภาษาระดับต่ำ, ระดับสูง, รุ่นที่ 4 และ 5" },
+                { "id": "u1-3", "name": "1.3 เครื่องมือแปลภาษา", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "Interpreter vs Compiler" },
+                { "id": "u1-4", "name": "1.4 จุดเด่นของภาษา Python", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "ลักษณะเด่นและการประยุกต์ใช้งาน" },
+                { "id": "u1-5", "name": "1.5 การติดตั้ง Python และ IDE", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "ดาวน์โหลดและติดตั้งตัวแปลภาษา" }
+              ]
+            },
+            {
+              "id": "u2",
+              "name": "Unit 2: ขั้นตอนการเขียนโปรแกรม",
+              "lessons": [
+                { "id": "u2-1", "name": "2.1 แนวคิดและอัลกอริทึม", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" },
+                { "id": "u2-3", "name": "2.3 รหัสเทียม (Pseudocode)", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" },
+                { "id": "u2-8", "name": "2.8 สัญลักษณ์ผังงาน (Flowchart)", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" },
+                { "id": "u2-10", "name": "2.10-2.12 ผังงานแบบต่างๆ", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "แบบลำดับ, เลือกทำ, และวนซ้ำ" }
+              ]
+            },
+            {
+              "id": "u3",
+              "name": "Unit 3: โครงสร้างพื้นฐานของภาษา Python",
+              "lessons": [
+                { "id": "u3-1", "name": "3.1 โครงสร้างโค้ด Python", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" },
+                { "id": "u3-3", "name": "3.3-3.6 ชนิดข้อมูล", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "Integer, Float, String, Boolean" }
+              ]
+            },
+            {
+              "id": "u4",
+              "name": "Unit 4: โครงสร้างควบคุม",
+              "lessons": [
+                { "id": "u4-1", "name": "4.1-4.2 การรับและแสดงผลข้อมูล", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "print() และ input()" },
+                { "id": "u4-3", "name": "4.10 เงื่อนไข if-elif-else", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" },
+                { "id": "u4-4", "name": "4.11-4.12 ลูปทำงานซ้ำ", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "while และ for loop" }
+              ]
+            },
+            {
+              "id": "u5",
+              "name": "Unit 5: การจัดการข้อมูลแบบชุด",
+              "lessons": [
+                { "id": "u5-1", "name": "5.1 List", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" },
+                { "id": "u5-2", "name": "5.2 Tuple และ Dictionary", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" },
+                { "id": "u5-3", "name": "5.3 Set และ Slicing", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" }
+              ]
+            },
+            {
+              "id": "u6",
+              "name": "Unit 6: ฟังก์ชัน (Function)",
+              "lessons": [
+                { "id": "u6-1", "name": "6.1 ฟังก์ชันสำเร็จรูป", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" },
+                { "id": "u6-2", "name": "6.2 การสร้างฟังก์ชันและพารามิเตอร์", "type": "simulator", "contentUrl": "/simulators/placeholder.html", "description": "" }
+              ]
+            }
+          ]
         }
       ]
     },

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1.1 แนะนำภาษาคอมพิวเตอร์และโปรแกรม</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f1f5f9;
+            --card-bg: #ffffff;
+            --dark-bg: #0f172a;
+            --dark-panel: #1e293b;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --text-light: #f8fafc;
+            
+            --primary: #a855f7; /* Purple */
+            --secondary: #d946ef; /* Pink */
+            
+            --success: #10b981; /* Green */
+            --danger: #f43f5e; /* Red */
+            --warning: #f59e0b; /* Yellow */
+            --info: #3b82f6; /* Blue */
+            
+            --border: #e2e8f0;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            padding: 1rem;
+            font-family: 'Prompt', sans-serif;
+            margin: 0;
+            color: var(--text-dark);
+        }
+
+        .lesson-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        /* -------------------------------------
+           White Block Container
+        ------------------------------------- */
+        .white-block {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-title.center {
+            justify-content: center;
+        }
+        .icon-title {
+            color: var(--primary);
+        }
+
+        /* -------------------------------------
+           Card Grid 3 (Screenshot 1 Style)
+        ------------------------------------- */
+        .card-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            z-index: 0;
+        }
+        .info-card.purple-blob::before { background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(255,255,255,0) 70%); }
+        .info-card.pink-blob::before { background: radial-gradient(circle, rgba(217,70,239,0.15) 0%, rgba(255,255,255,0) 70%); }
+        .info-card.blue-blob::before { background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(255,255,255,0) 70%); }
+
+        .info-card-content { position: relative; z-index: 1; }
+        
+        .info-card h3 {
+            font-size: 2rem;
+            margin: 0 0 1rem 0;
+            font-weight: 700;
+        }
+        .info-card h3.purple { color: var(--primary); }
+        .info-card h3.pink { color: var(--secondary); }
+        .info-card h3.blue { color: var(--info); }
+
+        .info-card p.subtitle {
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+        }
+        .info-card p.desc {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0 0 1.5rem 0;
+        }
+
+        .mini-code-block {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.2rem;
+            font-family: 'Fira Code', monospace, sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        .mini-code-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mini-code-line .result.true { color: var(--success); font-weight: 600; }
+        .mini-code-line .result.false { color: var(--danger); font-weight: 600; }
+        .mini-code-line .result.normal { color: var(--primary); font-weight: 600; }
+
+        /* -------------------------------------
+           Split Layout (Screenshot 3 & 5)
+        ------------------------------------- */
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+        }
+        @media (max-width: 900px) {
+            .split-layout { grid-template-columns: 1fr; }
+        }
+
+        .dark-panel {
+            background: var(--dark-bg);
+            color: var(--text-light);
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .light-panel {
+            background: #f8fafc;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dark-panel .panel-title { color: #38bdf8; }
+
+        .code-editor {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Fira Code', monospace, sans-serif;
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            margin-bottom: 1.5rem;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+        .c-kw { color: #f472b6; } /* pink */
+        .c-str { color: #a3e635; } /* green */
+        .c-var { color: #60a5fa; } /* blue */
+        .c-cmt { color: #64748b; } /* gray */
+
+        .btn-group { display: flex; gap: 1rem; }
+        .btn-run {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            width: 100%;
+            font-size: 1rem;
+        }
+        .btn-run:hover { background: #059669; }
+        .btn-run.purple { background: var(--primary); }
+        .btn-run.purple:hover { background: #9333ea; }
+        
+        .flowchart-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 2rem 0;
+        }
+        .flow-node {
+            background: #e2e8f0;
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            min-width: 150px;
+        }
+        .flow-node.active-purple {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(168,85,247,0.3);
+        }
+        .flow-node.active-green {
+            background: var(--success);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(16,185,129,0.3);
+        }
+        .flow-arrow {
+            width: 2px;
+            height: 30px;
+            background: #cbd5e1;
+            position: relative;
+            margin: 5px 0;
+            transition: background 0.3s;
+        }
+        .flow-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: -4px;
+            border-width: 5px 5px 0;
+            border-style: solid;
+            border-color: #cbd5e1 transparent transparent transparent;
+            transition: border-color 0.3s;
+        }
+        .flow-arrow.active { background: var(--primary); }
+        .flow-arrow.active::after { border-color: var(--primary) transparent transparent transparent; }
+
+        /* -------------------------------------
+           Outline Cards Grid (Screenshot 4)
+        ------------------------------------- */
+        .outline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+        .outline-card {
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .outline-card:hover { transform: translateY(-3px); }
+        .outline-card.yellow:hover { border-color: var(--warning); box-shadow: 0 8px 25px rgba(245,158,11,0.1); }
+        .outline-card.red:hover { border-color: var(--danger); box-shadow: 0 8px 25px rgba(239,68,68,0.1); }
+        .outline-card.orange:hover { border-color: #f97316; box-shadow: 0 8px 25px rgba(249,115,22,0.1); }
+        .outline-card.green:hover { border-color: var(--success); box-shadow: 0 8px 25px rgba(16,185,129,0.1); }
+        .outline-card.purple:hover { border-color: var(--primary); box-shadow: 0 8px 25px rgba(168,85,247,0.1); }
+        .outline-card.blue:hover { border-color: var(--info); box-shadow: 0 8px 25px rgba(59,130,246,0.1); }
+
+        .outline-icon {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            font-family: 'Fira Code', monospace;
+        }
+        .outline-icon.yellow { color: var(--warning); }
+        .outline-icon.red { color: var(--danger); }
+        .outline-icon.orange { color: #f97316; }
+        .outline-icon.green { color: var(--success); }
+        .outline-icon.purple { color: var(--primary); }
+        .outline-icon.blue { color: var(--info); }
+
+        .outline-card h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+        }
+        .outline-card p {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin: 0 0 1rem 0;
+        }
+        .outline-example {
+            background: #f8fafc;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .outline-example .res { color: var(--primary); font-weight: bold; font-size: 0.75rem;}
+
+        /* -------------------------------------
+           Pill Tabs & Timeline (Screenshot 2)
+        ------------------------------------- */
+        .pill-tabs-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .pill-tabs {
+            display: inline-flex;
+            background: #f1f5f9;
+            border-radius: 30px;
+            padding: 6px;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .pill-tab {
+            background: transparent;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 24px;
+            font-family: inherit;
+            font-weight: 600;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .pill-tab:hover { color: var(--primary); }
+        .pill-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .timeline-content-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            animation: fadeIn 0.3s ease forwards;
+        }
+        .timeline-content-box.active { display: block; }
+        @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+        
+        .timeline-content-box h4 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin: 0 0 1rem 0;
+        }
+        .timeline-content-box p {
+            color: var(--text-gray);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* -------------------------------------
+           Quiz UI (Screenshot 5 / Membership)
+        ------------------------------------- */
+        .quiz-options {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .quiz-btn {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 0.6rem 1.5rem;
+            border-radius: 20px;
+            font-family: inherit;
+            font-weight: 600;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quiz-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+        .quiz-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(168,85,247,0.3);
+        }
+        .quiz-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .quiz-result-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--border);
+            transition: all 0.3s;
+        }
+        .quiz-result-circle.true {
+            border-color: var(--success);
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+        .quiz-result-circle.false {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(244, 63, 94, 0.1);
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="lesson-wrapper">
+        
+        <!-- SECTION 1: 1.1.1 ภาษาคอมพิวเตอร์ คืออะไร? -->
+        <div class="white-block">
+            <h2 class="section-title">
+                <span class="icon-title">💻</span> 1.1.1 ภาษาคอมพิวเตอร์ คืออะไร?
+            </h2>
+            <div class="card-grid-3">
+                <div class="info-card purple-blob">
+                    <div class="info-card-content">
+                        <h3 class="purple">สื่อกลาง</h3>
+                        <p class="subtitle">"สะพานเชื่อมความคิด"</p>
+                        <p class="desc">ใช้สื่อสารระหว่างมนุษย์กับเครื่องจักร เพื่อถ่ายทอดลอจิกและแนวคิดให้คอมพิวเตอร์รับรู้และทำงานตามต้องการ</p>
+                        <div class="mini-code-block">
+                            <div class="mini-code-line">
+                                <span>Human Idea</span>
+                                <span>➔</span>
+                                <span class="result normal">Machine Action</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-card pink-blob">
+                    <div class="info-card-content">
+                        <h3 class="pink">ชุดคำสั่ง</h3>
+                        <p class="subtitle">"Instructions"</p>
+                        <p class="desc">การเขียนโปรแกรมคือการเรียบเรียงชุดคำสั่งอย่างเป็นระบบ เพื่อแก้ปัญหาหรือสร้างสรรค์นวัตกรรมต่างๆ</p>
+                        <div class="mini-code-block">
+                            <div class="mini-code-line">
+                                <span>print("Hello")</span>
+                                <span>➔</span>
+                                <span class="result normal">Output</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-card blue-blob">
+                    <div class="info-card-content">
+                        <h3 class="blue">ตัวแปลภาษา</h3>
+                        <p class="subtitle">"Translator"</p>
+                        <p class="desc">คอมพิวเตอร์เข้าใจแค่ 0 กับ 1 (Machine Code) จึงต้องมีตัวแปลภาษาเพื่อให้ทำงานได้จริง</p>
+                        <div class="mini-code-block">
+                            <div class="mini-code-line">
+                                <span>Source Code</span>
+                                <span>➔</span>
+                                <span class="result normal">01010100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: 1.1.2 บุคคลสำคัญ -->
+        <div class="split-layout">
+            <div class="dark-panel">
+                <div class="panel-title">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    บุคคลสำคัญ (ฝั่งซอฟต์แวร์)
+                </div>
+                <h3 style="font-size: 1.8rem; margin: 0 0 1rem 0; color: #f472b6;">เอดา เลิฟเลซ (Ada Lovelace)</h3>
+                <p style="color: #94a3b8; font-size: 1.05rem; line-height: 1.7;">
+                    ได้รับการยกย่องว่าเป็น <strong>"โปรแกรมเมอร์คนแรกของโลก"</strong> <br><br>
+                    เธอเป็นผู้สร้างอัลกอริทึมแรกที่ออกแบบมาเพื่อให้เครื่อง Analytical Engine ประมวลผล เอดามองเห็นศักยภาพว่าเครื่องจักรไม่เพียงแต่ใช้คำนวณตัวเลขได้เท่านั้น แต่ยังสามารถจัดการสัญลักษณ์หรือแม้แต่สร้างเสียงดนตรีได้ หากมีชุดคำสั่งที่เหมาะสม
+                </p>
+            </div>
+            <div class="light-panel">
+                <div class="panel-title" style="color: var(--primary);">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    บุคคลสำคัญ (ฝั่งฮาร์ดแวร์)
+                </div>
+                <h3 style="font-size: 1.8rem; margin: 0 0 1rem 0; color: var(--text-dark);">ชาร์ลส แบบเบจ (Charles Babbage)</h3>
+                <p style="color: var(--text-gray); font-size: 1.05rem; line-height: 1.7;">
+                    ได้รับการยกย่องว่าเป็น <strong>"บิดาแห่งคอมพิวเตอร์"</strong> <br><br>
+                    นักคณิตศาสตร์ชาวอังกฤษ ผู้ออกแบบและคิดค้นเครื่องคิดเลขเชิงกลที่เรียกว่า Difference Engine และต่อยอดไปสู่ <strong>Analytical Engine</strong> ซึ่งเป็นต้นแบบของสถาปัตยกรรมคอมพิวเตอร์ในปัจจุบัน (มีหน่วยประมวลผลและหน่วยความจำ)
+                </p>
+            </div>
+        </div>
+
+        <!-- SECTION 3: 1.1.3 องค์ประกอบของภาษา -->
+        <div class="white-block">
+            <h2 class="section-title center">1.1.3 องค์ประกอบของภาษาคอมพิวเตอร์</h2>
+            <div class="outline-grid">
+                <div class="outline-card yellow">
+                    <div class="outline-icon yellow">🔠</div>
+                    <h4>1. คำศัพท์ (Vocabulary)</h4>
+                    <p>คำสงวน (Keywords) ที่ภาษานั้นอนุญาตให้ใช้</p>
+                    <div class="outline-example">
+                        <span>if, for, while, print</span>
+                        <span class="res">Keywords</span>
+                    </div>
+                </div>
+                <div class="outline-card red">
+                    <div class="outline-icon red">📝</div>
+                    <h4>2. ไวยากรณ์ (Syntax)</h4>
+                    <p>กฎเกณฑ์การเรียงลำดับคำและการใส่เครื่องหมาย</p>
+                    <div class="outline-example">
+                        <span>print("Hello")</span>
+                        <span class="res">Correct!</span>
+                    </div>
+                </div>
+                <div class="outline-card blue">
+                    <div class="outline-icon blue">🧠</div>
+                    <h4>3. ความหมาย (Semantics)</h4>
+                    <p>ผลลัพธ์หรือพฤติกรรมที่เกิดขึ้นเมื่อรันโค้ด</p>
+                    <div class="outline-example">
+                        <span>3 + 5</span>
+                        <span class="res">➔ 8</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: 1.1.4 Timeline -->
+        <div class="white-block">
+            <h2 class="section-title center">1.1.4 วิวัฒนาการของภาษาคอมพิวเตอร์</h2>
+            <p style="text-align: center; color: var(--text-gray); margin-bottom: 2rem;">คลิกเลือกยุคเพื่อดูพัฒนาการของภาษา</p>
+            
+            <div class="pill-tabs-container">
+                <div class="pill-tabs">
+                    <button class="pill-tab active" onclick="showEra(1, this)">ยุคที่ 1</button>
+                    <button class="pill-tab" onclick="showEra(2, this)">ยุคที่ 2</button>
+                    <button class="pill-tab" onclick="showEra(3, this)">ยุคที่ 3</button>
+                    <button class="pill-tab" onclick="showEra(4, this)">ยุคที่ 4</button>
+                    <button class="pill-tab" onclick="showEra(5, this)">ยุคที่ 5</button>
+                </div>
+            </div>
+
+            <div id="era-1" class="timeline-content-box active">
+                <h4>ภาษาเครื่อง (Machine Language)</h4>
+                <p>ประกอบด้วยเลข 0 และ 1 คอมพิวเตอร์เข้าใจได้ทันที แต่ยากต่อมนุษย์ ขึ้นอยู่กับฮาร์ดแวร์โดยตรง</p>
+            </div>
+            <div id="era-2" class="timeline-content-box">
+                <h4>ภาษาแอสเซมบลี (Assembly)</h4>
+                <p>ใช้ตัวอักษรย่อ (Mnemonic) แทนเลข 0 และ 1 เช่น ADD, SUB ต้องใช้ Assembler แปลงกลับเป็นภาษาเครื่อง</p>
+            </div>
+            <div id="era-3" class="timeline-content-box">
+                <h4>ภาษาระดับสูง (High-Level)</h4>
+                <p>ไวยากรณ์คล้ายภาษาอังกฤษและคณิตศาสตร์ (เช่น C, FORTRAN) ต้องใช้ Compiler หรือ Interpreter ในการแปล</p>
+            </div>
+            <div id="era-4" class="timeline-content-box">
+                <h4>ภาษาเชิงวัตถุ (Object-Oriented)</h4>
+                <p>เน้นการแก้ปัญหาแบบวัตถุ (OOP) ช่วยลดความซ้ำซ้อนของโค้ด เช่น Java, C++, C#</p>
+            </div>
+            <div id="era-5" class="timeline-content-box">
+                <h4>ภาษาสมัยใหม่ (Modern & Natural)</h4>
+                <p>เน้นความเรียบง่ายและคล่องตัวสูง มีไลบรารีรองรับ AI มหาศาล เช่น Python, JavaScript</p>
+            </div>
+        </div>
+
+        <!-- SECTION 5: 1.1.5 Compiler vs Interpreter (Interactive Dark/Light) -->
+        <div class="white-block" style="padding: 0;">
+            <div style="padding: 3rem 3rem 1.5rem 3rem;">
+                <h2 class="section-title">1.1.5 ตัวแปลภาษา (Translator)</h2>
+                <p style="color: var(--text-gray);">จำลองการทำงานของตัวดำเนินการ เพื่อดูว่าจะส่งผลลัพธ์ (ขั้นตอนการแปลโค้ด) อย่างไร</p>
+            </div>
+            <div class="split-layout" style="border: none; border-radius: 0 0 24px 24px; box-shadow: none; border-top: 1px solid var(--border);">
+                <!-- Code Panel -->
+                <div class="dark-panel">
+                    <div class="panel-title">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        จำลอง Translator
+                    </div>
+                    <div class="code-editor">
+                        <span class="c-cmt"># โค้ดทักทายง่ายๆ 2 บรรทัด</span><br><br>
+                        <span class="c-kw">print</span>(<span class="c-str">"Hello, World!"</span>)<br>
+                        <span class="c-kw">print</span>(<span class="c-str">"Python is Fun!"</span>)
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-run purple" onclick="runTranslator('compiler')">
+                            ⚙️ จำลอง Compiler
+                        </button>
+                        <button class="btn-run" onclick="runTranslator('interpreter')">
+                            ⚡ จำลอง Interpreter
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Flow Panel -->
+                <div class="light-panel">
+                    <div class="panel-title" style="color: var(--text-dark);">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
+                        Flowchart (ผังงานจำลอง)
+                    </div>
+                    <div class="flowchart-area">
+                        <div class="flow-node" id="node-source">Source Code (2 บรรทัด)</div>
+                        <div class="flow-arrow" id="arr-1"></div>
+                        
+                        <div class="flow-node" id="node-trans" style="border: 2px dashed #94a3b8;">รอคำสั่ง...</div>
+                        
+                        <div class="flow-arrow" id="arr-2"></div>
+                        <div class="flow-node" id="node-machine">Machine Code (0101)</div>
+                        
+                        <div class="flow-arrow" id="arr-3"></div>
+                        <div class="flow-node" id="node-run">RUN (แสดงผลลัพธ์)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 6: 1.1.7 การเลือกใช้ภาษา (Grid) -->
+        <div class="white-block">
+            <h2 class="section-title center">1.1.6 การเลือกใช้ภาษาที่เหมาะสม</h2>
+            <div class="outline-grid">
+                <div class="outline-card green">
+                    <div class="outline-icon green">🐍 Python</div>
+                    <p>อ่านง่าย นิยมที่สุดในสาย Data Science และ AI</p>
+                    <div class="outline-example">
+                        <span>print("AI")</span> <span class="res">Data/AI</span>
+                    </div>
+                </div>
+                <div class="outline-card yellow">
+                    <div class="outline-icon yellow">🌐 JavaScript</div>
+                    <p>หัวใจสำคัญของการทำเว็บ Interactive และ Frontend</p>
+                    <div class="outline-example">
+                        <span>alert("JS")</span> <span class="res">Web/App</span>
+                    </div>
+                </div>
+                <div class="outline-card red">
+                    <div class="outline-icon red">☕ Java</div>
+                    <p>ปลอดภัยสูง เสถียร นิยมใช้ในระบบ Enterprise / Android</p>
+                    <div class="outline-example">
+                        <span>System.out...</span> <span class="res">Enterprise</span>
+                    </div>
+                </div>
+                <div class="outline-card blue">
+                    <div class="outline-icon blue">⚙️ C/C++</div>
+                    <p>ทำงานเร็วมาก เข้าถึงฮาร์ดแวร์ นิยมในงาน Game / IoT</p>
+                    <div class="outline-example">
+                        <span>printf("C")</span> <span class="res">Hardware/Game</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 7: QUIZ -->
+        <div class="white-block" style="padding: 0;">
+            <div style="padding: 3rem 3rem 1.5rem 3rem; text-align: center;">
+                <h2 class="section-title center">
+                    <svg width="28" height="28" style="color:var(--primary); margin-right:8px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                    เครื่องจำลองแบบทดสอบ (Quiz Logic)
+                </h2>
+                <p style="color: var(--text-gray);">จำลองการทำงานของการตรวจสอบเงื่อนไข หากตอบถูกจะคืนค่า True</p>
+            </div>
+            <div class="split-layout" style="border: none; border-radius: 0 0 24px 24px; box-shadow: none; border-top: 1px solid var(--border);">
+                <!-- Code Logic -->
+                <div class="dark-panel">
+                    <div class="code-editor" style="margin-top: 1rem;">
+                        <span class="c-cmt"># โจทก์คำถาม</span><br>
+                        <span class="c-var">question</span> = <span class="c-str">"ภาษาคอมพิวเตอร์คืออะไร?"</span><br><br>
+                        
+                        <span class="c-var">correct_answer</span> = <span class="c-str">"สื่อกลางเชื่อมมนุษย์กับคอมฯ"</span><br><br>
+                        
+                        <span class="c-cmt"># ตรวจสอบคำตอบผู้ใช้</span><br>
+                        <span class="c-kw">if</span> <span class="c-var">user_answer</span> == <span class="c-var">correct_answer</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-kw">print</span>(<span class="c-str">"True"</span>)<br>
+                        <span class="c-kw">else</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-kw">print</span>(<span class="c-str">"False"</span>)
+                    </div>
+                </div>
+                
+                <!-- Output logic -->
+                <div class="light-panel" style="justify-content: center;">
+                    <div class="quiz-options">
+                        <button class="quiz-btn" onclick="checkAnswer(false, this)">ไวรัสคอมพิวเตอร์</button>
+                        <button class="quiz-btn" onclick="checkAnswer(true, this)">สื่อกลางเชื่อมมนุษย์กับคอมฯ</button>
+                        <button class="quiz-btn" onclick="checkAnswer(false, this)">ชิ้นส่วนใน CPU</button>
+                    </div>
+                    
+                    <div id="quiz-res" class="quiz-result-circle">
+                        ?
+                    </div>
+                    <div style="text-align: center; margin-top: 1rem; color: var(--text-gray); font-size: 0.9rem;">ผลลัพธ์การตรวจสอบ</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // Timeline Script
+        function showEra(id, btn) {
+            document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.timeline-content-box').forEach(c => c.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById('era-' + id).classList.add('active');
+        }
+
+        // Translator Simulation
+        let simTimeout;
+        function resetFlow() {
+            document.querySelectorAll('.flow-node').forEach(n => {
+                n.className = 'flow-node';
+                if(n.id === 'node-trans') {
+                    n.style.border = '2px dashed #94a3b8';
+                    n.textContent = 'รอคำสั่ง...';
+                } else {
+                    n.style.border = 'none';
+                }
+            });
+            document.querySelectorAll('.flow-arrow').forEach(a => a.className = 'flow-arrow');
+            clearTimeout(simTimeout);
+        }
+
+        function runTranslator(type) {
+            resetFlow();
+            const nSource = document.getElementById('node-source');
+            const nTrans = document.getElementById('node-trans');
+            const nMach = document.getElementById('node-machine');
+            const nRun = document.getElementById('node-run');
+            const a1 = document.getElementById('arr-1');
+            const a2 = document.getElementById('arr-2');
+            const a3 = document.getElementById('arr-3');
+
+            setTimeout(() => { nSource.classList.add('active-purple'); }, 100);
+            setTimeout(() => { a1.classList.add('active'); }, 400);
+
+            if (type === 'compiler') {
+                setTimeout(() => {
+                    nTrans.classList.add('active-purple');
+                    nTrans.style.border = 'none';
+                    nTrans.textContent = 'Compiler (แปลทีเดียวทั้งก้อน)';
+                }, 800);
+                setTimeout(() => { a2.classList.add('active'); }, 1400);
+                setTimeout(() => { nMach.classList.add('active-purple'); }, 1800);
+                setTimeout(() => { a3.classList.add('active'); }, 2200);
+                setTimeout(() => { nRun.classList.add('active-green'); }, 2600);
+            } else {
+                setTimeout(() => {
+                    nTrans.classList.add('active-purple');
+                    nTrans.style.border = 'none';
+                    nTrans.textContent = 'Interpreter (แปลทีละบรรทัด)';
+                }, 800);
+                // line 1
+                setTimeout(() => { a2.classList.add('active'); }, 1200);
+                setTimeout(() => { nMach.classList.add('active-purple'); nMach.textContent = "Machine (บรรทัด 1)"; }, 1500);
+                setTimeout(() => { a3.classList.add('active'); }, 1800);
+                setTimeout(() => { nRun.classList.add('active-green'); nRun.textContent = "RUN (บรรทัด 1)"; }, 2100);
+                
+                // line 2 loop
+                simTimeout = setTimeout(() => {
+                    a2.classList.remove('active');
+                    a3.classList.remove('active');
+                    nMach.classList.remove('active-purple');
+                    nRun.classList.remove('active-green');
+                    
+                    setTimeout(() => { a2.classList.add('active'); }, 200);
+                    setTimeout(() => { nMach.classList.add('active-purple'); nMach.textContent = "Machine (บรรทัด 2)"; }, 500);
+                    setTimeout(() => { a3.classList.add('active'); }, 800);
+                    setTimeout(() => { nRun.classList.add('active-green'); nRun.textContent = "RUN (เสร็จสิ้น)"; }, 1100);
+                }, 2800);
+            }
+        }
+
+        // Quiz Script
+        function checkAnswer(isCorrect, btn) {
+            document.querySelectorAll('.quiz-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            
+            const circle = document.getElementById('quiz-res');
+            circle.className = 'quiz-result-circle';
+            
+            setTimeout(() => {
+                if (isCorrect) {
+                    circle.classList.add('true');
+                    circle.textContent = 'TRUE';
+                } else {
+                    circle.classList.add('false');
+                    circle.textContent = 'FALSE';
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>
