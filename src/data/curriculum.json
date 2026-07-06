@@ -1,0 +1,50 @@
+{
+  "categories": [
+    {
+      "id": "voc-cert",
+      "name": "ระดับ ปวช.",
+      "description": "ประกาศนียบัตรวิชาชีพ",
+      "subjects": [
+        {
+          "id": "physics-1",
+          "name": "ฟิสิกส์พื้นฐาน 1",
+          "description": "เรียนรู้หลักการพื้นฐานของฟิสิกส์และการเคลื่อนที่",
+          "chapters": [
+            {
+              "id": "ch1",
+              "name": "บทที่ 1: การเคลื่อนที่",
+              "lessons": [
+                {
+                  "id": "l1",
+                  "name": "เครื่องเคาะสัญญาณเวลา (Simulator)",
+                  "type": "simulator",
+                  "contentUrl": "/simulators/physics-1/ticker-timer/index.html",
+                  "description": "ศึกษาการเคลื่อนที่แนวตรงผ่านเครื่องเคาะสัญญาณเวลา ทดลองปรับความเร็วและดึงแถบกระดาษ"
+                },
+                {
+                  "id": "l2",
+                  "name": "การตกอย่างอิสระ",
+                  "type": "simulator",
+                  "contentUrl": "https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_th.html",
+                  "description": "Simulator ภายนอกจาก PhET จำลองการตกอย่างอิสระแบบโปรเจกไทล์"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "comp-1",
+          "name": "วิทยาการคอมพิวเตอร์",
+          "description": "พื้นฐานการเขียนโปรแกรม",
+          "chapters": []
+        }
+      ]
+    },
+    {
+      "id": "high-voc-cert",
+      "name": "ระดับ ปวส.",
+      "description": "ประกาศนียบัตรวิชาชีพชั้นสูง",
+      "subjects": []
+    }
+  ]
+}
