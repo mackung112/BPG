@@ -12,6 +12,7 @@
 | `react-tailwind-coding` | กฎเหล็กเขียนโค้ด + มาตรฐานคอมโพเนนต์ |
 | `design-system` | โทเค็นสี ฟอนต์ เลย์เอาต์ คอมโพเนนต์ UI |
 | `lesson-architecture` | สถาปัตยกรรมหลักสูตร + บริบทโปรเจกต์ |
+| `curriculum-standard` | มาตรฐานโครงสร้างไฟล์หลักสูตรใน docs/curriculum |
 | `svg-flowchart` | มาตรฐาน SVG และผังงาน |
 | `quality-check` | ตรวจสอบคุณภาพก่อนจบงาน |
 | `create-skills` | วิธีสร้าง skill ใหม่ |
