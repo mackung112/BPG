@@ -30,49 +30,51 @@ function PageLayout({ children, activePage }) {
 
       {/* Floating Glassmorphic Navigation Bar */}
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/60 border-b border-white/40 shadow-lg transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 cursor-pointer group no-underline">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
+          {/* Logo (Left) */}
+          <Link to="/" className="flex items-center gap-3 cursor-pointer group no-underline relative z-10">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform duration-300">
               <GraduationCap className="w-6 h-6 text-white group-hover:rotate-6 transition-transform" />
             </div>
             <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-purple-600 tracking-tight">ห้องเรียนครูแม็ค</span>
           </Link>
 
-          {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-semibold">
-            {navItems.map((item) => {
-              const isActive = activePage === item.id;
-              return (
-                <Link
-                  key={item.id}
-                  to={item.path}
-                  className={`cursor-pointer transition-all py-2 border-b-2 hover:text-indigo-600 font-bold no-underline ${
-                    isActive
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-zinc-500 hover:border-indigo-300'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
+          {/* Desktop Nav Links (Center) */}
+          <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none">
+            <div className="flex items-center gap-8 text-sm font-semibold pointer-events-auto">
+              {navItems.map((item) => {
+                const isActive = activePage === item.id;
+                return (
+                  <Link
+                    key={item.id}
+                    to={item.path}
+                    className={`cursor-pointer transition-all py-2 border-b-2 hover:text-indigo-600 font-bold uppercase tracking-wide no-underline ${
+                      isActive
+                        ? 'border-indigo-600 text-indigo-600'
+                        : 'border-transparent text-zinc-600 hover:border-indigo-300'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Desktop CTA */}
-          <div className="hidden md:block">
+          {/* Desktop CTA (Right) */}
+          <div className="hidden md:block relative z-10">
             <Link
               to="/"
-              className="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-indigo-200/50 hover:scale-[1.02] active:scale-98 transition-all duration-200 no-underline animate-pulse"
+              className="cursor-pointer flex items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white rounded-full font-bold text-sm hover:shadow-lg hover:shadow-zinc-500/30 hover:scale-[1.02] active:scale-98 transition-all duration-200 no-underline"
             >
-              <BookOpen className="w-4 h-4" /> เริ่มเรียน
+              เริ่มเรียน
             </Link>
           </div>
 
           {/* Mobile Hamburg Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-zinc-650 hover:bg-black/5 rounded-xl transition-colors cursor-pointer"
+            className="md:hidden p-2 text-zinc-650 hover:bg-black/5 rounded-xl transition-colors cursor-pointer relative z-10"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -163,53 +165,53 @@ function HomeView() {
 
   return (
     <PageLayout activePage="home">
-      {/* 2️⃣ Layer 2: Hero Section */}
-      <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28 z-10">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          {/* Glowing Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 rounded-full text-sm font-bold mb-8 animate-bounce" style={{ animationDuration: '3s' }}>
-            <Sparkles className="w-4 h-4 text-indigo-500" />
-            แพลตฟอร์มการเรียนรู้ยุคใหม่แบบ Interactive Lab
+      {/* 2️⃣ Layer 2: Hero Section (Redesigned) */}
+      <section className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 pt-6 sm:pt-8 pb-16">
+        <div className="relative w-full rounded-[30px] sm:rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden flex flex-col md:flex-row items-center p-8 sm:p-12 md:p-16 lg:p-20 min-h-[400px] md:min-h-[500px]">
+          {/* Background Image & Overlay */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop")' }}
+          />
+          {/* Beautiful Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/95 via-purple-900/80 to-transparent mix-blend-multiply" />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-transparent to-transparent opacity-80" />
+          
+          {/* Content Area (Left-aligned) */}
+          <div className="relative z-10 w-full lg:w-[65%] xl:w-[70%] text-left space-y-5 sm:space-y-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.15]">
+              <span className="text-white drop-shadow-md">ยกระดับทักษะเทคโนโลยีกับ </span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-indigo-300 to-purple-300 drop-shadow-lg">
+                ห้องเรียนครูแม็ค
+              </span>
+            </h1>
+
+            <p className="text-base sm:text-lg md:text-xl text-zinc-200 max-w-lg leading-relaxed drop-shadow-md font-medium">
+              เรียนรู้สนุกกับสื่อ Interactive Lab สังเกตผลลัพธ์แบบเรียลไทม์ เข้าใจง่ายและนำไปใช้ได้จริง
+            </p>
+
+            <div className="pt-2 sm:pt-4 flex items-center gap-4">
+              <button
+                onClick={scrollToCourses}
+                className="cursor-pointer flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-cyan-500 to-indigo-500 text-white rounded-full font-bold text-[15px] sm:text-[16px] shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-98 transition-all duration-300"
+              >
+                เริ่มเรียนรู้รายวิชา
+              </button>
+            </div>
           </div>
 
-          <h1 className="text-[38px] md:text-[62px] font-extrabold mb-6 tracking-tight text-zinc-900 leading-tight">
-            ยกระดับทักษะเทคโนโลยีกับ
-            <span className="block mt-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 pb-2 leading-normal">
-              ห้องเรียนครูแม็ค
-            </span>
-          </h1>
-
-          <p className="text-[17px] md:text-xl text-zinc-650 max-w-3xl mx-auto mb-4 leading-relaxed font-normal">
-            เรียนรู้และสนุกสนานไปกับสื่อการเรียนการสอนเทคโนโลยีสารสนเทศและการเขียนโปรแกรม
-          </p>
-          <p className="text-sm md:text-[16px] text-zinc-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-            ทุกหน่วยเรียนอัดแน่นด้วยแบบจำลองเสมือนจริง (Simulators) ที่กดโต้ตอบได้ สังเกตผลลัพธ์การทำงานแบบเรียลไทม์ เข้าใจเนื้อหาวิชาการได้อย่างรวดเร็วและถูกต้อง
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button
-              onClick={scrollToCourses}
-              className="cursor-pointer group flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-[16px] shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:scale-[1.02] active:scale-98 transition-all duration-200"
-            >
-              เริ่มเรียนรู้รายวิชา
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            
-            <button
-              onClick={() => navigate('/grading')}
-              className="cursor-pointer group flex items-center gap-2 px-8 py-3.5 bg-white text-zinc-750 border border-zinc-200 rounded-2xl font-bold text-[16px] hover:bg-zinc-50 hover:border-indigo-300 hover:text-indigo-600 hover:scale-[1.02] active:scale-98 transition-all duration-200"
-            >
-              <Sliders className="w-5 h-5 text-zinc-400 group-hover:text-indigo-500 transition-colors" />
-              เกณฑ์การประเมินผล
-            </button>
-
-            <button 
-              onClick={() => navigate('/instructor')}
-              className="cursor-pointer group flex items-center gap-2 px-8 py-3.5 bg-white/60 backdrop-blur-md text-slate-650 border border-slate-200/80 rounded-2xl font-bold text-[16px] hover:bg-slate-100/80 hover:border-purple-300 hover:text-purple-600 hover:scale-[1.02] active:scale-98 transition-all duration-200"
-            >
-              <GraduationCap className="w-5 h-5 text-zinc-400 group-hover:text-purple-500 transition-colors" />
-              ข้อมูลผู้สอน
-            </button>
+          {/* Right Floating Element (Like the image) */}
+          <div className="hidden md:flex relative z-10 w-1/2 justify-end">
+            <div className="bg-white/80 backdrop-blur-md border border-white rounded-3xl p-5 shadow-xl flex items-center gap-4 translate-y-12 translate-x-4">
+              <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-zinc-900">เรียนรู้ได้ทุกที่</p>
+                <p className="text-xs text-zinc-500">บทเรียนกว่า 100+ บท</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-zinc-400 ml-4" />
+            </div>
           </div>
         </div>
       </section>
@@ -221,21 +223,29 @@ function HomeView() {
           if (catCourses.length === 0) return null;
 
           return (
-            <section key={cat.key} className="space-y-8">
-              {/* Category Header */}
-              <div className="border-b border-zinc-200/80 pb-4">
-                <div className="flex items-center gap-3 mb-1">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold tracking-wider uppercase bg-gradient-to-r ${cat.gradient} text-white shadow-sm`}>
-                    {cat.label}
-                  </span>
+            <section key={cat.key} className="space-y-6">
+              {/* Category Header (Redesigned like 'Popular Destination') */}
+              <div className="flex items-end justify-between pb-2">
+                <div>
+                  <h2 className="text-[28px] font-extrabold text-zinc-900 leading-tight">
+                    หมวดวิชา{cat.fullLabel}
+                  </h2>
+                  <p className="text-zinc-500 text-sm mt-1">
+                    รายวิชาเรียนในระดับ{cat.fullLabel}
+                  </p>
                 </div>
-                <h3 className="text-[26px] font-semibold text-zinc-900 leading-tight mt-2">
-                  หมวดวิชา{cat.fullLabel}
-                </h3>
+                <div className="hidden md:flex items-center gap-3">
+                  <button className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50 transition-colors cursor-pointer">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button className="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center hover:bg-zinc-800 transition-colors shadow-md cursor-pointer">
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
-              {/* Course Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 w-full">
+              {/* Course Cards Grid (Redesigned to Image-Top, Text-Bottom layout) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
                 {catCourses.map((course, idx) => {
                   const lessonCount = course.chapters.reduce((s, ch) => s + ch.lessons.length, 0);
                   const theme = courseThemes[idx % courseThemes.length];
@@ -244,70 +254,71 @@ function HomeView() {
                     <div
                       key={course.id}
                       onClick={() => navigate(`/course/${course.id}`)}
-                      className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2.5 hover:shadow-2xl hover:border-indigo-500/30 cursor-pointer group flex flex-col justify-between"
+                      className="bg-white rounded-[28px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 overflow-hidden cursor-pointer group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-500 flex flex-col"
                     >
-                      <div>
-                        {/* Gradient Header */}
-                        <div className={`relative h-44 bg-gradient-to-br ${theme.gradient} p-6 flex flex-col justify-end overflow-hidden`}>
-                          <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10 group-hover:scale-125 transition-transform duration-700" />
-                          <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/10 group-hover:scale-110 transition-transform duration-500" />
-                          <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10" />
-                          
-                          {/* Course ID Badge */}
-                          <div className="absolute top-4 left-4 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white/90 text-xs font-bold tracking-wider uppercase">
-                            {course.id}
-                          </div>
-
-                          {/* Emoji icon */}
-                          <div className="text-5xl mb-2 drop-shadow-lg transform group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500">
-                            {course.icon}
-                          </div>
+                      {/* Gradient Header */}
+                      <div className={`relative h-[170px] bg-gradient-to-br ${theme.gradient} p-5 flex flex-col justify-end overflow-hidden`}>
+                        {/* Decorative Circles */}
+                        <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10" />
+                        <div className="absolute top-6 right-6 w-16 h-16 rounded-full bg-white/10" />
+                        
+                        {/* Course ID Badge */}
+                        <div className="absolute top-5 left-5 px-3.5 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-bold tracking-wider">
+                          {course.id}
                         </div>
 
-                        {/* Content */}
-                        <div className="p-6 pt-5 space-y-3">
-                          <h3 className="text-xl font-bold text-zinc-900 leading-snug group-hover:text-indigo-600 transition-colors duration-300">
-                            {course.title}
-                          </h3>
-                          {/* Course ID inline */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono font-bold text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded">
-                              {course.id}
-                            </span>
-                          </div>
-                          <p className="text-zinc-500 text-sm leading-relaxed font-normal line-clamp-2">
-                            {course.description}
-                          </p>
-
-                          {/* Stats row */}
-                          <div className="flex flex-wrap items-center gap-2 pt-2">
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${theme.badge}`}>
-                              <BookOpen className="w-3.5 h-3.5" />
-                              {course.chapters.length} หน่วยเรียน
-                            </span>
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${theme.badge}`}>
-                              <Code2 className="w-3.5 h-3.5" />
-                              {lessonCount} บทเรียน
-                            </span>
-                          </div>
+                        {/* Emoji icon */}
+                        <div className="text-[64px] drop-shadow-xl translate-y-3 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                          {course.icon}
                         </div>
                       </div>
 
-                      {/* CTA Row */}
-                      <div className="px-6 pb-6 pt-4 border-t border-zinc-100/80 flex items-center justify-between">
-                        <div className="flex -space-x-1.5">
+                      {/* Content Area */}
+                      <div className="p-6 pt-7 space-y-4 flex-1 flex flex-col">
+                        <div>
+                          <h3 className="text-[19px] font-extrabold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors duration-300">
+                            {course.title}
+                          </h3>
+                          <p className="text-slate-500 text-[13.5px] leading-relaxed mt-2.5 line-clamp-2">
+                            {course.description}
+                          </p>
+                        </div>
+
+                        {/* Badges */}
+                        <div className="flex flex-wrap gap-2.5 pt-1">
+                          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11.5px] font-bold ${theme.badge}`}>
+                            <BookOpen className="w-3.5 h-3.5" />
+                            {course.chapters.length} หน่วยเรียน
+                          </span>
+                          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11.5px] font-bold ${theme.badge}`}>
+                            <Code2 className="w-3.5 h-3.5" />
+                            {lessonCount} บทเรียนหลัก
+                          </span>
+                          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11.5px] font-bold ${theme.badge}`}>
+                            <Zap className="w-3.5 h-3.5" />
+                            Interactive Lab
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Bottom Footer Area */}
+                      <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
+                        {/* Overlapping Avatars/Dots */}
+                        <div className="flex -space-x-2">
                           {course.chapters.slice(0, 4).map((_, i) => (
-                            <div key={i} className={`w-6 h-6 rounded-full bg-gradient-to-br ${theme.gradient} opacity-${80 - i * 15} border-2 border-white`} />
+                            <div key={i} className={`w-8 h-8 rounded-full bg-gradient-to-br ${theme.gradient} opacity-${90 - i * 10} border-2 border-white shadow-sm`} />
                           ))}
                           {course.chapters.length > 4 && (
-                            <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-[9px] font-bold text-gray-500">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
                               +{course.chapters.length - 4}
                             </div>
                           )}
                         </div>
-                        <div className={`flex items-center gap-1 ${theme.accent} font-bold text-sm group-hover:gap-2 transition-all duration-300`}>
+                        
+                        {/* Call to action */}
+                        <div className={`flex items-center gap-1.5 text-[14px] font-bold ${theme.accent} group-hover:gap-2.5 transition-all duration-300`}>
                           เข้าเรียนเนื้อหา
-                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                          <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </div>

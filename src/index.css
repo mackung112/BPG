@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Noto Sans Thai", sans-serif;
+  --font-sans: "Prompt", "Noto Sans Thai", sans-serif;
   --font-mont: "Montserrat", sans-serif;
 }
 
