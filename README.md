@@ -1,73 +1,16 @@
-# 📚 คู่มือการใช้งานและโครงสร้างโปรเจกต์ "ห้องเรียนครูแม็ค"
+# React + Vite
 
-ยินดีด้วย! เว็บไซต์ศูนย์รวมบทเรียน (Learning Portal) ของคุณพร้อมใช้งานแล้ว ไฟล์นี้คือคู่มือสำหรับคุณเพื่อใช้ในการอัปเดตเนื้อหา จัดการรายวิชา และรันเว็บไซต์
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
----
+Currently, two official plugins are available:
 
-## 📂 โครงสร้างโฟลเดอร์ที่สำคัญ (Project Structure)
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-ภายในโฟลเดอร์ `d:\BPG` มีโฟลเดอร์และไฟล์สำคัญที่คุณต้องรู้ดังนี้:
+## React Compiler
 
-```text
-/ (โฟลเดอร์หลัก D:\BPG)
-│
-├── public/                  
-│   └── simulators/          👈 โฟลเดอร์สำคัญ: คุณต้องเอาไฟล์ HTML Simulator มาวางที่นี่
-│       └── physics-1/       (ตัวอย่างโฟลเดอร์วิชา)
-│           └── ticker-timer/ (ตัวอย่างโฟลเดอร์บทเรียน ที่มีไฟล์ index.html)
-│
-├── src/                     
-│   ├── data/                
-│   │   └── curriculum.json  👈 ไฟล์สำคัญ: ฐานข้อมูลตั้งค่ารายวิชาและบทเรียน
-│   │
-│   ├── components/          (โฟลเดอร์เก็บโค้ดชิ้นส่วนหน้าเว็บ เช่น Navbar, Sidebar)
-│   ├── pages/               (โฟลเดอร์เก็บโค้ดหน้าเว็บหลัก เช่น Home, LessonViewer)
-│   └── index.css            (ไฟล์ปรับแต่งสีสัน ดีไซน์ และฟอนต์)
-│
-├── package.json             (ไฟล์ตั้งค่าโปรเจกต์ React)
-└── README.md                (ไฟล์คู่มือที่คุณกำลังอ่านอยู่นี้)
-```
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
----
+## Expanding the ESLint configuration
 
-## 🛠️ วิธีการเพิ่มเนื้อหา (How to add content)
-
-### 1. การเพิ่มไฟล์ Simulator
-1. นำโฟลเดอร์งาน Simulator ของคุณ (ที่มีไฟล์ `index.html`, `css`, `js`) 
-2. ไปวางไว้ในโฟลเดอร์ `public/simulators/` 
-3. *แนะนำ: ควรตั้งชื่อโฟลเดอร์เป็นภาษาอังกฤษและไม่มีช่องว่าง เช่น `math-m4` หรือ `force-sim` เพื่อให้ลิ้งก์ไม่พัง*
-
-### 2. การเพิ่ม/แก้ไข รายวิชาและบทเรียน
-1. เปิดไฟล์ `src/data/curriculum.json` ในโปรแกรมแก้ไขข้อความ (เช่น VS Code หรือ Notepad)
-2. โครงสร้างไฟล์จะเป็นรูปแบบ JSON ซึ่งแบ่งเป็น `categories` (ระดับชั้น) -> `subjects` (วิชา) -> `chapters` (บทที่) -> `lessons` (บทเรียน)
-3. หากต้องการเพิ่มบทเรียนใหม่ ให้ copy โครงสร้างบทเรียนเดิมแล้วเปลี่ยนค่า:
-   ```json
-   {
-     "id": "รหัสบทเรียน (ห้ามซ้ำกัน)",
-     "name": "ชื่อบทเรียน",
-     "type": "simulator",
-     "contentUrl": "/simulators/โฟลเดอร์ของคุณ/index.html", 
-     "description": "คำอธิบายเนื้อหาสั้นๆ"
-   }
-   ```
-   *(หมายเหตุ: `contentUrl` สามารถใส่เป็นลิงก์เว็บไซต์ภายนอก เช่น `https://phet.colorado.edu/...` ได้เช่นกัน)*
-
----
-
-## 🚀 วิธีเปิดใช้งานเว็บไซต์ (How to run)
-
-หากคุณปิดโปรแกรมไปแล้วและต้องการเปิดเว็บไซต์ขึ้นมาดูใหม่ ให้ทำตามนี้:
-
-1. เปิดโปรแกรม Terminal (หรือ Command Prompt / PowerShell)
-2. พิมพ์คำสั่งเข้าไปที่โฟลเดอร์โปรเจกต์:
-   `cd d:\BPG`
-3. พิมพ์คำสั่งรันเซิร์ฟเวอร์:
-   `npm run dev`
-4. จากนั้นเปิด Web Browser (เช่น Google Chrome) แล้วพิมพ์ URL: **http://localhost:5173**
-
----
-
-**ถ้าต้องการแก้โค้ดลึกๆ:**
-- อยากเปลี่ยนสี หรือฟอนต์: แก้ที่ `src/index.css`
-- อยากแก้หน้าแรก: แก้ที่ `src/pages/Home.jsx`
-- อยากแก้หน้าต่างเรียน: แก้ที่ `src/pages/LessonViewer.jsx`
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

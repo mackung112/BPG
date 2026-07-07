@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Python OOP | เรียนรู้ด้วย Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Inter', 'Sarabun', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Gradients & Interactive Cards */
+        .text-gradient {
+            background: linear-gradient(135deg, #2563eb, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #0f172a, #1e3a8a, #3b82f6);
+            background-size: 200% 200%;
+            animation: gradientMove 15s ease infinite;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .hover-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* IDE Code Block Styling */
+        .ide-container {
+            background-color: #1e1e2e;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            border: 1px solid #313244;
+        }
+        .ide-header { background-color: #181825; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .mac-btn { width: 12px; height: 12px; border-radius: 50%; }
+        .mac-close { background-color: #ff5f56; }
+        .mac-min { background-color: #ffbd2e; }
+        .mac-max { background-color: #27c93f; }
+        .ide-body { padding: 1.5rem; color: #cdd6f4; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; line-height: 1.6; overflow-x: auto; }
+        .syn-keyword { color: #cba6f7; font-weight: bold; }
+        .syn-class { color: #f9e2af; }
+        .syn-func { color: #89b4fa; }
+        .syn-string { color: #a6e3a1; }
+        .syn-comment { color: #6c7086; font-style: italic; }
+        .syn-self { color: #f38ba8; }
+
+        /* CSS Animations for Mini Simulator */
+        .stage-bg { 
+            background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px); 
+            background-size: 20px 20px; 
+        }
+        .car-chassis { transition: background-color 0.4s ease; }
+        
+        /* Class State (Blueprint) */
+        .state-class .car-chassis { border: 2px dashed #60a5fa; background: transparent !important; }
+        .state-class .car-wheel { border: 2px dashed #60a5fa; background: transparent !important; }
+        .state-class .car-window { border: 2px dashed #60a5fa; background: transparent !important; }
+        
+        /* Object State (Solid) */
+        .state-object .car-chassis { border: none; }
+        .state-object .car-wheel { background: #1e293b; border: 2px solid #0f172a; }
+        .state-object .car-window { background: #94a3b8; border: none; }
+        
+        .anim-drop { animation: dropIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes dropIn { 
+            0% { transform: translateY(-100px) scale(0.8); opacity: 0; } 
+            100% { transform: translateY(0) scale(1); opacity: 1; } 
+        }
+
+        .anim-shake { animation: engineShake 0.4s infinite; }
+        @keyframes engineShake { 
+            0%, 100% { transform: translateY(0); } 
+            50% { transform: translateY(-3px); } 
+        }
+
+        .anim-drive { animation: driveOff 1.5s ease-in forwards; }
+        @keyframes driveOff { 
+            0% { transform: translateX(0); } 
+            20% { transform: translateX(-15px) rotate(-3deg); } 
+            100% { transform: translateX(400px) rotate(5deg); opacity: 0; } 
+        }
+
+        /* Toast Animation */
+        .toast-enter { animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .toast-exit { animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes slideIn { from { transform: translateY(100%) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(100%) scale(0.9); opacity: 0; } }
+    </style>
+</head>
+<body class="text-gray-800 antialiased pb-24">
+
+    <!-- Hero Section -->
+    <header class="bg-gradient-primary text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="max-w-6xl mx-auto px-4 py-24 relative z-10 text-center">
+            <div class="inline-block bg-white/10 backdrop-blur-md rounded-full px-5 py-2 text-sm font-semibold tracking-wide mb-6 border border-white/20 shadow-xl">
+                🐍 PYTHON MASTERY CLASS
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight drop-shadow-lg">
+                เข้าใจ <span class="text-yellow-400">OOP</span> ใน 10 นาที
+            </h1>
+            <p class="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto font-light leading-relaxed">
+                เรียนรู้ "การเขียนโปรแกรมเชิงวัตถุ" ฉบับคนไม่มีพื้นฐาน <br class="hidden md:block">
+                เปลี่ยนเรื่องนามธรรมให้จับต้องได้ผ่าน <strong class="text-white">Interactive Simulator</strong>
+            </p>
+        </div>
+        <!-- Decorative SVG Wave -->
+        <div class="absolute bottom-0 w-full overflow-hidden leading-[0]">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" class="relative block w-full h-[60px] md:h-[90px]">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118,130.83,121.28,198.71,113.57,243.68,108.47,284.99,78.6,321.39,56.44Z" fill="#f8fafc"></path>
+            </svg>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 -mt-8 relative z-20">
+
+        <!-- ส่วนที่ 1: พื้นฐาน 4 อย่างของ OOP (Interactive Mini-Simulator) -->
+        <section class="mb-20">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mb-4 shadow-inner">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">จำลอง 4 องค์ประกอบพื้นฐาน</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto text-lg">ลองคลิกที่หัวข้อด้านซ้าย แล้วดูการจำลองการทำงานด้านขวา เพื่อทำความเข้าใจความสัมพันธ์ของแต่ละหัวข้อ</p>
+            </div>
+            
+            <div class="bg-white rounded-3xl p-3 shadow-xl border border-gray-100">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Left: 4 Concept Buttons -->
+                    <div class="lg:col-span-5 flex flex-col gap-3 p-3">
+                        <button onclick="setConceptState('class')" id="btn-class" class="concept-btn text-left bg-blue-50 rounded-2xl p-5 border-2 border-blue-400 ring-4 ring-blue-100 transition-all focus:outline-none relative overflow-hidden group">
+                            <div class="flex gap-4 items-start relative z-10">
+                                <div class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-2xl flex-shrink-0">📝</div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700">Class (คลาส)</h3>
+                                    <p class="text-sm text-gray-600">พิมพ์เขียวหรือแม่พิมพ์ เอาไว้กำหนดว่าสิ่งของที่เราจะสร้างมีหน้าตาและทำงานอย่างไร</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onclick="setConceptState('object')" id="btn-object" class="concept-btn text-left bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-gray-300 transition-all focus:outline-none group">
+                            <div class="flex gap-4 items-start">
+                                <div class="w-12 h-12 rounded-xl bg-gray-50 shadow-sm flex items-center justify-center text-2xl flex-shrink-0">🚗</div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700">Object (อ็อบเจกต์)</h3>
+                                    <p class="text-sm text-gray-600">สิ่งของตัวเป็นๆ ที่ถูกสร้างออกมาจากแม่พิมพ์นั้น สามารถจับต้องและใช้งานได้จริง</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onclick="setConceptState('attribute')" id="btn-attribute" class="concept-btn text-left bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-gray-300 transition-all focus:outline-none group">
+                            <div class="flex gap-4 items-start">
+                                <div class="w-12 h-12 rounded-xl bg-gray-50 shadow-sm flex items-center justify-center text-2xl flex-shrink-0">🎨</div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700">Attribute (คุณสมบัติ)</h3>
+                                    <p class="text-sm text-gray-600">ลักษณะประจำตัว เป็นข้อมูลที่เก็บไว้ในตัวมัน (เช่น สี, ยี่ห้อ, จำนวนล้อ)</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onclick="setConceptState('method')" id="btn-method" class="concept-btn text-left bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-gray-300 transition-all focus:outline-none group">
+                            <div class="flex gap-4 items-start">
+                                <div class="w-12 h-12 rounded-xl bg-gray-50 shadow-sm flex items-center justify-center text-2xl flex-shrink-0">⚙️</div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-700">Method (พฤติกรรม)</h3>
+                                    <p class="text-sm text-gray-600">การกระทำที่สิ่งของนั้นสามารถทำได้ หรือฟังก์ชันของมัน (เช่น สตาร์ทเครื่อง, เร่ง)</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Right: Simulation Stage -->
+                    <div class="lg:col-span-7 bg-slate-900 rounded-[2rem] p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[450px] shadow-inner stage-bg border-4 border-slate-800">
+                        <!-- Dynamic Content Target -->
+                        <div id="concept-stage" class="w-full h-full flex flex-col items-center justify-center z-10 relative">
+                            <!-- Injected by JavaScript on load -->
+                        </div>
+                        
+                        <!-- Grid decorative overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80 pointer-events-none"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ส่วนที่ 2: เสาหลักทั้ง 4 ของ OOP (The 4 Pillars) -->
+        <section class="mb-20">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-gradient">4 เสาหลักของการออกแบบ (4 Pillars)</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto text-lg">หัวใจสำคัญที่ทำให้การเขียนโค้ดแบบ OOP ทรงพลัง ปลอดภัย และนำกลับมาใช้ใหม่ได้ง่าย</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Pillar 1 -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover-card">
+                    <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner">💊</div>
+                    <h4 class="text-xl font-bold text-gray-800 mb-3">1. Encapsulation (การซ่อนข้อมูล)</h4>
+                    <p class="text-gray-600 leading-relaxed">
+                        การห่อหุ้มข้อมูลสำคัญไว้ข้างใน เหมือน <strong>เครื่องยนต์รถ</strong> ที่ถูกซ่อนไว้ใต้ฝากระโปรง คุณแค่เหยียบคันเร่ง (Method) รถก็วิ่ง โดยไม่ต้องเข้าไปยุ่งกับกลไกภายใน ช่วยป้องกันข้อผิดพลาด
+                    </p>
+                </div>
+                <!-- Pillar 2 -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover-card">
+                    <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner">🧬</div>
+                    <h4 class="text-xl font-bold text-gray-800 mb-3">2. Inheritance (การสืบทอด)</h4>
+                    <p class="text-gray-600 leading-relaxed">
+                        การนำคลาสเดิมมาสร้างคลาสใหม่พร้อมฟีเจอร์เพิ่ม เหมือนสร้างแม่พิมพ์ <strong>"รถสปอร์ต"</strong> ที่สืบทอดฟังก์ชันพื้นฐานมาจาก "รถยนต์ทั่วไป" แต่เติมระบบเทอร์โบเข้าไป ลดการเขียนโค้ดซ้ำซ้อน
+                    </p>
+                </div>
+                <!-- Pillar 3 -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover-card">
+                    <div class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner">🎭</div>
+                    <h4 class="text-xl font-bold text-gray-800 mb-3">3. Polymorphism (การหลายรูปแบบ)</h4>
+                    <p class="text-gray-600 leading-relaxed">
+                        คำสั่งเดียวกัน แต่อ็อบเจกต์ตอบสนองไม่เหมือนกัน เช่น สั่ง <strong>"เร่งเครื่อง"</strong> รถทั่วไปอาจจะค่อยๆ ไป แต่ถ้ารถสปอร์ตจะพุ่งตัวแรง (ดูได้ใน Simulator ด้านล่าง!) ชื่อคำสั่งเหมือนกันแต่ผลลัพธ์ต่างกัน
+                    </p>
+                </div>
+                <!-- Pillar 4 -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover-card">
+                    <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner">🎛️</div>
+                    <h4 class="text-xl font-bold text-gray-800 mb-3">4. Abstraction (การนามธรรม)</h4>
+                    <p class="text-gray-600 leading-relaxed">
+                        การแสดงให้ผู้ใช้เห็นเฉพาะส่วนที่จำเป็นต้องใช้งาน เหมือน <strong>พวงมาลัยและเบรก</strong> คุณแค่รู้ว่าหมุนซ้ายคือเลี้ยวซ้าย โดยไม่ต้องเข้าใจวงจรไฟฟ้าสลับซับซ้อนที่ควบคุมล้ออยู่เบื้องหลัง
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ส่วนที่ 3: โค้ด Python เสมือนจริง -->
+        <section class="mb-20 relative">
+            <div class="absolute inset-0 bg-blue-50 transform -skew-y-2 z-0 rounded-3xl"></div>
+            <div class="relative z-10 py-12 px-4 text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">หน้าตาโค้ดภาษา Python จริง 💻</h2>
+                <div class="ide-container max-w-3xl mx-auto text-left">
+                    <div class="ide-header">
+                        <div class="mac-btn mac-close"></div>
+                        <div class="mac-btn mac-min"></div>
+                        <div class="mac-btn mac-max"></div>
+                        <div class="ml-4 text-gray-400 text-xs font-mono">main.py</div>
+                    </div>
+                    <div class="ide-body">
+<span class="syn-comment"># 1. การสร้าง Class (Blueprint)</span>
+<span class="syn-keyword">class</span> <span class="syn-class">Car</span>:
+    <span class="syn-comment"># Method กำหนด Attribute เริ่มต้น</span>
+    <span class="syn-keyword">def</span> <span class="syn-func">__init__</span>(<span class="syn-self">self</span>, brand, color):
+        <span class="syn-self">self</span>.brand = brand      <span class="syn-comment"># Attribute: ยี่ห้อ</span>
+        <span class="syn-self">self</span>.color = color      <span class="syn-comment"># Attribute: สี</span>
+        <span class="syn-self">self</span>.speed = <span class="syn-string">0</span>          <span class="syn-comment"># Attribute: ความเร็ว</span>
+
+    <span class="syn-comment"># Method สำหรับทำงาน (Action)</span>
+    <span class="syn-keyword">def</span> <span class="syn-func">accelerate</span>(<span class="syn-self">self</span>):
+        <span class="syn-self">self</span>.speed += <span class="syn-string">10</span>
+        <span class="syn-func">print</span>(<span class="syn-string">f"รถ {<span class="syn-self">self</span>.brand} เร่งไปที่ {<span class="syn-self">self</span>.speed} กม./ชม."</span>)
+
+<span class="syn-comment"># 2. การสร้าง Object ตัวเป็นๆ</span>
+my_car = <span class="syn-class">Car</span>(<span class="syn-string">"Honda"</span>, <span class="syn-string">"Red"</span>)
+
+<span class="syn-comment"># 3. เรียกใช้งาน Method ให้อ็อบเจกต์ขับเคลื่อน</span>
+my_car.<span class="syn-func">accelerate</span>() 
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ส่วนที่ 4: Simulator (สาธิต Inheritance & Objects) -->
+        <section id="simulator" class="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden mb-10">
+            <div class="bg-slate-900 p-8 text-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-3 relative z-10">🏭 ระบบโรงงานสร้างรถ</h2>
+                <p class="text-slate-300 relative z-10">ทดลองสร้างหลายๆ Object และดูข้อแตกต่างของ Class ที่มี Inheritance</p>
+            </div>
+            
+            <div class="p-8 md:p-10 bg-slate-50">
+                <!-- แผงควบคุม (Form) -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 max-w-4xl mx-auto mb-10 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">ประเภทรถ (Class)</label>
+                        <select id="carType" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                            <option value="normal">🚗 คลาสรถปกติ (Car)</option>
+                            <option value="sports">🏎️ คลาสรถสปอร์ต (SportsCar)</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">ยี่ห้อ (Brand)</label>
+                        <input type="text" id="brandInput" placeholder="เช่น Toyota" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">สี (Color)</label>
+                        <input type="text" id="colorInput" placeholder="เช่น แดง, ดำ" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                    </div>
+                    <div class="md:col-span-1">
+                        <button onclick="createNewCar()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg shadow-slate-500/30 flex items-center justify-center gap-2">
+                            <span>สร้างอ็อบเจกต์</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- พื้นที่แสดงรถ (Garage) -->
+                <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-3">
+                    <h3 class="font-bold text-xl text-gray-800 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        โรงจอดรถ (อ็อบเจกต์ทั้งหมด)
+                    </h3>
+                    <span class="text-sm font-bold text-blue-700 bg-blue-100 px-4 py-1.5 rounded-full" id="carCount">มีรถ 0 คัน</span>
+                </div>
+                
+                <div id="carGarage" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Default Empty State -->
+                    <div id="emptyMessage" class="col-span-full flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-3xl border-2 border-dashed border-gray-300 shadow-sm">
+                        <div class="text-6xl mb-4 grayscale opacity-40">🏗️</div>
+                        <p class="font-bold text-xl text-gray-500 mb-1">ยังไม่มีอ็อบเจกต์ถูกสร้างขึ้น</p>
+                        <p class="text-sm">กรอกข้อมูลและกดปุ่ม "สร้างอ็อบเจกต์" ด้านบน เพื่อนำพิมพ์เขียวมาสร้างรถจริง</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ระบบแจ้งเตือน (Toast Notification) -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3"></div>
+
+    <script>
+        // --- ส่วนจำลอง Mini-Simulator (Section 1) ---
+        let currentCarColor = '#94a3b8'; // สี Default
+        let currentCarBrand = 'โลโก้';
+
+        function setConceptState(state) {
+            // อัปเดตสไตล์ของปุ่ม (UI Active State)
+            document.querySelectorAll('.concept-btn').forEach(btn => {
+                btn.classList.remove('ring-4', 'ring-blue-100', 'border-blue-400', 'bg-blue-50');
+                btn.classList.add('border-gray-100', 'bg-white');
+            });
+            const activeBtn = document.getElementById(`btn-` + state);
+            activeBtn.classList.remove('border-gray-100', 'bg-white');
+            activeBtn.classList.add('ring-4', 'ring-blue-100', 'border-blue-400', 'bg-blue-50');
+
+            // อัปเดตหน้าจอ Stage
+            const stage = document.getElementById('concept-stage');
+            let html = '';
+
+            if (state === 'class') {
+                html = `
+                    <div class="absolute top-6 left-6 text-white/50 text-xs font-mono font-bold tracking-widest uppercase">STATE: BLUEPRINT</div>
+                    <div class="text-center text-blue-300 mb-8 font-mono text-sm bg-blue-900/40 py-1.5 px-6 rounded-full border border-blue-500/30 shadow-lg">class Car:</div>
+                    
+                    <div class="relative w-56 h-28 mx-auto state-class drop-shadow-[0_0_15px_rgba(96,165,250,0.5)]">
+                        <!-- ตัวถัง -->
+                        <div class="absolute bottom-14 left-10 w-32 h-14 rounded-t-3xl car-chassis"></div>
+                        <div class="absolute bottom-4 left-0 w-full h-14 rounded-2xl car-chassis flex items-center justify-center border-dashed">
+                            <span class="text-blue-400 font-mono text-sm tracking-widest">BLUEPRINT</span>
+                        </div>
+                        <!-- ล้อ -->
+                        <div class="absolute bottom-0 left-6 w-12 h-12 rounded-full car-wheel"></div>
+                        <div class="absolute bottom-0 right-6 w-12 h-12 rounded-full car-wheel"></div>
+                    </div>
+                    
+                    <div class="mt-10 max-w-sm text-center">
+                        <h4 class="text-blue-400 font-bold text-lg mb-2">นี่คือโครงร่าง (แม่พิมพ์)</h4>
+                        <p class="text-slate-400 text-sm leading-relaxed">มันเป็นแค่นามธรรมที่กำหนดว่า "รถควรมีหน้าตาแบบไหน" แต่มันยังไม่มีตัวตนจริงๆ และขับไม่ได้</p>
+                    </div>
+                `;
+            } else if (state === 'object') {
+                html = `
+                    <div class="absolute top-6 left-6 text-white/50 text-xs font-mono font-bold tracking-widest uppercase">STATE: INSTANCE</div>
+                    <div class="text-center text-emerald-300 mb-8 font-mono text-sm bg-emerald-900/40 py-1.5 px-6 rounded-full border border-emerald-500/30 shadow-lg">my_car = Car()</div>
+                    
+                    <div class="relative w-56 h-28 mx-auto state-object anim-drop drop-shadow-2xl">
+                        <div class="absolute bottom-14 left-10 w-32 h-14 rounded-t-3xl car-chassis bg-slate-400"></div>
+                        <div class="absolute bottom-4 left-0 w-full h-14 rounded-2xl car-chassis bg-slate-400"></div>
+                        <div class="absolute bottom-16 left-14 w-10 h-10 rounded-tl-2xl car-window"></div>
+                        <div class="absolute bottom-16 right-16 w-10 h-10 rounded-tr-2xl car-window"></div>
+                        <div class="absolute bottom-0 left-6 w-12 h-12 rounded-full car-wheel"></div>
+                        <div class="absolute bottom-0 right-6 w-12 h-12 rounded-full car-wheel"></div>
+                    </div>
+                    
+                    <div class="mt-10 max-w-sm text-center anim-drop" style="animation-delay: 0.3s">
+                        <h4 class="text-emerald-400 font-bold text-lg mb-2">รถคันจริงถูกสร้างแล้ว!</h4>
+                        <p class="text-slate-400 text-sm leading-relaxed">เรานำแม่พิมพ์มาหล่อเป็นอ็อบเจกต์ 1 ชิ้น ตอนนี้มันมีตัวตน จับต้องได้ และถูกเก็บไว้ในหน่วยความจำเครื่อง</p>
+                    </div>
+                `;
+            } else if (state === 'attribute') {
+                html = `
+                    <div class="absolute top-6 left-6 text-white/50 text-xs font-mono font-bold tracking-widest uppercase">STATE: PROPERTIES</div>
+                    <div class="text-center text-pink-300 mb-8 font-mono text-sm bg-pink-900/40 py-1.5 px-6 rounded-full border border-pink-500/30 shadow-lg transition-all" id="attr-code">
+                        my_car.color = "${currentCarColor === '#94a3b8' ? 'Grey' : 'Custom'}"
+                    </div>
+                    
+                    <div class="relative w-56 h-28 mx-auto state-object drop-shadow-2xl transition-all" id="attr-car">
+                        <div class="absolute bottom-14 left-10 w-32 h-14 rounded-t-3xl car-chassis" style="background-color: ${currentCarColor}"></div>
+                        <div class="absolute bottom-4 left-0 w-full h-14 rounded-2xl car-chassis flex items-center justify-center" style="background-color: ${currentCarColor}">
+                            <span class="text-white font-bold text-xs bg-black/30 px-3 py-1 rounded shadow-inner" id="car-badge">${currentCarBrand}</span>
+                        </div>
+                        <div class="absolute bottom-16 left-14 w-10 h-10 rounded-tl-2xl car-window"></div>
+                        <div class="absolute bottom-16 right-16 w-10 h-10 rounded-tr-2xl car-window"></div>
+                        <div class="absolute bottom-0 left-6 w-12 h-12 rounded-full car-wheel"></div>
+                        <div class="absolute bottom-0 right-6 w-12 h-12 rounded-full car-wheel"></div>
+                    </div>
+                    
+                    <div class="mt-8 flex flex-col items-center gap-4 w-full max-w-xs mx-auto bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
+                        <p class="text-slate-300 text-xs font-bold uppercase tracking-wider mb-1">กำหนดคุณสมบัติ</p>
+                        <div class="flex gap-3">
+                            <button onclick="updateAttr('color', '#ef4444', 'Red')" class="w-10 h-10 rounded-full bg-red-500 ring-2 ring-transparent hover:ring-white/50 hover:scale-110 transition-all shadow-lg"></button>
+                            <button onclick="updateAttr('color', '#3b82f6', 'Blue')" class="w-10 h-10 rounded-full bg-blue-500 ring-2 ring-transparent hover:ring-white/50 hover:scale-110 transition-all shadow-lg"></button>
+                            <button onclick="updateAttr('color', '#eab308', 'Yellow')" class="w-10 h-10 rounded-full bg-yellow-400 ring-2 ring-transparent hover:ring-white/50 hover:scale-110 transition-all shadow-lg"></button>
+                            <button onclick="updateAttr('color', '#10b981', 'Green')" class="w-10 h-10 rounded-full bg-emerald-500 ring-2 ring-transparent hover:ring-white/50 hover:scale-110 transition-all shadow-lg"></button>
+                        </div>
+                        <input type="text" placeholder="พิมพ์ยี่ห้อรถตรงนี้..." maxlength="8" oninput="updateAttr('brand', this.value)" class="w-full mt-2 px-4 py-2 text-sm rounded-xl bg-slate-900 text-white border border-slate-600 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 text-center font-bold">
+                    </div>
+                `;
+            } else if (state === 'method') {
+                const displayColor = currentCarColor === '#94a3b8' ? '#ef4444' : currentCarColor; 
+                const displayBrand = currentCarBrand === 'โลโก้' ? 'BMW' : currentCarBrand;
+
+                html = `
+                    <div class="absolute top-6 left-6 text-white/50 text-xs font-mono font-bold tracking-widest uppercase">STATE: ACTION</div>
+                    <div class="text-center text-amber-300 mb-8 font-mono text-sm bg-amber-900/40 py-1.5 px-6 rounded-full border border-amber-500/30 shadow-lg" id="method-code">
+                        รอการเรียกคำสั่ง...
+                    </div>
+                    
+                    <div class="relative w-56 h-28 mx-auto state-object drop-shadow-2xl" id="method-car">
+                        <div class="absolute bottom-14 left-10 w-32 h-14 rounded-t-3xl car-chassis" style="background-color: ${displayColor}"></div>
+                        <div class="absolute bottom-4 left-0 w-full h-14 rounded-2xl car-chassis flex items-center justify-center" style="background-color: ${displayColor}">
+                            <span class="text-white font-bold text-xs bg-black/30 px-3 py-1 rounded shadow-inner">${displayBrand}</span>
+                        </div>
+                        <div class="absolute bottom-16 left-14 w-10 h-10 rounded-tl-2xl car-window"></div>
+                        <div class="absolute bottom-16 right-16 w-10 h-10 rounded-tr-2xl car-window"></div>
+                        <div class="absolute bottom-0 left-6 w-12 h-12 rounded-full car-wheel"></div>
+                        <div class="absolute bottom-0 right-6 w-12 h-12 rounded-full car-wheel"></div>
+                        
+                        <!-- Exhaust Smoke -->
+                        <div id="exhaust" class="absolute bottom-6 -left-8 w-12 h-12 bg-gray-300 rounded-full opacity-0 blur-md transition-opacity duration-300"></div>
+                        <div id="exhaust2" class="absolute bottom-4 -left-12 w-16 h-16 bg-gray-400 rounded-full opacity-0 blur-lg transition-opacity duration-300"></div>
+                    </div>
+                    
+                    <div class="mt-12 flex gap-4 justify-center w-full max-w-sm">
+                        <button onclick="triggerCarMethod('start')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-xl font-bold border border-slate-600 transition-colors shadow-lg flex flex-col items-center gap-1">
+                            <span class="text-xl">🔑</span>
+                            <span class="text-xs">สตาร์ทเครื่อง</span>
+                        </button>
+                        <button onclick="triggerCarMethod('drive')" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white px-4 py-3 rounded-xl font-bold shadow-lg shadow-orange-500/30 transition-all hover:scale-105 flex flex-col items-center gap-1">
+                            <span class="text-xl">💨</span>
+                            <span class="text-xs">เร่งความเร็ว!</span>
+                        </button>
+                    </div>
+                `;
+            }
+            stage.innerHTML = html;
+        }
+
+        // Functions for Mini-Simulator Interactivity
+        function updateAttr(type, value, nameStr) {
+            if(type === 'color') {
+                currentCarColor = value;
+                document.querySelectorAll('#attr-car .car-chassis').forEach(el => el.style.backgroundColor = value);
+                document.getElementById('attr-code').innerText = 'my_car.color = "' + nameStr + '"';
+            } else if(type === 'brand') {
+                currentCarBrand = value || 'ไม่มีโลโก้';
+                document.getElementById('car-badge').innerText = currentCarBrand;
+                document.getElementById('attr-code').innerText = 'my_car.brand = "' + currentCarBrand + '"';
+            }
+        }
+
+        function triggerCarMethod(action) {
+            const car = document.getElementById('method-car');
+            const code = document.getElementById('method-code');
+            const exhaust = document.getElementById('exhaust');
+            const exhaust2 = document.getElementById('exhaust2');
+            
+            if(action === 'start') {
+                code.innerText = 'my_car.start_engine()';
+                car.classList.add('anim-shake');
+                exhaust.style.opacity = '0.4';
+                exhaust2.style.opacity = '0.2';
+                setTimeout(() => { 
+                    car.classList.remove('anim-shake'); 
+                    exhaust.style.opacity = '0';
+                    exhaust2.style.opacity = '0';
+                }, 800);
+            } else if(action === 'drive') {
+                code.innerText = 'my_car.accelerate()';
+                car.classList.add('anim-drive');
+                setTimeout(() => {
+                    car.classList.remove('anim-drive');
+                    car.style.opacity = '0';
+                    setTimeout(() => { car.style.opacity = '1'; }, 50); // Reset position
+                }, 1500);
+            }
+        }
+
+        // --- ส่วนจำลอง โรงงานสร้างรถใหญ่ (Section 4) ---
+        
+        class Car {
+            constructor(brand, color, id) {
+                this.id = id;
+                this.brand = brand;
+                this.color = color;
+                this.speed = 0; 
+                this.type = "Car พื้นฐาน";
+                this.icon = "🚗";
+                this.themeColor = "blue";
+            }
+            accelerate() {
+                this.speed += 10;
+                return 'พุ่งไปข้างหน้า +10 กม./ชม.';
+            }
+        }
+
+        class SportsCar extends Car {
+            constructor(brand, color, id) {
+                super(brand, color, id); 
+                this.type = "Sports Car (สืบทอด)";
+                this.icon = "🏎️";
+                this.themeColor = "red";
+            }
+            // Polymorphism
+            accelerate() {
+                this.speed += 30;
+                return 'เครื่องเทอร์โบแรง! +30 กม./ชม.';
+            }
+        }
+
+        let cars = [];
+        let carCounter = 0;
+
+        function showToast(title, message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const isSuccess = type === 'success';
+            const bgColor = isSuccess ? 'bg-white' : 'bg-red-50';
+            const borderColor = isSuccess ? 'border-green-500' : 'border-red-500';
+            const icon = isSuccess ? '<span class="text-green-500 text-xl">✅</span>' : '<span class="text-red-500 text-xl">⚠️</span>';
+            
+            toast.className = bgColor + ' border-l-4 ' + borderColor + ' text-gray-800 p-4 pr-6 rounded-r-xl shadow-2xl flex items-start gap-3 toast-enter min-w-[280px]';
+            toast.innerHTML = `
+                <div class="mt-0.5">` + icon + `</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-900">` + title + `</h4>
+                    <p class="text-xs text-gray-500 mt-1">` + message + `</p>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.replace('toast-enter', 'toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function createNewCar() {
+            const typeInput = document.getElementById('carType').value;
+            const brandInput = document.getElementById('brandInput').value.trim();
+            const colorInput = document.getElementById('colorInput').value.trim();
+
+            if (!brandInput || !colorInput) {
+                showToast("ข้อมูลไม่ครบถ้วน", "กรุณากรอก ยี่ห้อ และ สี ก่อนกดสร้างอ็อบเจกต์ครับ", "error");
+                return;
+            }
+
+            carCounter++;
+            let newCar;
+            if (typeInput === 'sports') {
+                newCar = new SportsCar(brandInput, colorInput, carCounter);
+            } else {
+                newCar = new Car(brandInput, colorInput, carCounter);
+            }
+            cars.push(newCar);
+
+            document.getElementById('brandInput').value = '';
+            document.getElementById('colorInput').value = '';
+
+            showToast("สร้าง Object สำเร็จ", "ดึงแม่พิมพ์มาสร้างรถ " + newCar.brand + " สำเร็จแล้ว ไปดูที่โรงจอดรถได้เลย");
+            renderGarage();
+        }
+
+        function triggerAccelerate(carId) {
+            const car = cars.find(c => c.id === carId);
+            if (car) {
+                const msg = car.accelerate(); 
+                showToast("เรียกใช้ Method", "รถ " + car.brand + " " + msg);
+                renderGarage();
+            }
+        }
+
+        function renderGarage() {
+            const garageDiv = document.getElementById('carGarage');
+            const countBadge = document.getElementById('carCount');
+            
+            garageDiv.innerHTML = '';
+            countBadge.innerText = 'มีรถ ' + cars.length + ' คัน';
+
+            if (cars.length === 0) {
+                garageDiv.innerHTML = `
+                    <div id="emptyMessage" class="col-span-full flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-3xl border-2 border-dashed border-gray-300 shadow-sm">
+                        <div class="text-6xl mb-4 grayscale opacity-40">🏗️</div>
+                        <p class="font-bold text-xl text-gray-500 mb-1">ยังไม่มีอ็อบเจกต์ถูกสร้างขึ้น</p>
+                        <p class="text-sm">กรอกข้อมูลและกดปุ่ม "สร้างอ็อบเจกต์" ด้านบน เพื่อนำพิมพ์เขียวมาสร้างรถจริง</p>
+                    </div>`;
+                return;
+            }
+
+            cars.forEach(car => {
+                const card = document.createElement('div');
+                const isSport = car.themeColor === 'red';
+                
+                const gradientHead = isSport ? 'bg-gradient-to-br from-red-500 to-rose-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600';
+                const speedText = isSport ? 'text-red-600' : 'text-blue-600';
+                const btnColor = isSport ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700';
+
+                card.className = "bg-white rounded-[1.5rem] border border-gray-100 shadow-lg hover-card flex flex-col h-full overflow-hidden";
+                
+                card.innerHTML = `
+                    <div class="` + gradientHead + ` p-5 text-white flex justify-between items-start">
+                        <div class="flex items-center gap-3">
+                            <span class="text-4xl bg-white/20 w-14 h-14 rounded-xl flex items-center justify-center shadow-inner backdrop-blur-sm">` + car.icon + `</span>
+                            <div>
+                                <h4 class="font-bold text-xl leading-tight drop-shadow-md">` + car.brand + `</h4>
+                                <span class="text-[10px] font-bold bg-black/30 px-2 py-0.5 rounded uppercase tracking-wider mt-1 inline-block">` + car.type + `</span>
+                            </div>
+                        </div>
+                        <span class="bg-white/20 px-2 py-1 rounded text-xs font-mono font-bold shadow-inner">ID: #` + car.id + `</span>
+                    </div>
+                    
+                    <div class="p-5 flex-grow bg-slate-50">
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between items-center text-sm bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                                <span class="text-gray-500 font-bold uppercase text-xs tracking-wider">Attribute: สี</span>
+                                <span class="text-gray-900 font-bold">` + car.color + `</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                                <span class="text-gray-500 font-bold uppercase text-xs tracking-wider">Attribute: ความเร็ว</span>
+                                <span class="text-2xl font-black ` + speedText + ` drop-shadow-sm">` + car.speed + ` <span class="text-xs font-bold text-gray-400">km/h</span></span>
+                            </div>
+                        </div>
+                        
+                        <button onclick="triggerAccelerate(` + car.id + `)" class="w-full ` + btnColor + ` text-white font-bold py-3.5 rounded-xl transition-all flex justify-center items-center gap-2 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            เรียก Method เร่งความเร็ว
+                        </button>
+                    </div>
+                `;
+                garageDiv.appendChild(card);
+            });
+        }
+
+        // Initialize Simulator
+        window.onload = () => {
+            setConceptState('class');
+        };
+    </script>
+</body>
+</html>
