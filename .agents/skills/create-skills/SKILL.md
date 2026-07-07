@@ -1,49 +1,103 @@
 ---
 name: create-skills
-description: Helps the agent understand how to create, structure, and register new agent skills based on the Antigravity skills system. Trigger this skill when the user asks to create a new skill or learn about skills.
+description: ช่วย AI เข้าใจวิธีสร้าง จัดโครงสร้าง และลงทะเบียน Skill ใหม่ในระบบ Antigravity เรียกใช้เมื่อผู้ใช้ต้องการสร้าง Skill ใหม่หรือต้องการเรียนรู้เกี่ยวกับ Skill
 ---
 
-# Agent Skills Creation Guide
+# คู่มือสร้าง Agent Skill
 
-This skill provides the instructions for creating new agent skills in the Antigravity system. 
-Follow these guidelines when the user asks you to create a new skill.
+Skill นี้ให้คำแนะนำสำหรับการสร้าง Skill ใหม่ในระบบ Antigravity
+ปฏิบัติตามแนวทางนี้เมื่อผู้ใช้ขอให้สร้าง Skill ใหม่
 
-## 1. Customization Roots
-Skills are automatically discovered from these standard customization roots:
-- **Global Customizations Root**: `C:\Users\Mackung\.gemini\config`
-- **Workspace Customizations Root**: `.agents` (relative to the workspace root)
-
-## 2. Skill Structure
-A skill is essentially a directory containing a `SKILL.md` file and optional supporting folders.
-Place the skill directory inside the `skills/` folder of the customization root.
-
-**Location**: `skills/<skill_name>/` (relative to the customization root)
-
-### The `SKILL.md` File
-The `SKILL.md` file must contain YAML frontmatter and a Markdown body.
-Keep the Markdown body under 500 lines. Use the `references/` subdirectory for longer documentation.
-
-**Format Example**:
-```yaml
 ---
-name: your-skill-name
-description: A clear description of what the skill does. This is used for trigger-matching.
+
+## 1. ตำแหน่งจัดเก็บ (Customization Roots)
+
+Skill จะถูกค้นพบโดยอัตโนมัติจากตำแหน่งมาตรฐานเหล่านี้:
+
+| ขอบเขต | ตำแหน่ง |
+|---|---|
+| **ส่วนตัว (Global)** | `C:\Users\Mackung\.gemini\config\skills\` |
+| **โปรเจกต์ (Workspace)** | `.agents\skills\` (สัมพัทธ์กับรากของ workspace) |
+
+> เลือก **Workspace** หาก Skill เกี่ยวข้องกับโปรเจกต์นี้โดยเฉพาะ
+> เลือก **Global** หาก Skill ใช้ได้กับทุกโปรเจกต์
+
 ---
-# Skill Instructions
-Write the step-by-step instructions and guidelines for the agent here.
+
+## 2. โครงสร้างของ Skill
+
+Skill คือ **โฟลเดอร์** ที่มีไฟล์ `SKILL.md` เป็นหัวใจหลัก พร้อมโฟลเดอร์เสริมตามต้องการ
+
+```
+skills/
+└── ชื่อ-skill/
+    ├── SKILL.md          ← (จำเป็น) ไฟล์คำสั่งหลัก
+    ├── scripts/          ← (ทางเลือก) สคริปต์ช่วยเหลือ
+    ├── examples/         ← (ทางเลือก) ตัวอย่างการใช้งาน
+    ├── resources/        ← (ทางเลือก) ไฟล์เทมเพลตหรือทรัพยากรเสริม
+    └── references/       ← (ทางเลือก) เอกสารเพิ่มเติม (ใช้เมื่อเกิน 500 บรรทัด)
 ```
 
-### Optional Subdirectories
-You can extend the skill with additional resources by creating these folders inside the skill directory:
-- `scripts/`: Helper scripts and utilities that extend the agent's capabilities.
-- `examples/`: Reference implementations and usage patterns.
-- `resources/`: Additional files, templates, or assets the skill may reference.
-- `references/`: Contains additional documentation that agents can read when needed (use this if the main instructions exceed 500 lines).
+---
 
-## 3. Registration (For Non-Standard Locations)
-If a skill is placed in a non-standard location (e.g., shared team directories outside the standard roots), you must create or update a `skills.json` file in the customization root.
+## 3. รูปแบบไฟล์ SKILL.md
 
-**`skills.json` Example**:
+ไฟล์ `SKILL.md` ต้องมี 2 ส่วน:
+
+### ส่วนที่ 1: YAML Frontmatter (จำเป็น)
+
+```yaml
+---
+name: ชื่อ-skill
+description: คำอธิบายสั้นๆ ว่า Skill นี้ทำอะไร ใช้สำหรับจับคู่การเรียกใช้งาน
+---
+```
+
+- `name` — ชื่อ Skill (ใช้ตัวพิมพ์เล็กและขีดกลาง)
+- `description` — คำอธิบายที่ระบบใช้จับคู่ว่าควรเรียก Skill นี้เมื่อใด
+
+### ส่วนที่ 2: เนื้อหา Markdown (คำสั่งสำหรับ Agent)
+
+เขียนคำสั่งและแนวทางปฏิบัติสำหรับ Agent ในรูปแบบ Markdown
+**ความยาวไม่เกิน 500 บรรทัด** — หากยาวกว่านั้นให้ย้ายไปไว้ใน `references/`
+
+### ตัวอย่างไฟล์ SKILL.md แบบสมบูรณ์
+
+```yaml
+---
+name: my-awesome-skill
+description: ช่วย AI สร้างคอมโพเนนต์ UI ที่สวยงามตามมาตรฐานของโปรเจกต์
+---
+
+# คู่มือสร้างคอมโพเนนต์ UI
+
+## ขั้นตอน
+1. ตรวจสอบ Design Token จาก DESIGN.md
+2. สร้างคอมโพเนนต์ตามแบบที่กำหนด
+3. ทดสอบด้วยการรันเซิร์ฟเวอร์
+
+## กฎที่ต้องปฏิบัติ
+- ใช้ Tailwind CSS v4 เท่านั้น
+- รองรับ Dark Mode
+```
+
+---
+
+## 4. โฟลเดอร์เสริม
+
+| โฟลเดอร์ | ใช้สำหรับ |
+|---|---|
+| `scripts/` | สคริปต์หรือยูทิลิตี้ที่ขยายความสามารถของ Agent |
+| `examples/` | ตัวอย่างโค้ดอ้างอิงและรูปแบบการใช้งาน |
+| `resources/` | ไฟล์เทมเพลต แอสเซท หรือทรัพยากรที่ Skill ต้องอ้างถึง |
+| `references/` | เอกสารเพิ่มเติมที่ Agent สามารถอ่านได้เมื่อจำเป็น |
+
+---
+
+## 5. การลงทะเบียน Skill จากตำแหน่งที่ไม่ใช่มาตรฐาน
+
+หาก Skill อยู่นอกตำแหน่งมาตรฐาน (เช่น โฟลเดอร์แชร์ของทีม) ต้องสร้างไฟล์ `skills.json` ใน Customization Root
+
 ```json
 {
   "entries": [
@@ -52,15 +106,31 @@ If a skill is placed in a non-standard location (e.g., shared team directories o
   "inherits": [
     { "path": "path/to/shared/skills.json" }
   ],
-  "exclude": ["some_skill_to_ignore"]
+  "exclude": ["skill-ที่ต้องการข้าม"]
 }
 ```
 
-## 4. Execution Workflow
-When you create a new skill:
-1. Determine the appropriate scope (Workspace-scoped `.agents/skills` or Global-scoped `C:\Users\Mackung\.gemini\config\skills`).
-2. Create the skill directory `skills/<skill_name>`.
-3. Create the `SKILL.md` file with the required frontmatter (`name` and `description`).
-4. Write the instructions in the markdown body.
-5. Create optional subdirectories if the skill needs scripts, examples, or extensive reference documentation.
-6. Get explicit user confirmation before modifying existing shared or non-personal skills to avoid unnecessary code churn.
+- `entries` — ระบุตำแหน่งโฟลเดอร์ที่มี Skill เพิ่มเติม
+- `inherits` — สืบทอดการตั้งค่าจาก skills.json อื่น
+- `exclude` — ระบุชื่อ Skill ที่ต้องการยกเว้น
+
+---
+
+## 6. ขั้นตอนการสร้าง Skill ใหม่
+
+เมื่อผู้ใช้ขอให้สร้าง Skill ใหม่ ให้ปฏิบัติตามขั้นตอนนี้:
+
+1. **กำหนดขอบเขต** — ถามผู้ใช้ว่า Skill นี้ใช้เฉพาะโปรเจกต์นี้ (Workspace) หรือใช้ทุกโปรเจกต์ (Global)
+2. **สร้างโฟลเดอร์** — สร้างโฟลเดอร์ `skills/<ชื่อ-skill>/` ในตำแหน่งที่เหมาะสม
+3. **เขียน SKILL.md** — สร้างไฟล์ SKILL.md พร้อม frontmatter (`name` และ `description`) และคำสั่งในส่วน Markdown
+4. **เพิ่มทรัพยากรเสริม** — สร้างโฟลเดอร์ `scripts/`, `examples/`, `resources/`, `references/` ตามความจำเป็น
+5. **ยืนยันกับผู้ใช้** — หากแก้ไข Skill ที่มีอยู่แล้วหรือ Skill ที่ใช้ร่วมกัน **ต้องขอการยืนยัน**จากผู้ใช้ก่อนเสมอ
+
+---
+
+## 7. ข้อควรระวัง
+
+- **ห้ามแก้ไข Skill ที่ใช้ร่วมกัน** โดยไม่ได้รับอนุญาตจากผู้ใช้
+- ชื่อ Skill ควรใช้ **ตัวพิมพ์เล็กและขีดกลาง** (เช่น `my-skill-name`)
+- เนื้อหา SKILL.md **ไม่ควรเกิน 500 บรรทัด** — ใช้ `references/` สำหรับเอกสารที่ยาว
+- Frontmatter ต้องมี `name` และ `description` เสมอ — ระบบใช้สองฟิลด์นี้ในการจับคู่การเรียกใช้งาน

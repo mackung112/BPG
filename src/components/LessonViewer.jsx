@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import StandardHeader from './StandardHeader';
 
@@ -9,16 +10,63 @@ for (const path in interactiveModules) {
   COMPONENT_MAP[`[${componentName}]`] = interactiveModules[path].default;
 }
 
+// HTML Embed component — ฝัง .html จาก interactive/<วิชา>/ ผ่าน iframe
+function HtmlEmbed({ src }) {
+  const iframeRef = useRef(null);
+  const [height, setHeight] = useState(800);
+
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (e.data?.type === 'resize' && e.data?.height) {
+        setHeight(e.data.height);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  return (
+    <iframe
+      ref={iframeRef}
+      src={src}
+      className="w-full border-0 rounded-2xl"
+      style={{ height: `${height}px`, minHeight: '400px' }}
+      title="Embedded Lesson Content"
+      sandbox="allow-scripts allow-same-origin"
+      onLoad={() => {
+        try {
+          const doc = iframeRef.current?.contentDocument;
+          if (doc) {
+            setHeight(doc.documentElement.scrollHeight + 32);
+          }
+        } catch {
+          // cross-origin, ใช้ postMessage แทน
+        }
+      }}
+    />
+  );
+}
+
+// สร้าง map สำหรับไฟล์ HTML ที่อยู่ใน interactive/
+const htmlModules = import.meta.glob('./interactive/**/*.html', { query: '?url', import: 'default', eager: true });
+const HTML_MAP = {};
+for (const path in htmlModules) {
+  const fileName = path.split('/').pop().replace('.html', '');
+  HTML_MAP[`[html:${fileName}]`] = htmlModules[path];
+}
+
+
 export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPrev, hasPrev = false, hasNext = true }) {
   if (!lesson.content) return null;
 
-  // แยกเนื้อหาออกเป็นส่วนๆ ตาม Marker ของ Component ต่างๆ
-  const escapedKeys = Object.keys(COMPONENT_MAP).map(k => k.replace(/\[/g, '\\[').replace(/\]/g, '\\]'));
+  // แยกเนื้อหาออกเป็นส่วนๆ ตาม Marker ของ Component และ HTML
+  const allKeys = [...Object.keys(COMPONENT_MAP), ...Object.keys(HTML_MAP)];
+  const escapedKeys = allKeys.map(k => k.replace(/\[/g, '\\[').replace(/\]/g, '\\]'));
   const markerPattern = escapedKeys.length > 0 ? new RegExp(`(${escapedKeys.join('|')})`) : /(?!)/;
   const parts = lesson.content.split(markerPattern);
 
-  // ตรวจสอบว่าในบทเรียนมี Interactive Component อยู่หรือไม่ (ถ้ามีให้แสดงผลแบบ Immersive เสมอ)
-  const immersivePart = parts.find(part => COMPONENT_MAP[part]);
+  // ตรวจสอบว่าในบทเรียนมี Interactive Component หรือ HTML อยู่หรือไม่
+  const immersivePart = parts.find(part => COMPONENT_MAP[part] || HTML_MAP[part]);
   const isImmersive = Boolean(immersivePart);
 
   const renderContent = () => {
@@ -62,6 +110,7 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
 
     if (isImmersive) {
       const ImmersiveComponent = COMPONENT_MAP[immersivePart];
+      const htmlSrc = HTML_MAP[immersivePart];
       return (
         <section className="w-full immersive-page-wrapper bg-[#FAFAFA] min-h-screen" aria-label="Immersive Lesson" id="immersive-lesson-wrapper">
           {lesson.hideHeader !== true && (
@@ -75,7 +124,7 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
             />
           )}
           <div className="immersive-content-block">
-            <ImmersiveComponent />
+            {ImmersiveComponent ? <ImmersiveComponent /> : htmlSrc ? <HtmlEmbed src={htmlSrc} /> : null}
           </div>
         </section>
       );
@@ -97,6 +146,10 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
               const Component = COMPONENT_MAP[part];
               if (Component) {
                 return <Component key={idx} />;
+              }
+              const htmlSrc = HTML_MAP[part];
+              if (htmlSrc) {
+                return <HtmlEmbed key={idx} src={htmlSrc} />;
               }
               if (part && part.trim()) {
                 return (
