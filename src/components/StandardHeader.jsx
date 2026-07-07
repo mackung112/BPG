@@ -45,12 +45,12 @@ export default function StandardHeader({
           </span>
         )}
         {mainTitle && (
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-slate-800 leading-tight mb-1 md:mb-2 tracking-tight">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-extrabold text-slate-800 leading-tight mb-1 tracking-tight">
             {mainTitle}
           </h1>
         )}
         {subTitle && (
-          <h2 className={`text-3xl md:text-5xl lg:text-6xl font-black mb-3 !border-none pb-2 leading-normal text-transparent bg-clip-text bg-gradient-to-r ${randomGradient} tracking-tighter drop-shadow-sm`}>
+          <h2 className={`text-2xl md:text-3xl lg:text-4xl font-black mb-3 !border-none pb-2 leading-snug text-transparent bg-clip-text bg-gradient-to-r ${randomGradient} tracking-tight drop-shadow-sm`}>
             {subTitle}
           </h2>
         )}

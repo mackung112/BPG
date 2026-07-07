@@ -215,7 +215,7 @@ function HomeView() {
       </section>
 
       {/* 3️⃣ Layer 3: Courses by Category */}
-      <main id="courses" className="max-w-7xl mx-auto px-6 lg:px-12 pb-24 relative z-10 scroll-mt-20 space-y-16">
+      <main id="courses" className="max-w-[1440px] mx-auto px-6 lg:px-12 pb-24 relative z-10 scroll-mt-20 space-y-16">
         {categories.map(cat => {
           const catCourses = coursesData.filter(c => c.id.charAt(0) === cat.key);
           if (catCourses.length === 0) return null;
@@ -235,7 +235,7 @@ function HomeView() {
               </div>
 
               {/* Course Cards Grid */}
-              <div className={`grid grid-cols-1 gap-8 ${catCourses.length === 1 ? 'md:grid-cols-1 max-w-2xl' : catCourses.length === 2 ? 'md:grid-cols-2 max-w-4xl' : 'md:grid-cols-2 lg:grid-cols-3'} mx-auto`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 w-full">
                 {catCourses.map((course, idx) => {
                   const lessonCount = course.chapters.reduce((s, ch) => s + ch.lessons.length, 0);
                   const theme = courseThemes[idx % courseThemes.length];
