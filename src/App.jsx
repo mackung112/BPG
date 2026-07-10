@@ -6,7 +6,18 @@ import LessonViewer from './components/LessonViewer';
 import Storybook from './components/Storybook';
 import GradingSimulator from './components/GradingSimulator';
 import TeacherBio from './components/TeacherBio';
-
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import DashboardLayout from './pages/admin/DashboardLayout';
+import StudentManagement from './pages/admin/StudentManagement';
+import QuestionBank from './pages/admin/QuestionBank';
+import AdminManagement from './pages/admin/AdminManagement';
+import ExamControl from './pages/admin/ExamControl';
+import ExamResults from './pages/admin/ExamResults';
+import ExamLobby from './pages/exam/ExamLobby';
+import ExamRoom from './pages/exam/ExamRoom';
+import ExamResult from './pages/exam/ExamResult';
 
 function PageLayout({ children, activePage }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,10 +75,10 @@ function PageLayout({ children, activePage }) {
           {/* Desktop CTA (Right) */}
           <div className="hidden md:block relative z-10">
             <Link
-              to="/"
+              to="/login"
               className="cursor-pointer flex items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white rounded-full font-bold text-sm hover:shadow-lg hover:shadow-zinc-500/30 hover:scale-[1.02] active:scale-98 transition-all duration-200 no-underline"
             >
-              เริ่มเรียน
+              เข้าสู่ระบบ
             </Link>
           </div>
 
@@ -102,11 +113,11 @@ function PageLayout({ children, activePage }) {
             })}
             <div className="pt-2">
               <Link
-                to="/"
+                to="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="w-full justify-center flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-sm shadow-md no-underline"
               >
-                <BookOpen className="w-4 h-4" /> เริ่มเรียนรู้
+                <BookOpen className="w-4 h-4" /> เข้าสู่ระบบ
               </Link>
             </div>
           </div>
@@ -192,10 +203,10 @@ function HomeView() {
 
             <div className="pt-2 sm:pt-4 flex items-center gap-4">
               <button
-                onClick={scrollToCourses}
+                onClick={() => navigate('/login')}
                 className="cursor-pointer flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-cyan-500 to-indigo-500 text-white rounded-full font-bold text-[15px] sm:text-[16px] shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-98 transition-all duration-300"
               >
-                เริ่มเรียนรู้รายวิชา
+                เข้าสู่ระบบ / เริ่มเรียน
               </button>
             </div>
           </div>
@@ -551,15 +562,46 @@ function CourseView() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomeView />} />
-        <Route path="/grading" element={<GradingView />} />
-        <Route path="/instructor" element={<InstructorView />} />
-        <Route path="/library" element={<Storybook />} />
-        <Route path="/course/:courseId" element={<CourseView />} />
-        <Route path="/course/:courseId/lesson/:lessonId" element={<CourseView />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomeView />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/grading" element={<GradingView />} />
+          <Route path="/instructor" element={<InstructorView />} />
+          <Route path="/library" element={<Storybook />} />
+          
+          {/* Exam Routes (Protected implicitly inside components via useAuth) */}
+          <Route path="/exam-lobby/:sessionId" element={<ExamLobby />} />
+          <Route path="/exam-room/:sessionId" element={<ExamRoom />} />
+          <Route path="/exam-result/:sessionId" element={<ExamResult />} />
+
+          <Route path="/course/:courseId" element={<CourseView />} />
+          <Route path="/course/:courseId/lesson/:lessonId" element={<CourseView />} />
+          
+          <Route path="/admin" element={
+            <ProtectedRoute requireAdmin={true}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={
+              <div className="p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <h1 className="text-2xl font-bold mb-4">ยินดีต้อนรับสู่ระบบจัดการ (Admin)</h1>
+                <p className="text-gray-500">เลือกเมนูด้านซ้ายเพื่อเริ่มต้นใช้งานระบบจัดการ LMS</p>
+              </div>
+            } />
+            <Route path="students" element={<StudentManagement />} />
+            <Route path="questions" element={<QuestionBank />} />
+            <Route path="exam-control" element={<ExamControl />} />
+            <Route path="exam-results" element={<ExamResults />} />
+            <Route path="users" element={
+              <ProtectedRoute requireSuperAdmin={true}>
+                <AdminManagement />
+              </ProtectedRoute>
+            } />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
