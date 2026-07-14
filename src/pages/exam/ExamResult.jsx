@@ -36,7 +36,8 @@ export default function ExamResult() {
 
   if (!result) return <div className="min-h-screen flex items-center justify-center">กำลังโหลดผลสอบ...</div>;
 
-  const percentage = Math.round((result.score / result.total_questions) * 100);
+  const totalScore = result.exam_sessions?.total_score || result.total_questions;
+  const percentage = Math.round((result.score / totalScore) * 100);
   const isPass = percentage >= 50;
 
   return (
@@ -58,7 +59,7 @@ export default function ExamResult() {
         <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 mb-8">
           <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2">คะแนนของคุณ</p>
           <div className="text-5xl font-black text-gray-900 mb-2">
-            {result.score} <span className="text-2xl text-gray-400">/ {result.total_questions}</span>
+            {result.score} <span className="text-2xl text-gray-400">/ {totalScore}</span>
           </div>
           <div className={`inline-block px-4 py-1.5 rounded-full text-sm font-bold ${
             isPass ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'

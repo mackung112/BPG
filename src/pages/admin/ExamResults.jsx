@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Trophy, Download, Search, FileSpreadsheet } from 'lucide-react';
+import { Trophy, Download, Search, FileSpreadsheet, Trash2 } from 'lucide-react';
 
 export default function ExamResults() {
   const [sessions, setSessions] = useState([]);
@@ -58,7 +58,7 @@ export default function ExamResults() {
       const name = `${r.students?.first_name} ${r.students?.last_name}`;
       const classroom = r.students?.classroom;
       const score = r.score;
-      const total = r.total_questions;
+      const totalScore = selectedSession.total_score || r.total_questions;
       // Calculate minutes used
       let timeUsed = '-';
       if (r.submitted_at) {
@@ -72,7 +72,7 @@ export default function ExamResults() {
       const submitTime = r.submitted_at ? new Date(r.submitted_at).toLocaleString('th-TH') : '-';
 
       // Wrap string fields in quotes to handle commas inside text
-      csvContent += `"${studentId}","${name}","${classroom}",${score},${total},"${timeUsed}","${submitTime}"\n`;
+      csvContent += `"${studentId}","${name}","${classroom}",${score},${totalScore},"${timeUsed}","${submitTime}"\n`;
     });
 
     const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -83,6 +83,23 @@ export default function ExamResults() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleDeleteSession = async () => {
+    if (!selectedSession) return;
+    if (!confirm('คำเตือน: คุณต้องการลบประวัติการสอบนี้ใช่หรือไม่? ข้อมูลคะแนนและประวัติทั้งหมดของห้องสอบนี้จะถูกลบอย่างถาวร')) return;
+
+    const { error } = await supabase
+      .from('exam_sessions')
+      .delete()
+      .eq('id', selectedSession.id);
+
+    if (error) {
+      alert('ลบข้อมูลไม่สำเร็จ: ' + error.message);
+    } else {
+      setSelectedSession(null);
+      fetchSessions();
+    }
   };
 
   const filteredResults = results.filter(r => 
@@ -140,7 +157,7 @@ export default function ExamResults() {
               <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">{selectedSession.title}</h2>
-                  <p className="text-sm text-gray-500 mt-1">คลังข้อสอบ: {selectedSession.question_banks?.title} | ส่งข้อสอบแล้ว: {results.length} คน</p>
+                  <p className="text-sm text-gray-500 mt-1">ส่งข้อสอบแล้ว: {results.length} คน</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -159,6 +176,13 @@ export default function ExamResults() {
                     className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-sm"
                   >
                     <Download className="w-4 h-4" /> ดาวน์โหลด CSV
+                  </button>
+                  <button 
+                    onClick={handleDeleteSession}
+                    className="flex items-center gap-2 bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-rose-100 transition-colors shadow-sm border border-rose-200"
+                    title="ลบประวัติการสอบนี้"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -186,12 +210,12 @@ export default function ExamResults() {
                           <td className="px-5 py-3 text-gray-600">{r.students?.classroom}</td>
                           <td className="px-5 py-3 text-center">
                             <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full font-bold ${
-                              (r.score / r.total_questions) >= 0.5 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                              (r.score / (selectedSession.total_score || r.total_questions || 1)) >= 0.5 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
                             }`}>
-                              {r.score} / {r.total_questions}
+                              {r.score} / {selectedSession.total_score || r.total_questions}
                             </span>
                           </td>
-                          <td className="px-5 py-3 text-right text-xs text-gray-500">
+                          <td className="px-5 py-3 text-right text-gray-500">
                             {r.submitted_at ? new Date(r.submitted_at).toLocaleString('th-TH') : '-'}
                           </td>
                         </tr>

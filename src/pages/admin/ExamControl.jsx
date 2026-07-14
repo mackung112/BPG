@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Play, Users, StopCircle, RefreshCw, Key, CheckCircle, Clock } from 'lucide-react';
+import { Play, Users, StopCircle, RefreshCw, Key, CheckCircle, Clock, Trash2 } from 'lucide-react';
+import QuestionPicker from './QuestionPicker';
 
 export default function ExamControl() {
   const { user } = useAuth();
@@ -12,9 +13,11 @@ export default function ExamControl() {
   const [loading, setLoading] = useState(true);
 
   // New Session Form
-  const [selectedBankId, setSelectedBankId] = useState('');
+  const [examConfig, setExamConfig] = useState(null); // { questions: [], totalScore: 0, summaryText: '' }
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [sessionTitle, setSessionTitle] = useState('');
   const [timeLimit, setTimeLimit] = useState(60);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
@@ -79,25 +82,71 @@ export default function ExamControl() {
 
   const handleCreateSession = async (e) => {
     e.preventDefault();
-    if (!selectedBankId || !sessionTitle) return;
+    if (isCreating) return;
+    
+    if (!examConfig) {
+      alert('กรุณาตั้งค่าข้อสอบก่อนสร้างห้องสอบ');
+      return;
+    }
+
+    setIsCreating(true);
 
     const secretCode = generateSecretCode();
     
-    const { data, error } = await supabase.from('exam_sessions').insert([{
-      bank_id: selectedBankId,
-      created_by: user.id,
-      title: sessionTitle,
-      secret_code: secretCode,
-      time_limit_minutes: timeLimit,
-      status: 'waiting'
-    }]).select().single();
+    // 1. สร้างห้องสอบ (exam_sessions)
+    // ส่ง bank_id ไปหลอกๆ 1 คลังเพื่อให้ผ่านกฏห้ามว่างของฐานข้อมูลเก่า (เราใช้ตารางกลางแทนแล้ว)
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.from('exam_sessions').insert([{
+        bank_id: banks.length > 0 ? banks[0].id : null,
+        created_by: user.id,
+        teacher_id: user.id,
+        title: sessionTitle,
+        secret_code: secretCode,
+        time_limit_minutes: timeLimit,
+        total_score: examConfig.totalScore,
+        status: 'waiting'
+      }]).select().single();
+
+      if (sessionError) throw sessionError;
+
+      // 2. บันทึกรายการข้อสอบลงใน exam_session_questions
+      const toInsert = examConfig.questions.map((q, idx) => ({
+        session_id: sessionData.id,
+        question_id: q.id,
+        points: q.points,
+        order_index: idx
+      }));
+
+      const { error: questionsError } = await supabase.from('exam_session_questions').insert(toInsert);
+
+      if (questionsError) throw questionsError;
+
+      setSessionTitle('');
+      setIsPickerOpen(false);
+      setExamConfig(null);
+      await fetchSessions();
+      setActiveSession(sessionData);
+    } catch (err) {
+      alert('เกิดข้อผิดพลาด: ' + err.message);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDeleteSession = async () => {
+    if (!activeSession) return;
+    if (!confirm('คุณแน่ใจหรือไม่ที่จะยกเลิกและลบห้องสอบนี้ทิ้ง?')) return;
+
+    const { error } = await supabase
+      .from('exam_sessions')
+      .delete()
+      .eq('id', activeSession.id);
 
     if (error) {
-      alert('สร้างห้องสอบไม่สำเร็จ: ' + error.message);
+      alert('ลบห้องสอบไม่สำเร็จ: ' + error.message);
     } else {
-      setSessionTitle('');
-      await fetchSessions();
-      setActiveSession(data);
+      setActiveSession(null);
+      fetchSessions();
     }
   };
 
@@ -113,6 +162,8 @@ export default function ExamControl() {
     if (!error) {
       fetchSessions();
       setActiveSession({ ...activeSession, status: 'active', started_at: new Date() });
+    } else {
+      alert('เริ่มสอบไม่สำเร็จ: ' + error.message);
     }
   };
 
@@ -128,6 +179,8 @@ export default function ExamControl() {
     if (!error) {
       fetchSessions();
       setActiveSession({ ...activeSession, status: 'completed' });
+    } else {
+      alert('จบการสอบไม่สำเร็จ: ' + error.message);
     }
   };
 
@@ -154,21 +207,29 @@ export default function ExamControl() {
             <h2 className="text-lg font-bold text-gray-700 mb-4">เปิดห้องสอบใหม่</h2>
             <form onSubmit={handleCreateSession} className="space-y-3 text-sm">
               <input required value={sessionTitle} onChange={e=>setSessionTitle(e.target.value)} type="text" placeholder="ชื่อการสอบ (เช่น สอบกลางภาค)" className="w-full px-3 py-2 border rounded-lg" />
-              
-              <select required value={selectedBankId} onChange={e=>setSelectedBankId(e.target.value)} className="w-full px-3 py-2 border rounded-lg">
-                <option value="">-- เลือกคลังข้อสอบ --</option>
-                {banks.map(b => (
-                  <option key={b.id} value={b.id}>{b.title}</option>
-                ))}
-              </select>
+              <div className="border border-gray-200 rounded-lg p-3 bg-gray-50 flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-bold text-gray-700">ชุดข้อสอบ</div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {examConfig ? examConfig.summaryText : 'ยังไม่ได้เลือกข้อสอบ'}
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setIsPickerOpen(true)}
+                  className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  ตั้งค่าข้อสอบ
+                </button>
+              </div>
 
               <div className="flex items-center gap-2">
                 <label className="text-gray-600 whitespace-nowrap">เวลาสอบ (นาที):</label>
                 <input required value={timeLimit} onChange={e=>setTimeLimit(e.target.value)} type="number" min="1" className="w-full px-3 py-2 border rounded-lg" />
               </div>
 
-              <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700">
-                สร้างห้องสอบ
+              <button type="submit" disabled={isCreating} className="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                {isCreating ? 'กำลังสร้างห้องสอบ...' : 'สร้างห้องสอบ'}
               </button>
             </form>
           </div>
@@ -229,9 +290,14 @@ export default function ExamControl() {
                 
                 <div className="flex items-center gap-3">
                   {activeSession.status === 'waiting' && (
-                    <button onClick={handleStartExam} className="flex items-center gap-2 bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-600 shadow-sm hover:shadow-md transition-all">
-                      <Play className="w-5 h-5" /> เริ่มสอบทันที
-                    </button>
+                    <>
+                      <button onClick={handleDeleteSession} className="flex items-center gap-2 bg-rose-50 text-rose-600 px-4 py-2.5 rounded-xl font-bold hover:bg-rose-100 shadow-sm border border-rose-200 transition-all" title="ยกเลิกห้องสอบนี้">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                      <button onClick={handleStartExam} className="flex items-center gap-2 bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-600 shadow-sm hover:shadow-md transition-all">
+                        <Play className="w-5 h-5" /> เริ่มสอบทันที
+                      </button>
+                    </>
                   )}
                   {activeSession.status === 'active' && (
                     <button onClick={handleEndExam} className="flex items-center gap-2 bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-rose-600 shadow-sm hover:shadow-md transition-all">
@@ -305,6 +371,18 @@ export default function ExamControl() {
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      {isPickerOpen && (
+        <QuestionPicker 
+          banks={banks} 
+          onClose={() => setIsPickerOpen(false)} 
+          onSave={(config) => {
+            setExamConfig(config);
+            setIsPickerOpen(false);
+          }} 
+        />
+      )}
     </div>
   );
 }

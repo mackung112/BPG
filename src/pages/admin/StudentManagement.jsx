@@ -17,6 +17,7 @@ export default function StudentManagement() {
   // Bulk Import
   const [csvText, setCsvText] = useState('');
   const [importing, setImporting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     fetchStudents();
@@ -80,7 +81,7 @@ export default function StudentManagement() {
     const newStudents = [];
     
     for (let line of lines) {
-      const parts = line.split(',').map(s => s.trim());
+      const parts = line.split(/[,\t]/).map(s => s.trim());
       if (parts.length >= 5) {
         newStudents.push({
           student_id: parts[0],
@@ -105,6 +106,42 @@ export default function StudentManagement() {
       alert('รูปแบบข้อมูลไม่ถูกต้อง กรุณาใช้รูปแบบ: รหัส,ชื่อ,สกุล,ชื่อเล่น,ห้อง');
     }
     setImporting(false);
+  };
+
+  const handleDownloadTemplate = () => {
+    const csvContent = "รหัสนักเรียน,ชื่อ,นามสกุล,ชื่อเล่น,ห้องเรียน\n1001,สมชาย,ใจดี,ชาย,ม.6/1\n1002,สมหญิง,รักเรียน,หญิง,ม.6/1\n";
+    // Add BOM (\uFEFF) to ensure Excel reads Thai characters correctly in UTF-8
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "student_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCsvText(event.target.result);
+      };
+      reader.readAsText(file);
+    }
   };
 
   const filteredStudents = students.filter(s => 
@@ -148,12 +185,25 @@ export default function StudentManagement() {
               <Upload className="w-5 h-5 text-blue-500" /> นำเข้าหลายคน (CSV)
             </h2>
             <div className="space-y-3">
-              <p className="text-xs text-gray-500">รูปแบบ (ต่อ 1 บรรทัด): <br/><code>รหัส,ชื่อ,นามสกุล,ชื่อเล่น,ห้องเรียน</code></p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500">รูปแบบ (ต่อ 1 บรรทัด): <br/><code>รหัส,ชื่อ,นามสกุล,ชื่อเล่น,ห้องเรียน</code></p>
+                <button 
+                  onClick={handleDownloadTemplate} 
+                  className="flex items-center gap-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 transition-colors"
+                >
+                  <FileDown className="w-3.5 h-3.5" /> โหลดตัวอย่าง
+                </button>
+              </div>
               <textarea 
                 value={csvText}
                 onChange={e=>setCsvText(e.target.value)}
-                placeholder="ตัวอย่าง:\n1001,สมชาย,ใจดี,ชาย,ม.6/1\n1002,สมหญิง,รักเรียน,หญิง,ม.6/1" 
-                className="w-full px-3 py-2 border rounded-lg h-32 text-sm font-mono"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                placeholder="วางข้อมูลจาก Excel (คัดลอกตารางมาวางได้เลย) หรือลากไฟล์ CSV มาปล่อยที่นี่..." 
+                className={`w-full px-3 py-2 border rounded-lg h-32 text-sm font-mono transition-colors ${
+                  isDragging ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'border-gray-200'
+                }`}
               />
               <button 
                 onClick={handleBulkImport} 

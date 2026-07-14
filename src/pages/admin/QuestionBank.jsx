@@ -14,6 +14,7 @@ export default function QuestionBank() {
   
   const [txtContent, setTxtContent] = useState('');
   const [importing, setImporting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     fetchBanks();
@@ -171,6 +172,41 @@ export default function QuestionBank() {
     setImporting(false);
   };
 
+  const handleDownloadTemplate = () => {
+    const txt = "// คำอธิบาย(ไม่บังคับ)\nข้อใดคือเมืองหลวงของประเทศไทย?{\n=กรุงเทพมหานคร\n~เชียงใหม่\n~ภูเก็ต\n~ขอนแก่น\n}\n\n1 + 1 เท่ากับเท่าไร?{\n=2\n~3\n~4\n~5\n}\n";
+    const blob = new Blob(['\uFEFF' + txt], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "question_template.txt");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setTxtContent(event.target.result);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleDeleteQuestion = async (id) => {
     if(!confirm('ลบข้อสอบนี้?')) return;
     await supabase.from('questions').delete().eq('id', id);
@@ -265,9 +301,17 @@ export default function QuestionBank() {
 
                 {/* Importer */}
                 <div className="w-full md:w-[350px] p-5 flex flex-col bg-gray-50/50">
-                  <h3 className="font-bold text-gray-700 flex items-center gap-2 mb-3">
-                    <Upload className="w-4 h-4" /> นำเข้าข้อสอบ
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-gray-700 flex items-center gap-2">
+                      <Upload className="w-4 h-4" /> นำเข้าข้อสอบ
+                    </h3>
+                    <button 
+                      onClick={handleDownloadTemplate} 
+                      className="flex items-center gap-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 transition-colors"
+                    >
+                      <FileDown className="w-3.5 h-3.5" /> โหลดตัวอย่าง
+                    </button>
+                  </div>
                   
                   <div className="text-xs text-gray-500 mb-3 space-y-1">
                     <p><b>รูปแบบไฟล์ Text:</b></p>
@@ -285,8 +329,13 @@ export default function QuestionBank() {
                   <textarea 
                     value={txtContent}
                     onChange={e=>setTxtContent(e.target.value)}
-                    className="flex-1 w-full p-3 border border-gray-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 resize-none min-h-[200px]"
-                    placeholder="วางเนื้อหาข้อสอบที่นี่..."
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`flex-1 w-full p-3 border rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 resize-none min-h-[200px] transition-colors ${
+                      isDragging ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200' : 'border-gray-300'
+                    }`}
+                    placeholder="วางเนื้อหาข้อสอบที่นี่ หรือลากไฟล์ .txt มาปล่อย..."
                   />
                   
                   <button 

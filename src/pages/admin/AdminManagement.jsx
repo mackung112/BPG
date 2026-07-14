@@ -5,8 +5,8 @@ import { ShieldAlert, Trash2, ShieldCheck, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Create a secondary client just for creating users so it doesn't log the current admin out
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder_key';
 const authClient = createClient(supabaseUrl, supabaseAnonKey, { 
   auth: { 
     persistSession: false, 

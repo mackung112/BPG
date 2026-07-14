@@ -97,14 +97,37 @@ export default function ExamRoom() {
       .eq('student_id', studentSession.student_id);
 
     // 3. Fetch questions
-    const { data: qData } = await supabase
-      .from('questions')
-      .select('id, question_text, choices') // DO NOT SELECT correct_answer_index FOR SECURITY if RLS allows, but for now we pull it to grade on client, or we can fetch it on submit.
-      .eq('bank_id', sData.bank_id)
-      .order('id', { ascending: true }); // In a real app we might randomise
+    const { data: eqData } = await supabase
+      .from('exam_session_questions')
+      .select(`
+        points,
+        questions (
+          id, question_text, choices
+        )
+      `)
+      .eq('session_id', sessionId);
       
-    if (qData) {
-      setQuestions(qData);
+    if (eqData) {
+      // Map and Shuffle questions
+      let loadedQs = eqData.map(item => ({
+        ...item.questions,
+        points: item.points
+      }));
+
+      // Shuffle questions
+      loadedQs = loadedQs.sort(() => 0.5 - Math.random());
+
+      // Shuffle choices for each question
+      loadedQs = loadedQs.map(q => {
+        // Shuffle choices safely, keeping their original objects (and text) intact
+        const shuffledChoices = [...q.choices].sort(() => 0.5 - Math.random());
+        return {
+          ...q,
+          choices: shuffledChoices
+        };
+      });
+
+      setQuestions(loadedQs);
     }
     
     // 4. Calculate time left
@@ -116,10 +139,10 @@ export default function ExamRoom() {
     setTimeLeft(remaining);
   };
 
-  const handleSelectChoice = (questionId, choiceIndex) => {
+  const handleSelectChoice = (questionId, choiceText) => {
     setAnswers(prev => ({
       ...prev,
-      [questionId]: choiceIndex
+      [questionId]: choiceText
     }));
   };
 
@@ -130,15 +153,28 @@ export default function ExamRoom() {
     
     try {
       // 1. Fetch full questions again to grade (to prevent tampering on client side)
-      const { data: fullQuestions } = await supabase
-        .from('questions')
-        .select('id, correct_answer_index')
-        .eq('bank_id', sessionInfo.bank_id);
+      // Query through exam_session_questions to get points
+      const { data: eqData } = await supabase
+        .from('exam_session_questions')
+        .select(`
+          points,
+          questions ( id, choices )
+        `)
+        .eq('session_id', sessionId);
         
       let score = 0;
-      for (const q of fullQuestions) {
-        if (answers[q.id] === q.correct_answer_index) {
-          score++;
+      let totalQuestions = 0;
+      
+      for (const eq of (eqData || [])) {
+        totalQuestions++;
+        const qId = eq.questions.id;
+        const studentChoiceText = answers[qId];
+        
+        // Find the correct choice in the original array
+        const correctChoice = eq.questions.choices.find(c => c.is_correct === true);
+        
+        if (correctChoice && correctChoice.text === studentChoiceText) {
+          score += Number(eq.points);
         }
       }
       
@@ -149,7 +185,7 @@ export default function ExamRoom() {
           session_id: sessionId,
           student_id: studentSession.student_id,
           score: score,
-          total_questions: fullQuestions.length
+          total_questions: totalQuestions
         }]);
         
       // 3. Update participant status
@@ -223,7 +259,7 @@ export default function ExamRoom() {
               </h3>
               <div className="space-y-3 pl-8">
                 {q.choices.map((choice, cIdx) => {
-                  const isSelected = answers[q.id] === cIdx;
+                  const isSelected = answers[q.id] === choice.text;
                   return (
                     <label 
                       key={cIdx} 
@@ -236,9 +272,9 @@ export default function ExamRoom() {
                       <input 
                         type="radio" 
                         name={`question_${q.id}`} 
-                        value={cIdx}
+                        value={choice.text}
                         checked={isSelected}
-                        onChange={() => handleSelectChoice(q.id, cIdx)}
+                        onChange={() => handleSelectChoice(q.id, choice.text)}
                         className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                       />
                       <span className={`${isSelected ? 'font-medium text-indigo-900' : 'text-gray-700'}`}>
