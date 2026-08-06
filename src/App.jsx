@@ -551,7 +551,9 @@ function CourseView() {
                 hasNext={hasNext}
               />
             ) : (
-              <div className="text-center py-20 text-gray-600 text-xl">โปรดเลือกบทเรียนจากเมนูด้านซ้าย</div>
+              <div className="text-center py-20 text-gray-500 text-xl font-medium">
+                {course.chapters.length === 0 ? "📖 อยู่ระหว่างการเตรียมเนื้อหาบทเรียนสำหรับวิชานี้" : "โปรดเลือกบทเรียนจากเมนูด้านซ้าย"}
+              </div>
             )}
           </div>
         </main>

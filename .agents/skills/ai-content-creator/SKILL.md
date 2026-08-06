@@ -10,11 +10,12 @@ description: คำสั่งให้ AI สร้างเนื้อหา
 ## ขั้นตอนการสร้าง
 
 1. **รับข้อมูลจากผู้ใช้**: ชื่อวิชา, รหัสวิชา, หัวข้อบท, เนื้อหาที่ต้องการ
-2. **สร้าง React Component** ที่ `src/components/interactive/<วิชา>/<prefix><X>_<Y>.jsx`
-3. **เพิ่มข้อมูลใน Course Data**:
-   - หากเป็นวิชาใหม่ → สร้างไฟล์ `src/data/<prefix>Course.js` + เพิ่ม import ใน `data.js`
+2. **สร้างไฟล์หลักสูตร**: ที่ `docs/curriculum/<รหัสวิชา>_<prefix>_curriculum.md` (เช่น `21910-2004_word_curriculum.md`) โดยระบุส่วนหัว `# ชื่อวิชา (รหัสวิชา)`
+3. **สร้าง React Component** ที่ `src/components/interactive/<วิชา>/<prefix><X>_<Y>.jsx`
+4. **เพิ่มข้อมูลใน Course Data**:
+   - หากเป็นวิชาใหม่ → สร้างไฟล์ `src/data/<รหัสวิชา>_<prefix>Course.js` (เช่น `21910-2004_wordCourse.js` กำหนด `id` เป็นรหัสวิชา) + เพิ่ม import ใน `data.js`
    - หากเป็นวิชาเดิม → เพิ่ม lesson ในไฟล์ course ที่มีอยู่
-4. **ใส่ Marker** `[<prefix><X>_<Y>]` ในฟิลด์ `content` ของบทเรียน
+5. **ใส่ Marker** `[<prefix><X>_<Y>]` ในฟิลด์ `content` ของบทเรียน
 
 ---
 
@@ -56,4 +57,5 @@ const newCourse = {
 - **Immersive Layout** — ห้ามทำ Card-in-Card, ปล่อยเนื้อหาลงพื้นหลังตรง
 - **ห้ามแสดงตัวเลขย่อย** — ห้ามพิมพ์เลขลำดับนำหน้าหัวข้อ แสดงแค่ชื่อ
 - **ห้ามใส่ Header** — ระบบ `StandardHeader` จัดการให้อยู่แล้ว
+- **ไม่ต้องมีภารกิจจำลองแก้ปัญหา / Challenge / แบบทดสอบท้ายบท** — ให้เน้นเนื้อหาทฤษฎีลึกซึ้งและ Simulator ฝึกปฏิบัติแบบเปิด (Interactive Simulator Studio)
 - **โครงสร้าง Component**: `export default function ComponentName() { ... }`

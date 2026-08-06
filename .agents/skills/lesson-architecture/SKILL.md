@@ -22,8 +22,8 @@ src/
 ├── App.jsx                       # Routing หลัก (ห้ามแก้)
 ├── index.css                     # Global CSS
 ├── data.js                       # รวม import วิชาทั้งหมด
-├── data/                         # ไฟล์ข้อมูลแต่ละวิชา
-│   └── <prefix>Course.js
+├── data/                         # ไฟล์ข้อมูลแต่ละวิชา (ต้องมีรหัสวิชานำหน้าชื่อไฟล์)
+│   └── <รหัสวิชา>_<prefix>Course.js (เช่น 21910-2004_wordCourse.js)
 └── components/
     ├── interactive/              # ⭐ สื่อ Simulator + HTML ทั้งหมด
     │   ├── <วิชา>/              # แยกโฟลเดอร์ตามวิชา
@@ -57,6 +57,7 @@ src/
 - **ภาษาตำราเรียน** — ใช้ชื่อหัวข้อตามหลักวิชาการ
 - **ห้ามแสดงตัวเลขย่อย** — แสดงแค่ชื่อ
 - **เนื้อหาลึกซึ้ง** — ครบทุกหัวข้อย่อย ห้ามละเว้น
+- **ไม่ต้องมีภารกิจจำลองแก้ปัญหา / Challenge / แบบทดสอบท้ายบท** — ให้เน้นเนื้อหาทฤษฎีลึกซึ้งและ Simulator ฝึกปฏิบัติแบบเปิด (Interactive Simulator Studio)
 
 ## นำเข้าเนื้อหา 2 วิธี
 
@@ -66,7 +67,9 @@ src/
 ## ข้อมูลระบบ
 
 - ทุกบทเรียนต้องมีครบ: `id`, `title`, `mainTitle`, `subTitle`, `description`, `content`
-- ทุกวิชาต้องมี: `id`, `level`, `title`, `description`, `icon`, `chapters`
+- ทุกวิชาต้องมี: `id` (ระบุรหัสวิชาเสมอ เช่น `"21910-2004"`), `level`, `title`, `description`, `icon`, `chapters`
+- ทุกไฟล์ข้อมูลวิชาใน `src/data/` ต้องตั้งชื่อโดยนำหน้ารหัสวิชา เช่น `<รหัสวิชา>_<prefix>Course.js` (เช่น `21910-2004_wordCourse.js`)
+- ทุกวิชาต้องมีไฟล์หลักสูตรคู่กันที่ `docs/curriculum/<รหัสวิชา>_<prefix>_curriculum.md` โดย Heading 1 ต้องระบุ `# ชื่อวิชา (รหัสวิชา)`
 - `<TeacherTask />` ต้องส่ง `title` + `taskText` เสมอ
 
 ## การบันทึกความเปลี่ยนแปลง
