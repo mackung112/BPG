@@ -18,6 +18,9 @@
 | `create-skills` | วิธีสร้าง skill ใหม่ |
 | `ai-content-creator` | AI สร้างเนื้อหาบทเรียนใหม่ |
 | `import-external-content` | นำเข้าไฟล์ React/HTML จากภายนอก |
+| `supabase` | จัดการระบบ Supabase (DB, Auth, Storage, Functions) |
+| `supabase-postgres-best-practices` | มาตรฐานและแนวทางปฏิบัติที่ดีที่สุดสำหรับ Postgres/Supabase |
+| `supabase-auth-admin` | การตั้งค่า Auth และสิทธิ์ Super Admin |
 
 ---
 
