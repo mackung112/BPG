@@ -89,6 +89,19 @@ export default function ExamRoom() {
     
     setSessionInfo(sData);
 
+    // If session is already completed or expired
+    const startTime = new Date(sData.started_at || Date.now()).getTime();
+    const now = Date.now();
+    const timeLimitMs = (sData.time_limit_minutes || 60) * 60 * 1000;
+    const elapsed = now - startTime;
+    const remaining = Math.max(0, Math.floor((timeLimitMs - elapsed) / 1000));
+
+    if (sData.status === 'completed' || (sData.started_at && remaining <= 0)) {
+      alert('การสอบนี้เสร็จสิ้นหรือหมดเวลาแล้ว ไม่สามารถทำข้อสอบต่อได้');
+      navigate(`/exam-result/${sessionId}`);
+      return;
+    }
+
     // 2. Set participant status to testing
     await supabase
       .from('exam_participants')
@@ -119,7 +132,6 @@ export default function ExamRoom() {
 
       // Shuffle choices for each question
       loadedQs = loadedQs.map(q => {
-        // Shuffle choices safely, keeping their original objects (and text) intact
         const shuffledChoices = [...q.choices].sort(() => 0.5 - Math.random());
         return {
           ...q,
@@ -130,12 +142,7 @@ export default function ExamRoom() {
       setQuestions(loadedQs);
     }
     
-    // 4. Calculate time left
-    const startTime = new Date(sData.started_at).getTime();
-    const now = new Date().getTime();
-    const timeLimitMs = sData.time_limit_minutes * 60 * 1000;
-    const elapsed = now - startTime;
-    const remaining = Math.max(0, Math.floor((timeLimitMs - elapsed) / 1000));
+    // 4. Set time left
     setTimeLeft(remaining);
   };
 
@@ -154,39 +161,74 @@ export default function ExamRoom() {
     try {
       // 1. Fetch full questions again to grade (to prevent tampering on client side)
       // Query through exam_session_questions to get points
-      const { data: eqData } = await supabase
+      const { data: eqData, error: fetchErr } = await supabase
         .from('exam_session_questions')
         .select(`
           points,
-          questions ( id, choices )
+          questions ( id, choices, correct_answer_index )
         `)
         .eq('session_id', sessionId);
         
+      if (fetchErr) throw fetchErr;
+
       let score = 0;
       let totalQuestions = 0;
       
       for (const eq of (eqData || [])) {
         totalQuestions++;
-        const qId = eq.questions.id;
-        const studentChoiceText = answers[qId];
+        const q = eq.questions;
+        if (!q) continue;
+
+        const qId = q.id;
+        const studentChoiceText = (answers[qId] || '').trim();
+        const choices = q.choices || [];
         
-        // Find the correct choice in the original array
-        const correctChoice = eq.questions.choices.find(c => c.is_correct === true);
-        
-        if (correctChoice && correctChoice.text === studentChoiceText) {
-          score += Number(eq.points);
+        // Find the correct choice text
+        let correctText = '';
+        const correctChoiceObj = choices.find(c => typeof c === 'object' && c.is_correct === true);
+        if (correctChoiceObj) {
+          correctText = correctChoiceObj.text || '';
+        } else if (typeof q.correct_answer_index === 'number' && choices[q.correct_index ?? q.correct_answer_index]) {
+          const c = choices[q.correct_index ?? q.correct_answer_index];
+          correctText = typeof c === 'object' ? c.text : c;
+        }
+
+        // Compare answer
+        if (correctText && studentChoiceText && correctText.trim() === studentChoiceText) {
+          score += Number(eq.points || 1);
         }
       }
       
-      // 2. Insert to exam_results
-      await supabase
+      // 2. Save result to exam_results (update if already exists or insert if new)
+      const { data: existingResult } = await supabase
         .from('exam_results')
-        .insert([{
-          session_id: sessionId,
-          student_id: studentSession.student_id,
-          score: score,
-          total_questions: totalQuestions
-        }]);
+        .select('id')
+        .eq('session_id', sessionId)
+        .eq('student_id', studentSession.student_id)
+        .maybeSingle();
+
+      if (existingResult) {
+        const { error: updateErr } = await supabase
+          .from('exam_results')
+          .update({
+            score: score,
+            total_questions: totalQuestions,
+            submitted_at: new Date()
+          })
+          .eq('id', existingResult.id);
+        if (updateErr) throw updateErr;
+      } else {
+        const { error: insertErr } = await supabase
+          .from('exam_results')
+          .insert([{
+            session_id: sessionId,
+            student_id: studentSession.student_id,
+            score: score,
+            total_questions: totalQuestions,
+            submitted_at: new Date()
+          }]);
+        if (insertErr) throw insertErr;
+      }
         
       // 3. Update participant status
       await supabase

@@ -71,7 +71,7 @@ export default function ExamLobby() {
       .select('status')
       .eq('session_id', sessionId)
       .eq('student_id', studentSession.student_id)
-      .single();
+      .maybeSingle();
       
     if (pData) {
       setParticipantStatus(pData.status);

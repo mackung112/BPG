@@ -87,59 +87,127 @@ export function AuthProvider({ children }) {
     // 1. Verify session exists with secret_code
     const { data: sessionData, error: sessionError } = await supabase
       .from('exam_sessions')
-      .select('id, status')
-      .eq('secret_code', secretCode)
+      .select('id, status, started_at, time_limit_minutes')
+      .eq('secret_code', secretCode.trim().toUpperCase())
       .single();
       
     if (sessionError || !sessionData) {
       throw new Error('ไม่พบรหัสการสอบนี้ หรือรหัสไม่ถูกต้อง');
     }
 
+    // 1.1 Check if session is already completed (allow if student has retake permission)
+    if (sessionData.status === 'completed') {
+      const { data: pCheck } = await supabase
+        .from('exam_participants')
+        .select('*')
+        .eq('session_id', sessionData.id)
+        .eq('student_id', studentId.trim())
+        .maybeSingle();
+
+      if (pCheck?.allow_rejoin) {
+        // Teacher approved retake!
+        await supabase
+          .from('exam_participants')
+          .update({ status: 'testing', allow_rejoin: false })
+          .eq('id', pCheck.id);
+
+        localStorage.setItem('student_id', studentId.trim());
+        localStorage.setItem('exam_session_id', sessionData.id);
+        setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
+        return sessionData.id;
+      }
+
+      throw new Error('การสอบนี้สิ้นสุดลงแล้ว ไม่อนุญาตให้เข้าห้องสอบ (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
+    }
+
+    // 1.2 Check if time limit has expired for active session
+    if (sessionData.status === 'active' && sessionData.started_at && sessionData.time_limit_minutes) {
+      const startTime = new Date(sessionData.started_at).getTime();
+      const now = Date.now();
+      const elapsedMinutes = (now - startTime) / (1000 * 60);
+      if (elapsedMinutes >= sessionData.time_limit_minutes) {
+        // Check if student has retake permission
+        const { data: pCheck } = await supabase
+          .from('exam_participants')
+          .select('*')
+          .eq('session_id', sessionData.id)
+          .eq('student_id', studentId.trim())
+          .maybeSingle();
+
+        if (pCheck?.allow_rejoin) {
+          // Allow retake
+          await supabase
+            .from('exam_participants')
+            .update({ status: 'testing', allow_rejoin: false })
+            .eq('id', pCheck.id);
+
+          localStorage.setItem('student_id', studentId.trim());
+          localStorage.setItem('exam_session_id', sessionData.id);
+          setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
+          return sessionData.id;
+        }
+
+        // Auto mark as completed
+        await supabase
+          .from('exam_sessions')
+          .update({ status: 'completed', end_time: new Date() })
+          .eq('id', sessionData.id);
+        throw new Error('การสอบนี้หมดเวลาแล้ว ไม่อนุญาตให้เข้าห้องสอบ (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
+      }
+    }
+
     // 2. Verify student exists
     const { data: studentData, error: studentError } = await supabase
       .from('students')
       .select('student_id')
-      .eq('student_id', studentId)
+      .eq('student_id', studentId.trim())
       .single();
       
     if (studentError || !studentData) {
-      throw new Error('ไม่พบรหัสนักเรียนในระบบ');
+      throw new Error('ไม่พบรหัสนักเรียนนี้ในระบบ กรุณาตรวจสอบรหัสอีกครั้ง');
     }
 
     // 3. Try to join participants (or update status if already exists)
-    // We use an upsert or check if they exist first. 
-    const { data: existingParticipant, error: checkError } = await supabase
+    const { data: existingParticipant } = await supabase
       .from('exam_participants')
       .select('*')
       .eq('session_id', sessionData.id)
-      .eq('student_id', studentId)
+      .eq('student_id', studentId.trim())
       .maybeSingle();
 
     if (existingParticipant) {
-      if (existingParticipant.status === 'disconnected' && !existingParticipant.allow_rejoin) {
-        throw new Error('คุณถูกตัดการเชื่อมต่อ กรุณาแจ้งครูผู้คุมสอบเพื่อขอเข้าใหม่');
+      // If already submitted and not allowed to retake
+      if (existingParticipant.status === 'completed' && !existingParticipant.allow_rejoin) {
+        throw new Error('คุณได้ส่งข้อสอบชุดนี้เรียบร้อยแล้ว (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
+      }
+
+      // If disconnected or cheating and not allowed to rejoin
+      if ((existingParticipant.status === 'disconnected' || existingParticipant.status === 'cheating') && !existingParticipant.allow_rejoin) {
+        throw new Error('คุณถูกระงับการสอบ กรุณาแจ้งครูผู้คุมสอบเพื่อขออนุมัติเข้าใหม่');
       }
       
-      // Update status to waiting
+      // Update status to testing/waiting for retake or rejoin
+      const nextStatus = sessionData.status === 'active' ? 'testing' : 'waiting';
       await supabase
         .from('exam_participants')
-        .update({ status: 'waiting', allow_rejoin: false })
+        .update({ status: nextStatus, allow_rejoin: false })
         .eq('id', existingParticipant.id);
     } else {
-      // Insert new participant
+      // Insert new participant (allow both waiting and active sessions)
+      const initialStatus = sessionData.status === 'active' ? 'testing' : 'waiting';
       const { error: insertError } = await supabase
         .from('exam_participants')
-        .insert([{ session_id: sessionData.id, student_id: studentId, status: 'waiting' }]);
+        .insert([{ session_id: sessionData.id, student_id: studentId.trim(), status: initialStatus }]);
         
       if (insertError) {
-        throw new Error('เกิดข้อผิดพลาดในการเข้าห้องสอบ');
+        throw new Error('เกิดข้อผิดพลาดในการเข้าห้องสอบ: ' + insertError.message);
       }
     }
 
     // Success
-    localStorage.setItem('student_id', studentId);
+    localStorage.setItem('student_id', studentId.trim());
     localStorage.setItem('exam_session_id', sessionData.id);
-    setStudentSession({ student_id: studentId, session_id: sessionData.id });
+    setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
     return sessionData.id;
   };
 
