@@ -38,6 +38,8 @@ export default function ExamRoom() {
   const [toastWarning, setToastWarning] = useState(null);
   const [warningModalOpen, setWarningModalOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isRetakeMode, setIsRetakeMode] = useState(false);
+  const [attemptNumber, setAttemptNumber] = useState(1);
   const cheatingFlag = useRef(false);
   const violationCountRef = useRef(0);
 
@@ -261,13 +263,28 @@ export default function ExamRoom() {
     
     setSessionInfo(sData);
 
-    // Check participant status
+    // Check participant status and previous attempts
     const { data: pData } = await supabase
       .from('exam_participants')
-      .select('status, allow_rejoin')
+      .select('status, allow_rejoin, is_retake')
       .eq('session_id', sessionId)
       .eq('student_id', studentSession.student_id)
       .maybeSingle();
+
+    // Fetch previous results for this student to detect retake
+    const { data: prevResults } = await supabase
+      .from('exam_results')
+      .select('id, score, attempt_number')
+      .eq('session_id', sessionId)
+      .eq('student_id', studentSession.student_id)
+      .order('submitted_at', { ascending: true });
+
+    const hasPreviousAttempts = prevResults && prevResults.length > 0;
+    const isRetake = hasPreviousAttempts || pData?.allow_rejoin || pData?.is_retake;
+    const currentAttempt = (prevResults?.length || 0) + 1;
+
+    setIsRetakeMode(isRetake);
+    setAttemptNumber(currentAttempt);
 
     // If student already completed the exam and has no retake permission, redirect immediately to result
     if (pData?.status === 'completed' && !pData?.allow_rejoin) {
@@ -296,10 +313,28 @@ export default function ExamRoom() {
       setTimeLeft(remaining);
     }
 
-    // 2. Set participant status to testing & clear rejoin flag
+    // 🌟 If student is entering a retake, set ALL previous attempt scores (Attempt 1) to 0!
+    if (isRetake && hasPreviousAttempts) {
+      await supabase
+        .from('exam_results')
+        .update({
+          score: 0,
+          note: 'ครั้งที่ 1 ปรับคะแนนเป็น 0 (เนื่องจากเข้าสอบซ่อม)'
+        })
+        .eq('session_id', sessionId)
+        .eq('student_id', studentSession.student_id);
+    }
+
+    // 2. Set participant status to testing & update retake flags
     await supabase
       .from('exam_participants')
-      .update({ status: 'testing', allow_rejoin: false, retake_requested: false })
+      .update({
+        status: 'testing',
+        allow_rejoin: false,
+        retake_requested: false,
+        is_retake: isRetake,
+        attempt_count: currentAttempt
+      })
       .eq('session_id', sessionId)
       .eq('student_id', studentSession.student_id);
 
@@ -413,7 +448,8 @@ export default function ExamRoom() {
         }
       }
       
-      // 2. Save result to exam_results
+      // 2. Save result to exam_results with attempt tracking
+      const isRetakeSubmission = attemptNumber > 1;
       const { error: insertErr } = await supabase
         .from('exam_results')
         .insert([{
@@ -421,6 +457,9 @@ export default function ExamRoom() {
           student_id: studentSession.student_id,
           score: score,
           total_questions: totalQuestions,
+          attempt_number: attemptNumber,
+          is_retake: isRetakeSubmission,
+          note: isRetakeSubmission ? `สอบซ่อม (รอบที่ ${attemptNumber})` : 'สอบรอบปกติ (รอบที่ 1)',
           submitted_at: new Date().toISOString()
         }]);
 
@@ -429,7 +468,13 @@ export default function ExamRoom() {
       // 3. Update participant status
       await supabase
         .from('exam_participants')
-        .update({ status: 'completed', allow_rejoin: false, retake_requested: false })
+        .update({ 
+          status: 'completed', 
+          allow_rejoin: false, 
+          retake_requested: false,
+          is_retake: isRetakeSubmission,
+          attempt_count: attemptNumber
+        })
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id);
         
@@ -506,7 +551,14 @@ export default function ExamRoom() {
               {studentSession.student_id}
             </div>
             <div>
-              <h1 className="font-bold text-zinc-900 truncate max-w-[180px] sm:max-w-xs text-sm">{sessionInfo.title}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-bold text-zinc-900 truncate max-w-[180px] sm:max-w-xs text-sm">{sessionInfo.title}</h1>
+                {isRetakeMode && (
+                  <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md border border-amber-300">
+                    สอบซ่อม #{attemptNumber}
+                  </span>
+                )}
+              </div>
               <p className="text-[11px] text-zinc-500 font-medium">
                 ทำแล้ว {answeredCount}/{questions.length} ข้อ • หน้า {currentPage + 1}/{totalPages}
               </p>
@@ -537,6 +589,24 @@ export default function ExamRoom() {
       {/* Main Content */}
       <main className="flex-1 max-w-3xl mx-auto w-full p-4 py-5 space-y-5 relative z-10">
         
+        {/* 🎯 Retake Exam Notice Banner */}
+        {isRetakeMode && (
+          <div className="bg-amber-500/10 border border-amber-400/40 text-amber-900 p-3.5 rounded-2xl text-xs flex items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="w-7 h-7 rounded-xl bg-amber-500 text-white font-bold flex items-center justify-center shrink-0">🎯</span>
+              <div>
+                <p className="font-bold text-amber-900">โหมดสอบซ่อม (ครั้งที่ {attemptNumber})</p>
+                <p className="text-[11px] text-amber-700 mt-0.5">
+                  คะแนนสอบครั้งที่ 1 ถูกปรับเป็น 0 แล้ว ระบบจะบันทึกคะแนนรอบนี้เป็นคะแนนสอบซ่อม
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 bg-amber-200/70 text-amber-900 font-bold rounded-lg text-[11px] shrink-0 font-mono">
+              RETAKE #{attemptNumber}
+            </span>
+          </div>
+        )}
+
         {/* 🧭 Question Status Palette / Quick Navigator Grid */}
         <div className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-xs space-y-3">
           <div className="flex items-center justify-between text-xs">

@@ -199,27 +199,41 @@ export default function ExamResult() {
 
         {/* Multi-Attempt History (If retaken) */}
         {results.length > 1 && (
-          <div className="bg-indigo-50/50 border border-indigo-100/80 p-4 rounded-2xl text-left space-y-2">
+          <div className="bg-indigo-50/60 border border-indigo-100 p-4 rounded-2xl text-left space-y-2.5">
             <div className="flex items-center justify-between text-xs font-bold text-indigo-900">
               <span className="flex items-center gap-1.5">
                 <RotateCcw className="w-3.5 h-3.5 text-indigo-600" /> ประวัติการสอบ ({results.length} รอบ)
               </span>
-              <span className="text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md text-[11px] font-bold">
-                คะแนนดีสุด: {bestScore}/{totalScore}
+              <span className="text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md text-[11px] font-bold">
+                คะแนนล่าสุด: {latestResult.score}/{totalScore}
               </span>
             </div>
 
-            <div className="divide-y divide-indigo-100/60 text-xs">
-              {results.map((r, idx) => (
-                <div key={r.id || idx} className="py-1.5 flex items-center justify-between">
-                  <span className="text-zinc-600 font-medium">
-                    รอบที่ {idx + 1} {idx > 0 && <span className="text-indigo-600 font-semibold">(สอบซ่อม)</span>}
-                  </span>
-                  <span className="font-mono font-bold text-zinc-900">
-                    {r.score} / {totalScore}
-                  </span>
-                </div>
-              ))}
+            <div className="divide-y divide-indigo-100/80 text-xs">
+              {results.map((r, idx) => {
+                const isFirstOfMulti = idx === 0 && results.length > 1;
+                return (
+                  <div key={r.id || idx} className="py-2 flex items-center justify-between">
+                    <div>
+                      <span className="font-semibold text-zinc-800">
+                        รอบที่ {r.attempt_number || idx + 1}
+                      </span>
+                      {isFirstOfMulti ? (
+                        <span className="ml-1.5 text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                          ปรับเป็น 0 (สอบซ่อม)
+                        </span>
+                      ) : (
+                        <span className="ml-1.5 text-[10px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
+                          🎯 สอบซ่อม
+                        </span>
+                      )}
+                    </div>
+                    <span className={`font-mono font-bold ${isFirstOfMulti ? 'text-zinc-400 line-through' : 'text-emerald-700 font-black'}`}>
+                      {r.score} / {totalScore}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -790,20 +790,27 @@ export default function ExamResults() {
                             {/* Attempt badges */}
                             <td className="px-4 py-3">
                               <div className="flex flex-wrap items-center gap-1.5">
-                                {s.attempts.map((att, idx) => (
-                                  <span 
-                                    key={att.id}
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] border ${
-                                      idx === 0 
-                                        ? 'bg-zinc-100 border-zinc-200 text-zinc-700 font-medium' 
-                                        : 'bg-indigo-50 border-indigo-200 text-indigo-800 font-bold'
-                                    }`}
-                                    title={`รอบที่ ${idx + 1} ส่งเมื่อ ${att.submitted_at ? new Date(att.submitted_at).toLocaleTimeString('th-TH') : '-'}`}
-                                  >
-                                    <span>#{idx + 1}:</span>
-                                    <span>{att.score}</span>
-                                  </span>
-                                ))}
+                                {s.attempts.map((att, idx) => {
+                                  const isFirstOfMulti = idx === 0 && s.attempts.length > 1;
+                                  return (
+                                    <span 
+                                      key={att.id || idx}
+                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] border ${
+                                        isFirstOfMulti 
+                                          ? 'bg-rose-50 border-rose-200 text-rose-700 font-medium' 
+                                          : idx === 0 
+                                          ? 'bg-zinc-100 border-zinc-200 text-zinc-700 font-medium' 
+                                          : 'bg-indigo-50 border-indigo-200 text-indigo-800 font-bold'
+                                      }`}
+                                      title={isFirstOfMulti ? 'รอบที่ 1: ถูกปรับเป็น 0 เนื่องจากเข้าสอบซ่อม' : `รอบที่ ${idx + 1} (${att.score} คะแนน)`}
+                                    >
+                                      <span>#{idx + 1}:</span>
+                                      <span className={isFirstOfMulti ? 'line-through text-rose-500' : ''}>{att.score}</span>
+                                      {isFirstOfMulti && <span className="text-[9px] text-rose-600 font-bold">(0)</span>}
+                                      {idx > 0 && <span className="text-[9px] text-indigo-600 font-bold">ซ่อม</span>}
+                                    </span>
+                                  );
+                                })}
                               </div>
                             </td>
 
