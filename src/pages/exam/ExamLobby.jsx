@@ -60,7 +60,7 @@ export default function ExamLobby() {
       .from('exam_sessions')
       .select('*, question_banks(title)')
       .eq('id', sessionId)
-      .single();
+      .maybeSingle();
     if (sData) {
       setSessionInfo(sData);
     }

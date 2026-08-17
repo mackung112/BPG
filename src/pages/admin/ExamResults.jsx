@@ -288,7 +288,7 @@ export default function ExamResults() {
         .from('students')
         .select('student_id')
         .eq('student_id', newStudentId.trim())
-        .single();
+        .maybeSingle();
 
       if (sErr || !student) {
         throw new Error('ไม่พบรหัสนักเรียนนี้ในระบบ');
