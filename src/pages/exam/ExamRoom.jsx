@@ -199,36 +199,18 @@ export default function ExamRoom() {
         }
       }
       
-      // 2. Save result to exam_results (update if already exists or insert if new)
-      const { data: existingResult } = await supabase
+      // 2. Save result to exam_results (upsert: update if exists, insert if new)
+      const { error: upsertErr } = await supabase
         .from('exam_results')
-        .select('id')
-        .eq('session_id', sessionId)
-        .eq('student_id', studentSession.student_id)
-        .maybeSingle();
+        .upsert({
+          session_id: sessionId,
+          student_id: studentSession.student_id,
+          score: score,
+          total_questions: totalQuestions,
+          submitted_at: new Date().toISOString()
+        }, { onConflict: 'session_id,student_id' });
 
-      if (existingResult) {
-        const { error: updateErr } = await supabase
-          .from('exam_results')
-          .update({
-            score: score,
-            total_questions: totalQuestions,
-            submitted_at: new Date()
-          })
-          .eq('id', existingResult.id);
-        if (updateErr) throw updateErr;
-      } else {
-        const { error: insertErr } = await supabase
-          .from('exam_results')
-          .insert([{
-            session_id: sessionId,
-            student_id: studentSession.student_id,
-            score: score,
-            total_questions: totalQuestions,
-            submitted_at: new Date()
-          }]);
-        if (insertErr) throw insertErr;
-      }
+      if (upsertErr) throw upsertErr;
         
       // 3. Update participant status
       await supabase
@@ -237,8 +219,8 @@ export default function ExamRoom() {
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id);
         
-      // 4. Navigate to result
-      navigate(`/exam-result/${sessionId}`);
+      // 4. Navigate to result (force full reload to clear any cached modules)
+      window.location.href = `/exam-result/${sessionId}`;
       
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการส่งข้อสอบ: ' + err.message);
