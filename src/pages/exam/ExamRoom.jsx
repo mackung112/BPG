@@ -23,7 +23,7 @@ const QUESTIONS_PER_PAGE = 2;
 
 export default function ExamRoom() {
   const { sessionId } = useParams();
-  const { studentSession } = useAuth();
+  const { studentSession, logoutStudent } = useAuth();
   const navigate = useNavigate();
   
   const [sessionInfo, setSessionInfo] = useState(null);
@@ -33,6 +33,8 @@ export default function ExamRoom() {
   const [currentPage, setCurrentPage] = useState(0);
   const [timeLeft, setTimeLeft] = useState(null);
   
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [toastWarning, setToastWarning] = useState(null);
@@ -249,107 +251,104 @@ export default function ExamRoom() {
   }, [timeLeft, submitting, questions]);
 
   const initExam = async () => {
-    // 1. Get session info
-    const { data: sData } = await supabase
-      .from('exam_sessions')
-      .select('*, question_banks(title)')
-      .eq('id', sessionId)
-      .maybeSingle();
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      // 1. Get session info
+      const { data: sData, error: sError } = await supabase
+        .from('exam_sessions')
+        .select('*, question_banks(title)')
+        .eq('id', sessionId)
+        .maybeSingle();
+        
+      if (sError || !sData) {
+        await logoutStudent();
+        navigate('/login', { replace: true });
+        return;
+      }
       
-    if (!sData) {
-      navigate('/', { replace: true });
-      return;
-    }
-    
-    setSessionInfo(sData);
+      setSessionInfo(sData);
 
-    // Check participant status and previous attempts
-    const { data: pData } = await supabase
-      .from('exam_participants')
-      .select('status, allow_rejoin, is_retake')
-      .eq('session_id', sessionId)
-      .eq('student_id', studentSession.student_id)
-      .maybeSingle();
+      // Check participant status and previous attempts
+      const { data: pData } = await supabase
+        .from('exam_participants')
+        .select('status, allow_rejoin, is_retake')
+        .eq('session_id', sessionId)
+        .eq('student_id', studentSession.student_id)
+        .maybeSingle();
 
-    // Fetch previous results for this student to detect retake
-    const { data: prevResults } = await supabase
-      .from('exam_results')
-      .select('id, score, attempt_number')
-      .eq('session_id', sessionId)
-      .eq('student_id', studentSession.student_id)
-      .order('submitted_at', { ascending: true });
-
-    const hasPreviousAttempts = prevResults && prevResults.length > 0;
-    const isRetake = hasPreviousAttempts || pData?.allow_rejoin || pData?.is_retake;
-    const currentAttempt = (prevResults?.length || 0) + 1;
-
-    setIsRetakeMode(isRetake);
-    setAttemptNumber(currentAttempt);
-
-    // If student already completed the exam and has no retake permission, redirect immediately to result
-    if (pData?.status === 'completed' && !pData?.allow_rejoin) {
-      navigate(`/exam-result/${sessionId}`, { replace: true });
-      return;
-    }
-
-    const isRetakeAllowed = pData?.status === 'testing' || pData?.allow_rejoin;
-
-    // Calculate time
-    const startTime = new Date(sData.started_at || Date.now()).getTime();
-    const now = Date.now();
-    const timeLimitMs = (sData.time_limit_minutes || 60) * 60 * 1000;
-    const elapsed = now - startTime;
-    const remaining = Math.max(0, Math.floor((timeLimitMs - elapsed) / 1000));
-
-    if (!isRetakeAllowed && (sData.status === 'completed' || (sData.started_at && remaining <= 0))) {
-      alert('การสอบนี้เสร็จสิ้นหรือหมดเวลาแล้ว ไม่สามารถทำข้อสอบต่อได้ (หากต้องการสอบซ่อม กรุณากดขอสอบซ่อม)');
-      navigate(`/exam-result/${sessionId}`, { replace: true });
-      return;
-    }
-
-    if (sData.status === 'completed' || remaining <= 0) {
-      setTimeLeft((sData.time_limit_minutes || 30) * 60);
-    } else {
-      setTimeLeft(remaining);
-    }
-
-    // 🌟 If student is entering a retake, set ALL previous attempt scores (Attempt 1) to 0!
-    if (isRetake && hasPreviousAttempts) {
-      await supabase
+      // Fetch previous results for this student to detect retake
+      const { data: prevResults } = await supabase
         .from('exam_results')
+        .select('id, score, attempt_number')
+        .eq('session_id', sessionId)
+        .eq('student_id', studentSession.student_id)
+        .order('submitted_at', { ascending: true });
+
+      const hasPreviousAttempts = prevResults && prevResults.length > 0;
+      const isRetake = hasPreviousAttempts || pData?.allow_rejoin || pData?.is_retake;
+      const currentAttempt = (prevResults?.length || 0) + 1;
+
+      setIsRetakeMode(isRetake);
+      setAttemptNumber(currentAttempt);
+
+      // If student already completed the exam and has no retake permission, redirect immediately to result
+      if (pData?.status === 'completed' && !pData?.allow_rejoin) {
+        navigate(`/exam-result/${sessionId}`, { replace: true });
+        return;
+      }
+
+      const isRetakeAllowed = pData?.status === 'testing' || pData?.allow_rejoin;
+
+      // Calculate time
+      const startTime = new Date(sData.started_at || Date.now()).getTime();
+      const now = Date.now();
+      const timeLimitMs = (sData.time_limit_minutes || 60) * 60 * 1000;
+      const elapsed = now - startTime;
+      const remaining = Math.max(0, Math.floor((timeLimitMs - elapsed) / 1000));
+
+      if (!isRetakeAllowed && (sData.status === 'completed' || (sData.started_at && remaining <= 0))) {
+        alert('การสอบนี้เสร็จสิ้นหรือหมดเวลาแล้ว ไม่สามารถทำข้อสอบต่อได้ (หากต้องการสอบซ่อม กรุณากดขอสอบซ่อม)');
+        navigate(`/exam-result/${sessionId}`, { replace: true });
+        return;
+      }
+
+      if (sData.status === 'completed' || remaining <= 0) {
+        setTimeLeft((sData.time_limit_minutes || 30) * 60);
+      } else {
+        setTimeLeft(remaining);
+      }
+
+      // 2. Set participant status to testing & update retake flags
+      await supabase
+        .from('exam_participants')
         .update({
-          score: 0,
-          note: 'ครั้งที่ 1 ปรับคะแนนเป็น 0 (เนื่องจากเข้าสอบซ่อม)'
+          status: 'testing',
+          allow_rejoin: false,
+          retake_requested: false,
+          is_retake: isRetake,
+          attempt_count: currentAttempt
         })
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id);
-    }
 
-    // 2. Set participant status to testing & update retake flags
-    await supabase
-      .from('exam_participants')
-      .update({
-        status: 'testing',
-        allow_rejoin: false,
-        retake_requested: false,
-        is_retake: isRetake,
-        attempt_count: currentAttempt
-      })
-      .eq('session_id', sessionId)
-      .eq('student_id', studentSession.student_id);
+      // 3. Fetch question pool for this session
+      const { data: eqData, error: eqError } = await supabase
+        .from('exam_session_questions')
+        .select(`
+          points,
+          questions (
+            id, question_text, choices, correct_answer_index
+          )
+        `)
+        .eq('session_id', sessionId);
+        
+      if (eqError || !eqData || eqData.length === 0) {
+        setErrorMsg('ไม่พบข้อสอบในชุดนี้ หรือห้องสอบยังไม่ได้ตั้งค่าคำถาม');
+        setLoading(false);
+        return;
+      }
 
-    // 3. Fetch question pool for this session
-    const { data: eqData } = await supabase
-      .from('exam_session_questions')
-      .select(`
-        points,
-        questions (
-          id, question_text, choices, correct_answer_index
-        )
-      `)
-      .eq('session_id', sessionId);
-      
-    if (eqData && eqData.length > 0) {
       let pool = eqData.map(item => ({
         ...item.questions,
         points: item.points
@@ -393,6 +392,11 @@ export default function ExamRoom() {
       });
 
       setQuestions(sampledQuestions);
+    } catch (err) {
+      console.error('Error initializing exam:', err);
+      setErrorMsg('เกิดข้อผิดพลาดในการโหลดข้อสอบ: ' + (err.message || ''));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -436,7 +440,7 @@ export default function ExamRoom() {
     setSubmitting(true);
     try {
       // 1. Calculate Score based on the dynamically assigned questions for this attempt
-      let score = 0;
+      let rawScore = 0;
       const totalQuestions = questions.length;
       
       for (const q of questions) {
@@ -444,9 +448,12 @@ export default function ExamRoom() {
         if (!studentChoiceText) continue;
 
         if (q.correctText && studentChoiceText.trim() === q.correctText.trim()) {
-          score += Number(q.points || (Number(sessionInfo?.total_score || 10) / totalQuestions));
+          rawScore += Number(q.points || (Number(sessionInfo?.total_score || 10) / totalQuestions));
         }
       }
+
+      // Round to integer cleanly (ปัดเศษเป็นจำนวนเต็มทั้งหมด)
+      const finalScore = Math.round(rawScore);
       
       // 2. Save result to exam_results with attempt tracking
       const isRetakeSubmission = attemptNumber > 1;
@@ -455,7 +462,7 @@ export default function ExamRoom() {
         .insert([{
           session_id: sessionId,
           student_id: studentSession.student_id,
-          score: score,
+          score: finalScore,
           total_questions: totalQuestions,
           attempt_number: attemptNumber,
           is_retake: isRetakeSubmission,
@@ -484,10 +491,11 @@ export default function ExamRoom() {
       }
 
       // 5. Navigate to result (replace history entry)
-      window.location.replace(`/exam-result/${sessionId}`);
+      navigate(`/exam-result/${sessionId}`, { replace: true });
       
     } catch (err) {
-      alert('เกิดข้อผิดพลาดในการส่งข้อสอบ: ' + err.message);
+      console.error('Submit error:', err);
+      alert('เกิดข้อผิดพลาดในการส่งข้อสอบ: ' + (err.message || JSON.stringify(err)));
       setSubmitting(false);
     }
   };
@@ -499,12 +507,44 @@ export default function ExamRoom() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  if (!sessionInfo || questions.length === 0) {
+  if (errorMsg) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white font-sans">
-        <div className="text-center space-y-3">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white font-sans p-4">
+        <div className="max-w-md w-full bg-zinc-800 p-8 rounded-3xl border border-zinc-700 text-center space-y-4 shadow-2xl">
+          <div className="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto">
+            <AlertTriangle className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-white">เกิดข้อผิดพลาด</h2>
+          <p className="text-sm text-zinc-400 font-medium">{errorMsg}</p>
+          <button
+            onClick={async () => {
+              await logoutStudent();
+              navigate('/login', { replace: true });
+            }}
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-all cursor-pointer mt-2"
+          >
+            กลับสู่หน้าเข้าสู่ระบบ
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading || !sessionInfo || questions.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white font-sans p-4">
+        <div className="text-center space-y-4 max-w-sm">
           <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-semibold text-zinc-300">กำลังเตรียมข้อสอบและระบบล็อกความปลอดภัย...</p>
+          <button
+            onClick={async () => {
+              await logoutStudent();
+              navigate('/login', { replace: true });
+            }}
+            className="text-xs text-zinc-500 hover:text-rose-400 hover:underline pt-2 block mx-auto cursor-pointer"
+          >
+            หากรอนานเกินไป คลิกที่นี่เพื่อกลับหน้าเข้าสู่ระบบ
+          </button>
         </div>
       </div>
     );

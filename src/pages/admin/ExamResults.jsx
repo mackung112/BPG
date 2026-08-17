@@ -203,8 +203,8 @@ export default function ExamResults() {
     }
 
     return {
-      finalScore: Math.round(finalScore * 10) / 10,
-      effectiveTotal
+      finalScore: Math.round(finalScore),
+      effectiveTotal: Math.round(effectiveTotal)
     };
   };
 
@@ -294,8 +294,8 @@ export default function ExamResults() {
         throw new Error('ไม่พบรหัสนักเรียนนี้ในระบบ');
       }
 
-      const totalQ = selectedSession.total_score || 10;
-      const parsedScore = parseFloat(newScore);
+      const totalQ = Math.round(selectedSession.total_score || 10);
+      const parsedScore = Math.round(parseFloat(newScore));
 
       const { error } = await supabase.from('exam_results').insert([{
         session_id: selectedSession.id,
@@ -334,7 +334,7 @@ export default function ExamResults() {
       const { error } = await supabase
         .from('exam_results')
         .update({
-          score: parseFloat(editScore)
+          score: Math.round(parseFloat(editScore))
         })
         .eq('id', editingResult.id);
 
@@ -409,8 +409,8 @@ export default function ExamResults() {
       const name = `${s.students?.first_name || ''} ${s.students?.last_name || ''}`;
       const classroom = s.students?.classroom || '-';
       const attemptsCount = s.attempts.length;
-      const firstScore = s.attempts[0]?.score ?? '-';
-      const latestScore = s.attempts[s.attempts.length - 1]?.score ?? '-';
+      const firstScore = s.attempts[0]?.score != null ? Math.round(s.attempts[0].score) : '-';
+      const latestScore = s.attempts[s.attempts.length - 1]?.score != null ? Math.round(s.attempts[s.attempts.length - 1].score) : '-';
       const finalScore = s.finalScore;
       const effectiveTotal = s.effectiveTotal;
       const statusText = s.isPass ? 'ผ่าน' : 'ไม่ผ่าน';
@@ -446,7 +446,7 @@ export default function ExamResults() {
   const passCount = studentList.filter(s => s.isPass).length;
   const retakeApprovedCount = studentList.filter(s => s.isRetakeAllowed).length;
   const retakenStudentsCount = studentList.filter(s => s.attempts.length > 1).length;
-  const avgFinalScore = totalStudents > 0 ? (studentList.reduce((sum, s) => sum + s.finalScore, 0) / totalStudents).toFixed(1) : 0;
+  const avgFinalScore = totalStudents > 0 ? Math.round(studentList.reduce((sum, s) => sum + s.finalScore, 0) / totalStudents) : 0;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -790,27 +790,21 @@ export default function ExamResults() {
                             {/* Attempt badges */}
                             <td className="px-4 py-3">
                               <div className="flex flex-wrap items-center gap-1.5">
-                                {s.attempts.map((att, idx) => {
-                                  const isFirstOfMulti = idx === 0 && s.attempts.length > 1;
-                                  return (
-                                    <span 
-                                      key={att.id || idx}
-                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] border ${
-                                        isFirstOfMulti 
-                                          ? 'bg-rose-50 border-rose-200 text-rose-700 font-medium' 
-                                          : idx === 0 
-                                          ? 'bg-zinc-100 border-zinc-200 text-zinc-700 font-medium' 
-                                          : 'bg-indigo-50 border-indigo-200 text-indigo-800 font-bold'
-                                      }`}
-                                      title={isFirstOfMulti ? 'รอบที่ 1: ถูกปรับเป็น 0 เนื่องจากเข้าสอบซ่อม' : `รอบที่ ${idx + 1} (${att.score} คะแนน)`}
-                                    >
-                                      <span>#{idx + 1}:</span>
-                                      <span className={isFirstOfMulti ? 'line-through text-rose-500' : ''}>{att.score}</span>
-                                      {isFirstOfMulti && <span className="text-[9px] text-rose-600 font-bold">(0)</span>}
-                                      {idx > 0 && <span className="text-[9px] text-indigo-600 font-bold">ซ่อม</span>}
-                                    </span>
-                                  );
-                                })}
+                                {s.attempts.map((att, idx) => (
+                                  <span 
+                                    key={att.id || idx}
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] border ${
+                                      idx === 0 
+                                        ? 'bg-zinc-100 border-zinc-200 text-zinc-700 font-medium' 
+                                        : 'bg-indigo-50 border-indigo-200 text-indigo-800 font-bold'
+                                    }`}
+                                    title={`รอบที่ ${idx + 1}: ${att.score} คะแนน (${idx === 0 ? 'สอบรอบปกติ' : 'สอบซ่อม'})`}
+                                  >
+                                    <span>#{idx + 1}:</span>
+                                    <span>{att.score}</span>
+                                    {idx > 0 && <span className="text-[9px] text-indigo-600 font-bold">ซ่อม</span>}
+                                  </span>
+                                ))}
                               </div>
                             </td>
 

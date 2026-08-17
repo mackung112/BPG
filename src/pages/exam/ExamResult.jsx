@@ -143,9 +143,10 @@ export default function ExamResult() {
   if (results.length === 0) return <div className="min-h-screen flex items-center justify-center font-medium text-zinc-500">ไม่พบข้อมูลคะแนนสอบ</div>;
 
   const latestResult = results[results.length - 1];
-  const bestScore = Math.max(...results.map(r => r.score));
-  const totalScore = latestResult.exam_sessions?.total_score || latestResult.total_questions || 10;
-  const percentage = Math.round((latestResult.score / totalScore) * 100);
+  const bestScore = Math.round(Math.max(...results.map(r => Number(r.score))));
+  const totalScore = Math.round(Number(latestResult.exam_sessions?.total_score || latestResult.total_questions || 10));
+  const currentScore = Math.round(Number(latestResult.score));
+  const percentage = Math.round((currentScore / totalScore) * 100);
   const isPass = percentage >= 50;
 
   const isApprovedToRetake = participant?.allow_rejoin === true;
@@ -187,7 +188,7 @@ export default function ExamResult() {
             {results.length > 1 ? `คะแนนรอบล่าสุด (รอบที่ ${results.length})` : 'คะแนนที่คุณได้'}
           </p>
           <div className="text-5xl font-black text-zinc-900 mb-2 font-mono tracking-tight">
-            {latestResult.score} <span className="text-xl text-zinc-400 font-normal">/ {totalScore}</span>
+            {currentScore} <span className="text-xl text-zinc-400 font-normal">/ {totalScore}</span>
           </div>
           <div className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold ${
             isPass ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
@@ -205,35 +206,32 @@ export default function ExamResult() {
                 <RotateCcw className="w-3.5 h-3.5 text-indigo-600" /> ประวัติการสอบ ({results.length} รอบ)
               </span>
               <span className="text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md text-[11px] font-bold">
-                คะแนนล่าสุด: {latestResult.score}/{totalScore}
+                คะแนนล่าสุด: {currentScore}/{totalScore}
               </span>
             </div>
 
             <div className="divide-y divide-indigo-100/80 text-xs">
-              {results.map((r, idx) => {
-                const isFirstOfMulti = idx === 0 && results.length > 1;
-                return (
-                  <div key={r.id || idx} className="py-2 flex items-center justify-between">
-                    <div>
-                      <span className="font-semibold text-zinc-800">
-                        รอบที่ {r.attempt_number || idx + 1}
-                      </span>
-                      {isFirstOfMulti ? (
-                        <span className="ml-1.5 text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
-                          ปรับเป็น 0 (สอบซ่อม)
-                        </span>
-                      ) : (
-                        <span className="ml-1.5 text-[10px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
-                          🎯 สอบซ่อม
-                        </span>
-                      )}
-                    </div>
-                    <span className={`font-mono font-bold ${isFirstOfMulti ? 'text-zinc-400 line-through' : 'text-emerald-700 font-black'}`}>
-                      {r.score} / {totalScore}
+              {results.map((r, idx) => (
+                <div key={r.id || idx} className="py-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-zinc-800">
+                      รอบที่ {r.attempt_number || idx + 1}
                     </span>
+                    {idx === 0 ? (
+                      <span className="text-[10px] text-zinc-600 font-medium bg-zinc-100 px-1.5 py-0.5 rounded">
+                        สอบรอบปกติ
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
+                        🎯 สอบซ่อม
+                      </span>
+                    )}
                   </div>
-                );
-              })}
+                  <span className="font-mono font-bold text-emerald-700">
+                    {Math.round(Number(r.score))} / {totalScore}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         )}
