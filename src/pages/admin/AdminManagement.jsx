@@ -16,7 +16,10 @@ import {
   Crown, 
   Shield, 
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Key,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -51,6 +54,13 @@ export default function AdminManagement() {
   const [editFirstName, setEditFirstName] = useState('');
   const [editRole, setEditRole] = useState('admin');
   const [updating, setUpdating] = useState(false);
+
+  // Change Password Modal State (Super Admin)
+  const [passwordModalAdmin, setPasswordModalAdmin] = useState(null);
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Delete Confirm State
   const [deletingAdmin, setDeletingAdmin] = useState(null);
@@ -203,6 +213,39 @@ export default function AdminManagement() {
       showToast('error', 'เกิดข้อผิดพลาดในการลบ: ' + err.message);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  // 4. Change Password (Super Admin Only)
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (!passwordModalAdmin) return;
+    if (!newAdminPassword || newAdminPassword.length < 6) {
+      showToast('error', 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+      return;
+    }
+    if (newAdminPassword !== confirmAdminPassword) {
+      showToast('error', 'รหัสผ่านทั้งสองช่องไม่ตรงกัน');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_change_user_password', {
+        target_user_id: passwordModalAdmin.id,
+        new_password: newAdminPassword
+      });
+
+      if (error) throw error;
+
+      showToast('success', `เปลี่ยนรหัสผ่านสำหรับ "${passwordModalAdmin.first_name || passwordModalAdmin.email}" สำเร็จแล้ว!`);
+      setPasswordModalAdmin(null);
+      setNewAdminPassword('');
+      setConfirmAdminPassword('');
+    } catch (err) {
+      showToast('error', 'เปลี่ยนรหัสผ่านไม่สำเร็จ: ' + err.message);
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -457,6 +500,20 @@ export default function AdminManagement() {
 
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Change Password Button (Super Admin) */}
+                          <button
+                            onClick={() => {
+                              setPasswordModalAdmin(admin);
+                              setNewAdminPassword('');
+                              setConfirmAdminPassword('');
+                              setShowPassword(false);
+                            }}
+                            className="p-2 text-zinc-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all cursor-pointer"
+                            title="เปลี่ยนรหัสผ่านให้ผู้ใช้นี้"
+                          >
+                            <Key className="w-4 h-4" />
+                          </button>
+
                           {/* Edit Button */}
                           <button
                             onClick={() => handleOpenEdit(admin)}
@@ -731,6 +788,96 @@ export default function AdminManagement() {
                   className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl disabled:opacity-50 shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
                 >
                   {updating ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CHANGE PASSWORD MODAL (SUPER ADMIN ONLY) */}
+      {passwordModalAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-zinc-100 space-y-5 animate-scale-up">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-zinc-900">เปลี่ยนรหัสผ่านผู้ใช้</h3>
+                  <p className="text-xs text-zinc-500 font-mono">{passwordModalAdmin.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPasswordModalAdmin(null)}
+                className="p-2 text-zinc-400 hover:text-zinc-600 rounded-xl hover:bg-zinc-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-amber-50/70 border border-amber-200 p-3 rounded-2xl text-xs text-amber-900 leading-relaxed">
+              🔑 <strong>สิทธิ์ Super Admin:</strong> คุณสามารถตั้งรหัสผ่านใหม่ให้กับ <strong>{passwordModalAdmin.first_name || passwordModalAdmin.email}</strong> ได้ทันที โดยไม่ต้องใช้รหัสผ่านเดิม
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร) *</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 absolute left-3.5 top-3 text-zinc-400" />
+                  <input
+                    required
+                    type={showPassword ? 'text' : 'password'}
+                    value={newAdminPassword}
+                    onChange={(e) => setNewAdminPassword(e.target.value)}
+                    minLength={6}
+                    className="w-full pl-10 pr-10 py-2.5 text-sm border border-zinc-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-zinc-400 hover:text-zinc-600 p-0.5"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">ยืนยันรหัสผ่านใหม่อีกครั้ง *</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 absolute left-3.5 top-3 text-zinc-400" />
+                  <input
+                    required
+                    type={showPassword ? 'text' : 'password'}
+                    value={confirmAdminPassword}
+                    onChange={(e) => setConfirmAdminPassword(e.target.value)}
+                    minLength={6}
+                    className="w-full pl-10 pr-4 py-2.5 text-sm border border-zinc-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
+                    placeholder="••••••••"
+                  />
+                </div>
+                {newAdminPassword && confirmAdminPassword && newAdminPassword !== confirmAdminPassword && (
+                  <p className="text-xs text-rose-600 font-medium mt-1">⚠️ รหัสผ่านทั้งสองช่องไม่ตรงกัน</p>
+                )}
+              </div>
+
+              <div className="pt-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPasswordModalAdmin(null)}
+                  className="flex-1 py-2.5 border border-zinc-200 text-zinc-700 font-semibold rounded-xl hover:bg-zinc-50 transition-colors cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  disabled={changingPassword || (newAdminPassword && confirmAdminPassword && newAdminPassword !== confirmAdminPassword)}
+                  type="submit"
+                  className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl disabled:opacity-50 shadow-md shadow-amber-600/20 transition-all cursor-pointer"
+                >
+                  {changingPassword ? 'กำลังเปลี่ยนรหัสผ่าน...' : 'บันทึกรหัสผ่านใหม่'}
                 </button>
               </div>
             </form>
