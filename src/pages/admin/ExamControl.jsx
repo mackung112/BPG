@@ -20,7 +20,8 @@ import {
   Lock,
   Timer,
   Hourglass,
-  PlusCircle
+  PlusCircle,
+  RotateCcw
 } from 'lucide-react';
 import QuestionPicker from './QuestionPicker';
 
@@ -58,6 +59,11 @@ export default function ExamControl() {
 
   const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const [endingExam, setEndingExam] = useState(false);
+
+  // Reopen Exam Modal
+  const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
+  const [reopenTimeLimit, setReopenTimeLimit] = useState(60);
+  const [reopeningExam, setReopeningExam] = useState(false);
 
   const [deletingSession, setDeletingSession] = useState(null);
   const [deletingSessionLoading, setDeletingSessionLoading] = useState(false);
@@ -350,6 +356,43 @@ export default function ExamControl() {
       showToast('error', 'จบการสอบไม่สำเร็จ: ' + err.message);
     } finally {
       setEndingExam(false);
+    }
+  };
+
+  // 4.1 Reopen Exam (for retake / make-up exams)
+  const handleConfirmReopenExam = async () => {
+    if (!activeSession) return;
+    setReopeningExam(true);
+    try {
+      const startTime = new Date();
+      const timeLimitVal = parseInt(reopenTimeLimit, 10) || activeSession.time_limit_minutes || 60;
+
+      const { error } = await supabase
+        .from('exam_sessions')
+        .update({
+          status: 'active',
+          started_at: startTime,
+          end_time: null,
+          time_limit_minutes: timeLimitVal
+        })
+        .eq('id', activeSession.id);
+
+      if (error) throw error;
+
+      showToast('success', `เปิดห้องสอบอีกครั้งสำเร็จ! เวลาสอบรอบใหม่คือ ${timeLimitVal} นาที`);
+      setIsReopenModalOpen(false);
+      fetchSessions();
+      setActiveSession({
+        ...activeSession,
+        status: 'active',
+        started_at: startTime,
+        end_time: null,
+        time_limit_minutes: timeLimitVal
+      });
+    } catch (err) {
+      showToast('error', 'เปิดห้องสอบอีกครั้งไม่สำเร็จ: ' + err.message);
+    } finally {
+      setReopeningExam(false);
     }
   };
 
@@ -688,8 +731,20 @@ export default function ExamControl() {
                     </button>
                   )}
                   {activeSession.status === 'completed' && (
-                    <div className="flex items-center gap-1.5 bg-zinc-100 text-zinc-700 border border-zinc-300 px-3.5 py-2 rounded-xl text-xs font-bold">
-                      <Lock className="w-3.5 h-3.5 text-zinc-600" /> ห้องสอบปิดแล้ว
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 bg-zinc-100 text-zinc-700 border border-zinc-300 px-3 py-2 rounded-xl text-xs font-bold">
+                        <Lock className="w-3.5 h-3.5 text-zinc-600" /> ปิดสอบแล้ว
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setReopenTimeLimit(activeSession.time_limit_minutes || 60);
+                          setIsReopenModalOpen(true);
+                        }} 
+                        className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+                        title="เปิดห้องสอบนี้อีกครั้ง สำหรับนักเรียนสอบซ่อมหรือเก็บตก"
+                      >
+                        <RotateCcw className="w-4 h-4" /> เปิดสอบอีกครั้ง (สอบซ่อม)
+                      </button>
                     </div>
                   )}
                 </div>
@@ -890,6 +945,60 @@ export default function ExamControl() {
               <button type="button" onClick={() => setIsEndModalOpen(false)} className="flex-1 py-2.5 border rounded-xl text-xs font-semibold">ยกเลิก</button>
               <button disabled={endingExam} onClick={handleConfirmEndExam} className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-600/20">
                 {endingExam ? 'กำลังจบการสอบ...' : 'ยืนยันจบการสอบ'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REOPEN EXAM CONFIRMATION MODAL */}
+      {isReopenModalOpen && activeSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-zinc-100 space-y-4 animate-scale-up">
+            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-2xl w-fit">
+              <RotateCcw className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-zinc-900">ยืนยันเปิดห้องสอบอีกครั้ง (สำหรับสอบซ่อม)?</h3>
+              <p className="text-xs text-zinc-500 mt-1">ห้องสอบ: <strong>{activeSession.title}</strong> (รหัส: <span className="font-mono font-bold text-indigo-600">{activeSession.secret_code}</span>)</p>
+              
+              <div className="text-xs text-zinc-600 mt-3 space-y-1.5 leading-relaxed bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100">
+                <p>• ห้องสอบจะกลับมาเป็นสถานะ <strong>"กำลังสอบอยู่ (ACTIVE)"</strong></p>
+                <p>• นักเรียนที่สอบซ่อม หรือนักเรียนที่ยังไม่ได้สอบ สามารถใช้รหัสเดิมเข้าทำข้อสอบได้ทันที</p>
+                <p>• นาฬิกาจะเริ่มนับเวลาถอยหลังใหม่นับตั้งแต่ตอนที่กดเปิด</p>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
+                  กำหนดเวลาสอบสำหรับรอบนี้ (นาที):
+                </label>
+                <div className="relative">
+                  <Clock className="w-4 h-4 absolute left-3 top-2.5 text-zinc-400" />
+                  <input
+                    type="number"
+                    min="1"
+                    value={reopenTimeLimit}
+                    onChange={e => setReopenTimeLimit(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 border border-zinc-200 rounded-xl focus:border-indigo-500 text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button 
+                type="button" 
+                onClick={() => setIsReopenModalOpen(false)} 
+                className="flex-1 py-2.5 border rounded-xl text-xs font-semibold text-zinc-600 hover:bg-zinc-50 cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button 
+                disabled={reopeningExam} 
+                onClick={handleConfirmReopenExam} 
+                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 cursor-pointer transition-all"
+              >
+                {reopeningExam ? 'กำลังเปิดห้องสอบ...' : 'ยืนยันเปิดสอบอีกครั้ง'}
               </button>
             </div>
           </div>
