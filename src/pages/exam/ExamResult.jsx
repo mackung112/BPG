@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Trophy, Home, CheckCircle2 } from 'lucide-react';
+import { Trophy, Home, RotateCcw, CheckCircle2 } from 'lucide-react';
 
 export default function ExamResult() {
   const { sessionId } = useParams();
   const { studentSession, logoutStudent } = useAuth();
   const navigate = useNavigate();
-  const [result, setResult] = useState(null);
+  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,21 +16,21 @@ export default function ExamResult() {
       navigate('/');
       return;
     }
-    fetchResult();
+    fetchResults();
   }, [sessionId, studentSession]);
 
-  const fetchResult = async () => {
+  const fetchResults = async () => {
     setLoading(true);
-    // Use maybeSingle to get exactly 0 or 1 row — never 406
-    const { data } = await supabase
+    // Array query ordered by submitted_at ascending — NEVER returns 406
+    const { data, error } = await supabase
       .from('exam_results')
       .select('*, exam_sessions(title, total_score)')
       .eq('session_id', sessionId)
       .eq('student_id', studentSession.student_id)
-      .maybeSingle();
+      .order('submitted_at', { ascending: true });
       
-    if (data) {
-      setResult(data);
+    if (!error && data && data.length > 0) {
+      setResults(data);
     }
     setLoading(false);
   };
@@ -41,10 +41,12 @@ export default function ExamResult() {
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center font-medium text-zinc-500">กำลังโหลดผลสอบ...</div>;
-  if (!result) return <div className="min-h-screen flex items-center justify-center font-medium text-zinc-500">ไม่พบข้อมูลคะแนนสอบ</div>;
+  if (results.length === 0) return <div className="min-h-screen flex items-center justify-center font-medium text-zinc-500">ไม่พบข้อมูลคะแนนสอบ</div>;
 
-  const totalScore = result.exam_sessions?.total_score || result.total_questions || 10;
-  const percentage = Math.round((result.score / totalScore) * 100);
+  const latestResult = results[results.length - 1];
+  const bestScore = Math.max(...results.map(r => r.score));
+  const totalScore = latestResult.exam_sessions?.total_score || latestResult.total_questions || 10;
+  const percentage = Math.round((latestResult.score / totalScore) * 100);
   const isPass = percentage >= 50;
 
   return (
@@ -62,17 +64,17 @@ export default function ExamResult() {
         
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">ส่งข้อสอบสำเร็จ!</h1>
-          <p className="text-xs text-zinc-500 mt-1">{result.exam_sessions?.title || 'ผลการสอบ'}</p>
+          <p className="text-xs text-zinc-500 mt-1">{latestResult.exam_sessions?.title || 'ผลการสอบ'}</p>
           <p className="text-xs font-mono text-zinc-400 mt-0.5">รหัสนักเรียน: {studentSession.student_id}</p>
         </div>
 
         {/* Score Card */}
         <div className="bg-zinc-50 p-6 rounded-3xl border border-zinc-100 text-center">
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-            คะแนนที่คุณได้
+            {results.length > 1 ? `คะแนนรอบล่าสุด (รอบที่ ${results.length})` : 'คะแนนที่คุณได้'}
           </p>
           <div className="text-5xl font-black text-zinc-900 mb-2 font-mono">
-            {result.score} <span className="text-xl text-zinc-400 font-normal">/ {totalScore}</span>
+            {latestResult.score} <span className="text-xl text-zinc-400 font-normal">/ {totalScore}</span>
           </div>
           <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
             isPass ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
@@ -81,6 +83,33 @@ export default function ExamResult() {
             {isPass ? 'ผ่านเกณฑ์' : 'ไม่ผ่านเกณฑ์'}
           </div>
         </div>
+
+        {/* Multi-Attempt History (If retaken) */}
+        {results.length > 1 && (
+          <div className="bg-indigo-50/60 border border-indigo-100 p-4 rounded-2xl text-left space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-indigo-900">
+              <span className="flex items-center gap-1.5">
+                <RotateCcw className="w-3.5 h-3.5 text-indigo-600" /> ประวัติการสอบทุกรอบ ({results.length} รอบ)
+              </span>
+              <span className="text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md text-[11px]">
+                คะแนนดีสุด: {bestScore}/{totalScore}
+              </span>
+            </div>
+
+            <div className="divide-y divide-indigo-100/80 text-xs">
+              {results.map((r, idx) => (
+                <div key={r.id || idx} className="py-2 flex items-center justify-between">
+                  <span className="text-zinc-600 font-medium">
+                    รอบที่ {idx + 1} {idx > 0 && <span className="text-indigo-600 font-semibold">(สอบซ่อม)</span>}
+                  </span>
+                  <span className="font-mono font-bold text-zinc-900">
+                    {r.score} / {totalScore}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <button 
           onClick={handleFinish} 

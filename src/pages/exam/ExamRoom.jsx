@@ -199,18 +199,18 @@ export default function ExamRoom() {
         }
       }
       
-      // 2. Save result to exam_results (upsert: update if exists, insert if new)
-      const { error: upsertErr } = await supabase
+      // 2. Save result to exam_results (insert attempt)
+      const { error: insertErr } = await supabase
         .from('exam_results')
-        .upsert({
+        .insert([{
           session_id: sessionId,
           student_id: studentSession.student_id,
           score: score,
           total_questions: totalQuestions,
           submitted_at: new Date().toISOString()
-        }, { onConflict: 'session_id,student_id' });
+        }]);
 
-      if (upsertErr) throw upsertErr;
+      if (insertErr) throw insertErr;
         
       // 3. Update participant status
       await supabase

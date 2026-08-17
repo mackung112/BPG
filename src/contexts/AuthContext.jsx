@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
         .from('admins')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       
       if (error) {
         if (error.code !== 'PGRST116') { // not found error
@@ -89,7 +89,7 @@ export function AuthProvider({ children }) {
       .from('exam_sessions')
       .select('id, status, started_at, time_limit_minutes')
       .eq('secret_code', secretCode.trim().toUpperCase())
-      .single();
+      .maybeSingle();
       
     if (sessionError || !sessionData) {
       throw new Error('ไม่พบรหัสการสอบนี้ หรือรหัสไม่ถูกต้อง');
@@ -161,7 +161,7 @@ export function AuthProvider({ children }) {
       .from('students')
       .select('student_id')
       .eq('student_id', studentId.trim())
-      .single();
+      .maybeSingle();
       
     if (studentError || !studentData) {
       throw new Error('ไม่พบรหัสนักเรียนนี้ในระบบ กรุณาตรวจสอบรหัสอีกครั้ง');
