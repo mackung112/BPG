@@ -80,7 +80,7 @@ export default function ExamRoom() {
       .from('exam_sessions')
       .select('*, question_banks(title)')
       .eq('id', sessionId)
-      .single();
+      .maybeSingle();
       
     if (!sData) {
       navigate('/');
@@ -89,23 +89,40 @@ export default function ExamRoom() {
     
     setSessionInfo(sData);
 
-    // If session is already completed or expired
+    // Check participant status
+    const { data: pData } = await supabase
+      .from('exam_participants')
+      .select('status, allow_rejoin')
+      .eq('session_id', sessionId)
+      .eq('student_id', studentSession.student_id)
+      .maybeSingle();
+
+    const isRetakeAllowed = pData?.status === 'testing' || pData?.allow_rejoin;
+
+    // Calculate time
     const startTime = new Date(sData.started_at || Date.now()).getTime();
     const now = Date.now();
     const timeLimitMs = (sData.time_limit_minutes || 60) * 60 * 1000;
     const elapsed = now - startTime;
     const remaining = Math.max(0, Math.floor((timeLimitMs - elapsed) / 1000));
 
-    if (sData.status === 'completed' || (sData.started_at && remaining <= 0)) {
-      alert('การสอบนี้เสร็จสิ้นหรือหมดเวลาแล้ว ไม่สามารถทำข้อสอบต่อได้');
+    if (!isRetakeAllowed && (sData.status === 'completed' || (sData.started_at && remaining <= 0))) {
+      alert('การสอบนี้เสร็จสิ้นหรือหมดเวลาแล้ว ไม่สามารถทำข้อสอบต่อได้ (หากต้องการสอบซ่อม กรุณากดขอสอบซ่อม)');
       navigate(`/exam-result/${sessionId}`);
       return;
     }
 
-    // 2. Set participant status to testing
+    if (sData.status === 'completed' || remaining <= 0) {
+      // Retake student gets a full round of time
+      setTimeLeft((sData.time_limit_minutes || 30) * 60);
+    } else {
+      setTimeLeft(remaining);
+    }
+
+    // 2. Set participant status to testing & clear rejoin flag
     await supabase
       .from('exam_participants')
-      .update({ status: 'testing' })
+      .update({ status: 'testing', allow_rejoin: false, retake_requested: false })
       .eq('session_id', sessionId)
       .eq('student_id', studentSession.student_id);
 

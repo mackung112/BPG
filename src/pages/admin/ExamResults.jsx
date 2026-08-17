@@ -76,6 +76,21 @@ export default function ExamResults() {
       const defaultTotal = selectedSession.total_score || 10;
       setCapScore(Math.ceil(defaultTotal / 2));
       setCustomMaxScore(defaultTotal);
+
+      // Realtime listener for participants and results
+      const channel = supabase
+        .channel(`admin_exam_results_${selectedSession.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'exam_participants', filter: `session_id=eq.${selectedSession.id}` }, () => {
+          fetchResultsAndParticipants(selectedSession.id);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'exam_results', filter: `session_id=eq.${selectedSession.id}` }, () => {
+          fetchResultsAndParticipants(selectedSession.id);
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     } else {
       setResults([]);
       setParticipants([]);
@@ -120,7 +135,7 @@ export default function ExamResults() {
     // 2. Fetch participants
     const { data: pData } = await supabase
       .from('exam_participants')
-      .select('id, student_id, status, allow_rejoin')
+      .select('id, student_id, status, allow_rejoin, retake_requested, retake_requested_at')
       .eq('session_id', sessionId);
 
     if (pData) {
@@ -198,6 +213,7 @@ export default function ExamResults() {
     const { finalScore, effectiveTotal } = calculateStudentFinalScore(s.attempts);
     const participant = participants.find(p => p.student_id === s.student_id);
     const isRetakeAllowed = participant?.allow_rejoin === true;
+    const isRetakeRequested = participant?.retake_requested === true;
     const isPass = (finalScore / effectiveTotal) >= 0.5;
 
     return {
@@ -205,6 +221,8 @@ export default function ExamResults() {
       finalScore,
       effectiveTotal,
       isRetakeAllowed,
+      isRetakeRequested,
+      retakeRequestedAt: participant?.retake_requested_at,
       isPass,
       participantId: participant?.id,
       participantStatus: participant?.status
@@ -220,7 +238,8 @@ export default function ExamResults() {
         .from('exam_participants')
         .update({ 
           allow_rejoin: nextAllowed,
-          status: nextAllowed ? 'waiting' : 'completed'
+          status: nextAllowed ? 'waiting' : 'completed',
+          retake_requested: false
         })
         .eq('session_id', selectedSession.id)
         .eq('student_id', studentId);
@@ -801,9 +820,13 @@ export default function ExamResults() {
 
                             {/* Retake Status */}
                             <td className="px-4 py-3 text-center">
-                              {s.isRetakeAllowed ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 animate-pulse">
-                                  <RotateCcw className="w-3 h-3" /> รอสอบซ่อม
+                              {s.isRetakeRequested ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 animate-bounce">
+                                  🔔 นักเรียนขอสอบซ่อม
+                                </span>
+                              ) : s.isRetakeAllowed ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 animate-pulse">
+                                  <RotateCcw className="w-3 h-3" /> อนุมัติแล้ว (รอทำ)
                                 </span>
                               ) : s.attempts.length > 1 ? (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800">
@@ -820,14 +843,20 @@ export default function ExamResults() {
                                 {/* Toggle Retake Button */}
                                 <button
                                   onClick={() => handleToggleRetake(s.student_id, s.isRetakeAllowed)}
-                                  className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                                    s.isRetakeAllowed
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                    s.isRetakeRequested
+                                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm animate-pulse'
+                                      : s.isRetakeAllowed
                                       ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200'
                                       : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
                                   }`}
                                   title={s.isRetakeAllowed ? 'ยกเลิกสิทธิ์สอบซ่อม' : 'อนุมัติให้นักเรียนสอบซ่อม'}
                                 >
-                                  {s.isRetakeAllowed ? (
+                                  {s.isRetakeRequested ? (
+                                    <>
+                                      <RotateCcw className="w-3 h-3" /> อนุมัติสอบซ่อมทันที!
+                                    </>
+                                  ) : s.isRetakeAllowed ? (
                                     <>
                                       <UserX className="w-3 h-3" /> ปิดสิทธิ์ซ่อม
                                     </>
