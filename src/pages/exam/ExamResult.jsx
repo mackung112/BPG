@@ -16,10 +16,18 @@ export default function ExamResult() {
 
   useEffect(() => {
     if (!studentSession || studentSession.session_id !== sessionId) {
-      navigate('/');
+      navigate('/', { replace: true });
       return;
     }
     fetchData();
+
+    // Intercept browser Back button: redirect to home page '/' instead of exam room
+    window.history.pushState(null, '', window.location.href);
+    const handlePopState = async () => {
+      await logoutStudent();
+      navigate('/', { replace: true });
+    };
+    window.addEventListener('popstate', handlePopState);
 
     // Subscribe to real-time changes on exam_participants
     const channel = supabase
@@ -44,9 +52,10 @@ export default function ExamResult() {
       .subscribe();
 
     return () => {
+      window.removeEventListener('popstate', handlePopState);
       supabase.removeChannel(channel);
     };
-  }, [sessionId, studentSession]);
+  }, [sessionId, studentSession, navigate]);
 
   const fetchData = async () => {
     setLoading(true);

@@ -97,6 +97,12 @@ export default function ExamRoom() {
       .eq('student_id', studentSession.student_id)
       .maybeSingle();
 
+    // If student already completed the exam and has no retake permission, redirect immediately to result
+    if (pData?.status === 'completed' && !pData?.allow_rejoin) {
+      navigate(`/exam-result/${sessionId}`, { replace: true });
+      return;
+    }
+
     const isRetakeAllowed = pData?.status === 'testing' || pData?.allow_rejoin;
 
     // Calculate time
@@ -108,7 +114,7 @@ export default function ExamRoom() {
 
     if (!isRetakeAllowed && (sData.status === 'completed' || (sData.started_at && remaining <= 0))) {
       alert('การสอบนี้เสร็จสิ้นหรือหมดเวลาแล้ว ไม่สามารถทำข้อสอบต่อได้ (หากต้องการสอบซ่อม กรุณากดขอสอบซ่อม)');
-      navigate(`/exam-result/${sessionId}`);
+      navigate(`/exam-result/${sessionId}`, { replace: true });
       return;
     }
 
@@ -236,8 +242,8 @@ export default function ExamRoom() {
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id);
         
-      // 4. Navigate to result (force full reload to clear any cached modules)
-      window.location.href = `/exam-result/${sessionId}`;
+      // 4. Navigate to result (replace history entry so Back button does not return to exam room)
+      window.location.replace(`/exam-result/${sessionId}`);
       
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการส่งข้อสอบ: ' + err.message);
