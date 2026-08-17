@@ -194,12 +194,21 @@ export default function ExamRoom() {
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
 
-    // 🔒 7. Listen for session ending by teacher in real time
+    // 🔒 7. Listen for session ending or time extension by teacher in real time
     const sessionSub = supabase
-      .channel(`session_end_${sessionId}`)
+      .channel(`session_update_${sessionId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'exam_sessions', filter: `id=eq.${sessionId}` }, (payload) => {
         if (payload.new.status === 'completed') {
           handleSubmit(true);
+        } else if (payload.new.time_limit_minutes) {
+          // Real-time time extension from teacher
+          setSessionInfo(prev => ({ ...prev, ...payload.new }));
+          const startTime = new Date(payload.new.started_at || Date.now()).getTime();
+          const now = Date.now();
+          const timeLimitMs = payload.new.time_limit_minutes * 60 * 1000;
+          const remaining = Math.max(0, Math.floor((timeLimitMs - (now - startTime)) / 1000));
+          setTimeLeft(remaining);
+          showSecurityWarning(`📢 ครูผู้สอนปรับเวลาสอบเป็น ${payload.new.time_limit_minutes} นาที`);
         }
       })
       .subscribe();

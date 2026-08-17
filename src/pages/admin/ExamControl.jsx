@@ -17,7 +17,10 @@ import {
   Settings2,
   Plus,
   ShieldAlert,
-  Lock
+  Lock,
+  Timer,
+  Hourglass,
+  PlusCircle
 } from 'lucide-react';
 import QuestionPicker from './QuestionPicker';
 
@@ -28,6 +31,11 @@ export default function ExamControl() {
   const [activeSession, setActiveSession] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Live Timer & Quick Time Edit State
+  const [activeTimeRemaining, setActiveTimeRemaining] = useState(null);
+  const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
+  const [customTimeInput, setCustomTimeInput] = useState('');
 
   // New Session Form
   const [examConfig, setExamConfig] = useState(null);
@@ -92,6 +100,86 @@ export default function ExamControl() {
       if (subscription) supabase.removeChannel(subscription);
     };
   }, [activeSession]);
+
+  // Live Timer Interval for Active Session
+  useEffect(() => {
+    if (!activeSession || activeSession.status !== 'active' || !activeSession.started_at) {
+      setActiveTimeRemaining(null);
+      return;
+    }
+
+    const calcRemaining = () => {
+      const startTime = new Date(activeSession.started_at).getTime();
+      const now = Date.now();
+      const timeLimitMs = (activeSession.time_limit_minutes || 60) * 60 * 1000;
+      const elapsed = now - startTime;
+      return Math.max(0, Math.floor((timeLimitMs - elapsed) / 1000));
+    };
+
+    setActiveTimeRemaining(calcRemaining());
+
+    const interval = setInterval(() => {
+      setActiveTimeRemaining(calcRemaining());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeSession?.started_at, activeSession?.time_limit_minutes, activeSession?.status]);
+
+  const formatSeconds = (sec) => {
+    if (sec === null || sec === undefined) return '--:--';
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // Quick Extend Time (+5, +10, +15 minutes)
+  const handleExtendTime = async (extraMinutes) => {
+    if (!activeSession) return;
+    try {
+      const currentLimit = Number(activeSession.time_limit_minutes || 60);
+      const newMinutes = currentLimit + Number(extraMinutes);
+      
+      const { error } = await supabase
+        .from('exam_sessions')
+        .update({ time_limit_minutes: newMinutes })
+        .eq('id', activeSession.id);
+
+      if (error) throw error;
+
+      showToast('success', `เพิ่มเวลาสอบ +${extraMinutes} นาที สำเร็จ! (เวลารวม ${newMinutes} นาที)`);
+      setActiveSession(prev => ({ ...prev, time_limit_minutes: newMinutes }));
+      fetchSessions();
+    } catch (err) {
+      showToast('error', 'เพิ่มเวลาไม่สำเร็จ: ' + err.message);
+    }
+  };
+
+  // Custom Time Set
+  const handleSetCustomTime = async (e) => {
+    e.preventDefault();
+    if (!activeSession || !customTimeInput) return;
+    const val = parseInt(customTimeInput, 10);
+    if (isNaN(val) || val <= 0) {
+      showToast('error', 'กรุณาระบุจำนวนนาทีที่ถูกต้อง');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('exam_sessions')
+        .update({ time_limit_minutes: val })
+        .eq('id', activeSession.id);
+
+      if (error) throw error;
+
+      showToast('success', `ปรับเวลาสอบเป็น ${val} นาที เรียบร้อยแล้ว`);
+      setActiveSession(prev => ({ ...prev, time_limit_minutes: val }));
+      setIsTimeModalOpen(false);
+      fetchSessions();
+    } catch (err) {
+      showToast('error', 'ปรับเวลาไม่สำเร็จ: ' + err.message);
+    }
+  };
 
   const fetchInitialData = async () => {
     setLoading(true);
@@ -607,6 +695,78 @@ export default function ExamControl() {
                 </div>
               </div>
 
+              {/* ⏱️ LIVE COUNTDOWN TIMER & REAL-TIME TIME CONTROL BAR */}
+              {activeSession.status === 'active' && (
+                <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 border-b border-indigo-900/60 flex flex-wrap items-center justify-between gap-4 shadow-inner">
+                  {/* Left: Live Countdown Clock */}
+                  <div className="flex items-center gap-3">
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shadow-md ${
+                      activeTimeRemaining !== null && activeTimeRemaining < 300 
+                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse' 
+                        : 'bg-indigo-500/20 text-cyan-300 border border-indigo-500/30'
+                    }`}>
+                      <Timer className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-zinc-400 font-semibold">เวลาสอบที่เหลืออยู่ (Realtime Countdown)</p>
+                      <div className="flex items-center gap-2.5 mt-0.5">
+                        <span className={`text-2xl font-black font-mono tracking-tight ${
+                          activeTimeRemaining !== null && activeTimeRemaining < 300 ? 'text-rose-400 animate-pulse' : 'text-white'
+                        }`}>
+                          {formatSeconds(activeTimeRemaining)}
+                        </span>
+                        {activeTimeRemaining === 0 && (
+                          <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/30">
+                            หมดเวลาแล้ว
+                          </span>
+                        )}
+                        <span className="text-xs text-zinc-400 font-medium">
+                          (ตั้งไว้ {activeSession.time_limit_minutes} นาที)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Quick Time Add & Custom Adjust Buttons */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs text-zinc-300 font-semibold mr-1 flex items-center gap-1">
+                      <Hourglass className="w-3.5 h-3.5 text-amber-400" /> เพิ่มเวลา:
+                    </span>
+                    <button
+                      onClick={() => handleExtendTime(5)}
+                      className="px-3 py-1.5 bg-indigo-600/70 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold border border-indigo-400/30 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                      title="เพิ่มเวลาอีก 5 นาที"
+                    >
+                      +5 นาที
+                    </button>
+                    <button
+                      onClick={() => handleExtendTime(10)}
+                      className="px-3 py-1.5 bg-indigo-600/70 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold border border-indigo-400/30 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                      title="เพิ่มเวลาอีก 10 นาที"
+                    >
+                      +10 นาที
+                    </button>
+                    <button
+                      onClick={() => handleExtendTime(15)}
+                      className="px-3 py-1.5 bg-indigo-600/70 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold border border-indigo-400/30 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                      title="เพิ่มเวลาอีก 15 นาที"
+                    >
+                      +15 นาที
+                    </button>
+                    <button
+                      onClick={() => {
+                        setCustomTimeInput(activeSession.time_limit_minutes || 60);
+                        setIsTimeModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-cyan-300 rounded-xl text-xs font-bold border border-cyan-400/30 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs"
+                      title="กำหนดเวลาสอบใหม่ตามต้องการ"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> ปรับเวลา
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Lobby Header */}
               <div className="p-3.5 border-b border-zinc-100 bg-white flex justify-between items-center text-xs">
                 <h3 className="font-bold text-zinc-800 flex items-center gap-2">
@@ -850,6 +1010,63 @@ export default function ExamControl() {
                 {deletingParticipantLoading ? 'กำลังลบ...' : 'ยืนยันลบ'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOM TIME ADJUSTMENT MODAL */}
+      {isTimeModalOpen && activeSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-zinc-100 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 className="text-base font-bold text-zinc-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-indigo-600" /> ปรับเวลาสอบใหม่
+              </h3>
+              <button onClick={() => setIsTimeModalOpen(false)} className="p-1.5 text-zinc-400 hover:text-zinc-600 rounded-lg">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSetCustomTime} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-zinc-700 mb-1.5">
+                  ระบุเวลาสอบทั้งหมด (นาที)
+                </label>
+                <div className="relative">
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    value={customTimeInput}
+                    onChange={e => setCustomTimeInput(e.target.value)}
+                    placeholder="เช่น 45, 60, 90"
+                    className="w-full pl-4 pr-12 py-2.5 text-sm font-bold font-mono border border-zinc-200 rounded-xl focus:border-indigo-500 outline-none"
+                  />
+                  <span className="absolute right-3.5 top-3 text-xs text-zinc-400 font-semibold">
+                    นาที
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-1.5">
+                  * เวลาสอบจะถูกอัปเดตไปยังหน้าจอของนักเรียนทุกคนในห้องสอบแบบ Realtime ทันที
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button 
+                  type="button" 
+                  onClick={() => setIsTimeModalOpen(false)} 
+                  className="flex-1 py-2.5 border rounded-xl text-xs font-semibold text-zinc-600 hover:bg-zinc-50 cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button 
+                  type="submit" 
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-600/20 cursor-pointer"
+                >
+                  บันทึกเวลา
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
