@@ -17,7 +17,9 @@ export default function ExamRoom() {
   const [submitting, setSubmitting] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [toastWarning, setToastWarning] = useState(null);
+  const [warningModalOpen, setWarningModalOpen] = useState(false);
   const cheatingFlag = useRef(false);
+  const violationCountRef = useRef(0);
 
   const showSecurityWarning = (msg) => {
     setToastWarning(msg);
@@ -31,7 +33,7 @@ export default function ExamRoom() {
     }
     initExam();
 
-    // 🔒 1. Anti-Cheat: Tab Switch & Window Blur (Switching Apps)
+    // 🔒 1. Anti-Cheat: Tab Switch & Window Blur (Allow 3 warnings, 4th time kicks)
     const triggerCheating = async (reason) => {
       if (cheatingFlag.current || submitting) return;
       cheatingFlag.current = true;
@@ -46,20 +48,34 @@ export default function ExamRoom() {
         console.error('Failed to log cheating status:', e);
       }
 
-      alert(`⚠️ ระบบตรวจพบพฤติกรรมต้องสงสัย (${reason})\nข้อสอบของคุณถูกระงับชั่วคราวและส่งรายงานไปยังครูผู้คุมสอบแล้ว`);
+      alert(`⚠️ ระบบตรวจพบพฤติกรรมต้องสงสัย (${reason})\nข้อสอบของคุณถูกระงับและส่งรายงานไปยังครูผู้คุมสอบแล้ว`);
       navigate(`/exam-lobby/${sessionId}`, { replace: true });
+    };
+
+    const handleViolation = (reason) => {
+      if (cheatingFlag.current || submitting) return;
+
+      violationCountRef.current += 1;
+
+      if (violationCountRef.current <= 3) {
+        // Warning 1, 2, 3: Show urgent warning modal without revealing exact strike count
+        setWarningModalOpen(true);
+        showSecurityWarning('⚠️ คำเตือน: ระบบตรวจพบการออกจากหน้าจอข้อสอบ');
+      } else {
+        // 4th time: Take immediate action and lock exam
+        triggerCheating(reason || 'สลับหน้าต่างหรือออกจากหน้าจอข้อสอบเกินที่ระบบอนุญาต');
+      }
     };
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        triggerCheating('ออกจากหน้าต่างข้อสอบ หรือสลับแท็บเบราว์เซอร์');
+        handleViolation('ออกจากหน้าต่างข้อสอบ หรือสลับแท็บเบราว์เซอร์');
       }
     };
 
     const handleWindowBlur = () => {
-      // Trigger if window loses focus for more than 1 second (switched app / split screen)
       if (!cheatingFlag.current && !submitting) {
-        triggerCheating('คลิกออกนอกหน้าจอข้อสอบ หรือสลับโปรแกรม');
+        handleViolation('คลิกออกนอกหน้าจอข้อสอบ หรือสลับโปรแกรม');
       }
     };
 
@@ -579,6 +595,40 @@ export default function ExamRoom() {
         </div>
 
       </main>
+
+      {/* ⚠️ Security Warning Modal (Accidental tab / window switch) */}
+      {warningModalOpen && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-4 shadow-2xl border border-rose-200 animate-in fade-in zoom-in duration-200">
+            <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-rose-100">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-bold text-zinc-900">
+                คำเตือนความปลอดภัยในการสอบ!
+              </h2>
+              <p className="text-xs text-zinc-500 font-mono">
+                รหัสประจำตัว: {studentSession?.student_id}
+              </p>
+            </div>
+
+            <p className="text-sm text-zinc-600 leading-relaxed bg-rose-50/70 p-4 rounded-2xl border border-rose-100 text-left">
+              ระบบตรวจพบว่าคุณ<strong className="text-rose-700">สลับแท็บเบราว์เซอร์ ย่อหน้าจอ หรือเปิดโปรแกรมอื่น</strong><br /><br />
+              <span className="text-rose-700 font-bold">
+                ⚠️ หากระบบตรวจพบการออกจากหน้าจอข้อสอบอีก การสอบของคุณจะถูกระงับทันที และส่งรายงานไปยังครูผู้คุมสอบ
+              </span>
+            </p>
+
+            <button
+              onClick={() => setWarningModalOpen(false)}
+              className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl font-bold text-sm shadow-lg transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+            >
+              รับทราบและกลับไปทำข้อสอบ
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
