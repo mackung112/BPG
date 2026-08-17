@@ -2,7 +2,24 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Clock, ShieldAlert, CheckCircle, Send, Maximize2, Minimize2, Lock, AlertTriangle } from 'lucide-react';
+import { 
+  Clock, 
+  ShieldAlert, 
+  CheckCircle, 
+  Send, 
+  Maximize2, 
+  Minimize2, 
+  Lock, 
+  AlertTriangle,
+  Flag,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  HelpCircle,
+  Sparkles
+} from 'lucide-react';
+
+const QUESTIONS_PER_PAGE = 2;
 
 export default function ExamRoom() {
   const { sessionId } = useParams();
@@ -12,12 +29,15 @@ export default function ExamRoom() {
   const [sessionInfo, setSessionInfo] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
+  const [flagged, setFlagged] = useState({});
+  const [currentPage, setCurrentPage] = useState(0);
   const [timeLeft, setTimeLeft] = useState(null);
   
   const [submitting, setSubmitting] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [toastWarning, setToastWarning] = useState(null);
   const [warningModalOpen, setWarningModalOpen] = useState(false);
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const cheatingFlag = useRef(false);
   const violationCountRef = useRef(0);
 
@@ -126,14 +146,12 @@ export default function ExamRoom() {
 
     // 🔒 3. Anti-Cheat: Block Keyboard Shortcuts (DevTools, Copy/Paste, View Source, Print, Reload)
     const handleKeyDown = (e) => {
-      // F12 or F5
       if (e.key === 'F12' || e.key === 'F5') {
         e.preventDefault();
         showSecurityWarning('🚫 ไม่อนุญาตให้ใช้ปุ่มฟังก์ชันนี้');
         return false;
       }
 
-      // Ctrl + Shortcuts (C, V, X, A, U, S, P, R, J, I, Shift+I, Shift+J, Shift+C)
       if (e.ctrlKey || e.metaKey) {
         const key = e.key.toLowerCase();
         if (['c', 'v', 'x', 'a', 'u', 's', 'p', 'r', 'j', 'i'].includes(key)) {
@@ -143,7 +161,6 @@ export default function ExamRoom() {
         }
       }
 
-      // Alt + Tab / Windows key warning
       if (e.altKey && e.key === 'Tab') {
         e.preventDefault();
         triggerCheating('พยายามใช้ Alt+Tab สลับหน้าต่าง');
@@ -343,9 +360,22 @@ export default function ExamRoom() {
     }));
   };
 
+  const toggleFlag = (questionId) => {
+    setFlagged(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }));
+  };
+
+  const goToQuestion = (index) => {
+    const targetPage = Math.floor(index / QUESTIONS_PER_PAGE);
+    setCurrentPage(targetPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSubmit = async (isAuto = false) => {
-    if (!isAuto && !confirm('คุณแน่ใจหรือไม่ว่าต้องการส่งข้อสอบ?')) {
-      return;
+    if (!isAuto && isSubmitModalOpen) {
+      setIsSubmitModalOpen(false);
     }
 
     setSubmitting(true);
@@ -426,7 +456,13 @@ export default function ExamRoom() {
     );
   }
 
+  const totalPages = Math.ceil(questions.length / QUESTIONS_PER_PAGE);
+  const startIndex = currentPage * QUESTIONS_PER_PAGE;
+  const currentQuestions = questions.slice(startIndex, startIndex + QUESTIONS_PER_PAGE);
+
   const answeredCount = Object.keys(answers).length;
+  const flaggedCount = Object.values(flagged).filter(Boolean).length;
+  const unansweredCount = questions.length - answeredCount;
 
   return (
     <div 
@@ -438,7 +474,7 @@ export default function ExamRoom() {
         msUserSelect: 'none'
       }}
     >
-      {/* 🛡️ Faint Security Watermark in background (Prevents camera photos) */}
+      {/* 🛡️ Faint Security Watermark in background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.03] select-none flex flex-wrap gap-16 p-8 items-center justify-center font-mono font-bold text-zinc-900 text-lg rotate-[-15deg]">
         {Array.from({ length: 40 }).map((_, i) => (
           <span key={i}>{studentSession.student_id} • ANTI-CHEAT LOCK</span>
@@ -463,7 +499,7 @@ export default function ExamRoom() {
             <div>
               <h1 className="font-bold text-zinc-900 truncate max-w-[180px] sm:max-w-xs text-sm">{sessionInfo.title}</h1>
               <p className="text-[11px] text-zinc-500 font-medium">
-                ทำแล้ว {answeredCount} / {questions.length} ข้อ
+                ทำแล้ว {answeredCount}/{questions.length} ข้อ • หน้า {currentPage + 1}/{totalPages}
               </p>
             </div>
           </div>
@@ -490,56 +526,119 @@ export default function ExamRoom() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-3xl mx-auto w-full p-4 py-6 space-y-5 relative z-10">
+      <main className="flex-1 max-w-3xl mx-auto w-full p-4 py-5 space-y-5 relative z-10">
         
-        {/* Anti-cheat Security Banner */}
-        <div className="bg-gradient-to-r from-indigo-950 to-slate-900 text-white p-4 rounded-2xl flex items-center justify-between gap-3 shadow-lg border border-indigo-800/40">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center shrink-0 border border-indigo-400/30">
-              <Lock className="w-4 h-4 text-cyan-300" />
-            </div>
-            <div className="text-xs">
-              <p className="font-bold text-white flex items-center gap-1.5">
-                🔒 โหมดความปลอดภัยสูงสุด (Anti-Cheat Lockdown)
-              </p>
-              <p className="text-zinc-300 text-[11px] mt-0.5">
-                ห้ามสลับแอป ห้ามเปิดแท็บใหม่ ห้ามคัดลอกข้อความ มิฉะนั้นระบบจะล็อกข้อสอบทันที
-              </p>
+        {/* 🧭 Question Status Palette / Quick Navigator Grid */}
+        <div className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-xs space-y-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-zinc-800 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-indigo-600" /> แผนผังข้อสอบ (คลิกเพื่อไปยังข้อนั้น)
+            </span>
+            <div className="flex items-center gap-3 text-[11px]">
+              <span className="flex items-center gap-1 text-emerald-700 font-medium">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> ทำแล้ว ({answeredCount})
+              </span>
+              <span className="flex items-center gap-1 text-amber-700 font-medium">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> ปักธง ({flaggedCount})
+              </span>
+              <span className="flex items-center gap-1 text-zinc-500 font-medium">
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-200 border border-zinc-300" /> ยังไม่ทำ ({unansweredCount})
+              </span>
             </div>
           </div>
-          {!isFullscreen && (
-            <button
-              onClick={toggleFullscreen}
-              className="shrink-0 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold rounded-xl shadow-xs transition-all cursor-pointer hidden sm:block"
-            >
-              เต็มจอ
-            </button>
-          )}
+
+          {/* Question Bubbles Grid */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {questions.map((q, idx) => {
+              const isAnswered = answers[q.id] !== undefined;
+              const isFlagged = flagged[q.id] === true;
+              const isCurrentPage = idx >= startIndex && idx < startIndex + QUESTIONS_PER_PAGE;
+
+              let style = 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-200';
+              if (isFlagged) {
+                style = 'bg-amber-400 text-amber-950 border-amber-500 font-bold shadow-xs';
+              } else if (isAnswered) {
+                style = 'bg-emerald-500 text-white border-emerald-600 font-bold shadow-xs';
+              }
+
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => goToQuestion(idx)}
+                  className={`w-9 h-9 rounded-xl text-xs font-mono transition-all cursor-pointer relative flex items-center justify-center border ${style} ${
+                    isCurrentPage ? 'ring-2 ring-indigo-600 ring-offset-2 scale-105 font-black z-10' : ''
+                  }`}
+                  title={`ข้อ ${idx + 1}${isFlagged ? ' (ปักธง)' : isAnswered ? ' (ทำแล้ว)' : ' (ยังไม่ทำ)'}`}
+                >
+                  {idx + 1}
+                  {isFlagged && (
+                    <Flag className="w-2.5 h-2.5 fill-amber-950 text-amber-950 absolute -top-1 -right-1" />
+                  )}
+                  {isAnswered && !isFlagged && (
+                    <Check className="w-2.5 h-2.5 text-white absolute -top-1 -right-1 stroke-[3]" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Questions List */}
-        <div className="space-y-6">
-          {questions.map((q, idx) => {
+        {/* 📄 Displaying 2 Questions on Current Page */}
+        <div className="space-y-5">
+          {currentQuestions.map((q, localIdx) => {
+            const actualIndex = startIndex + localIdx;
             const isAnswered = answers[q.id] !== undefined;
+            const isFlagged = flagged[q.id] === true;
+
             return (
               <div 
                 key={q.id} 
                 className={`bg-white p-5 sm:p-6 rounded-2xl shadow-xs border transition-all ${
-                  isAnswered ? 'border-indigo-100 bg-white' : 'border-zinc-200/80 bg-white'
+                  isFlagged 
+                    ? 'border-amber-300 bg-amber-50/20 ring-1 ring-amber-200' 
+                    : isAnswered 
+                    ? 'border-emerald-200 bg-white' 
+                    : 'border-zinc-200/80 bg-white'
                 }`}
               >
-                <div className="flex items-start gap-3 mb-4">
-                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                    isAnswered ? 'bg-indigo-600 text-white shadow-xs' : 'bg-zinc-100 text-zinc-600'
-                  }`}>
-                    {idx + 1}
-                  </span>
-                  <h3 className="text-[15px] font-bold text-zinc-900 leading-snug pt-0.5">
-                    {q.question_text}
-                  </h3>
+                {/* Question Top Bar (Number + Flag Action) */}
+                <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-zinc-100">
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 font-mono ${
+                      isFlagged
+                        ? 'bg-amber-400 text-amber-950 font-black shadow-xs'
+                        : isAnswered 
+                        ? 'bg-emerald-500 text-white font-bold shadow-xs' 
+                        : 'bg-zinc-100 text-zinc-600'
+                    }`}>
+                      {actualIndex + 1}
+                    </span>
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                      ข้อที่ {actualIndex + 1} จาก {questions.length}
+                    </span>
+                  </div>
+
+                  {/* Flag Toggle Button */}
+                  <button
+                    onClick={() => toggleFlag(q.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                      isFlagged
+                        ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-xs'
+                        : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'
+                    }`}
+                  >
+                    <Flag className={`w-3.5 h-3.5 ${isFlagged ? 'fill-amber-600 text-amber-600' : 'text-zinc-400'}`} />
+                    <span>{isFlagged ? 'ปักธงไว้แล้ว' : 'ปักธงข้อนี้'}</span>
+                  </button>
                 </div>
 
-                <div className="space-y-2.5 sm:pl-10">
+                {/* Question Text */}
+                <h3 className="text-base font-bold text-zinc-900 leading-relaxed mb-4">
+                  {q.question_text}
+                </h3>
+
+                {/* Choices List */}
+                <div className="space-y-2.5">
                   {q.choices.map((choice, cIdx) => {
                     const isSelected = answers[q.id] === choice.text;
                     return (
@@ -547,8 +646,8 @@ export default function ExamRoom() {
                         key={cIdx} 
                         className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                           isSelected 
-                          ? 'bg-indigo-50/80 border-indigo-500 text-indigo-950 font-semibold shadow-xs' 
-                          : 'bg-zinc-50/50 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100/70 hover:border-zinc-300'
+                          ? 'bg-indigo-50/90 border-indigo-500 text-indigo-950 font-semibold shadow-xs ring-1 ring-indigo-300' 
+                          : 'bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100/80 hover:border-zinc-300'
                         }`}
                       >
                         <input 
@@ -559,7 +658,7 @@ export default function ExamRoom() {
                           onChange={() => handleSelectChoice(q.id, choice.text)}
                           className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                         />
-                        <span className="text-xs sm:text-sm select-none">
+                        <span className="text-sm select-none leading-relaxed">
                           {choice.text}
                         </span>
                       </label>
@@ -571,22 +670,120 @@ export default function ExamRoom() {
           })}
         </div>
 
-        {/* Submit Button */}
-        <div className="pt-6 pb-20 flex flex-col items-center gap-2">
-          <button 
-            onClick={() => handleSubmit(false)}
-            disabled={submitting}
-            className="flex items-center justify-center gap-2.5 w-full sm:w-80 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-indigo-200 hover:shadow-2xl hover:shadow-indigo-300 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+        {/* 🔄 Bottom Pagination & Navigation Controls */}
+        <div className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-xs flex items-center justify-between gap-3">
+          <button
+            onClick={() => {
+              setCurrentPage(p => Math.max(0, p - 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            disabled={currentPage === 0}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
           >
-            {submitting ? 'กำลังส่งคำตอบ...' : `ส่งข้อสอบ (ตอบแล้ว ${answeredCount}/${questions.length})`} 
-            <Send className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" /> ก่อนหน้า
           </button>
-          <p className="text-[11px] text-zinc-400">
-            เมื่อส่งข้อสอบแล้ว จะไม่สามารถกลับมาแก้ไขคำตอบได้อีก
-          </p>
+
+          <div className="text-center">
+            <p className="text-xs font-bold text-zinc-800">
+              หน้า {currentPage + 1} / {totalPages}
+            </p>
+            <p className="text-[11px] text-zinc-400 font-medium">
+              ข้อ {startIndex + 1} - {Math.min(startIndex + QUESTIONS_PER_PAGE, questions.length)} จาก {questions.length} ข้อ
+            </p>
+          </div>
+
+          {currentPage < totalPages - 1 ? (
+            <button
+              onClick={() => {
+                setCurrentPage(p => Math.min(totalPages - 1, p + 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-200 transition-all cursor-pointer"
+            >
+              ถัดไป <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsSubmitModalOpen(true)}
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-200 transition-all cursor-pointer animate-pulse"
+            >
+              ส่งข้อสอบ <Send className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Global Submit Floating Bar */}
+        <div className="pt-2 pb-16 flex justify-center">
+          <button 
+            onClick={() => setIsSubmitModalOpen(true)}
+            disabled={submitting}
+            className="flex items-center justify-center gap-2.5 px-8 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl font-bold text-xs shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+          >
+            <Send className="w-4 h-4" /> ตรวจทานและส่งข้อสอบ (ตอบแล้ว {answeredCount}/{questions.length})
+          </button>
         </div>
 
       </main>
+
+      {/* 🚀 Submit Confirmation & Summary Modal */}
+      {isSubmitModalOpen && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl border border-zinc-100 animate-in fade-in zoom-in duration-200">
+            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-indigo-100">
+              <Send className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-1">
+              <h2 className="text-xl font-black text-zinc-900">
+                ยืนยันการส่งข้อสอบ?
+              </h2>
+              <p className="text-xs text-zinc-500 font-medium">
+                {sessionInfo?.title}
+              </p>
+            </div>
+
+            {/* Answer Summary Card */}
+            <div className="grid grid-cols-3 gap-2 bg-zinc-50 p-4 rounded-2xl border border-zinc-100 text-center">
+              <div className="p-2 bg-emerald-50 rounded-xl border border-emerald-100">
+                <span className="block text-2xl font-black text-emerald-700 font-mono">{answeredCount}</span>
+                <span className="text-[11px] font-bold text-emerald-800">ทำแล้ว</span>
+              </div>
+              <div className="p-2 bg-amber-50 rounded-xl border border-amber-100">
+                <span className="block text-2xl font-black text-amber-700 font-mono">{flaggedCount}</span>
+                <span className="text-[11px] font-bold text-amber-800">ปักธงไว้</span>
+              </div>
+              <div className="p-2 bg-rose-50 rounded-xl border border-rose-100">
+                <span className="block text-2xl font-black text-rose-700 font-mono">{unansweredCount}</span>
+                <span className="text-[11px] font-bold text-rose-800">ยังไม่ทำ</span>
+              </div>
+            </div>
+
+            {unansweredCount > 0 && (
+              <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-2.5 rounded-xl border border-rose-100">
+                ⚠️ คุณยังมีข้อที่ยังไม่ได้ทำอีก {unansweredCount} ข้อ
+              </p>
+            )}
+
+            <div className="flex gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsSubmitModalOpen(false)}
+                className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-bold text-xs transition-all cursor-pointer"
+              >
+                กลับไปตรวจทาน
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleSubmit(false)}
+                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-200 transition-all cursor-pointer"
+              >
+                {submitting ? 'กำลังส่ง...' : 'ยืนยันส่งข้อสอบ'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ⚠️ Security Warning Modal (Accidental tab / window switch) */}
       {warningModalOpen && (
