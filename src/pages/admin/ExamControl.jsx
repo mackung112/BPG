@@ -150,6 +150,7 @@ export default function ExamControl() {
         title: sessionTitle.trim(),
         secret_code: secretCode,
         time_limit_minutes: timeLimit,
+        question_count: examConfig.questionCount || examConfig.questions.length,
         total_score: examConfig.totalScore,
         status: 'waiting'
       }]).select().single();

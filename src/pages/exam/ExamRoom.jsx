@@ -277,36 +277,50 @@ export default function ExamRoom() {
       .eq('session_id', sessionId)
       .eq('student_id', studentSession.student_id);
 
-    // 3. Fetch questions
+    // 3. Fetch question pool for this session
     const { data: eqData } = await supabase
       .from('exam_session_questions')
       .select(`
         points,
         questions (
-          id, question_text, choices
+          id, question_text, choices, correct_index, correct_answer_index
         )
       `)
       .eq('session_id', sessionId);
       
-    if (eqData) {
-      let loadedQs = eqData.map(item => ({
+    if (eqData && eqData.length > 0) {
+      let pool = eqData.map(item => ({
         ...item.questions,
         points: item.points
       }));
 
-      // Shuffle questions
-      loadedQs = loadedQs.sort(() => 0.5 - Math.random());
+      // Genuine independent random shuffle of the entire candidate pool
+      pool = pool.sort(() => Math.random() - 0.5);
 
-      // Shuffle choices for each question
-      loadedQs = loadedQs.map(q => {
-        const shuffledChoices = [...q.choices].sort(() => 0.5 - Math.random());
+      // Determine how many questions to draw for this attempt
+      const targetCount = sData.question_count && sData.question_count > 0 && sData.question_count < pool.length
+        ? sData.question_count
+        : pool.length;
+
+      let sampledQuestions = pool.slice(0, targetCount);
+
+      // Calculate score points per question
+      const pointsPerQ = (sData.total_score && targetCount > 0)
+        ? (Number(sData.total_score) / targetCount)
+        : (sampledQuestions[0]?.points || 1);
+
+      // Shuffle choices independently for each question
+      sampledQuestions = sampledQuestions.map(q => {
+        const rawChoices = q.choices || [];
+        const shuffledChoices = [...rawChoices].sort(() => Math.random() - 0.5);
         return {
           ...q,
+          points: pointsPerQ,
           choices: shuffledChoices
         };
       });
 
-      setQuestions(loadedQs);
+      setQuestions(sampledQuestions);
     }
   };
 
@@ -336,36 +350,14 @@ export default function ExamRoom() {
 
     setSubmitting(true);
     try {
-      // 1. Calculate Score
+      // 1. Calculate Score based on the dynamically assigned questions for this attempt
       let score = 0;
       const totalQuestions = questions.length;
       
-      const { data: qData } = await supabase
-        .from('exam_session_questions')
-        .select(`
-          points,
-          question_id,
-          questions (
-            id, choices, correct_index, correct_answer_index
-          )
-        `)
-        .eq('session_id', sessionId);
+      for (const q of questions) {
+        const studentChoiceText = answers[q.id];
+        if (!studentChoiceText) continue;
 
-      const questionMap = {};
-      if (qData) {
-        qData.forEach(item => {
-          questionMap[item.question_id] = {
-            points: item.points,
-            ...item.questions
-          };
-        });
-      }
-
-      for (const [qId, studentChoiceText] of Object.entries(answers)) {
-        const eq = questionMap[qId];
-        if (!eq) continue;
-
-        const q = eq;
         const choices = q.choices || [];
         let correctText = '';
 
@@ -377,8 +369,8 @@ export default function ExamRoom() {
           correctText = typeof c === 'object' ? c.text : c;
         }
 
-        if (correctText && studentChoiceText && correctText.trim() === studentChoiceText) {
-          score += Number(eq.points || 1);
+        if (correctText && studentChoiceText && correctText.trim() === studentChoiceText.trim()) {
+          score += Number(q.points || (Number(sessionInfo?.total_score || 10) / totalQuestions));
         }
       }
       

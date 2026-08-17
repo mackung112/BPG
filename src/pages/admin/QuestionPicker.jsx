@@ -70,22 +70,23 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
   const handleSave = () => {
     let finalQuestions = [];
     let totalScore = 0;
+    let targetQuestionCount = 0;
 
     if (activeTab === 'random') {
-      // Process Random Mode
+      // Process Random Mode: Store all questions from selected banks in the pool
       banks.forEach(bank => {
         const config = randomConfigs[bank.id];
         if (config.count > 0) {
           const bankQuestions = questionsByBank[bank.id] || [];
-          // Shuffle and pick
-          const shuffled = [...bankQuestions].sort(() => 0.5 - Math.random());
-          const selected = shuffled.slice(0, config.count);
-          const pointsPerQuestion = config.points / config.count; // Calculate points per question
+          const pointsPerQuestion = config.points / config.count; // Points per sampled question
           
-          selected.forEach(q => {
+          // Add all available questions in this bank into the pool
+          bankQuestions.forEach(q => {
             finalQuestions.push({ id: q.id, points: pointsPerQuestion });
           });
-          totalScore += config.points; // Add the bank's total score
+          
+          targetQuestionCount += config.count;
+          totalScore += config.points;
         }
       });
     } else {
@@ -97,6 +98,7 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
           totalScore += points;
         }
       });
+      targetQuestionCount = finalQuestions.length;
     }
 
     if (finalQuestions.length === 0) {
@@ -106,10 +108,12 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
 
     onSave({
       questions: finalQuestions,
+      questionCount: targetQuestionCount,
       totalScore,
+      mode: activeTab,
       summaryText: activeTab === 'random' 
-        ? `สุ่มข้อสอบรวม ${finalQuestions.length} ข้อ (${totalScore} คะแนน)`
-        : `เลือกเจาะจง ${finalQuestions.length} ข้อ (${totalScore} คะแนน)`
+        ? `สุ่มแบบอิสระ ${targetQuestionCount} ข้อ/คน (จากคลัง ${finalQuestions.length} ข้อ, เต็ม ${totalScore} คะแนน)`
+        : `เลือกเจาะจง ${finalQuestions.length} ข้อ (เต็ม ${totalScore} คะแนน)`
     });
   };
 
