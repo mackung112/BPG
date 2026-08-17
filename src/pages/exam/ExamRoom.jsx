@@ -300,7 +300,7 @@ export default function ExamRoom() {
       .select(`
         points,
         questions (
-          id, question_text, choices, correct_index, correct_answer_index
+          id, question_text, choices, correct_answer_index
         )
       `)
       .eq('session_id', sessionId);
@@ -326,12 +326,23 @@ export default function ExamRoom() {
         ? (Number(sData.total_score) / targetCount)
         : (sampledQuestions[0]?.points || 1);
 
-      // Shuffle choices independently for each question
+      // Determine correct answer text before shuffling, then shuffle choices independently
       sampledQuestions = sampledQuestions.map(q => {
         const rawChoices = q.choices || [];
+        
+        let correctText = '';
+        const correctChoiceObj = rawChoices.find(c => typeof c === 'object' && (c.is_correct === true || c.isCorrect === true));
+        if (correctChoiceObj) {
+          correctText = correctChoiceObj.text || '';
+        } else if (typeof q.correct_answer_index === 'number' && rawChoices[q.correct_answer_index]) {
+          const c = rawChoices[q.correct_answer_index];
+          correctText = typeof c === 'object' ? c.text : c;
+        }
+
         const shuffledChoices = [...rawChoices].sort(() => Math.random() - 0.5);
         return {
           ...q,
+          correctText: correctText,
           points: pointsPerQ,
           choices: shuffledChoices
         };
@@ -388,18 +399,7 @@ export default function ExamRoom() {
         const studentChoiceText = answers[q.id];
         if (!studentChoiceText) continue;
 
-        const choices = q.choices || [];
-        let correctText = '';
-
-        const correctChoiceObj = choices.find(c => typeof c === 'object' && (c.is_correct === true || c.isCorrect === true));
-        if (correctChoiceObj) {
-          correctText = correctChoiceObj.text || '';
-        } else if (typeof q.correct_answer_index === 'number' && choices[q.correct_index ?? q.correct_answer_index]) {
-          const c = choices[q.correct_index ?? q.correct_answer_index];
-          correctText = typeof c === 'object' ? c.text : c;
-        }
-
-        if (correctText && studentChoiceText && correctText.trim() === studentChoiceText.trim()) {
+        if (q.correctText && studentChoiceText.trim() === q.correctText.trim()) {
           score += Number(q.points || (Number(sessionInfo?.total_score || 10) / totalQuestions));
         }
       }
