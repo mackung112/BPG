@@ -156,10 +156,10 @@ export default function TeacherBio() {
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-tight group-hover:text-white/60 transition-colors">
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-tight group-hover/card:text-white/80 transition-colors">
                         {c.label}
                       </span>
-                      <span className="text-xs font-mono font-bold block truncate group-hover:text-white transition-colors">
+                      <span className="text-xs font-mono font-bold block truncate group-hover/card:text-white transition-colors">
                         {c.value}
                       </span>
                     </div>
