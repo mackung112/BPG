@@ -75,10 +75,10 @@ export default function ExamRoom() {
         setIsFullscreen(true);
       }
       
-      // Allow 3 seconds grace period for browser fullscreen animation/prompts
+      // Allow 10 seconds grace period for browser fullscreen animation/prompts
       setTimeout(() => {
         gracePeriodRef.current = false;
-      }, 3000);
+      }, 10000);
     };
     
     loadExamAndFullscreen();

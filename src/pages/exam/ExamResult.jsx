@@ -63,7 +63,7 @@ export default function ExamResult() {
       // 1. Fetch exam results
       const { data: resData } = await supabase
         .from('exam_results')
-        .select('*, exam_sessions(title, total_score, exam_mode, max_attempts, retake_until_pass, passing_percentage)')
+        .select('*, exam_sessions(title, total_score, question_count, exam_mode, max_attempts, retake_until_pass, passing_percentage)')
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id)
         .order('submitted_at', { ascending: true });
@@ -153,7 +153,7 @@ export default function ExamResult() {
 
   const latestResult = results[results.length - 1];
   const bestScore = Math.round(Math.max(...results.map(r => Number(r.score))));
-  const totalScore = Math.round(Number(latestResult.exam_sessions?.total_score || latestResult.total_questions || 10));
+  const totalScore = Math.round(Number(latestResult.exam_sessions?.total_score || latestResult.exam_sessions?.question_count || latestResult.total_questions || 10));
   const currentScore = Math.round(Number(latestResult.score));
   const percentage = Math.round((currentScore / totalScore) * 100);
   const isPass = percentage >= 50;
