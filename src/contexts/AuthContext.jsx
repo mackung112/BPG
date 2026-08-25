@@ -87,13 +87,15 @@ export function AuthProvider({ children }) {
     // 1. Verify session exists with secret_code
     const { data: sessionData, error: sessionError } = await supabase
       .from('exam_sessions')
-      .select('id, status, started_at, time_limit_minutes')
+      .select('id, status, started_at, time_limit_minutes, exam_mode, max_attempts')
       .eq('secret_code', secretCode.trim().toUpperCase())
       .maybeSingle();
       
     if (sessionError || !sessionData) {
       throw new Error('ไม่พบรหัสการสอบนี้ หรือรหัสไม่ถูกต้อง');
     }
+
+    const isOnline = sessionData.exam_mode === 'online';
 
     // 1.1 Check if session is already completed (allow if student has retake permission)
     if (sessionData.status === 'completed') {
@@ -104,24 +106,37 @@ export function AuthProvider({ children }) {
         .eq('student_id', studentId.trim())
         .maybeSingle();
 
-      if (pCheck?.allow_rejoin) {
-        // Teacher approved retake!
-        await supabase
-          .from('exam_participants')
-          .update({ status: 'testing', allow_rejoin: false })
-          .eq('id', pCheck.id);
+      if (pCheck) {
+        if (isOnline) {
+          if (pCheck.attempt_count < sessionData.max_attempts) {
+             await supabase
+              .from('exam_participants')
+              .update({ status: 'testing', started_at: new Date().toISOString() })
+              .eq('id', pCheck.id);
+            localStorage.setItem('student_id', studentId.trim());
+            localStorage.setItem('exam_session_id', sessionData.id);
+            setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
+            return sessionData.id;
+          }
+        } else if (pCheck.allow_rejoin) {
+          // Teacher approved retake!
+          await supabase
+            .from('exam_participants')
+            .update({ status: 'testing', allow_rejoin: false })
+            .eq('id', pCheck.id);
 
-        localStorage.setItem('student_id', studentId.trim());
-        localStorage.setItem('exam_session_id', sessionData.id);
-        setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
-        return sessionData.id;
+          localStorage.setItem('student_id', studentId.trim());
+          localStorage.setItem('exam_session_id', sessionData.id);
+          setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
+          return sessionData.id;
+        }
       }
 
       throw new Error('การสอบนี้สิ้นสุดลงแล้ว ไม่อนุญาตให้เข้าห้องสอบ (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
     }
 
-    // 1.2 Check if time limit has expired for active session
-    if (sessionData.status === 'active' && sessionData.started_at && sessionData.time_limit_minutes) {
+    // 1.2 Check if time limit has expired for active session (Only for onsite)
+    if (!isOnline && sessionData.status === 'active' && sessionData.started_at && sessionData.time_limit_minutes) {
       const startTime = new Date(sessionData.started_at).getTime();
       const now = Date.now();
       const elapsedMinutes = (now - startTime) / (1000 * 60);
@@ -176,28 +191,54 @@ export function AuthProvider({ children }) {
       .maybeSingle();
 
     if (existingParticipant) {
-      // If already submitted and not allowed to retake
-      if (existingParticipant.status === 'completed' && !existingParticipant.allow_rejoin) {
-        throw new Error('คุณได้ส่งข้อสอบชุดนี้เรียบร้อยแล้ว (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
-      }
+      let updatePayload = {};
 
-      // If disconnected or cheating and not allowed to rejoin
-      if ((existingParticipant.status === 'disconnected' || existingParticipant.status === 'cheating') && !existingParticipant.allow_rejoin) {
-        throw new Error('คุณถูกระงับการสอบ กรุณาแจ้งครูผู้คุมสอบเพื่อขออนุมัติเข้าใหม่');
+      if (existingParticipant.status === 'completed') {
+        if (isOnline) {
+          if (existingParticipant.attempt_count >= sessionData.max_attempts) {
+            throw new Error('คุณได้ทำข้อสอบชุดนี้ครบตามจำนวนที่กำหนดแล้ว');
+          }
+          // Start a new attempt
+          updatePayload = { status: 'testing', started_at: new Date().toISOString() };
+        } else {
+          if (!existingParticipant.allow_rejoin) {
+            throw new Error('คุณได้ส่งข้อสอบชุดนี้เรียบร้อยแล้ว (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
+          }
+          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false };
+        }
+      } else if (existingParticipant.status === 'disconnected' || existingParticipant.status === 'cheating') {
+        if (isOnline) {
+          // Allow rejoin immediately, keep started_at same, status testing
+          updatePayload = { status: 'testing' };
+        } else {
+          if (!existingParticipant.allow_rejoin) {
+            throw new Error('คุณถูกระงับการสอบ กรุณาแจ้งครูผู้คุมสอบเพื่อขออนุมัติเข้าใหม่');
+          }
+          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false };
+        }
+      } else {
+        // Status is waiting or testing
+        updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false };
+        if (isOnline && !existingParticipant.started_at) {
+          updatePayload.started_at = new Date().toISOString();
+        }
       }
       
-      // Update status to testing/waiting for retake or rejoin
-      const nextStatus = sessionData.status === 'active' ? 'testing' : 'waiting';
       await supabase
         .from('exam_participants')
-        .update({ status: nextStatus, allow_rejoin: false })
+        .update(updatePayload)
         .eq('id', existingParticipant.id);
     } else {
       // Insert new participant (allow both waiting and active sessions)
       const initialStatus = sessionData.status === 'active' ? 'testing' : 'waiting';
+      const insertPayload = { session_id: sessionData.id, student_id: studentId.trim(), status: initialStatus };
+      if (isOnline) {
+        insertPayload.started_at = new Date().toISOString();
+      }
+
       const { error: insertError } = await supabase
         .from('exam_participants')
-        .insert([{ session_id: sessionData.id, student_id: studentId.trim(), status: initialStatus }]);
+        .insert([insertPayload]);
         
       if (insertError) {
         throw new Error('เกิดข้อผิดพลาดในการเข้าห้องสอบ: ' + insertError.message);

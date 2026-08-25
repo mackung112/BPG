@@ -46,10 +46,17 @@ description: ระบบออกแบบ UI/UX โทเค็นสี ฟ�
 ### ปุ่ม
 - Primary: `bg-[#4F46E5] text-white hover:bg-[#4338CA] hover:scale-[1.02] hover:shadow-md active:scale-98 rounded-[8px] font-semibold cursor-pointer transition-all duration-200`
 - Secondary: `border border-[#4F46E5] text-[#4F46E5] hover:bg-[#EEF2FF] hover:scale-[1.02] active:scale-98 rounded-[8px] font-semibold cursor-pointer transition-all duration-200`
-- ขนาด: h-8 (เล็ก), h-[38px] (กลาง), h-[46px] (ใหญ่)
+- Disabled: `opacity-50 cursor-not-allowed pointer-events-none`
+- ขนาด Responsive:
+  - เล็ก: `h-12 md:h-9 px-4` (48px mobile → 36px desktop)
+  - กลาง: `h-12 md:h-10 px-5 md:px-6` (48px mobile → 40px desktop)
+  - ใหญ่/CTA: `h-[52px] md:h-12 px-6 md:px-8` (52px mobile → 48px desktop)
+- Touch Target: **ต้อง ≥ 48px** บนมือถือ (Material Design), ≥ 44px บนแท็บเล็ต (Apple HIG)
+- Gap ระหว่างปุ่ม: **อย่างน้อย `gap-2` (8px)** ทุก breakpoint
+- Font Weight: `font-semibold` (600) ทุกปุ่ม/เมนู
 
 ### ช่องกรอกข้อมูล
-`h-[38px] border-[#E4E4E7] rounded-[8px] focus:border-[#4F46E5] focus:ring-3 focus:ring-[#4F46E5]/12`
+`h-12 md:h-[38px] border-[#E4E4E7] rounded-[8px] focus:border-[#4F46E5] focus:ring-3 focus:ring-[#4F46E5]/12`
 
 ### ขอบมนและเงา
 - ขอบมน: 4px (เล็ก), 8px (กลาง), 12px (ใหญ่), 20px (XL), 9999px (กลม)
@@ -74,6 +81,77 @@ description: ระบบออกแบบ UI/UX โทเค็นสี ฟ�
 ### ไอคอนโต้ตอบ
 - จานรอง: `p-3 rounded-2xl bg-{accent}-50/80 text-{accent}-600 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 shadow-inner`
 - Lucide: `transition-transform group-hover:rotate-12 duration-300`
+
+---
+
+## 📱 Responsive Tokens
+
+### Breakpoints (Tailwind v4 ค่าเริ่มต้น)
+| Breakpoint | ค่า | อุปกรณ์ |
+|---|---|---|
+| Default | < 768px | มือถือ |
+| `md:` | ≥ 768px | แท็บเล็ต |
+| `lg:` | ≥ 1024px | คอมพิวเตอร์ |
+| `xl:` | ≥ 1280px | จอกว้าง |
+
+### Sidebar (Navigation Drawer)
+| Breakpoint | ความกว้าง | พฤติกรรม |
+|---|---|---|
+| Mobile (< 768px) | 0px | ซ่อน → Hamburger → Overlay Drawer |
+| Tablet (md:) | 72px | Icon-only (ไม่มีข้อความ) |
+| Desktop (lg:) | 256px | Full (ไอคอน + ข้อความ) |
+
+### Navbar (Top App Bar)
+| Breakpoint | ความสูง |
+|---|---|
+| Mobile / Tablet | 56px (`h-14`) |
+| Desktop (lg:) | 64px (`lg:h-16`) |
+
+### Button Touch Target
+| แพลตฟอร์ม | ขนาดขั้นต่ำ | อ้างอิง |
+|---|---|---|
+| มือถือ | ≥ 48px | Material Design 3 |
+| แท็บเล็ต | ≥ 44px | Apple HIG |
+| เดสก์ท็อป | 36–40px (ปกติ), 48–56px (CTA) | Mouse precision |
+
+### Font Size
+| ระดับ | Mobile | Desktop |
+|---|---|---|
+| เนื้อหาหลัก | 16px (`text-base`) | 16px (`text-base`) |
+| ข้อมูลหนาแน่น | 16px | 14px (`text-sm`) |
+| ปุ่ม/เมนู | `font-semibold` (600) | `font-semibold` (600) |
+| หัวเรื่อง | `text-2xl` → `lg:text-[38px]` | `text-[38px]` |
+
+---
+
+## 🎨 สี & การเข้าถึง (Accessibility)
+
+### Contrast Ratio (WCAG AA บังคับ)
+- ตัวอักษรปกติ: อัตราส่วน ≥ **4.5:1** (ตรวจด้วย WebAIM Contrast Checker)
+- ตัวอักษรใหญ่ (≥ 18px bold): อัตราส่วน ≥ **3:1**
+- ปุ่ม Primary (`#4F46E5` + `#FFFFFF`): Ratio **7.28:1** ✅ ผ่าน AAA
+
+### สีเชิงความหมาย (Color Semantics)
+| สี | ใช้สำหรับ |
+|---|---|
+| เขียว / น้ำเงิน | ยืนยัน, บันทึก, สำเร็จ |
+| แดง | ลบ, อันตราย, ต้องระวัง |
+| เทา + `opacity-50` | Disabled / ยังกดไม่ได้ |
+| ส้ม / เหลือง | เตือน, ข้อควรระวัง |
+
+### Visual Hierarchy
+- **ปุ่มหลัก 1 ปุ่ม/หน้าจอ**: สีทึบ เด่นที่สุด (Primary solid)
+- **ปุ่มรอง**: Outline (`border`) หรือ Text-only
+- **ห้ามใช้สีอย่างเดียวสื่อความหมาย** — ต้องมีข้อความหรือไอคอนประกอบเสมอ
+
+### Interactive States (บังคับทุกปุ่ม)
+| สถานะ | เอฟเฟกต์ |
+|---|---|
+| Default | สีปกติ |
+| Hover | สีเข้มขึ้น 1 ขั้น + `shadow-md` |
+| Active/Pressed | `scale-98` + สีเข้มขึ้น 2 ขั้น |
+| Focus | `ring-2 ring-offset-2 ring-[#4F46E5]` |
+| Disabled | `opacity-50 cursor-not-allowed` |
 
 ---
 

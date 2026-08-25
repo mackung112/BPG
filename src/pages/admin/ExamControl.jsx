@@ -43,12 +43,16 @@ export default function ExamControl() {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [sessionTitle, setSessionTitle] = useState('');
   const [timeLimit, setTimeLimit] = useState(60);
+  const [examMode, setExamMode] = useState('onsite');
+  const [maxAttempts, setMaxAttempts] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
 
   // Edit Session Modal
   const [editingSession, setEditingSession] = useState(null);
   const [editSessionTitle, setEditSessionTitle] = useState('');
   const [editTimeLimit, setEditTimeLimit] = useState(60);
+  const [editExamMode, setEditExamMode] = useState('onsite');
+  const [editMaxAttempts, setEditMaxAttempts] = useState(1);
   const [editSecretCode, setEditSecretCode] = useState('');
   const [editStatus, setEditStatus] = useState('waiting');
   const [updatingSession, setUpdatingSession] = useState(false);
@@ -244,9 +248,11 @@ export default function ExamControl() {
         title: sessionTitle.trim(),
         secret_code: secretCode,
         time_limit_minutes: timeLimit,
+        exam_mode: examMode,
+        max_attempts: examMode === 'online' ? maxAttempts : 1,
         question_count: examConfig.questionCount || examConfig.questions.length,
         total_score: examConfig.totalScore,
-        status: 'waiting'
+        status: examMode === 'online' ? 'active' : 'waiting'
       }]).select().single();
 
       if (sessionError) throw sessionError;
@@ -265,6 +271,8 @@ export default function ExamControl() {
       setSessionTitle('');
       setIsPickerOpen(false);
       setExamConfig(null);
+      setExamMode('onsite');
+      setMaxAttempts(1);
       await fetchSessions();
       setActiveSession(sessionData);
     } catch (err) {
@@ -279,6 +287,8 @@ export default function ExamControl() {
     setEditingSession(session);
     setEditSessionTitle(session.title || '');
     setEditTimeLimit(session.time_limit_minutes || 60);
+    setEditExamMode(session.exam_mode || 'onsite');
+    setEditMaxAttempts(session.max_attempts || 1);
     setEditSecretCode(session.secret_code || '');
     setEditStatus(session.status || 'waiting');
   };
@@ -294,6 +304,8 @@ export default function ExamControl() {
         .update({
           title: editSessionTitle.trim(),
           time_limit_minutes: parseInt(editTimeLimit, 10),
+          exam_mode: editExamMode,
+          max_attempts: editExamMode === 'online' ? parseInt(editMaxAttempts, 10) : 1,
           secret_code: editSecretCode.trim().toUpperCase(),
           status: editStatus
         })
@@ -583,6 +595,33 @@ export default function ExamControl() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-zinc-600 mb-1">โหมดการสอบ</label>
+                  <select
+                    value={examMode}
+                    onChange={e => setExamMode(e.target.value)}
+                    className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:border-indigo-500 text-xs"
+                  >
+                    <option value="onsite">ออนไซต์ (รอครูเปิด)</option>
+                    <option value="online">ออนไลน์ (เริ่มได้ทันที)</option>
+                  </select>
+                </div>
+                {examMode === 'online' && (
+                  <div>
+                    <label className="block font-semibold text-zinc-600 mb-1">จำนวนครั้งสูงสุด</label>
+                    <input 
+                      required 
+                      value={maxAttempts} 
+                      onChange={e => setMaxAttempts(e.target.value)} 
+                      type="number" 
+                      min="1" 
+                      className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:border-indigo-500 text-xs" 
+                    />
+                  </div>
+                )}
+              </div>
+
               <button 
                 type="submit" 
                 disabled={isCreating} 
@@ -608,7 +647,14 @@ export default function ExamControl() {
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="font-bold text-xs text-zinc-900 truncate pr-2">{s.title}</div>
+                    <div>
+                      <div className="font-bold text-xs text-zinc-900 truncate pr-2 flex items-center gap-2">
+                        {s.title}
+                        {s.exam_mode === 'online' && (
+                          <span className="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-[9px] font-bold">Online</span>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleOpenEditSession(s); }}
@@ -679,7 +725,12 @@ export default function ExamControl() {
               <div className="p-5 border-b border-zinc-100 bg-zinc-50/50 flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-zinc-900">{activeSession.title}</h2>
+                    <h2 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                      {activeSession.title}
+                      {activeSession.exam_mode === 'online' && (
+                        <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold uppercase">Online</span>
+                      )}
+                    </h2>
                     <button
                       onClick={() => handleOpenEditSession(activeSession)}
                       className="p-1 text-zinc-400 hover:text-indigo-600 rounded cursor-pointer"
@@ -1051,6 +1102,33 @@ export default function ExamControl() {
                     className="w-full px-3.5 py-2 text-xs font-mono font-bold uppercase border border-zinc-200 rounded-xl focus:border-indigo-500"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-zinc-700 mb-1">โหมดการสอบ</label>
+                  <select
+                    value={editExamMode}
+                    onChange={e => setEditExamMode(e.target.value)}
+                    className="w-full px-3.5 py-2 text-xs border border-zinc-200 rounded-xl focus:border-indigo-500"
+                  >
+                    <option value="onsite">ออนไซต์</option>
+                    <option value="online">ออนไลน์</option>
+                  </select>
+                </div>
+                {editExamMode === 'online' && (
+                  <div>
+                    <label className="block font-semibold text-zinc-700 mb-1">จำนวนครั้งสูงสุด</label>
+                    <input
+                      required
+                      type="number"
+                      min="1"
+                      value={editMaxAttempts}
+                      onChange={e => setEditMaxAttempts(e.target.value)}
+                      className="w-full px-3.5 py-2 text-xs border border-zinc-200 rounded-xl focus:border-indigo-500"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>

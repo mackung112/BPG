@@ -41,7 +41,7 @@ function PageLayout({ children, activePage }) {
 
       {/* Floating Glassmorphic Navigation Bar */}
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/60 border-b border-white/40 shadow-lg transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 lg:h-16 flex items-center justify-between relative">
           {/* Logo (Left) */}
           <Link to="/" className="flex items-center gap-3 cursor-pointer group no-underline relative z-10">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform duration-300">
@@ -52,7 +52,7 @@ function PageLayout({ children, activePage }) {
 
           {/* Desktop Nav Links (Center) */}
           <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none">
-            <div className="flex items-center gap-8 text-sm font-semibold pointer-events-auto">
+            <div className="flex items-center gap-6 lg:gap-8 text-sm lg:text-[15px] font-semibold pointer-events-auto">
               {navItems.map((item) => {
                 const isActive = activePage === item.id;
                 return (
@@ -76,7 +76,7 @@ function PageLayout({ children, activePage }) {
           <div className="hidden md:block relative z-10">
             <Link
               to="/login"
-              className="cursor-pointer flex items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white rounded-full font-bold text-sm hover:shadow-lg hover:shadow-zinc-500/30 hover:scale-[1.02] active:scale-98 transition-all duration-200 no-underline"
+              className="cursor-pointer flex items-center gap-2 px-5 lg:px-6 py-2.5 min-h-[44px] lg:min-h-[36px] bg-zinc-900 text-white rounded-full font-bold text-sm hover:shadow-lg hover:shadow-zinc-500/30 hover:scale-[1.02] active:scale-98 transition-all duration-200 no-underline"
             >
               เข้าสู่ระบบ
             </Link>
@@ -85,7 +85,7 @@ function PageLayout({ children, activePage }) {
           {/* Mobile Hamburg Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-zinc-650 hover:bg-black/5 rounded-xl transition-colors cursor-pointer relative z-10"
+            className="md:hidden p-3 min-h-[48px] min-w-[48px] flex items-center justify-center text-zinc-600 hover:bg-black/5 rounded-xl transition-colors cursor-pointer relative z-10"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -93,7 +93,7 @@ function PageLayout({ children, activePage }) {
 
         {/* Mobile Nav Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white/95 backdrop-blur-2xl p-4 space-y-3 shadow-xl">
+          <div className="md:hidden border-t border-gray-100 bg-white/95 backdrop-blur-2xl p-4 space-y-2 shadow-xl">
             {navItems.map((item) => {
               const isActive = activePage === item.id;
               return (
@@ -101,7 +101,7 @@ function PageLayout({ children, activePage }) {
                   key={item.id}
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`w-full text-left px-4 py-2.5 rounded-xl font-semibold transition-colors block no-underline ${
+                  className={`w-full text-left px-4 py-3 min-h-[48px] flex items-center rounded-xl font-semibold transition-colors no-underline ${
                     isActive
                       ? 'bg-indigo-50 text-indigo-600'
                       : 'text-zinc-700 hover:bg-slate-50 hover:text-indigo-500'
@@ -115,7 +115,7 @@ function PageLayout({ children, activePage }) {
               <Link
                 to="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full justify-center flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-sm shadow-md no-underline"
+                className="w-full justify-center flex items-center gap-2 px-5 py-3.5 min-h-[48px] bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-base shadow-md no-underline"
               >
                 <BookOpen className="w-4 h-4" /> เข้าสู่ระบบ
               </Link>
@@ -138,7 +138,7 @@ function PageLayout({ children, activePage }) {
             </div>
             <span className="font-extrabold text-lg text-white">ห้องเรียนครูแม็ค</span>
           </div>
-          <p className="text-xs md:text-sm text-zinc-500 font-normal">
+          <p className="text-xs md:text-sm lg:text-sm text-zinc-500 font-normal">
             แพลตฟอร์มการเรียนรู้เชิงโต้ตอบยุคใหม่ด้านเทคโนโลยี วิทยาการคอมพิวเตอร์ และการเขียนโปรแกรม
           </p>
           <p className="text-xs text-zinc-600 mt-4">
@@ -204,7 +204,7 @@ function HomeView() {
             <div className="pt-2 sm:pt-4 flex items-center gap-4">
               <button
                 onClick={() => navigate('/login')}
-                className="cursor-pointer flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-cyan-500 to-indigo-500 text-white rounded-full font-bold text-[15px] sm:text-[16px] shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-98 transition-all duration-300"
+                className="cursor-pointer flex items-center gap-2 px-6 sm:px-8 py-4 sm:py-4 min-h-[52px] bg-gradient-to-r from-cyan-500 to-indigo-500 text-white rounded-full font-bold text-base sm:text-[16px] shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-98 transition-all duration-300"
               >
                 เข้าสู่ระบบ / เริ่มเรียน
               </button>
@@ -445,12 +445,12 @@ function CourseView() {
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       {/* Top Navbar - Full Width */}
-      <nav className="h-14 bg-white border-b border-gray-200/80 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 relative shadow-sm">
+      <nav className="h-14 lg:h-16 bg-white border-b border-gray-200/80 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 relative shadow-sm">
         <div className="flex items-center gap-2 md:gap-3">
-          <button className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" onClick={() => setIsMobileSidebarOpen(true)}>
+          <button className="lg:hidden p-3 -ml-2 min-h-[48px] min-w-[48px] flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer" onClick={() => setIsMobileSidebarOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
-          <button className="hidden md:block p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}>
+          <button className="hidden lg:flex p-2 -ml-2 min-h-[40px] min-w-[40px] items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer" onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}>
             <Menu className="w-5 h-5" />
           </button>
           
@@ -465,7 +465,7 @@ function CourseView() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/')} className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 text-sm font-medium transition-colors border border-gray-200 hover:border-gray-300">
+          <button onClick={() => navigate('/')} className="hidden lg:flex items-center gap-1.5 px-4 py-2 min-h-[36px] rounded-lg text-gray-600 hover:bg-gray-100 text-sm font-semibold transition-colors border border-gray-200 hover:border-gray-300 cursor-pointer">
             <ChevronLeft className="w-4 h-4" /> กลับหน้ารวมวิชา
           </button>
           <div className="text-xs text-gray-500 font-medium bg-gray-100 px-3 py-1.5 rounded-full">
@@ -478,17 +478,17 @@ function CourseView() {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Mobile overlay */}
         {isMobileSidebarOpen && (
-          <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setIsMobileSidebarOpen(false)} />
+          <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setIsMobileSidebarOpen(false)} />
         )}
 
         {/* Sidebar */}
-        <aside className={`absolute md:relative inset-y-0 left-0 z-50 w-80 shrink-0 bg-indigo-950 text-indigo-100 transition-all duration-300 ease-in-out flex flex-col ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isDesktopSidebarOpen ? 'md:ml-0' : 'md:-ml-80'}`}>
+        <aside className={`absolute lg:relative inset-y-0 left-0 z-50 w-[280px] lg:w-64 shrink-0 bg-indigo-950 text-indigo-100 transition-all duration-300 ease-in-out flex flex-col ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 ${isDesktopSidebarOpen ? 'lg:ml-0' : 'lg:-ml-64'}`}>
           <div className="p-5 border-b border-indigo-900/50 flex items-center justify-between shrink-0 bg-indigo-950">
             <div className="min-w-0">
               <h2 className="text-base font-bold text-white tracking-tight truncate">{course.title}</h2>
               <p className="text-indigo-400 text-xs mt-1">เนื้อหาบทเรียน</p>
             </div>
-            <button className="md:hidden p-1.5 hover:bg-indigo-800 rounded-lg transition-colors" onClick={() => setIsMobileSidebarOpen(false)}>
+            <button className="lg:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-indigo-800 rounded-lg transition-colors cursor-pointer" onClick={() => setIsMobileSidebarOpen(false)}>
               <X className="w-5 h-5 text-indigo-300" />
             </button>
           </div>
@@ -512,7 +512,7 @@ function CourseView() {
                             navigate(`/course/${course.id}/lesson/${lesson.id}`);
                             setIsMobileSidebarOpen(false);
                           }}
-                          className={`w-full text-left px-5 py-2.5 transition-all flex items-center gap-3 text-sm ${
+                          className={`w-full text-left px-5 py-3 min-h-[44px] transition-all flex items-center gap-3 text-sm cursor-pointer ${
                             isActive
                               ? 'bg-indigo-600 text-white font-semibold border-r-4 border-white shadow-lg shadow-indigo-800/30'
                               : 'hover:bg-indigo-900/50 text-indigo-200'

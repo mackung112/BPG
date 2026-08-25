@@ -44,6 +44,7 @@ export default function ExamRoom() {
   const [attemptNumber, setAttemptNumber] = useState(1);
   const cheatingFlag = useRef(false);
   const violationCountRef = useRef(0);
+  const sessionModeRef = useRef('onsite');
 
   const showSecurityWarning = (msg) => {
     setToastWarning(msg);
@@ -81,13 +82,29 @@ export default function ExamRoom() {
 
       violationCountRef.current += 1;
 
-      if (violationCountRef.current <= 3) {
-        // Warning 1, 2, 3: Show urgent warning modal without revealing exact strike count
-        setWarningModalOpen(true);
-        showSecurityWarning('⚠️ คำเตือน: ระบบตรวจพบการออกจากหน้าจอข้อสอบ');
+      if (sessionModeRef.current === 'online') {
+        supabase
+          .from('exam_participants')
+          .update({ warnings_count: violationCountRef.current })
+          .eq('session_id', sessionId)
+          .eq('student_id', studentSession.student_id)
+          .then();
+
+        if (violationCountRef.current < 3) {
+          setWarningModalOpen(true);
+          showSecurityWarning(`⚠️ คำเตือน: ระบบตรวจพบการออกจากหน้าจอข้อสอบ (เตือนครั้งที่ ${violationCountRef.current}/2)`);
+        } else {
+          cheatingFlag.current = true;
+          alert('⚠️ คุณทำผิดกฎเกินกำหนด ระบบกำลังส่งข้อสอบของคุณอัตโนมัติ');
+          setTimeLeft(0);
+        }
       } else {
-        // 4th time: Take immediate action and lock exam
-        triggerCheating(reason || 'สลับหน้าต่างหรือออกจากหน้าจอข้อสอบเกินที่ระบบอนุญาต');
+        if (violationCountRef.current <= 3) {
+          setWarningModalOpen(true);
+          showSecurityWarning('⚠️ คำเตือน: ระบบตรวจพบการออกจากหน้าจอข้อสอบ');
+        } else {
+          triggerCheating(reason || 'สลับหน้าต่างหรือออกจากหน้าจอข้อสอบเกินที่ระบบอนุญาต');
+        }
       }
     };
 
@@ -272,10 +289,13 @@ export default function ExamRoom() {
       // Check participant status and previous attempts
       const { data: pData } = await supabase
         .from('exam_participants')
-        .select('status, allow_rejoin, is_retake')
+        .select('status, allow_rejoin, is_retake, started_at, warnings_count')
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id)
         .maybeSingle();
+
+      sessionModeRef.current = sData.exam_mode || 'onsite';
+      violationCountRef.current = pData?.warnings_count || 0;
 
       // Fetch previous results for this student to detect retake
       const { data: prevResults } = await supabase
@@ -301,13 +321,15 @@ export default function ExamRoom() {
       const isRetakeAllowed = pData?.status === 'testing' || pData?.allow_rejoin;
 
       // Calculate time
-      const startTime = new Date(sData.started_at || Date.now()).getTime();
+      const startTime = sessionModeRef.current === 'online' && pData?.started_at
+          ? new Date(pData.started_at).getTime()
+          : new Date(sData.started_at || Date.now()).getTime();
       const now = Date.now();
       const timeLimitMs = (sData.time_limit_minutes || 60) * 60 * 1000;
       const elapsed = now - startTime;
       const remaining = Math.max(0, Math.floor((timeLimitMs - elapsed) / 1000));
 
-      if (!isRetakeAllowed && (sData.status === 'completed' || (sData.started_at && remaining <= 0))) {
+      if (sessionModeRef.current !== 'online' && !isRetakeAllowed && (sData.status === 'completed' || (sData.started_at && remaining <= 0))) {
         alert('การสอบนี้เสร็จสิ้นหรือหมดเวลาแล้ว ไม่สามารถทำข้อสอบต่อได้ (หากต้องการสอบซ่อม กรุณากดขอสอบซ่อม)');
         navigate(`/exam-result/${sessionId}`, { replace: true });
         return;

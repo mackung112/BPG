@@ -3,6 +3,14 @@
 @theme {
   --font-sans: "Prompt", "Noto Sans Thai", sans-serif;
   --font-mont: "Montserrat", sans-serif;
+
+  /* Responsive Layout Tokens */
+  --nav-h: 56px;
+  --nav-h-lg: 64px;
+  --sidebar-w: 256px;
+  --sidebar-w-compact: 72px;
+  --touch-target: 48px;
+  --touch-target-apple: 44px;
 }
 
 @layer base {
