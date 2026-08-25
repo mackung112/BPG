@@ -12,6 +12,7 @@ import {
   Pencil, 
   X, 
   Check, 
+  Copy,
   AlertCircle, 
   UserMinus,
   Settings2,
@@ -45,6 +46,8 @@ export default function ExamControl() {
   const [timeLimit, setTimeLimit] = useState(60);
   const [examMode, setExamMode] = useState('onsite');
   const [maxAttempts, setMaxAttempts] = useState(1);
+  const [retakeUntilPass, setRetakeUntilPass] = useState(false);
+  const [passingPercentage, setPassingPercentage] = useState(50);
   const [isCreating, setIsCreating] = useState(false);
 
   // Edit Session Modal
@@ -53,6 +56,8 @@ export default function ExamControl() {
   const [editTimeLimit, setEditTimeLimit] = useState(60);
   const [editExamMode, setEditExamMode] = useState('onsite');
   const [editMaxAttempts, setEditMaxAttempts] = useState(1);
+  const [editRetakeUntilPass, setEditRetakeUntilPass] = useState(false);
+  const [editPassingPercentage, setEditPassingPercentage] = useState(50);
   const [editSecretCode, setEditSecretCode] = useState('');
   const [editStatus, setEditStatus] = useState('waiting');
   const [updatingSession, setUpdatingSession] = useState(false);
@@ -250,6 +255,8 @@ export default function ExamControl() {
         time_limit_minutes: timeLimit,
         exam_mode: examMode,
         max_attempts: examMode === 'online' ? maxAttempts : 1,
+        retake_until_pass: retakeUntilPass,
+        passing_percentage: passingPercentage,
         question_count: examConfig.questionCount || examConfig.questions.length,
         total_score: examConfig.totalScore,
         status: examMode === 'online' ? 'active' : 'waiting'
@@ -289,6 +296,8 @@ export default function ExamControl() {
     setEditTimeLimit(session.time_limit_minutes || 60);
     setEditExamMode(session.exam_mode || 'onsite');
     setEditMaxAttempts(session.max_attempts || 1);
+    setEditRetakeUntilPass(session.retake_until_pass || false);
+    setEditPassingPercentage(session.passing_percentage || 50);
     setEditSecretCode(session.secret_code || '');
     setEditStatus(session.status || 'waiting');
   };
@@ -306,6 +315,8 @@ export default function ExamControl() {
           time_limit_minutes: parseInt(editTimeLimit, 10),
           exam_mode: editExamMode,
           max_attempts: editExamMode === 'online' ? parseInt(editMaxAttempts, 10) : 1,
+          retake_until_pass: editRetakeUntilPass,
+          passing_percentage: parseInt(editPassingPercentage, 10) || 50,
           secret_code: editSecretCode.trim().toUpperCase(),
           status: editStatus
         })
@@ -470,6 +481,20 @@ export default function ExamControl() {
     if (!deletingParticipant || !activeSession) return;
     setDeletingParticipantLoading(true);
     try {
+      // Delete related student_answers
+      await supabase
+        .from('student_answers')
+        .delete()
+        .eq('session_id', activeSession.id)
+        .eq('student_id', deletingParticipant.student_id);
+
+      // Delete related exam_results
+      await supabase
+        .from('exam_results')
+        .delete()
+        .eq('session_id', activeSession.id)
+        .eq('student_id', deletingParticipant.student_id);
+
       const { error } = await supabase
         .from('exam_participants')
         .delete()
@@ -615,11 +640,39 @@ export default function ExamControl() {
                       value={maxAttempts} 
                       onChange={e => setMaxAttempts(e.target.value)} 
                       type="number" 
-                      min="1" 
-                      className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:border-indigo-500 text-xs" 
+                      min="1"
+                      disabled={retakeUntilPass}
+                      className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:border-indigo-500 text-xs disabled:bg-zinc-100 disabled:text-zinc-400" 
                     />
                   </div>
                 )}
+
+                <div className="col-span-2 pt-1 border-t border-zinc-100">
+                  <label className="flex items-center gap-2 cursor-pointer mb-2">
+                    <input
+                      type="checkbox"
+                      checked={retakeUntilPass}
+                      onChange={(e) => setRetakeUntilPass(e.target.checked)}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-sm font-semibold text-zinc-700">สอบซ่อมอัตโนมัติจนกว่าจะผ่าน</span>
+                  </label>
+                  
+                  {retakeUntilPass && (
+                    <div className="pl-6">
+                      <label className="block font-semibold text-zinc-600 mb-1">เกณฑ์การผ่าน (%)</label>
+                      <input
+                        required={retakeUntilPass}
+                        value={passingPercentage}
+                        onChange={e => setPassingPercentage(e.target.value)}
+                        type="number"
+                        min="1"
+                        max="100"
+                        className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:border-indigo-500 text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <button 
@@ -740,8 +793,18 @@ export default function ExamControl() {
                     </button>
                   </div>
                   <div className="flex items-center gap-3 mt-1.5">
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded-lg">
-                      <Key className="w-3.5 h-3.5" /> รหัสห้อง: <span className="font-mono text-sm tracking-widest">{activeSession.secret_code}</span>
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-100 pl-2.5 pr-1 py-1 rounded-lg">
+                      <Key className="w-3.5 h-3.5" /> รหัสห้อง: <span className="font-mono text-sm tracking-widest mr-1">{activeSession.secret_code}</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(activeSession.secret_code);
+                          showToast('success', 'คัดลอกรหัสห้องสอบแล้ว!');
+                        }}
+                        className="p-1.5 text-indigo-400 hover:text-indigo-700 hover:bg-indigo-200 rounded-md cursor-pointer transition-colors"
+                        title="คัดลอกรหัสห้อง"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
                     </span>
                     <span className="flex items-center gap-1 text-xs text-zinc-500">
                       <Clock className="w-3.5 h-3.5" /> {activeSession.time_limit_minutes} นาที
@@ -1125,10 +1188,38 @@ export default function ExamControl() {
                       min="1"
                       value={editMaxAttempts}
                       onChange={e => setEditMaxAttempts(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs border border-zinc-200 rounded-xl focus:border-indigo-500"
+                      disabled={editRetakeUntilPass}
+                      className="w-full px-3.5 py-2 text-xs border border-zinc-200 rounded-xl focus:border-indigo-500 disabled:bg-zinc-100 disabled:text-zinc-400"
                     />
                   </div>
                 )}
+
+                <div className="col-span-2 pt-1 border-t border-zinc-100">
+                  <label className="flex items-center gap-2 cursor-pointer mb-2">
+                    <input
+                      type="checkbox"
+                      checked={editRetakeUntilPass}
+                      onChange={(e) => setEditRetakeUntilPass(e.target.checked)}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-sm font-semibold text-zinc-700">สอบซ่อมอัตโนมัติจนกว่าจะผ่าน</span>
+                  </label>
+                  
+                  {editRetakeUntilPass && (
+                    <div className="pl-6">
+                      <label className="block font-semibold text-zinc-700 mb-1">เกณฑ์การผ่าน (%)</label>
+                      <input
+                        required={editRetakeUntilPass}
+                        value={editPassingPercentage}
+                        onChange={e => setEditPassingPercentage(e.target.value)}
+                        type="number"
+                        min="1"
+                        max="100"
+                        className="w-full px-3.5 py-2 text-xs border border-zinc-200 rounded-xl focus:border-indigo-500"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>

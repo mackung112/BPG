@@ -63,7 +63,7 @@ export default function ExamResult() {
       // 1. Fetch exam results
       const { data: resData } = await supabase
         .from('exam_results')
-        .select('*, exam_sessions(title, total_score)')
+        .select('*, exam_sessions(title, total_score, exam_mode, max_attempts, retake_until_pass, passing_percentage)')
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id)
         .order('submitted_at', { ascending: true });
@@ -116,14 +116,23 @@ export default function ExamResult() {
   const handleStartRetake = async () => {
     if (!participant) return;
     try {
-      // Set to testing and reset rejoin flag
+      const isOnline = results.length > 0 && results[0].exam_sessions?.exam_mode === 'online';
+      const sessionData = results[0]?.exam_sessions;
+      const existingParticipant = participant;
+      const updatePayload = {
+        status: isOnline ? 'testing' : (sessionData.status === 'active' ? 'testing' : 'waiting'),
+        allow_rejoin: false,
+        retake_requested: false,
+        warnings_count: 0
+      };
+      
+      if (isOnline) {
+        updatePayload.started_at = new Date().toISOString();
+      }
+
       await supabase
         .from('exam_participants')
-        .update({
-          status: 'testing',
-          allow_rejoin: false,
-          retake_requested: false
-        })
+        .update(updatePayload)
         .eq('id', participant.id);
 
       localStorage.setItem('student_id', studentSession.student_id);
@@ -149,8 +158,24 @@ export default function ExamResult() {
   const percentage = Math.round((currentScore / totalScore) * 100);
   const isPass = percentage >= 50;
 
-  const isApprovedToRetake = participant?.allow_rejoin === true;
-  const isPendingRequest = participant?.retake_requested === true && !isApprovedToRetake;
+  const sessionInfo = latestResult?.exam_sessions || {};
+  const isOnline = sessionInfo.exam_mode === 'online';
+  const maxAttempts = sessionInfo.max_attempts || 1;
+  const retakeUntilPass = sessionInfo.retake_until_pass === true;
+  
+  const bestPercentage = Math.round((bestScore / totalScore) * 100);
+  const passingPercentage = sessionInfo.passing_percentage || 50;
+  const hasPassedOverall = bestPercentage >= passingPercentage;
+  
+  let hasAttemptsLeft = false;
+  if (retakeUntilPass) {
+    hasAttemptsLeft = !hasPassedOverall;
+  } else if (isOnline) {
+    hasAttemptsLeft = results.length < maxAttempts;
+  }
+
+  const isApprovedToRetake = participant?.allow_rejoin === true || hasAttemptsLeft;
+  const isPendingRequest = participant?.retake_requested === true && !participant?.allow_rejoin && !hasAttemptsLeft;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -243,10 +268,14 @@ export default function ExamResult() {
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2.5">
               <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-sm">
                 <Sparkles className="w-4 h-4 text-emerald-600 animate-spin" />
-                คุณครูอนุมัติให้สอบซ่อมแล้ว!
+                {retakeUntilPass && !hasPassedOverall
+                  ? `คุณยังไม่ผ่านเกณฑ์ (ต้องการ ${passingPercentage}%) สอบซ่อมได้เลย!`
+                  : hasAttemptsLeft 
+                    ? 'คุณยังมีสิทธิ์สอบเหลืออยู่!' 
+                    : 'คุณครูอนุมัติให้สอบซ่อมแล้ว!'}
               </div>
               <p className="text-xs text-emerald-600 font-medium">
-                พร้อมแล้วกดปุ่มด้านล่างเพื่อเริ่มทำข้อสอบซ่อมรอบใหม่ได้ทันที
+                พร้อมแล้วกดปุ่มด้านล่างเพื่อเริ่มทำข้อสอบรอบใหม่ได้ทันที
               </p>
               <button
                 onClick={handleStartRetake}

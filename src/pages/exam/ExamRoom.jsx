@@ -36,7 +36,7 @@ export default function ExamRoom() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(() => !!document.fullscreenElement);
   const [toastWarning, setToastWarning] = useState(null);
   const [warningModalOpen, setWarningModalOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -56,7 +56,26 @@ export default function ExamRoom() {
       navigate('/login', { replace: true });
       return;
     }
-    initExam();
+    const loadExamAndFullscreen = async () => {
+      await initExam();
+      
+      // Auto-fullscreen attempt
+      if (!document.fullscreenElement) {
+        try {
+          const el = document.documentElement;
+          if (el.requestFullscreen) await el.requestFullscreen();
+          else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+          else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+          setIsFullscreen(true);
+        } catch (e) {
+          console.warn('Auto fullscreen blocked by browser:', e.message);
+        }
+      } else {
+        setIsFullscreen(true);
+      }
+    };
+    
+    loadExamAndFullscreen();
 
     // 🔒 1. Anti-Cheat: Tab Switch & Window Blur (Allow 3 warnings, 4th time kicks)
     const triggerCheating = async (reason) => {
@@ -566,6 +585,37 @@ export default function ExamRoom() {
             className="text-xs text-zinc-500 hover:text-rose-400 hover:underline pt-2 block mx-auto cursor-pointer"
           >
             หากรอนานเกินไป คลิกที่นี่เพื่อกลับหน้าเข้าสู่ระบบ
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-zinc-900 flex flex-col items-center justify-center text-white p-4 text-center">
+        <div className="bg-zinc-800 p-8 rounded-3xl max-w-md w-full shadow-2xl border border-zinc-700/50 space-y-6">
+          <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2">เข้าสู่โหมดเต็มจอ</h2>
+            <p className="text-sm text-zinc-400 leading-relaxed">
+              ระบบป้องกันการทุจริตบังคับให้ทำข้อสอบในโหมดเต็มจอเท่านั้น กรุณาคลิกปุ่มด้านล่างเพื่อดำเนินการต่อ
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              const el = document.documentElement;
+              if (el.requestFullscreen) el.requestFullscreen();
+              else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+              else if (el.msRequestFullscreen) el.msRequestFullscreen();
+            }}
+            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/25 cursor-pointer"
+          >
+            เปิดโหมดเต็มจอและทำข้อสอบ
           </button>
         </div>
       </div>

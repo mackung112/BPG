@@ -87,7 +87,7 @@ export function AuthProvider({ children }) {
     // 1. Verify session exists with secret_code
     const { data: sessionData, error: sessionError } = await supabase
       .from('exam_sessions')
-      .select('id, status, started_at, time_limit_minutes, exam_mode, max_attempts')
+      .select('id, status, started_at, time_limit_minutes, exam_mode, max_attempts, retake_until_pass, passing_percentage, question_count, total_score')
       .eq('secret_code', secretCode.trim().toUpperCase())
       .maybeSingle();
       
@@ -193,18 +193,48 @@ export function AuthProvider({ children }) {
     if (existingParticipant) {
       let updatePayload = {};
 
-      if (existingParticipant.status === 'completed') {
-        if (isOnline) {
-          if (existingParticipant.attempt_count >= sessionData.max_attempts) {
-            throw new Error('คุณได้ทำข้อสอบชุดนี้ครบตามจำนวนที่กำหนดแล้ว');
+      const { data: pastResults } = await supabase
+        .from('exam_results')
+        .select('id, score')
+        .eq('session_id', sessionData.id)
+        .eq('student_id', studentId.trim());
+        
+      const actualAttemptCount = pastResults ? pastResults.length : 0;
+      const maxAttempts = sessionData.max_attempts || 1;
+      const retakeUntilPass = sessionData.retake_until_pass === true;
+      
+      let hasPassed = false;
+      if (retakeUntilPass && pastResults && pastResults.length > 0) {
+        const bestScore = Math.max(...pastResults.map(r => Number(r.score) || 0));
+        const totalScore = Number(sessionData.total_score || sessionData.question_count || 10);
+        const percentage = (bestScore / totalScore) * 100;
+        if (percentage >= (sessionData.passing_percentage || 50)) {
+          hasPassed = true;
+        }
+      }
+
+      if (!existingParticipant.allow_rejoin) {
+        if (retakeUntilPass) {
+          if (hasPassed) {
+            throw new Error('คุณสอบผ่านเกณฑ์แล้ว ไม่สามารถสอบซ่อมได้อีก');
           }
-          // Start a new attempt
-          updatePayload = { status: 'testing', started_at: new Date().toISOString() };
+        } else if (actualAttemptCount >= maxAttempts) {
+          throw new Error('คุณได้ทำข้อสอบชุดนี้ครบตามจำนวนที่กำหนดแล้ว');
+        }
+      }
+
+      if (existingParticipant.status === 'completed') {
+        if (retakeUntilPass && !hasPassed) {
+          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false, warnings_count: 0 };
+          if (isOnline) updatePayload.started_at = new Date().toISOString();
+        } else if (isOnline) {
+          // Normal online logic
+          updatePayload = { status: 'testing', started_at: new Date().toISOString(), warnings_count: 0, allow_rejoin: false };
         } else {
           if (!existingParticipant.allow_rejoin) {
             throw new Error('คุณได้ส่งข้อสอบชุดนี้เรียบร้อยแล้ว (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
           }
-          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false };
+          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false, warnings_count: 0 };
         }
       } else if (existingParticipant.status === 'disconnected' || existingParticipant.status === 'cheating') {
         if (isOnline) {
