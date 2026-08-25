@@ -493,7 +493,7 @@ export default function ExamResults() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[calc(100vh-12rem)]">
         
         {/* Left Column: Select Session */}
         <div className="bg-white rounded-2xl shadow-sm border border-zinc-200/80 flex flex-col overflow-hidden">
@@ -763,7 +763,7 @@ export default function ExamResults() {
               </div>
 
               {/* Unified Results Table */}
-              <div className="flex-1 overflow-auto bg-white">
+              <div className="flex-1 overflow-x-auto bg-white">
                 <table className="w-full text-xs text-left border-collapse">
                   <thead className="bg-zinc-50/80 text-zinc-500 sticky top-0 z-10 border-b border-zinc-100 font-semibold uppercase tracking-wider backdrop-blur-xs">
                     <tr>
