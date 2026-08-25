@@ -284,12 +284,14 @@ export function AuthProvider({ children }) {
 
   const logoutStudent = async () => {
     if (studentSession) {
-      // Set status to disconnected
+      // Set status to disconnected only if they haven't completed or been caught cheating
       await supabase
         .from('exam_participants')
         .update({ status: 'disconnected' })
         .eq('session_id', studentSession.session_id)
-        .eq('student_id', studentSession.student_id);
+        .eq('student_id', studentSession.student_id)
+        .neq('status', 'completed')
+        .neq('status', 'cheating');
     }
     localStorage.removeItem('student_id');
     localStorage.removeItem('exam_session_id');
