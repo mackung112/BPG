@@ -30,6 +30,16 @@ export default function ExamResults() {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  
+  // Classroom Filter State
+  const [allStudents, setAllStudents] = useState([]);
+  const [classroomFilter, setClassroomFilter] = useState([]);
+
+  const toggleClassroom = (c) => {
+    setClassroomFilter(prev => 
+      prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+    );
+  };
 
   // Retake Policy State
   // Policies: 'best' | 'latest' | 'average' | 'capped' | 'scaled'
@@ -67,7 +77,13 @@ export default function ExamResults() {
 
   useEffect(() => {
     fetchSessions();
+    fetchAllStudents();
   }, []);
+
+  const fetchAllStudents = async () => {
+    const { data } = await supabase.from('students').select('student_id, first_name, last_name, classroom');
+    if (data) setAllStudents(data);
+  };
 
   useEffect(() => {
     if (selectedSession) {
@@ -209,7 +225,7 @@ export default function ExamResults() {
   };
 
   // Build unified student list
-  const studentList = Object.values(studentMap).map(s => {
+  let studentList = Object.values(studentMap).map(s => {
     const { finalScore, effectiveTotal } = calculateStudentFinalScore(s.attempts);
     const participant = participants.find(p => p.student_id === s.student_id);
     const isRetakeAllowed = participant?.allow_rejoin === true;
@@ -228,6 +244,31 @@ export default function ExamResults() {
       participantStatus: participant?.status
     };
   });
+
+  // If specific classrooms are selected, merge with all students in those classrooms
+  if (classroomFilter.length > 0) {
+    const classStudents = allStudents.filter(s => classroomFilter.includes(s.classroom));
+    const combinedList = classStudents.map(cs => {
+      const taken = studentList.find(b => b.student_id === cs.student_id);
+      if (taken) return taken;
+      
+      // Return a dummy record for not taken
+      return {
+        student_id: cs.student_id,
+        students: { first_name: cs.first_name, last_name: cs.last_name, classroom: cs.classroom },
+        attempts: [],
+        finalScore: 0,
+        effectiveTotal: totalScoreVal,
+        isRetakeAllowed: false,
+        isRetakeRequested: false,
+        isPass: false,
+        notTaken: true
+      };
+    });
+    studentList = combinedList;
+  }
+
+  const availableClassrooms = [...new Set(allStudents.map(s => s.classroom))].filter(Boolean).sort();
 
   // Retake Actions: Allow / Disallow
   const handleToggleRetake = async (studentId, currentAllowed) => {
@@ -409,11 +450,20 @@ export default function ExamResults() {
       const name = `${s.students?.first_name || ''} ${s.students?.last_name || ''}`;
       const classroom = s.students?.classroom || '-';
       const attemptsCount = s.attempts.length;
-      const firstScore = s.attempts[0]?.score != null ? Math.round(s.attempts[0].score) : '-';
-      const latestScore = s.attempts[s.attempts.length - 1]?.score != null ? Math.round(s.attempts[s.attempts.length - 1].score) : '-';
-      const finalScore = s.finalScore;
+      
+      let firstScore = '-';
+      let latestScore = '-';
+      let finalScore = '-';
+      let statusText = 'ยังไม่เข้าสอบ';
+
+      if (!s.notTaken) {
+        firstScore = s.attempts[0]?.score != null ? Math.round(s.attempts[0].score) : '-';
+        latestScore = s.attempts[s.attempts.length - 1]?.score != null ? Math.round(s.attempts[s.attempts.length - 1].score) : '-';
+        finalScore = s.finalScore;
+        statusText = s.isPass ? 'ผ่าน' : 'ไม่ผ่าน';
+      }
+
       const effectiveTotal = s.effectiveTotal;
-      const statusText = s.isPass ? 'ผ่าน' : 'ไม่ผ่าน';
 
       let policyName = 'คะแนนที่ดีที่สุด';
       if (retakePolicy === 'latest') policyName = 'คะแนนครั้งล่าสุด';
@@ -745,20 +795,49 @@ export default function ExamResults() {
               )}
 
               {/* Filter bar */}
-              <div className="p-3 border-b border-zinc-100 flex items-center justify-between bg-white text-xs">
-                <div className="relative w-72">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-zinc-400" />
-                  <input 
-                    type="text" 
-                    placeholder="ค้นหารหัส, ชื่อ-สกุล, หรือห้อง..." 
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 border border-zinc-200 rounded-xl text-xs bg-white focus:border-indigo-500"
-                  />
+              <div className="p-3 border-b border-zinc-100 flex flex-col gap-3 bg-white text-xs">
+                <div className="flex items-center justify-between w-full">
+                  <div className="relative w-full sm:w-72">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-zinc-400" />
+                    <input 
+                      type="text" 
+                      placeholder="ค้นหารหัส, ชื่อ-สกุล, หรือห้อง..." 
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 border border-zinc-200 rounded-xl text-xs bg-white focus:border-indigo-500"
+                    />
+                  </div>
+                  <div className="hidden sm:block text-zinc-500 text-[11px]">
+                    💡 <em>คลิกที่ปุ่ม "อนุมัติสอบซ่อม" หน้ารายชื่อเพื่อเปิดสิทธิ์ให้นักเรียนสอบรอบใหม่</em>
+                  </div>
                 </div>
-
-                <div className="text-zinc-500 text-[11px]">
-                  💡 <em>คลิกที่ปุ่ม "อนุมัติสอบซ่อม" หน้ารายชื่อเพื่อเปิดสิทธิ์ให้นักเรียนสอบรอบใหม่</em>
+                
+                {/* Classroom Chips */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                  <span className="font-semibold text-zinc-600 whitespace-nowrap">ตัวกรองห้องเรียน:</span>
+                  <button
+                    onClick={() => setClassroomFilter([])}
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-colors whitespace-nowrap cursor-pointer ${
+                      classroomFilter.length === 0 
+                        ? 'bg-zinc-800 text-white border-zinc-800' 
+                        : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
+                    }`}
+                  >
+                    เฉพาะผู้เข้าสอบ
+                  </button>
+                  {availableClassrooms.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => toggleClassroom(c)}
+                      className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-colors whitespace-nowrap cursor-pointer ${
+                        classroomFilter.includes(c)
+                          ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                          : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -790,38 +869,50 @@ export default function ExamResults() {
                             {/* Attempt badges */}
                             <td className="px-4 py-3">
                               <div className="flex flex-wrap items-center gap-1.5">
-                                {s.attempts.map((att, idx) => (
-                                  <span 
-                                    key={att.id || idx}
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] border ${
-                                      idx === 0 
-                                        ? 'bg-zinc-100 border-zinc-200 text-zinc-700 font-medium' 
-                                        : 'bg-indigo-50 border-indigo-200 text-indigo-800 font-bold'
-                                    }`}
-                                    title={`รอบที่ ${idx + 1}: ${att.score} คะแนน (${idx === 0 ? 'สอบรอบปกติ' : 'สอบซ่อม'})`}
-                                  >
-                                    <span>#{idx + 1}:</span>
-                                    <span>{att.score}</span>
-                                    {idx > 0 && <span className="text-[9px] text-indigo-600 font-bold">ซ่อม</span>}
-                                  </span>
-                                ))}
+                                {s.notTaken ? (
+                                  <span className="text-[11px] text-zinc-400">-</span>
+                                ) : (
+                                  s.attempts.map((att, idx) => (
+                                    <span 
+                                      key={att.id || idx}
+                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] border ${
+                                        idx === 0 
+                                          ? 'bg-zinc-100 border-zinc-200 text-zinc-700 font-medium' 
+                                          : 'bg-indigo-50 border-indigo-200 text-indigo-800 font-bold'
+                                      }`}
+                                      title={`รอบที่ ${idx + 1}: ${att.score} คะแนน (${idx === 0 ? 'สอบรอบปกติ' : 'สอบซ่อม'})`}
+                                    >
+                                      <span>#{idx + 1}:</span>
+                                      <span>{att.score}</span>
+                                      {idx > 0 && <span className="text-[9px] text-indigo-600 font-bold">ซ่อม</span>}
+                                    </span>
+                                  ))
+                                )}
                               </div>
                             </td>
 
                             {/* Calculated Final Score */}
                             <td className="px-4 py-3 text-center">
                               <div className="inline-flex items-center gap-1.5">
-                                <span className={`px-2.5 py-0.5 rounded-full font-bold text-xs font-mono ${
-                                  s.isPass ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                                }`}>
-                                  {s.finalScore} / {s.effectiveTotal}
-                                </span>
+                                {s.notTaken ? (
+                                  <span className="px-2.5 py-0.5 rounded-full font-bold text-[11px] bg-zinc-100 text-zinc-500">
+                                    ยังไม่เข้าสอบ
+                                  </span>
+                                ) : (
+                                  <span className={`px-2.5 py-0.5 rounded-full font-bold text-xs font-mono ${
+                                    s.isPass ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                  }`}>
+                                    {s.finalScore} / {s.effectiveTotal}
+                                  </span>
+                                )}
                               </div>
                             </td>
 
                             {/* Retake Status */}
                             <td className="px-4 py-3 text-center">
-                              {s.isRetakeRequested ? (
+                              {s.notTaken ? (
+                                <span className="text-[11px] text-zinc-400">-</span>
+                              ) : s.isRetakeRequested ? (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 animate-bounce">
                                   🔔 นักเรียนขอสอบซ่อม
                                 </span>
@@ -842,31 +933,33 @@ export default function ExamResults() {
                             <td className="px-4 py-3 text-right">
                               <div className="flex items-center justify-end gap-1.5">
                                 {/* Toggle Retake Button */}
-                                <button
-                                  onClick={() => handleToggleRetake(s.student_id, s.isRetakeAllowed)}
-                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                                    s.isRetakeRequested
-                                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm animate-pulse'
-                                      : s.isRetakeAllowed
-                                      ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200'
-                                      : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
-                                  }`}
-                                  title={s.isRetakeAllowed ? 'ยกเลิกสิทธิ์สอบซ่อม' : 'อนุมัติให้นักเรียนสอบซ่อม'}
-                                >
-                                  {s.isRetakeRequested ? (
-                                    <>
-                                      <RotateCcw className="w-3 h-3" /> อนุมัติสอบซ่อมทันที!
-                                    </>
-                                  ) : s.isRetakeAllowed ? (
-                                    <>
-                                      <UserX className="w-3 h-3" /> ปิดสิทธิ์ซ่อม
-                                    </>
-                                  ) : (
-                                    <>
-                                      <RotateCcw className="w-3 h-3" /> อนุมัติสอบซ่อม
-                                    </>
-                                  )}
-                                </button>
+                                {!s.notTaken && (
+                                  <button
+                                    onClick={() => handleToggleRetake(s.student_id, s.isRetakeAllowed)}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                      s.isRetakeRequested
+                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm animate-pulse'
+                                        : s.isRetakeAllowed
+                                        ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200'
+                                        : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                                    }`}
+                                    title={s.isRetakeAllowed ? 'ยกเลิกสิทธิ์สอบซ่อม' : 'อนุมัติให้นักเรียนสอบซ่อม'}
+                                  >
+                                    {s.isRetakeRequested ? (
+                                      <>
+                                        <RotateCcw className="w-3 h-3" /> อนุมัติสอบซ่อมทันที!
+                                      </>
+                                    ) : s.isRetakeAllowed ? (
+                                      <>
+                                        <UserX className="w-3 h-3" /> ปิดสิทธิ์ซ่อม
+                                      </>
+                                    ) : (
+                                      <>
+                                        <RotateCcw className="w-3 h-3" /> อนุมัติสอบซ่อม
+                                      </>
+                                    )}
+                                  </button>
+                                )}
 
                                 {/* Edit latest score */}
                                 {s.attempts.length > 0 && (
