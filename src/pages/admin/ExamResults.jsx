@@ -848,7 +848,7 @@ export default function ExamResults() {
                                     s.isRetakeRequested
                                       ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm animate-pulse'
                                       : s.isRetakeAllowed
-                                      ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200'
+                                      ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200'
                                       : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
                                   }`}
                                   title={s.isRetakeAllowed ? 'ยกเลิกสิทธิ์สอบซ่อม' : 'อนุมัติให้นักเรียนสอบซ่อม'}

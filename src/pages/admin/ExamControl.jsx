@@ -214,7 +214,13 @@ export default function ExamControl() {
       setSessions(data);
       if (activeSession) {
         const updated = data.find(s => s.id === activeSession.id);
-        if (updated) setActiveSession(updated);
+        if (updated) {
+          setActiveSession(updated);
+        } else if (data.length > 0) {
+          setActiveSession(data[0]);
+        }
+      } else if (data.length > 0) {
+        setActiveSession(data[0]);
       }
     }
   };
