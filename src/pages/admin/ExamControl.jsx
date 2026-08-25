@@ -749,7 +749,7 @@ export default function ExamControl() {
         </div>
 
         {/* Right Column: Active Session Control */}
-        <div className="bg-white rounded-2xl shadow-sm border border-zinc-200/80 lg:col-span-2 flex flex-col h-[calc(100vh-12rem)] overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-zinc-200/80 lg:col-span-2 flex flex-col min-h-[calc(100vh-12rem)]">
           {!activeSession ? (
             <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 p-8 text-center">
               <Users className="w-16 h-16 mb-4 text-zinc-200" />
@@ -951,7 +951,7 @@ export default function ExamControl() {
               </div>
 
               {/* Participants Grid */}
-              <div className="flex-1 overflow-auto p-4 bg-zinc-50/40">
+              <div className="flex-1 p-4 bg-zinc-50/40 rounded-b-2xl">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {participants.map(p => {
                     const isFlagged = p.status === 'cheating' || p.status === 'disconnected';

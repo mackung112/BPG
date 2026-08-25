@@ -45,6 +45,7 @@ export default function ExamRoom() {
   const cheatingFlag = useRef(false);
   const violationCountRef = useRef(0);
   const sessionModeRef = useRef('onsite');
+  const gracePeriodRef = useRef(true);
 
   const showSecurityWarning = (msg) => {
     setToastWarning(msg);
@@ -73,6 +74,11 @@ export default function ExamRoom() {
       } else {
         setIsFullscreen(true);
       }
+      
+      // Allow 3 seconds grace period for browser fullscreen animation/prompts
+      setTimeout(() => {
+        gracePeriodRef.current = false;
+      }, 3000);
     };
     
     loadExamAndFullscreen();
@@ -128,12 +134,14 @@ export default function ExamRoom() {
     };
 
     const handleVisibilityChange = () => {
+      if (gracePeriodRef.current) return;
       if (document.hidden) {
         handleViolation('ออกจากหน้าต่างข้อสอบ หรือสลับแท็บเบราว์เซอร์');
       }
     };
 
     const handleWindowBlur = () => {
+      if (gracePeriodRef.current) return;
       if (!cheatingFlag.current && !submitting) {
         handleViolation('คลิกออกนอกหน้าจอข้อสอบ หรือสลับโปรแกรม');
       }
