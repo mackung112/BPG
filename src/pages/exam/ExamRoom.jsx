@@ -54,6 +54,7 @@ export default function ExamRoom() {
   const timeLeftRef = useRef(null);
   const attemptNumberRef = useRef(1);
   const examStartedAtRef = useRef(null);
+  const isRetakeModeRef = useRef(false);
   const [sleepWarningModal, setSleepWarningModal] = useState(false);
 
   useEffect(() => { questionsRef.current = questions; }, [questions]);
@@ -61,6 +62,7 @@ export default function ExamRoom() {
   useEffect(() => { flaggedRef.current = flagged; }, [flagged]);
   useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
   useEffect(() => { attemptNumberRef.current = attemptNumber; }, [attemptNumber]);
+  useEffect(() => { isRetakeModeRef.current = isRetakeMode; }, [isRetakeMode]);
 
   const showSecurityWarning = (msg) => {
     setToastWarning(msg);
@@ -329,11 +331,16 @@ export default function ExamRoom() {
       .channel(`session_update_${sessionId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'exam_sessions', filter: `id=eq.${sessionId}` }, (payload) => {
         if (payload.new.status === 'completed') {
-          handleSubmit(true);
+          // ถ้าสอบซ่อมอยู่ ให้เมินคำสั่งปิดข้อสอบจากเซสชั่นหลัก (ให้ยึดเวลาของตัวเองแทน)
+          if (!isRetakeModeRef.current) {
+            handleSubmit(true);
+          }
         } else if (payload.new.time_limit_minutes) {
           // Real-time time extension from teacher
           setSessionInfo(prev => ({ ...prev, ...payload.new }));
-          const startTime = new Date(payload.new.started_at || Date.now()).getTime();
+          const startTime = isRetakeModeRef.current && examStartedAtRef.current
+              ? new Date(examStartedAtRef.current).getTime() 
+              : new Date(payload.new.started_at || Date.now()).getTime();
           const now = Date.now();
           const timeLimitMs = payload.new.time_limit_minutes * 60 * 1000;
           const remaining = Math.max(0, Math.floor((timeLimitMs - (now - startTime)) / 1000));
@@ -502,7 +509,7 @@ export default function ExamRoom() {
         return;
       }
 
-      if (sData.status === 'completed' || remaining <= 0) {
+      if (!isRetake && (sData.status === 'completed' || remaining <= 0)) {
         setTimeLeft((sData.time_limit_minutes || 30) * 60);
       } else {
         setTimeLeft(remaining);

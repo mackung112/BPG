@@ -138,17 +138,22 @@ export function AuthProvider({ children }) {
             setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
             return sessionData.id;
           }
-        } else if (pCheck.allow_rejoin || canAutoRetake) {
-          // Teacher approved retake or auto retake
-          await supabase
-            .from('exam_participants')
-            .update({ status: 'testing', allow_rejoin: false, started_at: new Date().toISOString() })
-            .eq('id', pCheck.id);
+        } else {
+          let needsForceSubmit = pCheck.status === 'testing' || pCheck.status === 'waiting' || pCheck.status === 'disconnected';
+          if (pCheck.allow_rejoin || canAutoRetake || needsForceSubmit) {
+            // Teacher approved retake, auto retake, or force submit
+            if (!needsForceSubmit) {
+              await supabase
+                .from('exam_participants')
+                .update({ status: 'testing', allow_rejoin: false, started_at: new Date().toISOString() })
+                .eq('id', pCheck.id);
+            }
 
-          localStorage.setItem('student_id', studentId.trim());
-          localStorage.setItem('exam_session_id', sessionData.id);
-          setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
-          return sessionData.id;
+            localStorage.setItem('student_id', studentId.trim());
+            localStorage.setItem('exam_session_id', sessionData.id);
+            setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
+            return sessionData.id;
+          }
         }
       }
 
@@ -189,12 +194,16 @@ export function AuthProvider({ children }) {
           }
         }
 
-        if (pCheck?.allow_rejoin || canAutoRetake) {
-          // Allow retake
-          await supabase
-            .from('exam_participants')
-            .update({ status: 'testing', allow_rejoin: false, started_at: new Date().toISOString() })
-            .eq('id', pCheck.id);
+        let needsForceSubmit = pCheck && (pCheck.status === 'testing' || pCheck.status === 'waiting' || pCheck.status === 'disconnected');
+
+        if (pCheck?.allow_rejoin || canAutoRetake || needsForceSubmit) {
+          // Allow retake or force submit
+          if (!needsForceSubmit) {
+            await supabase
+              .from('exam_participants')
+              .update({ status: 'testing', allow_rejoin: false, started_at: new Date().toISOString() })
+              .eq('id', pCheck.id);
+          }
 
           localStorage.setItem('student_id', studentId.trim());
           localStorage.setItem('exam_session_id', sessionData.id);
