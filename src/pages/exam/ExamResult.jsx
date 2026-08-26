@@ -152,19 +152,25 @@ export default function ExamResult() {
   if (results.length === 0) return <div className="min-h-screen flex items-center justify-center font-medium text-zinc-500">ไม่พบข้อมูลคะแนนสอบ</div>;
 
   const latestResult = results[results.length - 1];
-  const bestScore = Math.round(Math.max(...results.map(r => Number(r.score))));
-  const totalScore = Math.round(Number(latestResult.exam_sessions?.total_score || latestResult.exam_sessions?.question_count || latestResult.total_questions || 10));
-  const currentScore = Math.round(Number(latestResult.score));
-  const percentage = Math.round((currentScore / totalScore) * 100);
-  const isPass = percentage >= 50;
-
   const sessionInfo = latestResult?.exam_sessions || {};
+  const passingPercentage = sessionInfo.passing_percentage || 50;
+
+  // Filter out suspended results for score calculation
+  const completedResults = results.filter(r => !r.is_suspended);
+  const displayResults = completedResults.length > 0 ? completedResults : results;
+  const latestCompleted = displayResults[displayResults.length - 1];
+
+  const bestScore = Math.round(Math.max(...displayResults.map(r => Number(r.score))));
+  const totalScore = Math.round(Number(sessionInfo.total_score || sessionInfo.question_count || latestCompleted.total_questions || 10));
+  const currentScore = Math.round(Number(latestCompleted.score));
+  const percentage = Math.round((currentScore / totalScore) * 100);
+  const isPass = percentage >= passingPercentage;
+
   const isOnline = sessionInfo.exam_mode === 'online';
   const maxAttempts = sessionInfo.max_attempts || 1;
   const retakeUntilPass = sessionInfo.retake_until_pass === true;
   
   const bestPercentage = Math.round((bestScore / totalScore) * 100);
-  const passingPercentage = sessionInfo.passing_percentage || 50;
   const hasPassedOverall = bestPercentage >= passingPercentage;
   
   let hasAttemptsLeft = false;
@@ -261,9 +267,43 @@ export default function ExamResult() {
           </div>
         )}
 
+        {/* ⏱️ ข้อมูลเวลาสอบ */}
+        {latestCompleted.started_at && (
+          <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1.5">
+            <div className="flex justify-between text-[11px] text-zinc-600">
+              <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> เริ่มสอบ</span>
+              <span className="font-mono">{new Date(latestCompleted.started_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' })}</span>
+            </div>
+            <div className="flex justify-between text-[11px] text-zinc-600">
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> ส่งข้อสอบ</span>
+              <span className="font-mono">{new Date(latestCompleted.submitted_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' })}</span>
+            </div>
+            <div className="flex justify-between text-[11px] text-zinc-700 font-bold border-t border-zinc-200 pt-1.5">
+              <span>⏱️ เวลาที่ใช้สอบ</span>
+              <span className="font-mono">{(() => {
+                const startMs = new Date(latestCompleted.started_at).getTime();
+                const endMs = new Date(latestCompleted.submitted_at).getTime();
+                const diffSec = Math.floor((endMs - startMs) / 1000);
+                const mins = Math.floor(diffSec / 60);
+                const secs = diffSec % 60;
+                return `${mins} นาที ${secs} วินาที`;
+              })()}</span>
+            </div>
+          </div>
+        )}
+
         {/* 🌟 Retake Section (ขอสอบซ่อม / สอบซ่อมได้) */}
         <div className="pt-1 space-y-2.5">
-          {isApprovedToRetake ? (
+          {hasPassedOverall ? (
+            /* ✅ ผ่านแล้ว — ไม่ต้องแสดงปุ่มสอบซ่อม */
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
+              <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-sm">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                คุณสอบผ่านเกณฑ์แล้ว! 🎉
+              </div>
+              <p className="text-xs text-emerald-600 mt-1">ยินดีด้วย ไม่ต้องสอบซ่อมแล้ว</p>
+            </div>
+          ) : isApprovedToRetake ? (
             /* Teacher Approved: Can Start Retake Immediately */
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2.5">
               <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-sm">

@@ -32,6 +32,8 @@ export default function ExamControl() {
   const [sessions, setSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
   const [participants, setParticipants] = useState([]);
+  const [examResultsMap, setExamResultsMap] = useState({});
+  const [rejoinModeModalOpen, setRejoinModeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Live Timer & Quick Time Edit State
@@ -96,6 +98,7 @@ export default function ExamControl() {
     let subscription = null;
     if (activeSession) {
       fetchParticipants(activeSession.id);
+      fetchExamResults(activeSession.id);
       
       subscription = supabase
         .channel(`exam_room_${activeSession.id}`)
@@ -104,6 +107,7 @@ export default function ExamControl() {
           { event: '*', schema: 'public', table: 'exam_participants', filter: `session_id=eq.${activeSession.id}` },
           () => {
             fetchParticipants(activeSession.id);
+            fetchExamResults(activeSession.id);
           }
         )
         .subscribe();
@@ -232,6 +236,35 @@ export default function ExamControl() {
       .eq('session_id', sessionId)
       .order('joined_at', { ascending: true });
     if (data) setParticipants(data);
+  };
+
+  const fetchExamResults = async (sid) => {
+    try {
+      const { data } = await supabase
+        .from('exam_results')
+        .select('student_id, score, is_suspended')
+        .eq('session_id', sid)
+        .eq('is_suspended', false);
+      if (data) {
+        const map = {};
+        for (const r of data) {
+          if (!map[r.student_id]) map[r.student_id] = [];
+          map[r.student_id].push(r);
+        }
+        setExamResultsMap(map);
+      }
+    } catch (e) {
+      console.error('Error fetching exam results:', e);
+    }
+  };
+
+  const hasPassed = (studentId) => {
+    const results = examResultsMap[studentId] || [];
+    if (results.length === 0) return false;
+    const bestScore = Math.max(...results.map(r => Number(r.score)));
+    const totalScore = Number(activeSession?.total_score || 10);
+    const passingPct = activeSession?.passing_percentage || 50;
+    return (bestScore / totalScore * 100) >= passingPct;
   };
 
   const generateSecretCode = () => {
@@ -466,18 +499,39 @@ export default function ExamControl() {
     }
   };
 
-  const handleAllowAllRejoin = async () => {
-    const flagged = participants.filter(p => p.status === 'cheating' || p.status === 'disconnected');
+  const handleAllowRejoinWithMode = async (participantId, mode) => {
+    try {
+      const { error } = await supabase
+        .from('exam_participants')
+        .update({ allow_rejoin: true, status: 'waiting', rejoin_mode: mode })
+        .eq('id', participantId);
+      if (error) throw error;
+      const modeText = mode === 'continue' ? 'แก้ข้อสอบเดิม' : 'เริ่มทำใหม่';
+      showToast('success', `อนุมัติให้นักเรียน${modeText}เรียบร้อยแล้ว`);
+      fetchParticipants(activeSession.id);
+      fetchExamResults(activeSession.id);
+    } catch (err) {
+      showToast('error', 'ทำรายการไม่สำเร็จ: ' + err.message);
+    }
+  };
+
+  const handleAllowAllRejoin = async (mode = 'continue') => {
+    const flagged = participants.filter(p => 
+      (p.status === 'cheating' || p.status === 'disconnected') && !hasPassed(p.student_id)
+    );
     if (flagged.length === 0) return;
     try {
       for (const p of flagged) {
         await supabase
           .from('exam_participants')
-          .update({ allow_rejoin: true, status: 'waiting' })
+          .update({ allow_rejoin: true, status: 'waiting', rejoin_mode: mode })
           .eq('id', p.id);
       }
-      showToast('success', `อนุมัติให้นักเรียน ${flagged.length} คนเข้าสอบใหม่เรียบร้อยแล้ว`);
+      const modeText = mode === 'continue' ? 'แก้ข้อสอบเดิม' : 'เริ่มทำใหม่';
+      showToast('success', `อนุมัติให้นักเรียน ${flagged.length} คน${modeText}เรียบร้อยแล้ว`);
       fetchParticipants(activeSession.id);
+      fetchExamResults(activeSession.id);
+      setRejoinModeModalOpen(false);
     } catch (err) {
       showToast('error', 'เกิดข้อผิดพลาด: ' + err.message);
     }
@@ -556,7 +610,7 @@ export default function ExamControl() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => { fetchSessions(); if (activeSession) fetchParticipants(activeSession.id); }}
+            onClick={() => { fetchSessions(); if (activeSession) { fetchParticipants(activeSession.id); fetchExamResults(activeSession.id); } }}
             disabled={loading}
             className="p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all border border-zinc-200 cursor-pointer"
             title="รีเฟรชข้อมูล"
@@ -771,12 +825,20 @@ export default function ExamControl() {
                     <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
                     <span>แจ้งเตือน: พบนักเรียนออกจากหน้าจอสอบ หรือขาดการเชื่อมต่อ {flaggedParticipants.length} คน!</span>
                   </div>
-                  <button
-                    onClick={handleAllowAllRejoin}
-                    className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold shadow-xs cursor-pointer"
-                  >
-                    อนุมัติเข้าใหม่ทั้งหมด ({flaggedParticipants.length})
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleAllowAllRejoin('continue')}
+                      className="text-xs bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 font-bold cursor-pointer shadow-sm"
+                    >
+                      แก้ข้อสอบเดิมทั้งหมด
+                    </button>
+                    <button
+                      onClick={() => handleAllowAllRejoin('restart')}
+                      className="text-xs bg-rose-600 text-white px-3 py-1.5 rounded-lg hover:bg-rose-700 font-bold cursor-pointer shadow-sm"
+                    >
+                      เริ่มใหม่ทั้งหมด
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -949,7 +1011,7 @@ export default function ExamControl() {
                   นักเรียนในห้องสอบ: {participants.length} คน
                 </h3>
                 <button 
-                  onClick={() => fetchParticipants(activeSession.id)} 
+                  onClick={() => { fetchParticipants(activeSession.id); fetchExamResults(activeSession.id); }} 
                   className="text-xs text-indigo-600 flex items-center gap-1 hover:underline cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" /> รีเฟรชรายชื่อ
@@ -995,14 +1057,26 @@ export default function ExamControl() {
                             {p.status.toUpperCase()}
                           </span>
 
-                          {isFlagged && (
-                            <button 
-                              onClick={() => handleAllowRejoin(p.id)}
-                              className="text-[11px] bg-rose-600 text-white px-2 py-0.5 rounded-lg hover:bg-rose-700 font-semibold cursor-pointer shadow-xs"
-                            >
-                              อนุมัติเข้าใหม่
-                            </button>
-                          )}
+                          {p.status === 'completed' && hasPassed(p.student_id) ? (
+                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg font-semibold">
+                              ✅ ผ่านแล้ว
+                            </span>
+                          ) : isFlagged ? (
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleAllowRejoinWithMode(p.id, 'continue')}
+                                className="text-[10px] bg-amber-600 text-white px-1.5 py-0.5 rounded-lg hover:bg-amber-700 font-semibold cursor-pointer shadow-xs"
+                              >
+                                แก้ข้อสอบเดิม
+                              </button>
+                              <button
+                                onClick={() => handleAllowRejoinWithMode(p.id, 'restart')}
+                                className="text-[10px] bg-rose-600 text-white px-1.5 py-0.5 rounded-lg hover:bg-rose-700 font-semibold cursor-pointer shadow-xs"
+                              >
+                                เริ่มใหม่
+                              </button>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     );

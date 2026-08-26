@@ -20,7 +20,9 @@ import {
   UserCheck,
   UserX,
   TrendingUp,
-  Percent
+  Percent,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 
 export default function ExamResults() {
@@ -31,6 +33,16 @@ export default function ExamResults() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
+  // Sort State
+  const [sortConfig, setSortConfig] = useState({ key: 'student_id', direction: 'asc' });
+
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
   // Classroom Filter State
   const [allStudents, setAllStudents] = useState([]);
   const [classroomFilter, setClassroomFilter] = useState([]);
@@ -230,7 +242,8 @@ export default function ExamResults() {
     const participant = participants.find(p => p.student_id === s.student_id);
     const isRetakeAllowed = participant?.allow_rejoin === true;
     const isRetakeRequested = participant?.retake_requested === true;
-    const isPass = (finalScore / effectiveTotal) >= 0.5;
+    const sessionPassRate = (selectedSession?.passing_percentage || 50) / 100;
+    const isPass = effectiveTotal > 0 ? (finalScore / effectiveTotal) >= sessionPassRate : false;
 
     return {
       ...s,
@@ -490,6 +503,29 @@ export default function ExamResults() {
     (s.students?.last_name || '').toLowerCase().includes(search.toLowerCase()) ||
     (s.students?.classroom || '').toLowerCase().includes(search.toLowerCase())
   );
+
+  const sortedStudents = [...filteredStudents].sort((a, b) => {
+    let aValue = a[sortConfig.key];
+    let bValue = b[sortConfig.key];
+
+    if (sortConfig.key === 'name') {
+      aValue = `${a.students?.first_name || ''} ${a.students?.last_name || ''}`;
+      bValue = `${b.students?.first_name || ''} ${b.students?.last_name || ''}`;
+    } else if (sortConfig.key === 'classroom') {
+      aValue = a.students?.classroom || '';
+      bValue = b.students?.classroom || '';
+    } else if (sortConfig.key === 'finalScore') {
+      aValue = a.finalScore || 0;
+      bValue = b.finalScore || 0;
+    } else if (sortConfig.key === 'status') {
+      aValue = a.isPass ? 1 : 0;
+      bValue = b.isPass ? 1 : 0;
+    }
+
+    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   // Stats
   const totalStudents = studentList.length;
@@ -846,20 +882,30 @@ export default function ExamResults() {
                 <table className="w-full text-xs text-left border-collapse">
                   <thead className="bg-zinc-50/80 text-zinc-500 sticky top-0 z-10 border-b border-zinc-100 font-semibold uppercase tracking-wider backdrop-blur-xs">
                     <tr>
-                      <th className="px-4 py-3">รหัสนักเรียน</th>
-                      <th className="px-4 py-3">ชื่อ-นามสกุล</th>
-                      <th className="px-4 py-3">ห้องเรียน</th>
+                      <th className="px-4 py-3 cursor-pointer hover:bg-zinc-100/50 transition-colors" onClick={() => handleSort('student_id')}>
+                        <div className="flex items-center gap-1">รหัสนักเรียน {sortConfig.key === 'student_id' && (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3"/> : <ArrowDown className="w-3 h-3"/>)}</div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer hover:bg-zinc-100/50 transition-colors" onClick={() => handleSort('name')}>
+                        <div className="flex items-center gap-1">ชื่อ-นามสกุล {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3"/> : <ArrowDown className="w-3 h-3"/>)}</div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer hover:bg-zinc-100/50 transition-colors" onClick={() => handleSort('classroom')}>
+                        <div className="flex items-center gap-1">ห้องเรียน {sortConfig.key === 'classroom' && (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3"/> : <ArrowDown className="w-3 h-3"/>)}</div>
+                      </th>
                       <th className="px-4 py-3">ประวัติการสอบ (ทุกรอบ)</th>
-                      <th className="px-4 py-3 text-center">คะแนนสุทธิ (ตามเกณฑ์)</th>
-                      <th className="px-4 py-3 text-center">สถานะสอบซ่อม</th>
+                      <th className="px-4 py-3 text-center cursor-pointer hover:bg-zinc-100/50 transition-colors" onClick={() => handleSort('finalScore')}>
+                        <div className="flex items-center justify-center gap-1">คะแนนสุทธิ (ตามเกณฑ์) {sortConfig.key === 'finalScore' && (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3"/> : <ArrowDown className="w-3 h-3"/>)}</div>
+                      </th>
+                      <th className="px-4 py-3 text-center cursor-pointer hover:bg-zinc-100/50 transition-colors" onClick={() => handleSort('status')}>
+                        <div className="flex items-center justify-center gap-1">สถานะสอบซ่อม {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3"/> : <ArrowDown className="w-3 h-3"/>)}</div>
+                      </th>
                       <th className="px-4 py-3 text-right">การจัดการ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
-                    {filteredStudents.length === 0 ? (
+                    {sortedStudents.length === 0 ? (
                       <tr><td colSpan="7" className="text-center py-12 text-zinc-400">ไม่พบข้อมูลคะแนนสอบ</td></tr>
                     ) : (
-                      filteredStudents.map(s => {
+                      sortedStudents.map(s => {
                         return (
                           <tr key={s.student_id} className="hover:bg-zinc-50/80 transition-colors">
                             <td className="px-4 py-3 font-mono font-bold text-indigo-600">{s.student_id}</td>
@@ -880,7 +926,7 @@ export default function ExamResults() {
                                           ? 'bg-zinc-100 border-zinc-200 text-zinc-700 font-medium' 
                                           : 'bg-indigo-50 border-indigo-200 text-indigo-800 font-bold'
                                       }`}
-                                      title={`รอบที่ ${idx + 1}: ${att.score} คะแนน (${idx === 0 ? 'สอบรอบปกติ' : 'สอบซ่อม'})`}
+                                      title={`รอบที่ ${idx + 1}: ${att.score} คะแนน (${idx === 0 ? 'สอบรอบปกติ' : 'สอบซ่อม'})${att.started_at && att.submitted_at ? `\nเริ่ม: ${new Date(att.started_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}\nส่ง: ${new Date(att.submitted_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}\nเวลาที่ใช้: ${Math.floor((new Date(att.submitted_at).getTime() - new Date(att.started_at).getTime()) / 60000)} นาที ${Math.floor((new Date(att.submitted_at).getTime() - new Date(att.started_at).getTime()) / 1000) % 60} วินาที` : ''}`}
                                     >
                                       <span>#{idx + 1}:</span>
                                       <span>{att.score}</span>

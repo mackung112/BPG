@@ -153,7 +153,7 @@ export function AuthProvider({ children }) {
           // Allow retake
           await supabase
             .from('exam_participants')
-            .update({ status: 'testing', allow_rejoin: false })
+            .update({ status: 'testing', allow_rejoin: false, started_at: new Date().toISOString() })
             .eq('id', pCheck.id);
 
           localStorage.setItem('student_id', studentId.trim());
@@ -225,8 +225,7 @@ export function AuthProvider({ children }) {
 
       if (existingParticipant.status === 'completed') {
         if (retakeUntilPass && !hasPassed) {
-          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false, warnings_count: 0 };
-          if (isOnline) updatePayload.started_at = new Date().toISOString();
+          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false, warnings_count: 0, started_at: new Date().toISOString() };
         } else if (isOnline) {
           // Normal online logic
           updatePayload = { status: 'testing', started_at: new Date().toISOString(), warnings_count: 0, allow_rejoin: false };
@@ -234,7 +233,7 @@ export function AuthProvider({ children }) {
           if (!existingParticipant.allow_rejoin) {
             throw new Error('คุณได้ส่งข้อสอบชุดนี้เรียบร้อยแล้ว (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
           }
-          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false, warnings_count: 0 };
+          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false, warnings_count: 0, started_at: new Date().toISOString() };
         }
       } else if (existingParticipant.status === 'disconnected' || existingParticipant.status === 'cheating') {
         if (isOnline) {
@@ -244,7 +243,7 @@ export function AuthProvider({ children }) {
           if (!existingParticipant.allow_rejoin) {
             throw new Error('คุณถูกระงับการสอบ กรุณาแจ้งครูผู้คุมสอบเพื่อขออนุมัติเข้าใหม่');
           }
-          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false };
+          updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting' };
         }
       } else {
         // Status is waiting or testing

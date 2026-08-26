@@ -46,6 +46,21 @@ export default function ExamRoom() {
   const violationCountRef = useRef(0);
   const sessionModeRef = useRef('onsite');
   const gracePeriodRef = useRef(true);
+  const hiddenTimestampRef = useRef(null);
+  const lastTickTimeRef = useRef(Date.now());
+  const questionsRef = useRef([]);
+  const answersRef = useRef({});
+  const flaggedRef = useRef({});
+  const timeLeftRef = useRef(null);
+  const attemptNumberRef = useRef(1);
+  const examStartedAtRef = useRef(null);
+  const [sleepWarningModal, setSleepWarningModal] = useState(false);
+
+  useEffect(() => { questionsRef.current = questions; }, [questions]);
+  useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { flaggedRef.current = flagged; }, [flagged]);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
+  useEffect(() => { attemptNumberRef.current = attemptNumber; }, [attemptNumber]);
 
   const showSecurityWarning = (msg) => {
     setToastWarning(msg);
@@ -89,16 +104,56 @@ export default function ExamRoom() {
       cheatingFlag.current = true;
 
       try {
+        // 1. คำนวณคะแนนปัจจุบัน (partial score)
+        let rawScore = 0;
+        const currentQuestions = questionsRef.current || [];
+        const currentAnswers = answersRef.current || {};
+        for (const q of currentQuestions) {
+          const studentChoice = currentAnswers[q.id];
+          if (studentChoice && q.correctText && studentChoice.trim() === q.correctText.trim()) {
+            rawScore += Number(q.points || 0);
+          }
+        }
+        const partialScore = Math.round(rawScore);
+        const currentAttempt = attemptNumberRef.current || 1;
+
+        // 2. บันทึกคะแนนแบบ suspended ลง exam_results
+        await supabase.from('exam_results').insert([{
+          session_id: sessionId,
+          student_id: studentSession.student_id,
+          score: partialScore,
+          total_questions: currentQuestions.length,
+          attempt_number: currentAttempt,
+          is_retake: currentAttempt > 1,
+          is_suspended: true,
+          started_at: examStartedAtRef.current || new Date().toISOString(),
+          submitted_at: new Date().toISOString(),
+          note: `ถูกระงับ (${reason}) — คะแนน ณ เวลาที่ถูกระงับ`
+        }]);
+
+        // 3. บันทึกสถานะข้อสอบเพื่อทำต่อได้
+        const savedState = {
+          questions: currentQuestions,
+          answers: currentAnswers,
+          flagged: flaggedRef.current || {},
+          timeLeft: timeLeftRef.current || 0,
+          attemptNumber: currentAttempt
+        };
+
+        // 4. อัปเดตสถานะเป็น cheating + บันทึก state
         await supabase
           .from('exam_participants')
-          .update({ status: 'cheating' })
+          .update({
+            status: 'cheating',
+            saved_exam_state: savedState
+          })
           .eq('session_id', sessionId)
           .eq('student_id', studentSession.student_id);
       } catch (e) {
         console.error('Failed to log cheating status:', e);
       }
 
-      alert(`⚠️ ระบบตรวจพบพฤติกรรมต้องสงสัย (${reason})\nข้อสอบของคุณถูกระงับและส่งรายงานไปยังครูผู้คุมสอบแล้ว`);
+      alert(`⚠️ ระบบตรวจพบพฤติกรรมต้องสงสัย (${reason})\nข้อสอบของคุณถูกระงับและส่งคะแนนไปยังครูผู้คุมสอบแล้ว`);
       navigate(`/exam-lobby/${sessionId}`, { replace: true });
     };
 
@@ -133,17 +188,44 @@ export default function ExamRoom() {
       }
     };
 
+    const SLEEP_THRESHOLD_MS = 30000; // 30 วินาที
+
     const handleVisibilityChange = () => {
       if (gracePeriodRef.current) return;
+
       if (document.hidden) {
-        handleViolation('ออกจากหน้าต่างข้อสอบ หรือสลับแท็บเบราว์เซอร์');
+        // บันทึกเวลาที่หน้าจอหายไป
+        hiddenTimestampRef.current = Date.now();
+      } else {
+        // หน้าจอกลับมา — ตรวจสอบว่าเป็น sleep หรือ tab switch
+        const hiddenDuration = hiddenTimestampRef.current
+          ? Date.now() - hiddenTimestampRef.current
+          : 0;
+        hiddenTimestampRef.current = null;
+
+        if (hiddenDuration > SLEEP_THRESHOLD_MS) {
+          // ★ เป็น Sleep — ไม่นับเป็นการทุจริต แต่หักเวลาสอบตามจริง
+          const lostSeconds = Math.floor(hiddenDuration / 1000);
+          setTimeLeft(prev => {
+            const newTime = Math.max(0, (prev || 0) - lostSeconds);
+            return newTime;
+          });
+          setSleepWarningModal(true);
+        } else if (hiddenDuration > 0) {
+          // ★ เป็น Tab Switch — นับเป็นการทุจริตเหมือนเดิม
+          handleViolation('ออกจากหน้าต่างข้อสอบ หรือสลับแท็บเบราว์เซอร์');
+        }
       }
     };
 
     const handleWindowBlur = () => {
       if (gracePeriodRef.current) return;
       if (!cheatingFlag.current && !submitting) {
-        handleViolation('คลิกออกนอกหน้าจอข้อสอบ หรือสลับโปรแกรม');
+        // blur เกิดขึ้นพร้อม visibilitychange เมื่อ sleep
+        // ถ้า hidden อยู่แล้ว ไม่ต้องนับซ้ำ
+        if (!document.hidden) {
+          handleViolation('คลิกออกนอกหน้าจอข้อสอบ หรือสลับโปรแกรม');
+        }
       }
     };
 
@@ -279,7 +361,7 @@ export default function ExamRoom() {
   }, [sessionId, studentSession, submitting]);
 
   useEffect(() => {
-    // Timer countdown
+    // Timer countdown — ใช้เวลาจริง (drift detection) ป้องกัน sleep
     if (timeLeft === null || timeLeft <= 0) {
       if (timeLeft === 0 && !submitting && questions.length > 0) {
         handleSubmit(true);
@@ -287,8 +369,12 @@ export default function ExamRoom() {
       return;
     }
     
+    lastTickTimeRef.current = Date.now();
     const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
+      const now = Date.now();
+      const drift = Math.floor((now - lastTickTimeRef.current) / 1000);
+      lastTickTimeRef.current = now;
+      setTimeLeft(prev => Math.max(0, prev - Math.max(1, drift)));
     }, 1000);
     
     return () => clearInterval(timer);
@@ -316,7 +402,7 @@ export default function ExamRoom() {
       // Check participant status and previous attempts
       const { data: pData } = await supabase
         .from('exam_participants')
-        .select('status, allow_rejoin, is_retake, started_at, warnings_count')
+        .select('status, allow_rejoin, is_retake, started_at, warnings_count, saved_exam_state, rejoin_mode')
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id)
         .maybeSingle();
@@ -324,17 +410,70 @@ export default function ExamRoom() {
       sessionModeRef.current = sData.exam_mode || 'onsite';
       violationCountRef.current = pData?.warnings_count || 0;
 
+      // ★ กรณีครูเลือกให้แก้ข้อสอบเดิม (continue)
+      if (pData?.rejoin_mode === 'continue' && pData?.saved_exam_state) {
+        const saved = pData.saved_exam_state;
+        setQuestions(saved.questions || []);
+        setAnswers(saved.answers || {});
+        setFlagged(saved.flagged || {});
+        setTimeLeft(saved.timeLeft || 0);
+        setAttemptNumber(saved.attemptNumber || 1);
+        setIsRetakeMode((saved.attemptNumber || 1) > 1);
+        examStartedAtRef.current = pData.started_at || new Date().toISOString();
+
+        // ลบ suspended result เดิม (จะถูกแทนที่เมื่อส่งใหม่)
+        await supabase.from('exam_results')
+          .delete()
+          .eq('session_id', sessionId)
+          .eq('student_id', studentSession.student_id)
+          .eq('attempt_number', saved.attemptNumber)
+          .eq('is_suspended', true);
+
+        // อัปเดตสถานะ
+        await supabase.from('exam_participants')
+          .update({
+            status: 'testing',
+            allow_rejoin: false,
+            rejoin_mode: null,
+            saved_exam_state: null
+          })
+          .eq('session_id', sessionId)
+          .eq('student_id', studentSession.student_id);
+
+        setLoading(false);
+        return; // ออก initExam — ใช้ข้อสอบเดิม
+      }
+
+      // ★ กรณีครูเลือกให้เริ่มทำใหม่ (restart) — ลบ suspended result
+      if (pData?.rejoin_mode === 'restart' && pData?.saved_exam_state) {
+        await supabase.from('exam_results')
+          .delete()
+          .eq('session_id', sessionId)
+          .eq('student_id', studentSession.student_id)
+          .eq('attempt_number', pData.saved_exam_state.attemptNumber)
+          .eq('is_suspended', true);
+
+        await supabase.from('exam_participants')
+          .update({ rejoin_mode: null, saved_exam_state: null })
+          .eq('session_id', sessionId)
+          .eq('student_id', studentSession.student_id);
+        // ต่อ initExam ปกติ — สุ่มข้อสอบใหม่ แต่ attemptNumber เท่าเดิม
+      }
+
       // Fetch previous results for this student to detect retake
       const { data: prevResults } = await supabase
         .from('exam_results')
-        .select('id, score, attempt_number')
+        .select('id, score, attempt_number, is_suspended')
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id)
         .order('submitted_at', { ascending: true });
 
-      const hasPreviousAttempts = prevResults && prevResults.length > 0;
+      // กรอง suspended results ออกเมื่อนับ attempt
+      const completedResults = (prevResults || []).filter(r => !r.is_suspended);
+
+      const hasPreviousAttempts = completedResults.length > 0;
       const isRetake = hasPreviousAttempts || pData?.allow_rejoin || pData?.is_retake;
-      const currentAttempt = (prevResults?.length || 0) + 1;
+      const currentAttempt = completedResults.length + 1;
 
       setIsRetakeMode(isRetake);
       setAttemptNumber(currentAttempt);
@@ -348,7 +487,8 @@ export default function ExamRoom() {
       const isRetakeAllowed = pData?.status === 'testing' || pData?.allow_rejoin;
 
       // Calculate time
-      const startTime = sessionModeRef.current === 'online' && pData?.started_at
+      // Use individual timer (pData.started_at) if it's online mode OR if it's a retake
+      const startTime = (sessionModeRef.current === 'online' || isRetake) && pData?.started_at
           ? new Date(pData.started_at).getTime()
           : new Date(sData.started_at || Date.now()).getTime();
       const now = Date.now();
@@ -380,6 +520,9 @@ export default function ExamRoom() {
         })
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id);
+
+      // บันทึกเวลาเริ่มสอบ
+      examStartedAtRef.current = pData?.started_at || new Date().toISOString();
 
       // 3. Fetch question pool for this session
       const { data: eqData, error: eqError } = await supabase
@@ -515,6 +658,8 @@ export default function ExamRoom() {
           total_questions: totalQuestions,
           attempt_number: attemptNumber,
           is_retake: isRetakeSubmission,
+          is_suspended: false,
+          started_at: examStartedAtRef.current || new Date().toISOString(),
           note: isRetakeSubmission ? `สอบซ่อม (รอบที่ ${attemptNumber})` : 'สอบรอบปกติ (รอบที่ 1)',
           submitted_at: new Date().toISOString()
         }]);
@@ -529,7 +674,9 @@ export default function ExamRoom() {
           allow_rejoin: false, 
           retake_requested: false,
           is_retake: isRetakeSubmission,
-          attempt_count: attemptNumber
+          attempt_count: attemptNumber,
+          saved_exam_state: null,
+          rejoin_mode: null
         })
         .eq('session_id', sessionId)
         .eq('student_id', studentSession.student_id);
@@ -1013,6 +1160,31 @@ export default function ExamRoom() {
               className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl font-bold text-sm shadow-lg transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
             >
               รับทราบและกลับไปทำข้อสอบ
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 😴 Sleep Warning Modal */}
+      {sleepWarningModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-3 shadow-2xl">
+            <div className="text-5xl">😴</div>
+            <h3 className="font-bold text-lg text-zinc-800">อุปกรณ์ของคุณเข้าสู่โหมดสลีป</h3>
+            <p className="text-sm text-zinc-600 leading-relaxed">
+              เวลาสอบยังคงนับต่อเนื่องระหว่างที่อุปกรณ์หลับ กรุณาตรวจสอบเวลาที่เหลือและทำข้อสอบต่อ
+            </p>
+            <button
+              onClick={() => {
+                setSleepWarningModal(false);
+                if (!document.fullscreenElement) {
+                  const el = document.documentElement;
+                  if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+                }
+              }}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm transition-all cursor-pointer shadow-lg shadow-indigo-500/25"
+            >
+              เข้าใจแล้ว ทำข้อสอบต่อ
             </button>
           </div>
         </div>
