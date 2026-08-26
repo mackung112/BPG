@@ -107,6 +107,26 @@ export function AuthProvider({ children }) {
         .maybeSingle();
 
       if (pCheck) {
+        let canAutoRetake = false;
+        if (!isOnline && pCheck.status === 'completed') {
+          const { data: pastResults } = await supabase.from('exam_results').select('score').eq('session_id', sessionData.id).eq('student_id', studentId.trim());
+          const actualAttemptCount = pastResults ? pastResults.length : 0;
+          const maxAttempts = sessionData.max_attempts || 1;
+          const retakeUntilPass = sessionData.retake_until_pass === true;
+          
+          let hasPassed = false;
+          if (retakeUntilPass && pastResults && pastResults.length > 0) {
+            const bestScore = Math.max(...pastResults.map(r => Number(r.score) || 0));
+            const totalScore = Number(sessionData.total_score || sessionData.question_count || 10);
+            if ((bestScore / totalScore) * 100 >= (sessionData.passing_percentage || 50)) {
+              hasPassed = true;
+            }
+          }
+          if ((retakeUntilPass && !hasPassed) || (!retakeUntilPass && actualAttemptCount > 0 && actualAttemptCount < maxAttempts)) {
+            canAutoRetake = true;
+          }
+        }
+
         if (isOnline) {
           if (pCheck.attempt_count < sessionData.max_attempts) {
              await supabase
@@ -118,11 +138,11 @@ export function AuthProvider({ children }) {
             setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
             return sessionData.id;
           }
-        } else if (pCheck.allow_rejoin) {
-          // Teacher approved retake!
+        } else if (pCheck.allow_rejoin || canAutoRetake) {
+          // Teacher approved retake or auto retake
           await supabase
             .from('exam_participants')
-            .update({ status: 'testing', allow_rejoin: false })
+            .update({ status: 'testing', allow_rejoin: false, started_at: new Date().toISOString() })
             .eq('id', pCheck.id);
 
           localStorage.setItem('student_id', studentId.trim());
@@ -149,7 +169,27 @@ export function AuthProvider({ children }) {
           .eq('student_id', studentId.trim())
           .maybeSingle();
 
-        if (pCheck?.allow_rejoin) {
+        let canAutoRetake = false;
+        if (pCheck && pCheck.status === 'completed') {
+          const { data: pastResults } = await supabase.from('exam_results').select('score').eq('session_id', sessionData.id).eq('student_id', studentId.trim());
+          const actualAttemptCount = pastResults ? pastResults.length : 0;
+          const maxAttempts = sessionData.max_attempts || 1;
+          const retakeUntilPass = sessionData.retake_until_pass === true;
+          
+          let hasPassed = false;
+          if (retakeUntilPass && pastResults && pastResults.length > 0) {
+            const bestScore = Math.max(...pastResults.map(r => Number(r.score) || 0));
+            const totalScore = Number(sessionData.total_score || sessionData.question_count || 10);
+            if ((bestScore / totalScore) * 100 >= (sessionData.passing_percentage || 50)) {
+              hasPassed = true;
+            }
+          }
+          if ((retakeUntilPass && !hasPassed) || (!retakeUntilPass && actualAttemptCount > 0 && actualAttemptCount < maxAttempts)) {
+            canAutoRetake = true;
+          }
+        }
+
+        if (pCheck?.allow_rejoin || canAutoRetake) {
           // Allow retake
           await supabase
             .from('exam_participants')

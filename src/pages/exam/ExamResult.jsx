@@ -120,15 +120,12 @@ export default function ExamResult() {
       const sessionData = results[0]?.exam_sessions;
       const existingParticipant = participant;
       const updatePayload = {
-        status: isOnline ? 'testing' : (sessionData.status === 'active' ? 'testing' : 'waiting'),
+        status: 'testing',
         allow_rejoin: false,
         retake_requested: false,
-        warnings_count: 0
+        warnings_count: 0,
+        started_at: new Date().toISOString()
       };
-      
-      if (isOnline) {
-        updatePayload.started_at = new Date().toISOString();
-      }
 
       await supabase
         .from('exam_participants')
