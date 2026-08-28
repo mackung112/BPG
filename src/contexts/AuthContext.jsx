@@ -108,13 +108,13 @@ export function AuthProvider({ children }) {
 
       if (pCheck) {
         let canAutoRetake = false;
-        if (!isOnline && pCheck.status === 'completed') {
+        let hasPassed = false;
+        if (pCheck.status === 'completed') {
           const { data: pastResults } = await supabase.from('exam_results').select('score').eq('session_id', sessionData.id).eq('student_id', studentId.trim());
           const actualAttemptCount = pastResults ? pastResults.length : 0;
           const maxAttempts = sessionData.max_attempts || 1;
           const retakeUntilPass = sessionData.retake_until_pass === true;
           
-          let hasPassed = false;
           if (retakeUntilPass && pastResults && pastResults.length > 0) {
             const bestScore = Math.max(...pastResults.map(r => Number(r.score) || 0));
             const totalScore = Number(sessionData.total_score || sessionData.question_count || 10);
@@ -127,8 +127,13 @@ export function AuthProvider({ children }) {
           }
         }
 
+        // Block if student already passed with retake_until_pass
+        if (sessionData.retake_until_pass && hasPassed) {
+          throw new Error('คุณสอบผ่านเกณฑ์แล้ว ไม่สามารถสอบซ่อมได้อีก');
+        }
+
         if (isOnline) {
-          if (pCheck.attempt_count < sessionData.max_attempts) {
+          if (canAutoRetake || pCheck.attempt_count < sessionData.max_attempts) {
              await supabase
               .from('exam_participants')
               .update({ status: 'testing', started_at: new Date().toISOString() })
@@ -166,6 +171,8 @@ export function AuthProvider({ children }) {
       const now = Date.now();
       const elapsedMinutes = (now - startTime) / (1000 * 60);
       if (elapsedMinutes >= sessionData.time_limit_minutes) {
+        const retakeUntilPass = sessionData.retake_until_pass === true;
+
         // Check if student has retake permission
         const { data: pCheck } = await supabase
           .from('exam_participants')
@@ -174,49 +181,58 @@ export function AuthProvider({ children }) {
           .eq('student_id', studentId.trim())
           .maybeSingle();
 
-        let canAutoRetake = false;
-        if (pCheck && pCheck.status === 'completed') {
-          const { data: pastResults } = await supabase.from('exam_results').select('score').eq('session_id', sessionData.id).eq('student_id', studentId.trim());
-          const actualAttemptCount = pastResults ? pastResults.length : 0;
-          const maxAttempts = sessionData.max_attempts || 1;
-          const retakeUntilPass = sessionData.retake_until_pass === true;
-          
+        // If retake_until_pass is on and student never joined, allow first attempt (fall through to sections 2-3)
+        if (!(retakeUntilPass && !pCheck)) {
+          let canAutoRetake = false;
           let hasPassed = false;
-          if (retakeUntilPass && pastResults && pastResults.length > 0) {
-            const bestScore = Math.max(...pastResults.map(r => Number(r.score) || 0));
-            const totalScore = Number(sessionData.total_score || sessionData.question_count || 10);
-            if ((bestScore / totalScore) * 100 >= (sessionData.passing_percentage || 50)) {
-              hasPassed = true;
+          if (pCheck && pCheck.status === 'completed') {
+            const { data: pastResults } = await supabase.from('exam_results').select('score').eq('session_id', sessionData.id).eq('student_id', studentId.trim());
+            const actualAttemptCount = pastResults ? pastResults.length : 0;
+            const maxAttempts = sessionData.max_attempts || 1;
+            
+            if (retakeUntilPass && pastResults && pastResults.length > 0) {
+              const bestScore = Math.max(...pastResults.map(r => Number(r.score) || 0));
+              const totalScore = Number(sessionData.total_score || sessionData.question_count || 10);
+              if ((bestScore / totalScore) * 100 >= (sessionData.passing_percentage || 50)) {
+                hasPassed = true;
+              }
+            }
+            if ((retakeUntilPass && !hasPassed) || (!retakeUntilPass && actualAttemptCount > 0 && actualAttemptCount < maxAttempts)) {
+              canAutoRetake = true;
             }
           }
-          if ((retakeUntilPass && !hasPassed) || (!retakeUntilPass && actualAttemptCount > 0 && actualAttemptCount < maxAttempts)) {
-            canAutoRetake = true;
+
+          // Block if student already passed
+          if (retakeUntilPass && hasPassed) {
+            throw new Error('คุณสอบผ่านเกณฑ์แล้ว ไม่สามารถสอบซ่อมได้อีก');
           }
-        }
 
-        let needsForceSubmit = pCheck && (pCheck.status === 'testing' || pCheck.status === 'waiting' || pCheck.status === 'disconnected');
+          let needsForceSubmit = pCheck && (pCheck.status === 'testing' || pCheck.status === 'waiting' || pCheck.status === 'disconnected');
 
-        if (pCheck?.allow_rejoin || canAutoRetake || needsForceSubmit) {
-          // Allow retake or force submit
-          if (!needsForceSubmit) {
+          if (pCheck?.allow_rejoin || canAutoRetake || needsForceSubmit) {
+            // Allow retake or force submit
+            if (!needsForceSubmit) {
+              await supabase
+                .from('exam_participants')
+                .update({ status: 'testing', allow_rejoin: false, started_at: new Date().toISOString() })
+                .eq('id', pCheck.id);
+            }
+
+            localStorage.setItem('student_id', studentId.trim());
+            localStorage.setItem('exam_session_id', sessionData.id);
+            setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
+            return sessionData.id;
+          }
+
+          // Auto mark as completed only if retake_until_pass is NOT enabled
+          if (!retakeUntilPass) {
             await supabase
-              .from('exam_participants')
-              .update({ status: 'testing', allow_rejoin: false, started_at: new Date().toISOString() })
-              .eq('id', pCheck.id);
+              .from('exam_sessions')
+              .update({ status: 'completed', end_time: new Date() })
+              .eq('id', sessionData.id);
           }
-
-          localStorage.setItem('student_id', studentId.trim());
-          localStorage.setItem('exam_session_id', sessionData.id);
-          setStudentSession({ student_id: studentId.trim(), session_id: sessionData.id });
-          return sessionData.id;
+          throw new Error('การสอบนี้หมดเวลาแล้ว ไม่อนุญาตให้เข้าห้องสอบ (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
         }
-
-        // Auto mark as completed
-        await supabase
-          .from('exam_sessions')
-          .update({ status: 'completed', end_time: new Date() })
-          .eq('id', sessionData.id);
-        throw new Error('การสอบนี้หมดเวลาแล้ว ไม่อนุญาตให้เข้าห้องสอบ (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
       }
     }
 
