@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { useQuestionBank } from '../../hooks/useQuestionBank';
 import { X, Shuffle, CheckSquare, ChevronDown, ChevronUp, Save, Search } from 'lucide-react';
 
 export default function QuestionPicker({ onClose, onSave, banks }) {
   const [activeTab, setActiveTab] = useState('random');
   const [questionsByBank, setQuestionsByBank] = useState({});
-  const [loading, setLoading] = useState(true);
+  const { fetchAllQuestions, loading } = useQuestionBank();
 
   // Random Mode State
   const [randomConfigs, setRandomConfigs] = useState({}); // { bankId: { count: 0, points: 1 } }
@@ -18,24 +18,21 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetchQuestions();
-  }, [banks]);
-
-  const fetchQuestions = async () => {
-    setLoading(true);
-    const { data } = await supabase.from('questions').select('id, bank_id, question_text');
-    if (data) {
-      const grouped = {};
-      const initialConfigs = {};
-      banks.forEach(b => {
-        grouped[b.id] = data.filter(q => q.bank_id === b.id);
-        initialConfigs[b.id] = { count: 0, points: 10 }; // Default total score for a bank is 10
-      });
-      setQuestionsByBank(grouped);
-      setRandomConfigs(initialConfigs);
-    }
-    setLoading(false);
-  };
+    const init = async () => {
+      const data = await fetchAllQuestions();
+      if (data) {
+        const grouped = {};
+        const initialConfigs = {};
+        banks.forEach(b => {
+          grouped[b.id] = data.filter(q => q.bank_id === b.id);
+          initialConfigs[b.id] = { count: 0, points: 10 }; // Default total score for a bank is 10
+        });
+        setQuestionsByBank(grouped);
+        setRandomConfigs(initialConfigs);
+      }
+    };
+    init();
+  }, [banks, fetchAllQuestions]);
 
   const handleRandomConfigChange = (bankId, field, value) => {
     setRandomConfigs(prev => ({

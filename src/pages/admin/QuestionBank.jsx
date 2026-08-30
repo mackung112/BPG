@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { useQuestionBank } from '../../hooks/useQuestionBank';
 import { 
   FileText, 
   Upload, 
@@ -19,12 +19,13 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export default function QuestionBank() {
   const { user } = useAuth();
-  const [banks, setBanks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
+  const {
+    banks, loading, error: hookError, selectedBank, setSelectedBank, questions,
+    loadBanks, loadQuestions, createBank, updateBank, deleteBank,
+    createQuestion, updateQuestion, deleteQuestion, importGiftQuestions
+  } = useQuestionBank();
+
   const [newBankTitle, setNewBankTitle] = useState('');
-  const [selectedBank, setSelectedBank] = useState(null);
-  const [questions, setQuestions] = useState([]);
   const [searchQuestion, setSearchQuestion] = useState('');
   
   // Importer State
@@ -71,58 +72,32 @@ export default function QuestionBank() {
   };
 
   useEffect(() => {
-    fetchBanks();
-  }, []);
+    loadBanks();
+  }, [loadBanks]);
 
   useEffect(() => {
     if (selectedBank) {
-      fetchQuestions(selectedBank.id);
-    } else {
-      setQuestions([]);
+      loadQuestions(selectedBank.id);
     }
-  }, [selectedBank]);
+  }, [selectedBank, loadQuestions]);
 
-  const fetchBanks = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('question_banks')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (!error && data) {
-      setBanks(data);
-      if (!selectedBank && data.length > 0) {
-        setSelectedBank(data[0]);
-      }
-    } else if (error) {
-      showToast('error', 'โหลดคลังข้อสอบไม่สำเร็จ: ' + error.message);
+  useEffect(() => {
+    if (!selectedBank && banks.length > 0) {
+      setSelectedBank(banks[0]);
     }
-    setLoading(false);
-  };
+  }, [banks, selectedBank, setSelectedBank]);
 
-  const fetchQuestions = async (bankId) => {
-    const { data, error } = await supabase
-      .from('questions')
-      .select('*')
-      .eq('bank_id', bankId)
-      .order('created_at', { ascending: true });
-    if (!error && data) setQuestions(data);
-  };
+
+
 
   // 1. Create Bank
   const handleCreateBank = async (e) => {
     e.preventDefault();
     if (!newBankTitle.trim()) return;
     try {
-      const { data, error } = await supabase
-        .from('question_banks')
-        .insert([{ title: newBankTitle.trim(), created_by: user?.id }])
-        .select()
-        .single();
-      if (error) throw error;
-      
+      const data = await createBank(newBankTitle.trim(), user?.id);
       showToast('success', `สร้างคลัง "${newBankTitle}" สำเร็จ!`);
       setNewBankTitle('');
-      fetchBanks();
       setSelectedBank(data);
     } catch (err) {
       showToast('error', 'สร้างไม่สำเร็จ: ' + err.message);
@@ -140,18 +115,12 @@ export default function QuestionBank() {
     if (!editingBank || !editBankTitle.trim()) return;
     setUpdatingBank(true);
     try {
-      const { error } = await supabase
-        .from('question_banks')
-        .update({ title: editBankTitle.trim() })
-        .eq('id', editingBank.id);
-      if (error) throw error;
-
+      await updateBank(editingBank.id, editBankTitle.trim());
       showToast('success', 'เปลี่ยนชื่อคลังข้อสอบสำเร็จ!');
       if (selectedBank?.id === editingBank.id) {
         setSelectedBank({ ...selectedBank, title: editBankTitle.trim() });
       }
       setEditingBank(null);
-      fetchBanks();
     } catch (err) {
       showToast('error', 'แก้ไขไม่สำเร็จ: ' + err.message);
     } finally {
@@ -164,15 +133,12 @@ export default function QuestionBank() {
     if (!deletingBank) return;
     setDeletingBankLoading(true);
     try {
-      const { error } = await supabase.from('question_banks').delete().eq('id', deletingBank.id);
-      if (error) throw error;
-
+      await deleteBank(deletingBank.id);
       showToast('success', `ลบคลังข้อสอบ "${deletingBank.title}" สำเร็จ`);
       if (selectedBank?.id === deletingBank.id) {
         setSelectedBank(null);
       }
       setDeletingBank(null);
-      fetchBanks();
     } catch (err) {
       showToast('error', 'ลบคลังข้อสอบไม่สำเร็จ: ' + err.message);
     } finally {
@@ -214,18 +180,14 @@ export default function QuestionBank() {
 
     setSavingQuestion(true);
     try {
-      const { error } = await supabase.from('questions').insert([{
-        bank_id: selectedBank.id,
+      await createQuestion(selectedBank.id, {
         question_text: singleQText.trim(),
         choices: filledChoices,
         correct_answer_index: correctIdx
-      }]);
-
-      if (error) throw error;
+      });
 
       showToast('success', 'เพิ่มข้อสอบสำเร็จ!');
       setIsCreateQuestionOpen(false);
-      fetchQuestions(selectedBank.id);
     } catch (err) {
       showToast('error', 'เกิดข้อผิดพลาด: ' + err.message);
     } finally {
@@ -267,20 +229,14 @@ export default function QuestionBank() {
 
     setUpdatingQuestion(true);
     try {
-      const { error } = await supabase
-        .from('questions')
-        .update({
-          question_text: editQText.trim(),
-          choices: filledChoices,
-          correct_answer_index: correctIdx
-        })
-        .eq('id', editingQuestion.id);
-
-      if (error) throw error;
+      await updateQuestion(selectedBank.id, editingQuestion.id, {
+        question_text: editQText.trim(),
+        choices: filledChoices,
+        correct_answer_index: correctIdx
+      });
 
       showToast('success', 'อัปเดตข้อสอบสำเร็จ!');
       setEditingQuestion(null);
-      fetchQuestions(selectedBank.id);
     } catch (err) {
       showToast('error', 'แก้ไขไม่สำเร็จ: ' + err.message);
     } finally {
@@ -293,12 +249,9 @@ export default function QuestionBank() {
     if (!deletingQuestion || !selectedBank) return;
     setDeletingQuestionLoading(true);
     try {
-      const { error } = await supabase.from('questions').delete().eq('id', deletingQuestion.id);
-      if (error) throw error;
-
+      await deleteQuestion(selectedBank.id, deletingQuestion.id);
       showToast('success', 'ลบข้อสอบเรียบร้อยแล้ว');
       setDeletingQuestion(null);
-      fetchQuestions(selectedBank.id);
     } catch (err) {
       showToast('error', 'ลบไม่สำเร็จ: ' + err.message);
     } finally {
@@ -306,89 +259,15 @@ export default function QuestionBank() {
     }
   };
 
-  // 7. Parse & Bulk Import Questions
-  const parseQuestions = (text) => {
-    const lines = text.split('\n');
-    let noComments = [];
-    for (let line of lines) {
-      const idx = line.indexOf('//');
-      if (idx !== -1) {
-        noComments.push(line.substring(0, idx).trim());
-      } else {
-        noComments.push(line.trim());
-      }
-    }
-    const cleanText = noComments.join('\n');
-
-    const questionRegex = /([^{]+)\{([^}]+)\}/g;
-    let match;
-    const parsed = [];
-
-    while ((match = questionRegex.exec(cleanText)) !== null) {
-      let qText = match[1].trim();
-      qText = qText.replace(/\\([=~{}])/g, '$1');
-
-      const body = match[2].trim();
-      let currentToken = '';
-      let isCorrect = false;
-      const choices = [];
-      let correctAnswerIndex = 0;
-
-      for (let i = 0; i < body.length; i++) {
-        const char = body[i];
-        if (char === '\\' && i + 1 < body.length && ['=','~','{','}'].includes(body[i+1])) {
-          currentToken += body[i+1];
-          i++;
-        } else if (char === '=' || char === '~') {
-          if (currentToken.trim()) {
-            choices.push({ text: currentToken.trim(), is_correct: isCorrect });
-            if (isCorrect) correctAnswerIndex = choices.length - 1;
-          }
-          currentToken = '';
-          isCorrect = (char === '=');
-        } else {
-          currentToken += char;
-        }
-      }
-      if (currentToken.trim()) {
-        choices.push({ text: currentToken.trim(), is_correct: isCorrect });
-        if (isCorrect) correctAnswerIndex = choices.length - 1;
-      }
-
-      if (qText && choices.length > 0) {
-        parsed.push({
-          question_text: qText,
-          choices: choices,
-          correct_answer_index: correctAnswerIndex
-        });
-      }
-    }
-    return parsed;
-  };
-
+  // 7. Bulk Import Questions
   const handleImportText = async () => {
     if (!selectedBank || !txtContent.trim()) return;
     setImporting(true);
 
     try {
-      const parsedQuestions = parseQuestions(txtContent);
-      if (parsedQuestions.length === 0) {
-        throw new Error('ไม่พบข้อสอบในรูปแบบที่ถูกต้อง กรุณาตรวจทานรูปแบบ GIFT');
-      }
-
-      const toInsert = parsedQuestions.map(q => ({
-        bank_id: selectedBank.id,
-        question_text: q.question_text,
-        choices: q.choices,
-        correct_answer_index: q.correct_answer_index
-      }));
-
-      const { error } = await supabase.from('questions').insert(toInsert);
-      if (error) throw error;
-      
-      showToast('success', `นำเข้าข้อสอบ ${toInsert.length} ข้อสำเร็จ!`);
+      const count = await importGiftQuestions(selectedBank.id, txtContent);
+      showToast('success', `นำเข้าข้อสอบ ${count} ข้อสำเร็จ!`);
       setTxtContent('');
-      fetchQuestions(selectedBank.id);
     } catch (err) {
       showToast('error', err.message);
     } finally {
