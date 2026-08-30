@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Clock, Users, ShieldAlert, LogOut, AlertCircle, RefreshCw, Sparkles, Key } from 'lucide-react';
+import { getSessionInfo, getParticipant } from '../../services/examStudentService';
+import { useExamLobbyRealtime } from '../../hooks/exam/useExamRealtime';
+import { Clock, Users, ShieldAlert, LogOut, AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function ExamLobby() {
   const { sessionId } = useParams();
@@ -21,55 +22,35 @@ export default function ExamLobby() {
   const sessionInfoRef = useRef(sessionInfo);
   sessionInfoRef.current = sessionInfo;
 
-  const fetchSessionInfo = async (showRefreshAnimation = false) => {
+  const loadData = async (showRefreshAnimation = false) => {
     if (showRefreshAnimation) setIsRefreshing(true);
     try {
-      // 1. Get session info
-      const { data: sData, error: sError } = await supabase
-        .from('exam_sessions')
-        .select('*, question_banks(title)')
-        .eq('id', sessionId)
-        .maybeSingle();
-
-      if (sError || !sData) {
+      const sData = await getSessionInfo(sessionId);
+      if (!sData) {
         setErrorMsg('ไม่พบข้อมูลห้องสอบนี้ (ห้องสอบอาจถูกปิดหรือลบไปแล้ว)');
-        setLoading(false);
         return;
       }
-
       setSessionInfo(sData);
 
-      // 2. If session is already completed, inform student
       if (sData.status === 'completed') {
         setErrorMsg('การสอบชุดนี้สิ้นสุดลงแล้ว');
-        setLoading(false);
         return;
       }
 
-      // 3. Get participant status
       if (studentSession?.student_id) {
-        const { data: pData, error: pError } = await supabase
-          .from('exam_participants')
-          .select('status, allow_rejoin')
-          .eq('session_id', sessionId)
-          .eq('student_id', studentSession.student_id)
-          .maybeSingle();
-
-        if (pError || !pData) {
+        const pData = await getParticipant(sessionId, studentSession.student_id);
+        if (!pData) {
           setErrorMsg('ไม่พบข้อมูลการเข้าสอบของคุณในห้องนี้ กรุณาเข้าสู่ระบบใหม่');
-          setLoading(false);
           return;
         }
 
         setParticipantStatus(pData.status);
 
-        // If session is active and participant is allowed to test, navigate to room
         if (sData.status === 'active' && pData.status !== 'cheating' && pData.status !== 'disconnected') {
           navigate(`/exam-room/${sessionId}`, { replace: true });
           return;
         }
       }
-
       setErrorMsg(null);
     } catch (err) {
       console.error('Error fetching lobby info:', err);
@@ -88,59 +69,37 @@ export default function ExamLobby() {
       return;
     }
 
-    fetchSessionInfo();
+    loadData();
 
-    // 🔄 Fallback Polling (Every 3 seconds) in case Realtime connection drops or lags
+    // Fallback polling
     const pollInterval = setInterval(() => {
-      fetchSessionInfo();
+      loadData();
     }, 3000);
 
-    // 📡 Realtime: Listen for session status updates (when teacher starts exam)
-    const sessionSub = supabase
-      .channel(`lobby_session_${sessionId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'exam_sessions', filter: `id=eq.${sessionId}` },
-        (payload) => {
-          if (payload.new.status === 'active') {
-            const currentPStatus = participantStatusRef.current;
-            if (currentPStatus !== 'cheating' && currentPStatus !== 'disconnected') {
-              navigate(`/exam-room/${sessionId}`, { replace: true });
-            }
-          } else if (payload.new.status === 'completed') {
-            alert('การสอบถูกปิดหรือสิ้นสุดลงแล้ว');
-            logoutStudent();
-            navigate('/', { replace: true });
-          }
-        }
-      )
-      .subscribe();
-
-    // 📡 Realtime: Listen for participant status updates (when teacher allows rejoin)
-    const participantSub = supabase
-      .channel(`lobby_participant_${studentSession.student_id}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'exam_participants', filter: `session_id=eq.${sessionId}` },
-        (payload) => {
-          if (payload.new.student_id === studentSession.student_id) {
-            setParticipantStatus(payload.new.status);
-            
-            // If teacher approved rejoin and session is already active
-            if ((payload.new.status === 'waiting' || payload.new.status === 'testing') && sessionInfoRef.current?.status === 'active') {
-              navigate(`/exam-room/${sessionId}`, { replace: true });
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      clearInterval(pollInterval);
-      supabase.removeChannel(sessionSub);
-      supabase.removeChannel(participantSub);
-    };
+    return () => clearInterval(pollInterval);
   }, [sessionId, studentSession, navigate]);
+
+  useExamLobbyRealtime({
+    sessionId,
+    studentId: studentSession?.student_id,
+    onSessionActive: () => {
+      const currentPStatus = participantStatusRef.current;
+      if (currentPStatus !== 'cheating' && currentPStatus !== 'disconnected') {
+        navigate(`/exam-room/${sessionId}`, { replace: true });
+      }
+    },
+    onSessionCompleted: () => {
+      alert('การสอบถูกปิดหรือสิ้นสุดลงแล้ว');
+      logoutStudent();
+      navigate('/', { replace: true });
+    },
+    onParticipantStatusChange: (participant) => {
+      setParticipantStatus(participant.status);
+      if ((participant.status === 'waiting' || participant.status === 'testing') && sessionInfoRef.current?.status === 'active') {
+        navigate(`/exam-room/${sessionId}`, { replace: true });
+      }
+    }
+  });
 
   const handleLeave = async () => {
     if (confirm('คุณต้องการออกจากห้องสอบหรือไม่?')) {
@@ -154,7 +113,6 @@ export default function ExamLobby() {
     navigate('/login', { replace: true });
   };
 
-  // 1. Error View (Invalid / Deleted / Finished session)
   if (errorMsg) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -169,7 +127,7 @@ export default function ExamLobby() {
           </div>
           <div className="space-y-3 pt-2">
             <button
-              onClick={() => fetchSessionInfo(true)}
+              onClick={() => loadData(true)}
               className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} /> ลองใหม่อีกครั้ง
@@ -186,7 +144,6 @@ export default function ExamLobby() {
     );
   }
 
-  // 2. Loading State (With quick exit button if it takes too long)
   if (loading && !sessionInfo) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -205,17 +162,14 @@ export default function ExamLobby() {
     );
   }
 
-  // 3. Lobby Waiting View
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Background decorations */}
       <div className="absolute top-[-10%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-indigo-200/25 blur-[130px] animate-pulse" />
       <div className="absolute bottom-[-10%] right-[10%] w-[38vw] h-[38vw] rounded-full bg-purple-200/20 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
 
       <div className="max-w-lg w-full bg-white/85 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/60 p-8 text-center relative z-10">
         
         {participantStatus === 'cheating' || participantStatus === 'disconnected' ? (
-          /* Cheating / Disconnected Warning Card */
           <div className="space-y-5">
             <div className="w-20 h-20 bg-rose-100 rounded-3xl flex items-center justify-center mx-auto text-rose-500 shadow-lg shadow-rose-200 animate-bounce">
               <ShieldAlert className="w-10 h-10" />
@@ -227,18 +181,15 @@ export default function ExamLobby() {
                 กรุณาแจ้งคุณครูผู้คุมสอบเพื่อขออนุมัติปลดล็อกเข้าสอบใหม่
               </p>
             </div>
-
             <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center gap-2 text-rose-600 text-sm font-bold animate-pulse">
               <Clock className="w-5 h-5" /> กำลังรอการอนุมัติจากผู้คุมสอบ...
             </div>
           </div>
         ) : (
-          /* Ready & Waiting Card */
           <div className="space-y-5">
             <div className="w-20 h-20 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto text-white shadow-xl shadow-indigo-300 transform -rotate-3">
               <Users className="w-10 h-10" />
             </div>
-
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold mb-2">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
@@ -251,8 +202,6 @@ export default function ExamLobby() {
                 เมื่อครูผู้สอนกด <span className="font-bold text-indigo-600">"เริ่มสอบ"</span> ระบบจะนำคุณเข้าสู่ห้องสอบทันทีอัตโนมัติ
               </p>
             </div>
-
-            {/* Exam Session Details Card */}
             <div className="bg-gray-50/90 p-5 rounded-2xl border border-gray-200/80 text-left space-y-3 shadow-inner">
               <div className="flex justify-between items-center text-sm border-b border-gray-200/60 pb-2.5">
                 <span className="text-gray-500 font-medium">วิชา / หัวข้อ:</span>
@@ -279,8 +228,6 @@ export default function ExamLobby() {
                 </span>
               </div>
             </div>
-            
-            {/* Live pulsating status bar */}
             <div className="flex items-center justify-center gap-2 text-xs font-semibold text-indigo-600 py-1">
               <div className="w-2 h-2 bg-indigo-600 rounded-full animate-ping" />
               <span>ระบบกำลังเชื่อมต่อแบบเรียลไทม์...</span>
@@ -288,26 +235,23 @@ export default function ExamLobby() {
           </div>
         )}
 
-        {/* Action Controls */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
-            onClick={() => fetchSessionInfo(true)}
+            onClick={() => loadData(true)}
             disabled={isRefreshing}
-            className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-4 py-3 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer touch-manipulation"
             title="รีเฟรชข้อมูล"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'กำลังอัปเดต...' : 'รีเฟรชสถานะ'}
           </button>
-
           <button 
             onClick={handleLeave} 
-            className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-4 py-3 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer touch-manipulation"
           >
             <LogOut className="w-3.5 h-3.5" /> ออกจากห้องรอสอบ
           </button>
         </div>
-
       </div>
     </div>
   );

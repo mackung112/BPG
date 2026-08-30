@@ -49,7 +49,7 @@ export default function Login() {
     try {
       await loginAdmin(email, password);
       navigate('/admin');
-    } catch (err) {
+    } catch {
       setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     } finally {
       setLoading(false);

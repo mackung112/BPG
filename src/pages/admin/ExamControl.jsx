@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   Play, 
@@ -25,16 +25,19 @@ import {
   RotateCcw
 } from 'lucide-react';
 import QuestionPicker from './QuestionPicker';
+import { useExamControl } from '../../hooks/admin/useExamControl';
+import { examAdminService } from '../../services/examAdminService';
 
 export default function ExamControl() {
   const { user } = useAuth();
-  const [banks, setBanks] = useState([]);
-  const [sessions, setSessions] = useState([]);
-  const [activeSession, setActiveSession] = useState(null);
-  const [participants, setParticipants] = useState([]);
-  const [examResultsMap, setExamResultsMap] = useState({});
+  const { 
+    banks, sessions, activeSession, setActiveSession, 
+    participants, examResultsMap, loading, 
+    fetchSessions, fetchParticipants, fetchExamResults, hasPassed,
+    forceCompleteParticipants, allowAllParticipantsRejoin, broadcastKick
+  } = useExamControl();
+
   const [rejoinModeModalOpen, setRejoinModeModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   // Live Timer & Quick Time Edit State
   const [activeTimeRemaining, setActiveTimeRemaining] = useState(null);
@@ -90,36 +93,6 @@ export default function ExamControl() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
-    let subscription = null;
-    if (activeSession) {
-      fetchParticipants(activeSession.id);
-      fetchExamResults(activeSession.id);
-      
-      subscription = supabase
-        .channel(`exam_room_${activeSession.id}`)
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'exam_participants', filter: `session_id=eq.${activeSession.id}` },
-          () => {
-            fetchParticipants(activeSession.id);
-            fetchExamResults(activeSession.id);
-          }
-        )
-        .subscribe();
-    } else {
-      setParticipants([]);
-    }
-
-    return () => {
-      if (subscription) supabase.removeChannel(subscription);
-    };
-  }, [activeSession]);
-
   // Live Timer Interval for Active Session
   useEffect(() => {
     if (!activeSession || activeSession.status !== 'active' || !activeSession.started_at) {
@@ -158,12 +131,7 @@ export default function ExamControl() {
       const currentLimit = Number(activeSession.time_limit_minutes || 60);
       const newMinutes = currentLimit + Number(extraMinutes);
       
-      const { error } = await supabase
-        .from('exam_sessions')
-        .update({ time_limit_minutes: newMinutes })
-        .eq('id', activeSession.id);
-
-      if (error) throw error;
+      await examAdminService.updateExamSession(activeSession.id, { time_limit_minutes: newMinutes });
 
       showToast('success', `เพิ่มเวลาสอบ +${extraMinutes} นาที สำเร็จ! (เวลารวม ${newMinutes} นาที)`);
       setActiveSession(prev => ({ ...prev, time_limit_minutes: newMinutes }));
@@ -184,12 +152,7 @@ export default function ExamControl() {
     }
 
     try {
-      const { error } = await supabase
-        .from('exam_sessions')
-        .update({ time_limit_minutes: val })
-        .eq('id', activeSession.id);
-
-      if (error) throw error;
+      await examAdminService.updateExamSession(activeSession.id, { time_limit_minutes: val });
 
       showToast('success', `ปรับเวลาสอบเป็น ${val} นาที เรียบร้อยแล้ว`);
       setActiveSession(prev => ({ ...prev, time_limit_minutes: val }));
@@ -200,72 +163,6 @@ export default function ExamControl() {
     }
   };
 
-  const fetchInitialData = async () => {
-    setLoading(true);
-    const { data: bData } = await supabase.from('question_banks').select('*');
-    if (bData) setBanks(bData);
-
-    await fetchSessions();
-    setLoading(false);
-  };
-
-  const fetchSessions = async () => {
-    const { data } = await supabase
-      .from('exam_sessions')
-      .select('*, question_banks(title)')
-      .order('created_at', { ascending: false });
-    if (data) {
-      setSessions(data);
-      if (activeSession) {
-        const updated = data.find(s => s.id === activeSession.id);
-        if (updated) {
-          setActiveSession(updated);
-        } else if (data.length > 0) {
-          setActiveSession(data[0]);
-        }
-      } else if (data.length > 0) {
-        setActiveSession(data[0]);
-      }
-    }
-  };
-
-  const fetchParticipants = async (sessionId) => {
-    const { data } = await supabase
-      .from('exam_participants')
-      .select('*, students(first_name, last_name, classroom)')
-      .eq('session_id', sessionId)
-      .order('joined_at', { ascending: true });
-    if (data) setParticipants(data);
-  };
-
-  const fetchExamResults = async (sid) => {
-    try {
-      const { data } = await supabase
-        .from('exam_results')
-        .select('student_id, score, is_suspended')
-        .eq('session_id', sid)
-        .eq('is_suspended', false);
-      if (data) {
-        const map = {};
-        for (const r of data) {
-          if (!map[r.student_id]) map[r.student_id] = [];
-          map[r.student_id].push(r);
-        }
-        setExamResultsMap(map);
-      }
-    } catch (e) {
-      console.error('Error fetching exam results:', e);
-    }
-  };
-
-  const hasPassed = (studentId) => {
-    const results = examResultsMap[studentId] || [];
-    if (results.length === 0) return false;
-    const bestScore = Math.max(...results.map(r => Number(r.score)));
-    const totalScore = Number(activeSession?.total_score || 10);
-    const passingPct = activeSession?.passing_percentage || 50;
-    return (bestScore / totalScore * 100) >= passingPct;
-  };
 
   const generateSecretCode = () => {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -285,7 +182,7 @@ export default function ExamControl() {
     const secretCode = generateSecretCode();
     
     try {
-      const { data: sessionData, error: sessionError } = await supabase.from('exam_sessions').insert([{
+      const sessionPayload = {
         bank_id: banks.length > 0 ? banks[0].id : null,
         created_by: user?.id,
         teacher_id: user?.id,
@@ -299,19 +196,9 @@ export default function ExamControl() {
         question_count: examConfig.questionCount || examConfig.questions.length,
         total_score: examConfig.totalScore,
         status: examMode === 'online' ? 'active' : 'waiting'
-      }]).select().single();
+      };
 
-      if (sessionError) throw sessionError;
-
-      const toInsert = examConfig.questions.map((q, idx) => ({
-        session_id: sessionData.id,
-        question_id: q.id,
-        points: q.points,
-        order_index: idx
-      }));
-
-      const { error: questionsError } = await supabase.from('exam_session_questions').insert(toInsert);
-      if (questionsError) throw questionsError;
+      const sessionData = await examAdminService.createExamSession(sessionPayload, examConfig.questions);
 
       showToast('success', `เปิดห้องสอบ "${sessionTitle}" สำเร็จ! รหัสห้องคือ ${secretCode}`);
       setSessionTitle('');
@@ -347,21 +234,16 @@ export default function ExamControl() {
 
     setUpdatingSession(true);
     try {
-      const { error } = await supabase
-        .from('exam_sessions')
-        .update({
-          title: editSessionTitle.trim(),
-          time_limit_minutes: parseInt(editTimeLimit, 10),
-          exam_mode: editExamMode,
-          max_attempts: editExamMode === 'online' ? parseInt(editMaxAttempts, 10) : 1,
-          retake_until_pass: editRetakeUntilPass,
-          passing_percentage: parseInt(editPassingPercentage, 10) || 50,
-          secret_code: editSecretCode.trim().toUpperCase(),
-          status: editStatus
-        })
-        .eq('id', editingSession.id);
-
-      if (error) throw error;
+      await examAdminService.updateExamSession(editingSession.id, {
+        title: editSessionTitle.trim(),
+        time_limit_minutes: parseInt(editTimeLimit, 10),
+        exam_mode: editExamMode,
+        max_attempts: editExamMode === 'online' ? parseInt(editMaxAttempts, 10) : 1,
+        retake_until_pass: editRetakeUntilPass,
+        passing_percentage: parseInt(editPassingPercentage, 10) || 50,
+        secret_code: editSecretCode.trim().toUpperCase(),
+        status: editStatus
+      });
 
       showToast('success', 'บันทึกการแก้ไขห้องสอบสำเร็จ!');
       setEditingSession(null);
@@ -379,12 +261,7 @@ export default function ExamControl() {
     setStartingExam(true);
     try {
       const startTime = new Date();
-      const { error } = await supabase
-        .from('exam_sessions')
-        .update({ status: 'active', started_at: startTime })
-        .eq('id', activeSession.id);
-
-      if (error) throw error;
+      await examAdminService.updateExamSession(activeSession.id, { status: 'active', started_at: startTime });
 
       showToast('success', 'เริ่มการสอบแล้ว! นักเรียนสามารถเข้าทำข้อสอบได้จนกว่าจะหมดเวลา');
       setIsStartModalOpen(false);
@@ -403,12 +280,8 @@ export default function ExamControl() {
     setEndingExam(true);
     try {
       const endTime = new Date();
-      const { error } = await supabase
-        .from('exam_sessions')
-        .update({ status: 'completed', end_time: endTime })
-        .eq('id', activeSession.id);
-
-      if (error) throw error;
+      await examAdminService.updateExamSession(activeSession.id, { status: 'completed', end_time: endTime });
+      await forceCompleteParticipants(activeSession.id);
 
       showToast('success', 'จบการสอบเรียบร้อยแล้ว! ระบบปิดรับคำตอบและห้ามเข้าห้องสอบทุกกรณี');
       setIsEndModalOpen(false);
@@ -429,17 +302,13 @@ export default function ExamControl() {
       const startTime = new Date();
       const timeLimitVal = parseInt(reopenTimeLimit, 10) || activeSession.time_limit_minutes || 60;
 
-      const { error } = await supabase
-        .from('exam_sessions')
-        .update({
-          status: 'active',
-          started_at: startTime,
-          end_time: null,
-          time_limit_minutes: timeLimitVal
-        })
-        .eq('id', activeSession.id);
-
-      if (error) throw error;
+      await examAdminService.updateExamSession(activeSession.id, {
+        status: 'active',
+        started_at: startTime,
+        end_time: null,
+        time_limit_minutes: timeLimitVal
+      });
+      await allowAllParticipantsRejoin(activeSession.id);
 
       showToast('success', `เปิดห้องสอบอีกครั้งสำเร็จ! เวลาสอบรอบใหม่คือ ${timeLimitVal} นาที`);
       setIsReopenModalOpen(false);
@@ -464,12 +333,7 @@ export default function ExamControl() {
     setDeletingSessionLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('exam_sessions')
-        .delete()
-        .eq('id', deletingSession.id);
-
-      if (error) throw error;
+      await examAdminService.deleteExamSession(deletingSession.id);
 
       showToast('success', `ลบห้องสอบ "${deletingSession.title}" เรียบร้อยแล้ว`);
       if (activeSession?.id === deletingSession.id) {
@@ -487,11 +351,7 @@ export default function ExamControl() {
   // 6. Manage Participant
   const handleAllowRejoin = async (participantId) => {
     try {
-      const { error } = await supabase
-        .from('exam_participants')
-        .update({ allow_rejoin: true, status: 'waiting' })
-        .eq('id', participantId);
-      if (error) throw error;
+      await examAdminService.updateParticipantRejoin(participantId, true, 'waiting');
       showToast('success', 'อนุมัติให้นักเรียนเข้าสอบใหม่เรียบร้อยแล้ว');
       fetchParticipants(activeSession.id);
     } catch (err) {
@@ -501,11 +361,7 @@ export default function ExamControl() {
 
   const handleAllowRejoinWithMode = async (participantId, mode) => {
     try {
-      const { error } = await supabase
-        .from('exam_participants')
-        .update({ allow_rejoin: true, status: 'waiting', rejoin_mode: mode })
-        .eq('id', participantId);
-      if (error) throw error;
+      await examAdminService.updateParticipantRejoin(participantId, true, 'waiting', mode);
       const modeText = mode === 'continue' ? 'แก้ข้อสอบเดิม' : 'เริ่มทำใหม่';
       showToast('success', `อนุมัติให้นักเรียน${modeText}เรียบร้อยแล้ว`);
       fetchParticipants(activeSession.id);
@@ -522,10 +378,7 @@ export default function ExamControl() {
     if (flagged.length === 0) return;
     try {
       for (const p of flagged) {
-        await supabase
-          .from('exam_participants')
-          .update({ allow_rejoin: true, status: 'waiting', rejoin_mode: mode })
-          .eq('id', p.id);
+        await examAdminService.updateParticipantRejoin(p.id, true, 'waiting', mode);
       }
       const modeText = mode === 'continue' ? 'แก้ข้อสอบเดิม' : 'เริ่มทำใหม่';
       showToast('success', `อนุมัติให้นักเรียน ${flagged.length} คน${modeText}เรียบร้อยแล้ว`);
@@ -541,26 +394,8 @@ export default function ExamControl() {
     if (!deletingParticipant || !activeSession) return;
     setDeletingParticipantLoading(true);
     try {
-      // Delete related student_answers
-      await supabase
-        .from('student_answers')
-        .delete()
-        .eq('session_id', activeSession.id)
-        .eq('student_id', deletingParticipant.student_id);
-
-      // Delete related exam_results
-      await supabase
-        .from('exam_results')
-        .delete()
-        .eq('session_id', activeSession.id)
-        .eq('student_id', deletingParticipant.student_id);
-
-      const { error } = await supabase
-        .from('exam_participants')
-        .delete()
-        .eq('id', deletingParticipant.id);
-
-      if (error) throw error;
+      await broadcastKick(activeSession.id, deletingParticipant.student_id);
+      await examAdminService.deleteExamParticipant(deletingParticipant.id, activeSession.id, deletingParticipant.student_id);
 
       showToast('success', 'ลบนักเรียนออกจากห้องสอบแล้ว');
       setDeletingParticipant(null);

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { getStudentResults, getParticipant, updateParticipantById } from '../../services/examStudentService';
+import { useExamRealtime } from '../../hooks/exam/useExamRealtime';
 import { Trophy, Home, RotateCcw, CheckCircle2, Clock, PlayCircle, Loader2, Sparkles } from 'lucide-react';
 
 export default function ExamResult() {
@@ -21,7 +22,6 @@ export default function ExamResult() {
     }
     fetchData();
 
-    // Intercept browser Back button: redirect to home page '/' instead of exam room
     window.history.pushState(null, '', window.location.href);
     const handlePopState = async () => {
       await logoutStudent();
@@ -29,57 +29,31 @@ export default function ExamResult() {
     };
     window.addEventListener('popstate', handlePopState);
 
-    // Subscribe to real-time changes on exam_participants
-    const channel = supabase
-      .channel(`exam_result_participant_${sessionId}_${studentSession.student_id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'exam_participants',
-          filter: `session_id=eq.${sessionId}`
-        },
-        (payload) => {
-          if (payload.new && payload.new.student_id === studentSession.student_id) {
-            setParticipant(payload.new);
-            if (payload.new.allow_rejoin) {
-              setToastMsg({ type: 'success', text: '🎉 คุณครูอนุมัติให้สอบซ่อมแล้ว! คุณสามารถกดเริ่มสอบซ่อมได้ทันที' });
-            }
-          }
-        }
-      )
-      .subscribe();
-
     return () => {
       window.removeEventListener('popstate', handlePopState);
-      supabase.removeChannel(channel);
     };
   }, [sessionId, studentSession, navigate]);
+
+  useExamRealtime({
+    sessionId,
+    studentId: studentSession?.student_id,
+    onParticipantUpdate: (newParticipant) => {
+      setParticipant(newParticipant);
+      if (newParticipant.allow_rejoin) {
+        setToastMsg({ type: 'success', text: '🎉 คุณครูอนุมัติให้สอบซ่อมแล้ว! คุณสามารถกดเริ่มสอบซ่อมได้ทันที' });
+      }
+    }
+  });
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch exam results
-      const { data: resData } = await supabase
-        .from('exam_results')
-        .select('*, exam_sessions(title, total_score, question_count, exam_mode, max_attempts, retake_until_pass, passing_percentage)')
-        .eq('session_id', sessionId)
-        .eq('student_id', studentSession.student_id)
-        .order('submitted_at', { ascending: true });
-        
+      const resData = await getStudentResults(sessionId, studentSession.student_id);
       if (resData && resData.length > 0) {
         setResults(resData);
       }
 
-      // 2. Fetch participant status for retake info
-      const { data: pData } = await supabase
-        .from('exam_participants')
-        .select('*')
-        .eq('session_id', sessionId)
-        .eq('student_id', studentSession.student_id)
-        .maybeSingle();
-
+      const pData = await getParticipant(sessionId, studentSession.student_id);
       if (pData) {
         setParticipant(pData);
       }
@@ -94,15 +68,10 @@ export default function ExamResult() {
     if (!participant || requesting) return;
     setRequesting(true);
     try {
-      const { error } = await supabase
-        .from('exam_participants')
-        .update({
-          retake_requested: true,
-          retake_requested_at: new Date().toISOString()
-        })
-        .eq('id', participant.id);
-
-      if (error) throw error;
+      await updateParticipantById(participant.id, {
+        retake_requested: true,
+        retake_requested_at: new Date().toISOString()
+      });
 
       setParticipant(prev => ({ ...prev, retake_requested: true }));
       setToastMsg({ type: 'info', text: '📩 ส่งคำขอสอบซ่อมไปยังคุณครูแล้ว กรุณารอครูอนุมัติสักครู่' });
@@ -116,21 +85,13 @@ export default function ExamResult() {
   const handleStartRetake = async () => {
     if (!participant) return;
     try {
-      const isOnline = results.length > 0 && results[0].exam_sessions?.exam_mode === 'online';
-      const sessionData = results[0]?.exam_sessions;
-      const existingParticipant = participant;
-      const updatePayload = {
+      await updateParticipantById(participant.id, {
         status: 'testing',
         allow_rejoin: false,
         retake_requested: false,
         warnings_count: 0,
         started_at: new Date().toISOString()
-      };
-
-      await supabase
-        .from('exam_participants')
-        .update(updatePayload)
-        .eq('id', participant.id);
+      });
 
       localStorage.setItem('student_id', studentSession.student_id);
       localStorage.setItem('exam_session_id', sessionId);
@@ -152,7 +113,6 @@ export default function ExamResult() {
   const sessionInfo = latestResult?.exam_sessions || {};
   const passingPercentage = sessionInfo.passing_percentage || 50;
 
-  // Filter out suspended results for score calculation
   const completedResults = results.filter(r => !r.is_suspended);
   const displayResults = completedResults.length > 0 ? completedResults : results;
   const latestCompleted = displayResults[displayResults.length - 1];
@@ -182,13 +142,11 @@ export default function ExamResult() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Dynamic Background */}
       <div className={`absolute top-[-10%] left-[-10%] w-[45vw] h-[45vw] rounded-full blur-[130px] animate-pulse ${isPass ? 'bg-emerald-200/25' : 'bg-rose-200/25'}`} />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-indigo-200/20 blur-[130px]" />
       
       <div className="max-w-md w-full bg-white/95 backdrop-blur-xl rounded-[28px] shadow-2xl border border-white/60 p-7 text-center relative z-10 space-y-5">
         
-        {/* Toast Alert Banner */}
         {toastMsg && (
           <div className={`p-3.5 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-bounce ${
             toastMsg.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-indigo-50 text-indigo-800 border border-indigo-200'
@@ -210,7 +168,6 @@ export default function ExamResult() {
           <p className="text-xs font-mono text-zinc-400 mt-0.5">รหัสนักเรียน: {studentSession.student_id}</p>
         </div>
 
-        {/* Score Card */}
         <div className="bg-zinc-50/80 p-5 rounded-3xl border border-zinc-100 text-center">
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
             {results.length > 1 ? `คะแนนรอบล่าสุด (รอบที่ ${results.length})` : 'คะแนนที่คุณได้'}
@@ -226,7 +183,6 @@ export default function ExamResult() {
           </div>
         </div>
 
-        {/* Multi-Attempt History (If retaken) */}
         {results.length > 1 && (
           <div className="bg-indigo-50/60 border border-indigo-100 p-4 rounded-2xl text-left space-y-2.5">
             <div className="flex items-center justify-between text-xs font-bold text-indigo-900">
@@ -264,7 +220,6 @@ export default function ExamResult() {
           </div>
         )}
 
-        {/* ⏱️ ข้อมูลเวลาสอบ */}
         {latestCompleted.started_at && (
           <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1.5">
             <div className="flex justify-between text-[11px] text-zinc-600">
@@ -289,10 +244,8 @@ export default function ExamResult() {
           </div>
         )}
 
-        {/* 🌟 Retake Section (ขอสอบซ่อม / สอบซ่อมได้) */}
         <div className="pt-1 space-y-2.5">
           {hasPassedOverall ? (
-            /* ✅ ผ่านแล้ว — ไม่ต้องแสดงปุ่มสอบซ่อม */
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
               <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-sm">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -301,7 +254,6 @@ export default function ExamResult() {
               <p className="text-xs text-emerald-600 mt-1">ยินดีด้วย ไม่ต้องสอบซ่อมแล้ว</p>
             </div>
           ) : isApprovedToRetake ? (
-            /* Teacher Approved: Can Start Retake Immediately */
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2.5">
               <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-sm">
                 <Sparkles className="w-4 h-4 text-emerald-600 animate-spin" />
@@ -322,13 +274,11 @@ export default function ExamResult() {
               </button>
             </div>
           ) : isPendingRequest ? (
-            /* Pending Approval: Waiting for Teacher */
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center gap-2.5 text-amber-800 text-xs font-semibold">
               <Loader2 className="w-4 h-4 animate-spin text-amber-600 shrink-0" />
               <span>ส่งคำขอสอบซ่อมแล้ว กำลังรอคุณครูอนุมัติ...</span>
             </div>
           ) : (
-            /* Request Retake Button */
             <button
               onClick={handleRequestRetake}
               disabled={requesting}

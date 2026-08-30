@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 import { 
   ShieldAlert, 
@@ -22,6 +21,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import * as adminService from '../../services/adminService';
 
 // Create a secondary client just for creating users so it doesn't log the current admin out
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
@@ -74,26 +74,23 @@ export default function AdminManagement() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const fetchAdmins = async () => {
+    setLoading(true);
+    try {
+      const data = await adminService.getAdmins();
+      setAdmins(data);
+    } catch (error) {
+      showToast('error', 'โหลดข้อมูลไม่สำเร็จ: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isSuperAdmin) {
       fetchAdmins();
     }
   }, [isSuperAdmin]);
-
-  const fetchAdmins = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('admins')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setAdmins(data);
-    } else if (error) {
-      showToast('error', 'โหลดข้อมูลไม่สำเร็จ: ' + error.message);
-    }
-    setLoading(false);
-  };
 
   // 1. Create Admin
   const handleCreateAdmin = async (e) => {
@@ -105,43 +102,14 @@ export default function AdminManagement() {
     setCreating(true);
 
     try {
-      // 1.1 Sign up the user with secondary client
-      const { data: authData, error: authError } = await authClient.auth.signUp({
-        email: newEmail,
-        password: newPassword,
-        options: {
-          data: {
-            first_name: newFirstName,
-          }
-        }
-      });
-
-      if (authError) {
-        if (authError.message.includes('already registered')) {
-          throw new Error('อีเมลนี้มีอยู่ในระบบแล้ว');
-        }
-        throw authError;
-      }
-
-      if (authData?.user) {
-        // 1.2 Insert into admins table
-        const { error: insertError } = await supabase.from('admins').insert([{
-          id: authData.user.id,
-          email: newEmail,
-          first_name: newFirstName,
-          role: newRole
-        }]);
-
-        if (insertError) throw insertError;
-        
-        showToast('success', `สร้างบัญชี "${newFirstName}" (${newRole === 'super_admin' ? 'Super Admin' : 'Admin'}) สำเร็จ!`);
-        setNewEmail(''); 
-        setNewPassword(''); 
-        setNewFirstName('');
-        setNewRole('admin');
-        setIsCreateModalOpen(false);
-        fetchAdmins();
-      }
+      await adminService.createAdmin(authClient, newEmail, newPassword, newFirstName, newRole);
+      showToast('success', `สร้างบัญชี "${newFirstName}" (${newRole === 'super_admin' ? 'Super Admin' : 'Admin'}) สำเร็จ!`);
+      setNewEmail(''); 
+      setNewPassword(''); 
+      setNewFirstName('');
+      setNewRole('admin');
+      setIsCreateModalOpen(false);
+      fetchAdmins();
     } catch (err) {
       showToast('error', 'เกิดข้อผิดพลาด: ' + err.message);
     } finally {
@@ -167,16 +135,7 @@ export default function AdminManagement() {
 
     setUpdating(true);
     try {
-      const { error } = await supabase
-        .from('admins')
-        .update({
-          first_name: editFirstName.trim(),
-          role: editRole
-        })
-        .eq('id', editingAdmin.id);
-
-      if (error) throw error;
-
+      await adminService.updateAdmin(editingAdmin.id, editFirstName.trim(), editRole);
       showToast('success', `อัปเดตข้อมูล "${editFirstName}" สำเร็จ!`);
       setEditingAdmin(null);
       fetchAdmins();
@@ -199,13 +158,7 @@ export default function AdminManagement() {
 
     setDeleting(true);
     try {
-      const { error } = await supabase
-        .from('admins')
-        .delete()
-        .eq('id', deletingAdmin.id);
-
-      if (error) throw error;
-
+      await adminService.deleteAdmin(deletingAdmin.id);
       showToast('success', `ลบสิทธิ์แอดมิน "${deletingAdmin.first_name || deletingAdmin.email}" สำเร็จ!`);
       setDeletingAdmin(null);
       fetchAdmins();
@@ -231,13 +184,7 @@ export default function AdminManagement() {
 
     setChangingPassword(true);
     try {
-      const { data, error } = await supabase.rpc('admin_change_user_password', {
-        target_user_id: passwordModalAdmin.id,
-        new_password: newAdminPassword
-      });
-
-      if (error) throw error;
-
+      await adminService.changeAdminPassword(passwordModalAdmin.id, newAdminPassword);
       showToast('success', `เปลี่ยนรหัสผ่านสำหรับ "${passwordModalAdmin.first_name || passwordModalAdmin.email}" สำเร็จแล้ว!`);
       setPasswordModalAdmin(null);
       setNewAdminPassword('');

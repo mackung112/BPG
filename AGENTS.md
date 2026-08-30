@@ -21,6 +21,9 @@
 | `supabase` | จัดการระบบ Supabase (DB, Auth, Storage, Functions) |
 | `supabase-postgres-best-practices` | มาตรฐานและแนวทางปฏิบัติที่ดีที่สุดสำหรับ Postgres/Supabase |
 | `supabase-auth-admin` | การตั้งค่า Auth และสิทธิ์ Super Admin |
+| `exam-system` | บริบทและกฎการแก้ไขระบบสอบ (ต้องอ่าน Context ก่อนแก้โค้ดทุกครั้ง) |
+| `clean-architecture-react` | สถาปัตยกรรมโค้ดที่ถูกต้อง — บังคับแยก Services/Hooks/Components ห้าม Supabase ใน UI |
+| `auto-subagent-delegation` | วิเคราะห์และแตกงานย่อยให้ Subagents ทำงานขนานกันอัตโนมัติ โดยไม่ต้องถาม |
 
 ---
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+
 import { 
   Trophy, 
   Download, 
@@ -24,13 +24,16 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react';
+import { useExamResultsAdmin } from '../../hooks/admin/useExamResultsAdmin';
+import { examAdminService } from '../../services/examAdminService';
 
 export default function ExamResults() {
-  const [sessions, setSessions] = useState([]);
-  const [selectedSession, setSelectedSession] = useState(null);
-  const [results, setResults] = useState([]);
-  const [participants, setParticipants] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    sessions, selectedSession, setSelectedSession, 
+    results, participants, loading, allStudents, 
+    error: fetchError, setError, fetchSessions, fetchResultsAndParticipants 
+  } = useExamResultsAdmin();
+
   const [search, setSearch] = useState('');
   
   // Sort State
@@ -44,7 +47,6 @@ export default function ExamResults() {
   };
 
   // Classroom Filter State
-  const [allStudents, setAllStudents] = useState([]);
   const [classroomFilter, setClassroomFilter] = useState([]);
 
   const toggleClassroom = (c) => {
@@ -54,7 +56,6 @@ export default function ExamResults() {
   };
 
   // Retake Policy State
-  // Policies: 'best' | 'latest' | 'average' | 'capped' | 'scaled'
   const [retakePolicy, setRetakePolicy] = useState('best');
   const [capScore, setCapScore] = useState(5);
   const [customMaxScore, setCustomMaxScore] = useState(10);
@@ -88,88 +89,19 @@ export default function ExamResults() {
   };
 
   useEffect(() => {
-    fetchSessions();
-    fetchAllStudents();
-  }, []);
-
-  const fetchAllStudents = async () => {
-    const { data } = await supabase.from('students').select('student_id, first_name, last_name, classroom');
-    if (data) setAllStudents(data);
-  };
+    if (fetchError) {
+      showToast('error', fetchError);
+      setError(null);
+    }
+  }, [fetchError, setError]);
 
   useEffect(() => {
     if (selectedSession) {
-      fetchResultsAndParticipants(selectedSession.id);
-      // Set sensible defaults based on session total score
       const defaultTotal = selectedSession.total_score || 10;
       setCapScore(Math.ceil(defaultTotal / 2));
       setCustomMaxScore(defaultTotal);
-
-      // Realtime listener for participants and results
-      const channel = supabase
-        .channel(`admin_exam_results_${selectedSession.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'exam_participants', filter: `session_id=eq.${selectedSession.id}` }, () => {
-          fetchResultsAndParticipants(selectedSession.id);
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'exam_results', filter: `session_id=eq.${selectedSession.id}` }, () => {
-          fetchResultsAndParticipants(selectedSession.id);
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    } else {
-      setResults([]);
-      setParticipants([]);
     }
   }, [selectedSession]);
-
-  const fetchSessions = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('exam_sessions')
-      .select('*, question_banks(title)')
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setSessions(data);
-      if (!selectedSession && data.length > 0) {
-        setSelectedSession(data[0]);
-      }
-    } else if (error) {
-      showToast('error', 'โหลดรายการสอบไม่สำเร็จ: ' + error.message);
-    }
-    setLoading(false);
-  };
-
-  const fetchResultsAndParticipants = async (sessionId) => {
-    // 1. Fetch results
-    const { data: rData, error: rErr } = await supabase
-      .from('exam_results')
-      .select(`
-        *,
-        students(first_name, last_name, classroom)
-      `)
-      .eq('session_id', sessionId)
-      .order('submitted_at', { ascending: true });
-
-    if (!rErr && rData) {
-      setResults(rData);
-    } else if (rErr) {
-      showToast('error', 'โหลดคะแนนไม่สำเร็จ: ' + rErr.message);
-    }
-
-    // 2. Fetch participants
-    const { data: pData } = await supabase
-      .from('exam_participants')
-      .select('id, student_id, status, allow_rejoin, retake_requested, retake_requested_at')
-      .eq('session_id', sessionId);
-
-    if (pData) {
-      setParticipants(pData);
-    }
-  };
 
   // Group results by studentId for multi-attempt processing
   const studentMap = {};
@@ -190,7 +122,14 @@ export default function ExamResults() {
   const calculateStudentFinalScore = (attempts) => {
     if (!attempts || attempts.length === 0) return { finalScore: 0, effectiveTotal: totalScoreVal };
 
-    const scores = attempts.map(a => Number(a.score));
+    // เรียงลำดับ attempts ตามเวลาส่ง (submitted_at) หรือเวลาเริ่ม (started_at) เพื่อให้หา 'latest' ได้ถูกต้อง
+    const sortedAttempts = [...attempts].sort((a, b) => {
+      const timeA = new Date(a.submitted_at || a.started_at || a.created_at || 0).getTime();
+      const timeB = new Date(b.submitted_at || b.started_at || b.created_at || 0).getTime();
+      return timeA - timeB;
+    });
+
+    const scores = sortedAttempts.map(a => Number(a.score));
     let finalScore = 0;
     let effectiveTotal = totalScoreVal;
 
@@ -231,14 +170,21 @@ export default function ExamResults() {
     }
 
     return {
-      finalScore: Math.round(finalScore),
-      effectiveTotal: Math.round(effectiveTotal)
+      finalScore: Math.round(finalScore * 100) / 100, // ป้องกันทศนิยมยาวเกิน
+      effectiveTotal: Math.round(effectiveTotal * 100) / 100
     };
   };
 
   // Build unified student list
   let studentList = Object.values(studentMap).map(s => {
-    const { finalScore, effectiveTotal } = calculateStudentFinalScore(s.attempts);
+    // ใช้ sorted attempts เพื่อให้แสดงในตารางได้ถูกต้องตามลำดับเวลา
+    const sortedAttempts = [...s.attempts].sort((a, b) => {
+      const timeA = new Date(a.submitted_at || a.started_at || a.created_at || 0).getTime();
+      const timeB = new Date(b.submitted_at || b.started_at || b.created_at || 0).getTime();
+      return timeA - timeB;
+    });
+
+    const { finalScore, effectiveTotal } = calculateStudentFinalScore(sortedAttempts);
     const participant = participants.find(p => p.student_id === s.student_id);
     const isRetakeAllowed = participant?.allow_rejoin === true;
     const isRetakeRequested = participant?.retake_requested === true;
@@ -247,6 +193,7 @@ export default function ExamResults() {
 
     return {
       ...s,
+      attempts: sortedAttempts,
       finalScore,
       effectiveTotal,
       isRetakeAllowed,
@@ -286,19 +233,22 @@ export default function ExamResults() {
   // Retake Actions: Allow / Disallow
   const handleToggleRetake = async (studentId, currentAllowed) => {
     if (!selectedSession) return;
+    
+    // Edge Case: ตรวจสอบโควต้าก่อนอนุญาตให้สอบใหม่
+    const studentData = studentList.find(s => s.student_id === studentId);
+    if (!currentAllowed && studentData) {
+      if (selectedSession.exam_mode === 'online') {
+        if (selectedSession.retake_until_pass && studentData.isPass) {
+          if (!window.confirm('นักเรียนคนนี้สอบผ่านเกณฑ์แล้ว (Retake Until Pass) \nยืนยันที่จะอนุมัติให้สอบใหม่อีกครั้งหรือไม่?')) return;
+        } else if (selectedSession.max_attempts > 0 && studentData.attempts.length >= selectedSession.max_attempts) {
+          if (!window.confirm(`นักเรียนคนนี้สอบครบโควต้าแล้ว (${studentData.attempts.length}/${selectedSession.max_attempts} ครั้ง) \nยืนยันที่จะอนุมัติให้สอบใหม่อีกครั้งหรือไม่?`)) return;
+        }
+      }
+    }
+
     try {
       const nextAllowed = !currentAllowed;
-      const { error } = await supabase
-        .from('exam_participants')
-        .update({ 
-          allow_rejoin: nextAllowed,
-          status: nextAllowed ? 'waiting' : 'completed',
-          retake_requested: false
-        })
-        .eq('session_id', selectedSession.id)
-        .eq('student_id', studentId);
-
-      if (error) throw error;
+      await examAdminService.updateParticipantRejoinByStudent(selectedSession.id, studentId, nextAllowed, nextAllowed ? 'waiting' : 'completed');
 
       showToast('success', nextAllowed ? `อนุมัติให้นักเรียน ${studentId} สอบซ่อมเรียบร้อยแล้ว` : `ปิดสิทธิ์สอบซ่อมของนักเรียน ${studentId}`);
       fetchResultsAndParticipants(selectedSession.id);
@@ -318,11 +268,7 @@ export default function ExamResults() {
 
     try {
       for (const s of failedStudents) {
-        await supabase
-          .from('exam_participants')
-          .update({ allow_rejoin: true, status: 'waiting' })
-          .eq('session_id', selectedSession.id)
-          .eq('student_id', s.student_id);
+        await examAdminService.updateParticipantRejoinByStudent(selectedSession.id, s.student_id, true, 'waiting');
       }
       showToast('success', `อนุมัติสอบซ่อมให้นักเรียนที่ไม่ผ่านเกณฑ์ทั้ง ${failedStudents.length} คนสำเร็จ!`);
       fetchResultsAndParticipants(selectedSession.id);
@@ -338,28 +284,22 @@ export default function ExamResults() {
 
     setSavingScore(true);
     try {
-      const { data: student, error: sErr } = await supabase
-        .from('students')
-        .select('student_id')
-        .eq('student_id', newStudentId.trim())
-        .maybeSingle();
+      const student = await examAdminService.fetchStudentById(newStudentId.trim());
 
-      if (sErr || !student) {
+      if (!student) {
         throw new Error('ไม่พบรหัสนักเรียนนี้ในระบบ');
       }
 
       const totalQ = Math.round(selectedSession.total_score || 10);
       const parsedScore = Math.round(parseFloat(newScore));
 
-      const { error } = await supabase.from('exam_results').insert([{
+      await examAdminService.addExamResult({
         session_id: selectedSession.id,
         student_id: newStudentId.trim(),
         score: parsedScore,
         total_questions: totalQ,
         submitted_at: new Date()
-      }]);
-
-      if (error) throw error;
+      });
 
       showToast('success', `บันทึกคะแนนของรหัส ${newStudentId} สำเร็จ!`);
       setNewStudentId('');
@@ -385,14 +325,7 @@ export default function ExamResults() {
 
     setUpdatingResult(true);
     try {
-      const { error } = await supabase
-        .from('exam_results')
-        .update({
-          score: Math.round(parseFloat(editScore))
-        })
-        .eq('id', editingResult.id);
-
-      if (error) throw error;
+      await examAdminService.updateExamResultScore(editingResult.id, Math.round(parseFloat(editScore)));
 
       showToast('success', 'แก้ไขคะแนนเรียบร้อยแล้ว!');
       setEditingResult(null);
@@ -410,12 +343,7 @@ export default function ExamResults() {
     setDeletingResultLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('exam_results')
-        .delete()
-        .eq('id', deletingResult.id);
-
-      if (error) throw error;
+      await examAdminService.deleteExamResult(deletingResult.id);
 
       showToast('success', 'ลบข้อมูลคะแนนของนักเรียนสำเร็จ');
       setDeletingResult(null);
@@ -433,12 +361,7 @@ export default function ExamResults() {
     setDeletingSessionLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('exam_sessions')
-        .delete()
-        .eq('id', selectedSession.id);
-
-      if (error) throw error;
+      await examAdminService.deleteExamSession(selectedSession.id);
 
       showToast('success', `ลบประวัติการสอบ "${selectedSession.title}" เรียบร้อยแล้ว`);
       setIsDeleteSessionOpen(false);

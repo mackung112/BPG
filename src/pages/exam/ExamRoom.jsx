@@ -1,22 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  Clock, 
-  ShieldAlert, 
-  CheckCircle, 
-  Send, 
-  Maximize2, 
-  Minimize2, 
-  Lock, 
-  AlertTriangle,
-  Flag,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  HelpCircle,
-  Sparkles
+import {
+  getSessionInfo,
+  getParticipant,
+  getExamQuestions,
+  getStudentResults,
+  updateParticipantStatus,
+  submitExamResult,
+  deleteSuspendedResult
+} from '../../services/examStudentService';
+import { useExamTimer } from '../../hooks/exam/useExamTimer';
+import { useAntiCheat } from '../../hooks/exam/useAntiCheat';
+import { useExamRealtime } from '../../hooks/exam/useExamRealtime';
+import {
+  Clock, ShieldAlert, CheckCircle, Send, Maximize2, Minimize2,
+  Lock, AlertTriangle, Flag, ChevronLeft, ChevronRight, Check, HelpCircle, Sparkles
 } from 'lucide-react';
 
 const QUESTIONS_PER_PAGE = 2;
@@ -25,399 +24,149 @@ export default function ExamRoom() {
   const { sessionId } = useParams();
   const { studentSession, logoutStudent } = useAuth();
   const navigate = useNavigate();
-  
+
   const [sessionInfo, setSessionInfo] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [flagged, setFlagged] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(null);
-  
+
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(() => !!document.fullscreenElement);
   const [toastWarning, setToastWarning] = useState(null);
   const [warningModalOpen, setWarningModalOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isRetakeMode, setIsRetakeMode] = useState(false);
   const [attemptNumber, setAttemptNumber] = useState(1);
-  const cheatingFlag = useRef(false);
-  const violationCountRef = useRef(0);
-  const sessionModeRef = useRef('onsite');
-  const gracePeriodRef = useRef(true);
-  const hiddenTimestampRef = useRef(null);
-  const lastTickTimeRef = useRef(Date.now());
-  const questionsRef = useRef([]);
-  const answersRef = useRef({});
-  const flaggedRef = useRef({});
-  const timeLeftRef = useRef(null);
-  const attemptNumberRef = useRef(1);
-  const examStartedAtRef = useRef(null);
-  const isRetakeModeRef = useRef(false);
   const [sleepWarningModal, setSleepWarningModal] = useState(false);
+  const [initialWarnings, setInitialWarnings] = useState(0);
+  const [examStartedAt, setExamStartedAt] = useState(null);
+  const submitLockRef = useRef(false);
 
-  useEffect(() => { questionsRef.current = questions; }, [questions]);
-  useEffect(() => { answersRef.current = answers; }, [answers]);
-  useEffect(() => { flaggedRef.current = flagged; }, [flagged]);
-  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
-  useEffect(() => { attemptNumberRef.current = attemptNumber; }, [attemptNumber]);
-  useEffect(() => { isRetakeModeRef.current = isRetakeMode; }, [isRetakeMode]);
-
+  const { timeLeft, setTimeLeft, addTime, deductTime } = useExamTimer(null, (autoSubmit) => handleSubmit(autoSubmit), !submitting && questions.length > 0);
+  
   const showSecurityWarning = (msg) => {
     setToastWarning(msg);
     setTimeout(() => setToastWarning(null), 3500);
   };
+
+  const handleSuspended = async (reason) => {
+    if (submitting || submitLockRef.current) return;
+    submitLockRef.current = true;
+    setSubmitting(true);
+    try {
+      let rawScore = 0;
+      for (const q of questions) {
+        const studentChoice = answers[q.id];
+        if (studentChoice && q.correctText && studentChoice.trim() === q.correctText.trim()) {
+          rawScore += Number(q.points || 0);
+        }
+      }
+      const partialScore = Number(rawScore.toFixed(2));
+
+      await submitExamResult({
+        session_id: sessionId,
+        student_id: studentSession.student_id,
+        score: partialScore,
+        total_questions: questions.length,
+        attempt_number: attemptNumber,
+        is_retake: attemptNumber > 1,
+        is_suspended: true,
+        started_at: examStartedAt || new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
+        note: `ถูกระงับ (${reason}) — คะแนน ณ เวลาที่ถูกระงับ`
+      });
+
+      const savedState = {
+        questions: questions,
+        answers: answers,
+        flagged: flagged,
+        timeLeft: timeLeft,
+        attemptNumber: attemptNumber
+      };
+
+      await updateParticipantStatus(sessionId, studentSession.student_id, {
+        status: 'cheating',
+        saved_exam_state: savedState
+      });
+
+    } catch (e) {
+      console.error('Failed to log cheating status:', e);
+    }
+
+    alert(`⚠️ ระบบตรวจพบพฤติกรรมต้องสงสัย (${reason})\nข้อสอบของคุณถูกระงับและส่งคะแนนไปยังครูผู้คุมสอบแล้ว`);
+    navigate(`/exam-lobby/${sessionId}`, { replace: true });
+  };
+
+  const { isFullscreen, requestFullscreen, exitFullscreen } = useAntiCheat({
+    sessionId,
+    studentId: studentSession?.student_id,
+    sessionMode: sessionInfo?.exam_mode || 'onsite',
+    initialWarnings,
+    onSuspended: handleSuspended,
+    onAutoSubmit: () => {
+      alert('⚠️ คุณทำผิดกฎเกินกำหนด ระบบกำลังส่งข้อสอบของคุณอัตโนมัติ');
+      handleSubmit(true);
+    },
+    onWarning: (msg) => {
+      setWarningModalOpen(true);
+      showSecurityWarning(msg);
+    },
+    onSleep: (lostSeconds) => {
+      deductTime(lostSeconds);
+      setSleepWarningModal(true);
+    },
+    isActive: !loading && !errorMsg && !submitting
+  });
+
+  useExamRealtime({
+    sessionId,
+    studentId: studentSession?.student_id,
+    onSessionUpdate: (newSessionData) => {
+      if (newSessionData.status === 'completed') {
+        if (!isRetakeMode) {
+          handleSubmit(true);
+        }
+      } else if (newSessionData.time_limit_minutes) {
+        setSessionInfo(prev => ({ ...prev, ...newSessionData }));
+        const startTime = isRetakeMode && examStartedAt
+            ? new Date(examStartedAt).getTime() 
+            : new Date(newSessionData.started_at || Date.now()).getTime();
+        const now = Date.now();
+        const timeLimitMs = newSessionData.time_limit_minutes * 60 * 1000;
+        const remaining = Math.max(0, Math.floor((timeLimitMs - (now - startTime)) / 1000));
+        setTimeLeft(remaining);
+        showSecurityWarning(`📢 ครูผู้สอนปรับเวลาสอบเป็น ${newSessionData.time_limit_minutes} นาที`);
+      }
+    },
+    isActive: !loading && !submitting
+  });
 
   useEffect(() => {
     if (!studentSession || studentSession.session_id !== sessionId) {
       navigate('/login', { replace: true });
       return;
     }
-    const loadExamAndFullscreen = async () => {
-      await initExam();
-      
-      // Auto-fullscreen attempt
-      if (!document.fullscreenElement) {
-        try {
-          const el = document.documentElement;
-          if (el.requestFullscreen) await el.requestFullscreen();
-          else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-          else if (el.msRequestFullscreen) await el.msRequestFullscreen();
-          setIsFullscreen(true);
-        } catch (e) {
-          console.warn('Auto fullscreen blocked by browser:', e.message);
-        }
-      } else {
-        setIsFullscreen(true);
-      }
-      
-      // Allow 10 seconds grace period for browser fullscreen animation/prompts
-      setTimeout(() => {
-        gracePeriodRef.current = false;
-      }, 10000);
-    };
     
-    loadExamAndFullscreen();
-
-    // 🔒 1. Anti-Cheat: Tab Switch & Window Blur (Allow 3 warnings, 4th time kicks)
-    const triggerCheating = async (reason) => {
-      if (cheatingFlag.current || submitting) return;
-      cheatingFlag.current = true;
-
-      try {
-        // 1. คำนวณคะแนนปัจจุบัน (partial score)
-        let rawScore = 0;
-        const currentQuestions = questionsRef.current || [];
-        const currentAnswers = answersRef.current || {};
-        for (const q of currentQuestions) {
-          const studentChoice = currentAnswers[q.id];
-          if (studentChoice && q.correctText && studentChoice.trim() === q.correctText.trim()) {
-            rawScore += Number(q.points || 0);
-          }
-        }
-        const partialScore = Math.round(rawScore);
-        const currentAttempt = attemptNumberRef.current || 1;
-
-        // 2. บันทึกคะแนนแบบ suspended ลง exam_results
-        await supabase.from('exam_results').insert([{
-          session_id: sessionId,
-          student_id: studentSession.student_id,
-          score: partialScore,
-          total_questions: currentQuestions.length,
-          attempt_number: currentAttempt,
-          is_retake: currentAttempt > 1,
-          is_suspended: true,
-          started_at: examStartedAtRef.current || new Date().toISOString(),
-          submitted_at: new Date().toISOString(),
-          note: `ถูกระงับ (${reason}) — คะแนน ณ เวลาที่ถูกระงับ`
-        }]);
-
-        // 3. บันทึกสถานะข้อสอบเพื่อทำต่อได้
-        const savedState = {
-          questions: currentQuestions,
-          answers: currentAnswers,
-          flagged: flaggedRef.current || {},
-          timeLeft: timeLeftRef.current || 0,
-          attemptNumber: currentAttempt
-        };
-
-        // 4. อัปเดตสถานะเป็น cheating + บันทึก state
-        await supabase
-          .from('exam_participants')
-          .update({
-            status: 'cheating',
-            saved_exam_state: savedState
-          })
-          .eq('session_id', sessionId)
-          .eq('student_id', studentSession.student_id);
-      } catch (e) {
-        console.error('Failed to log cheating status:', e);
-      }
-
-      alert(`⚠️ ระบบตรวจพบพฤติกรรมต้องสงสัย (${reason})\nข้อสอบของคุณถูกระงับและส่งคะแนนไปยังครูผู้คุมสอบแล้ว`);
-      navigate(`/exam-lobby/${sessionId}`, { replace: true });
-    };
-
-    const handleViolation = (reason) => {
-      if (cheatingFlag.current || submitting) return;
-
-      violationCountRef.current += 1;
-
-      if (sessionModeRef.current === 'online') {
-        supabase
-          .from('exam_participants')
-          .update({ warnings_count: violationCountRef.current })
-          .eq('session_id', sessionId)
-          .eq('student_id', studentSession.student_id)
-          .then();
-
-        if (violationCountRef.current < 3) {
-          setWarningModalOpen(true);
-          showSecurityWarning(`⚠️ คำเตือน: ระบบตรวจพบการออกจากหน้าจอข้อสอบ (เตือนครั้งที่ ${violationCountRef.current}/2)`);
-        } else {
-          cheatingFlag.current = true;
-          alert('⚠️ คุณทำผิดกฎเกินกำหนด ระบบกำลังส่งข้อสอบของคุณอัตโนมัติ');
-          setTimeLeft(0);
-        }
-      } else {
-        if (violationCountRef.current <= 3) {
-          setWarningModalOpen(true);
-          showSecurityWarning('⚠️ คำเตือน: ระบบตรวจพบการออกจากหน้าจอข้อสอบ');
-        } else {
-          triggerCheating(reason || 'สลับหน้าต่างหรือออกจากหน้าจอข้อสอบเกินที่ระบบอนุญาต');
-        }
-      }
-    };
-
-    const SLEEP_THRESHOLD_MS = 30000; // 30 วินาที
-
-    const handleVisibilityChange = () => {
-      if (gracePeriodRef.current) return;
-
-      if (document.hidden) {
-        // บันทึกเวลาที่หน้าจอหายไป
-        hiddenTimestampRef.current = Date.now();
-      } else {
-        // หน้าจอกลับมา — ตรวจสอบว่าเป็น sleep หรือ tab switch
-        const hiddenDuration = hiddenTimestampRef.current
-          ? Date.now() - hiddenTimestampRef.current
-          : 0;
-        hiddenTimestampRef.current = null;
-
-        if (hiddenDuration > SLEEP_THRESHOLD_MS) {
-          // ★ เป็น Sleep — ไม่นับเป็นการทุจริต แต่หักเวลาสอบตามจริง
-          const lostSeconds = Math.floor(hiddenDuration / 1000);
-          setTimeLeft(prev => {
-            const newTime = Math.max(0, (prev || 0) - lostSeconds);
-            return newTime;
-          });
-          setSleepWarningModal(true);
-        } else if (hiddenDuration > 0) {
-          // ★ เป็น Tab Switch — นับเป็นการทุจริตเหมือนเดิม
-          handleViolation('ออกจากหน้าต่างข้อสอบ หรือสลับแท็บเบราว์เซอร์');
-        }
-      }
-    };
-
-    const handleWindowBlur = () => {
-      if (gracePeriodRef.current) return;
-      if (!cheatingFlag.current && !submitting) {
-        // blur เกิดขึ้นพร้อม visibilitychange เมื่อ sleep
-        // ถ้า hidden อยู่แล้ว ไม่ต้องนับซ้ำ
-        if (!document.hidden) {
-          handleViolation('คลิกออกนอกหน้าจอข้อสอบ หรือสลับโปรแกรม');
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleWindowBlur);
-
-    // 🔒 2. Anti-Cheat: Prevent Copy, Cut, Paste, Select, Drag & Context Menu
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-      showSecurityWarning('🚫 ไม่อนุญาตให้คลิกขวาในห้องสอบ');
-      return false;
-    };
-
-    const handleCopy = (e) => {
-      e.preventDefault();
-      showSecurityWarning('🚫 ไม่อนุญาตให้คัดลอกข้อความในห้องสอบ');
-      return false;
-    };
-
-    const handleCut = (e) => {
-      e.preventDefault();
-      showSecurityWarning('🚫 ไม่อนุญาตให้ตัดข้อความ');
-      return false;
-    };
-
-    const handlePaste = (e) => {
-      e.preventDefault();
-      showSecurityWarning('🚫 ไม่อนุญาตให้วางข้อความ');
-      return false;
-    };
-
-    const handleSelectStart = (e) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleDragStart = (e) => {
-      e.preventDefault();
-      return false;
-    };
-
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('copy', handleCopy);
-    document.addEventListener('cut', handleCut);
-    document.addEventListener('paste', handlePaste);
-    document.addEventListener('selectstart', handleSelectStart);
-    document.addEventListener('dragstart', handleDragStart);
-
-    // 🔒 3. Anti-Cheat: Block Keyboard Shortcuts (DevTools, Copy/Paste, View Source, Print, Reload)
-    const handleKeyDown = (e) => {
-      if (e.key === 'F12' || e.key === 'F5') {
-        e.preventDefault();
-        showSecurityWarning('🚫 ไม่อนุญาตให้ใช้ปุ่มฟังก์ชันนี้');
-        return false;
-      }
-
-      if (e.ctrlKey || e.metaKey) {
-        const key = e.key.toLowerCase();
-        if (['c', 'v', 'x', 'a', 'u', 's', 'p', 'r', 'j', 'i'].includes(key)) {
-          e.preventDefault();
-          showSecurityWarning(`🚫 ไม่อนุญาตให้ใช้คีย์ลัด Ctrl+${key.toUpperCase()}`);
-          return false;
-        }
-      }
-
-      if (e.altKey && e.key === 'Tab') {
-        e.preventDefault();
-        triggerCheating('พยายามใช้ Alt+Tab สลับหน้าต่าง');
-        return false;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    // 🔒 4. Prevent Page Reload / Closing without warning
-    const handleBeforeUnload = (e) => {
-      if (!submitting) {
-        e.preventDefault();
-        e.returnValue = 'ข้อสอบยังดำเนินอยู่ หากออกจากหน้านี้จะถือว่าสิ้นสุดการสอบ';
-        return e.returnValue;
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // 🔒 5. Intercept browser back button
-    window.history.pushState(null, '', window.location.href);
-    const handlePopState = () => {
-      window.history.pushState(null, '', window.location.href);
-      showSecurityWarning('⚠️ หากต้องการส่งข้อสอบ กรุณากดปุ่ม "ส่งข้อสอบ" ด้านล่าง');
-    };
-    window.addEventListener('popstate', handlePopState);
-
-    // 🔒 6. Fullscreen Change Tracker
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-
-    // 🔒 7. Listen for session ending or time extension by teacher in real time
-    const sessionSub = supabase
-      .channel(`session_update_${sessionId}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'exam_sessions', filter: `id=eq.${sessionId}` }, (payload) => {
-        if (payload.new.status === 'completed') {
-          // ถ้าสอบซ่อมอยู่ ให้เมินคำสั่งปิดข้อสอบจากเซสชั่นหลัก (ให้ยึดเวลาของตัวเองแทน)
-          if (!isRetakeModeRef.current) {
-            handleSubmit(true);
-          }
-        } else if (payload.new.time_limit_minutes) {
-          // Real-time time extension from teacher
-          setSessionInfo(prev => ({ ...prev, ...payload.new }));
-          const startTime = isRetakeModeRef.current && examStartedAtRef.current
-              ? new Date(examStartedAtRef.current).getTime() 
-              : new Date(payload.new.started_at || Date.now()).getTime();
-          const now = Date.now();
-          const timeLimitMs = payload.new.time_limit_minutes * 60 * 1000;
-          const remaining = Math.max(0, Math.floor((timeLimitMs - (now - startTime)) / 1000));
-          setTimeLeft(remaining);
-          showSecurityWarning(`📢 ครูผู้สอนปรับเวลาสอบเป็น ${payload.new.time_limit_minutes} นาที`);
-        }
-      })
-      .subscribe();
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleWindowBlur);
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('copy', handleCopy);
-      document.removeEventListener('cut', handleCut);
-      document.removeEventListener('paste', handlePaste);
-      document.removeEventListener('selectstart', handleSelectStart);
-      document.removeEventListener('dragstart', handleDragStart);
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      supabase.removeChannel(sessionSub);
-    };
-  }, [sessionId, studentSession, submitting]);
-
-  useEffect(() => {
-    // Timer countdown — ใช้เวลาจริง (drift detection) ป้องกัน sleep
-    if (timeLeft === null || timeLeft <= 0) {
-      if (timeLeft === 0 && !submitting && questions.length > 0) {
-        handleSubmit(true);
-      }
-      return;
-    }
-    
-    lastTickTimeRef.current = Date.now();
-    const timer = setInterval(() => {
-      const now = Date.now();
-      const drift = Math.floor((now - lastTickTimeRef.current) / 1000);
-      lastTickTimeRef.current = now;
-      setTimeLeft(prev => Math.max(0, prev - Math.max(1, drift)));
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [timeLeft, submitting, questions]);
+    initExam();
+  }, [sessionId, studentSession, navigate]);
 
   const initExam = async () => {
     setLoading(true);
     setErrorMsg(null);
     try {
-      // 1. Get session info
-      const { data: sData, error: sError } = await supabase
-        .from('exam_sessions')
-        .select('*, question_banks(title)')
-        .eq('id', sessionId)
-        .maybeSingle();
-        
-      if (sError || !sData) {
+      const sData = await getSessionInfo(sessionId);
+      if (!sData) {
         await logoutStudent();
         navigate('/login', { replace: true });
         return;
       }
-      
       setSessionInfo(sData);
 
-      // Check participant status and previous attempts
-      const { data: pData } = await supabase
-        .from('exam_participants')
-        .select('status, allow_rejoin, is_retake, started_at, warnings_count, saved_exam_state, rejoin_mode')
-        .eq('session_id', sessionId)
-        .eq('student_id', studentSession.student_id)
-        .maybeSingle();
+      const pData = await getParticipant(sessionId, studentSession.student_id);
+      setInitialWarnings(pData?.warnings_count || 0);
 
-      sessionModeRef.current = sData.exam_mode || 'onsite';
-      violationCountRef.current = pData?.warnings_count || 0;
-
-      // ★ กรณีครูเลือกให้แก้ข้อสอบเดิม (continue)
       if (pData?.rejoin_mode === 'continue' && pData?.saved_exam_state) {
         const saved = pData.saved_exam_state;
         setQuestions(saved.questions || []);
@@ -426,58 +175,33 @@ export default function ExamRoom() {
         setTimeLeft(saved.timeLeft || 0);
         setAttemptNumber(saved.attemptNumber || 1);
         setIsRetakeMode((saved.attemptNumber || 1) > 1);
-        examStartedAtRef.current = pData.started_at || new Date().toISOString();
+        setExamStartedAt(pData.started_at || new Date().toISOString());
 
-        // ลบ suspended result เดิม (จะถูกแทนที่เมื่อส่งใหม่)
-        await supabase.from('exam_results')
-          .delete()
-          .eq('session_id', sessionId)
-          .eq('student_id', studentSession.student_id)
-          .eq('attempt_number', saved.attemptNumber)
-          .eq('is_suspended', true);
-
-        // อัปเดตสถานะ
-        await supabase.from('exam_participants')
-          .update({
-            status: 'testing',
-            allow_rejoin: false,
-            rejoin_mode: null,
-            saved_exam_state: null
-          })
-          .eq('session_id', sessionId)
-          .eq('student_id', studentSession.student_id);
-
+        await deleteSuspendedResult(sessionId, studentSession.student_id, saved.attemptNumber);
+        
+        await updateParticipantStatus(sessionId, studentSession.student_id, {
+          status: 'testing',
+          allow_rejoin: false,
+          rejoin_mode: null,
+          saved_exam_state: null
+        });
+        
+        requestFullscreen();
         setLoading(false);
-        return; // ออก initExam — ใช้ข้อสอบเดิม
+        return;
       }
 
-      // ★ กรณีครูเลือกให้เริ่มทำใหม่ (restart) — ลบ suspended result
       if (pData?.rejoin_mode === 'restart' && pData?.saved_exam_state) {
-        await supabase.from('exam_results')
-          .delete()
-          .eq('session_id', sessionId)
-          .eq('student_id', studentSession.student_id)
-          .eq('attempt_number', pData.saved_exam_state.attemptNumber)
-          .eq('is_suspended', true);
-
-        await supabase.from('exam_participants')
-          .update({ rejoin_mode: null, saved_exam_state: null })
-          .eq('session_id', sessionId)
-          .eq('student_id', studentSession.student_id);
-        // ต่อ initExam ปกติ — สุ่มข้อสอบใหม่ แต่ attemptNumber เท่าเดิม
+        await deleteSuspendedResult(sessionId, studentSession.student_id, pData.saved_exam_state.attemptNumber);
+        await updateParticipantStatus(sessionId, studentSession.student_id, {
+          rejoin_mode: null,
+          saved_exam_state: null
+        });
       }
 
-      // Fetch previous results for this student to detect retake
-      const { data: prevResults } = await supabase
-        .from('exam_results')
-        .select('id, score, attempt_number, is_suspended')
-        .eq('session_id', sessionId)
-        .eq('student_id', studentSession.student_id)
-        .order('submitted_at', { ascending: true });
-
-      // กรอง suspended results ออกเมื่อนับ attempt
-      const completedResults = (prevResults || []).filter(r => !r.is_suspended);
-
+      const prevResults = await getStudentResults(sessionId, studentSession.student_id);
+      const completedResults = prevResults.filter(r => !r.is_suspended);
+      
       const hasPreviousAttempts = completedResults.length > 0;
       const isRetake = hasPreviousAttempts || pData?.allow_rejoin || pData?.is_retake;
       const currentAttempt = completedResults.length + 1;
@@ -485,17 +209,13 @@ export default function ExamRoom() {
       setIsRetakeMode(isRetake);
       setAttemptNumber(currentAttempt);
 
-      // If student already completed the exam and has no retake permission, redirect immediately to result
       if (pData?.status === 'completed' && !pData?.allow_rejoin) {
         navigate(`/exam-result/${sessionId}`, { replace: true });
         return;
       }
 
       const isRetakeAllowed = pData?.status === 'testing' || pData?.allow_rejoin;
-
-      // Calculate time
-      // Use individual timer (pData.started_at) if it's online mode OR if it's a retake
-      const startTime = (sessionModeRef.current === 'online' || isRetake) && pData?.started_at
+      const startTime = (sData.exam_mode === 'online' || isRetake) && pData?.started_at
           ? new Date(pData.started_at).getTime()
           : new Date(sData.started_at || Date.now()).getTime();
       const now = Date.now();
@@ -503,7 +223,7 @@ export default function ExamRoom() {
       const elapsed = now - startTime;
       const remaining = Math.max(0, Math.floor((timeLimitMs - elapsed) / 1000));
 
-      if (sessionModeRef.current !== 'online' && !isRetakeAllowed && (sData.status === 'completed' || (sData.started_at && remaining <= 0))) {
+      if (sData.exam_mode !== 'online' && !isRetakeAllowed && (sData.status === 'completed' || (sData.started_at && remaining <= 0))) {
         alert('การสอบนี้เสร็จสิ้นหรือหมดเวลาแล้ว ไม่สามารถทำข้อสอบต่อได้ (หากต้องการสอบซ่อม กรุณากดขอสอบซ่อม)');
         navigate(`/exam-result/${sessionId}`, { replace: true });
         return;
@@ -515,63 +235,37 @@ export default function ExamRoom() {
         setTimeLeft(remaining);
       }
 
-      // 2. Set participant status to testing & update retake flags
-      await supabase
-        .from('exam_participants')
-        .update({
-          status: 'testing',
-          allow_rejoin: false,
-          retake_requested: false,
-          is_retake: isRetake,
-          attempt_count: currentAttempt
-        })
-        .eq('session_id', sessionId)
-        .eq('student_id', studentSession.student_id);
+      await updateParticipantStatus(sessionId, studentSession.student_id, {
+        status: 'testing',
+        allow_rejoin: false,
+        retake_requested: false,
+        is_retake: isRetake,
+        attempt_count: currentAttempt
+      });
+      
+      setExamStartedAt(pData?.started_at || new Date().toISOString());
 
-      // บันทึกเวลาเริ่มสอบ
-      examStartedAtRef.current = pData?.started_at || new Date().toISOString();
-
-      // 3. Fetch question pool for this session
-      const { data: eqData, error: eqError } = await supabase
-        .from('exam_session_questions')
-        .select(`
-          points,
-          questions (
-            id, question_text, choices, correct_answer_index
-          )
-        `)
-        .eq('session_id', sessionId);
-        
-      if (eqError || !eqData || eqData.length === 0) {
+      const eqData = await getExamQuestions(sessionId);
+      if (!eqData || eqData.length === 0) {
         setErrorMsg('ไม่พบข้อสอบในชุดนี้ หรือห้องสอบยังไม่ได้ตั้งค่าคำถาม');
         setLoading(false);
         return;
       }
 
-      let pool = eqData.map(item => ({
-        ...item.questions,
-        points: item.points
-      }));
-
-      // Genuine independent random shuffle of the entire candidate pool
+      let pool = eqData.map(item => ({ ...item.questions, points: item.points }));
       pool = pool.sort(() => Math.random() - 0.5);
 
-      // Determine how many questions to draw for this attempt
       const targetCount = sData.question_count && sData.question_count > 0 && sData.question_count < pool.length
         ? sData.question_count
         : pool.length;
 
       let sampledQuestions = pool.slice(0, targetCount);
-
-      // Calculate score points per question
       const pointsPerQ = (sData.total_score && targetCount > 0)
         ? (Number(sData.total_score) / targetCount)
         : (sampledQuestions[0]?.points || 1);
 
-      // Determine correct answer text before shuffling, then shuffle choices independently
       sampledQuestions = sampledQuestions.map(q => {
         const rawChoices = q.choices || [];
-        
         let correctText = '';
         const correctChoiceObj = rawChoices.find(c => typeof c === 'object' && (c.is_correct === true || c.isCorrect === true));
         if (correctChoiceObj) {
@@ -591,6 +285,7 @@ export default function ExamRoom() {
       });
 
       setQuestions(sampledQuestions);
+      requestFullscreen();
     } catch (err) {
       console.error('Error initializing exam:', err);
       setErrorMsg('เกิดข้อผิดพลาดในการโหลดข้อสอบ: ' + (err.message || ''));
@@ -599,30 +294,12 @@ export default function ExamRoom() {
     }
   };
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
-        console.warn('Error attempting to enable fullscreen:', err.message);
-      });
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-  };
-
   const handleSelectChoice = (questionId, choiceText) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: choiceText
-    }));
+    setAnswers(prev => ({ ...prev, [questionId]: choiceText }));
   };
 
   const toggleFlag = (questionId) => {
-    setFlagged(prev => ({
-      ...prev,
-      [questionId]: !prev[questionId]
-    }));
+    setFlagged(prev => ({ ...prev, [questionId]: !prev[questionId] }));
   };
 
   const goToQuestion = (index) => {
@@ -632,74 +309,53 @@ export default function ExamRoom() {
   };
 
   const handleSubmit = async (isAuto = false) => {
-    if (!isAuto && isSubmitModalOpen) {
-      setIsSubmitModalOpen(false);
-    }
-
+    if (submitting || submitLockRef.current) return;
+    submitLockRef.current = true;
+    if (!isAuto && isSubmitModalOpen) setIsSubmitModalOpen(false);
     setSubmitting(true);
+    
     try {
-      // 1. Calculate Score based on the dynamically assigned questions for this attempt
       let rawScore = 0;
-      const totalQuestions = questions.length;
-      
       for (const q of questions) {
         const studentChoiceText = answers[q.id];
         if (!studentChoiceText) continue;
-
         if (q.correctText && studentChoiceText.trim() === q.correctText.trim()) {
-          rawScore += Number(q.points || (Number(sessionInfo?.total_score || 10) / totalQuestions));
+          rawScore += Number(q.points || (Number(sessionInfo?.total_score || 10) / questions.length));
         }
       }
-
-      // Round to integer cleanly (ปัดเศษเป็นจำนวนเต็มทั้งหมด)
-      const finalScore = Math.round(rawScore);
-      
-      // 2. Save result to exam_results with attempt tracking
+      const finalScore = Number(rawScore.toFixed(2));
       const isRetakeSubmission = attemptNumber > 1;
-      const { error: insertErr } = await supabase
-        .from('exam_results')
-        .insert([{
-          session_id: sessionId,
-          student_id: studentSession.student_id,
-          score: finalScore,
-          total_questions: totalQuestions,
-          attempt_number: attemptNumber,
-          is_retake: isRetakeSubmission,
-          is_suspended: false,
-          started_at: examStartedAtRef.current || new Date().toISOString(),
-          note: isRetakeSubmission ? `สอบซ่อม (รอบที่ ${attemptNumber})` : 'สอบรอบปกติ (รอบที่ 1)',
-          submitted_at: new Date().toISOString()
-        }]);
 
-      if (insertErr) throw insertErr;
-        
-      // 3. Update participant status
-      await supabase
-        .from('exam_participants')
-        .update({ 
-          status: 'completed', 
-          allow_rejoin: false, 
-          retake_requested: false,
-          is_retake: isRetakeSubmission,
-          attempt_count: attemptNumber,
-          saved_exam_state: null,
-          rejoin_mode: null
-        })
-        .eq('session_id', sessionId)
-        .eq('student_id', studentSession.student_id);
-        
-      // 4. Exit fullscreen if active
-      if (document.fullscreenElement && document.exitFullscreen) {
-        try { await document.exitFullscreen(); } catch (_) {}
-      }
+      await submitExamResult({
+        session_id: sessionId,
+        student_id: studentSession.student_id,
+        score: finalScore,
+        total_questions: questions.length,
+        attempt_number: attemptNumber,
+        is_retake: isRetakeSubmission,
+        is_suspended: false,
+        started_at: examStartedAt || new Date().toISOString(),
+        note: isRetakeSubmission ? `สอบซ่อม (รอบที่ ${attemptNumber})` : 'สอบรอบปกติ (รอบที่ 1)',
+        submitted_at: new Date().toISOString()
+      });
 
-      // 5. Navigate to result (replace history entry)
+      await updateParticipantStatus(sessionId, studentSession.student_id, { 
+        status: 'completed', 
+        allow_rejoin: false, 
+        retake_requested: false,
+        is_retake: isRetakeSubmission,
+        attempt_count: attemptNumber,
+        saved_exam_state: null,
+        rejoin_mode: null
+      });
+
+      await exitFullscreen();
       navigate(`/exam-result/${sessionId}`, { replace: true });
-      
     } catch (err) {
       console.error('Submit error:', err);
       alert('เกิดข้อผิดพลาดในการส่งข้อสอบ: ' + (err.message || JSON.stringify(err)));
       setSubmitting(false);
+      submitLockRef.current = false;
     }
   };
 
@@ -710,7 +366,7 @@ export default function ExamRoom() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  if (errorMsg) {
+  if (errorMsg || (!loading && questions.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white font-sans p-4">
         <div className="max-w-md w-full bg-zinc-800 p-8 rounded-3xl border border-zinc-700 text-center space-y-4 shadow-2xl">
@@ -718,7 +374,7 @@ export default function ExamRoom() {
             <AlertTriangle className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-bold text-white">เกิดข้อผิดพลาด</h2>
-          <p className="text-sm text-zinc-400 font-medium">{errorMsg}</p>
+          <p className="text-sm text-zinc-400 font-medium">{errorMsg || 'ไม่พบข้อสอบ หรือไม่สามารถโหลดข้อสอบได้'}</p>
           <button
             onClick={async () => {
               await logoutStudent();
@@ -733,7 +389,7 @@ export default function ExamRoom() {
     );
   }
 
-  if (loading || !sessionInfo || questions.length === 0) {
+  if (loading || !sessionInfo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white font-sans p-4">
         <div className="text-center space-y-4 max-w-sm">
@@ -769,12 +425,7 @@ export default function ExamRoom() {
             </p>
           </div>
           <button
-            onClick={() => {
-              const el = document.documentElement;
-              if (el.requestFullscreen) el.requestFullscreen();
-              else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-              else if (el.msRequestFullscreen) el.msRequestFullscreen();
-            }}
+            onClick={requestFullscreen}
             className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/25 cursor-pointer"
           >
             เปิดโหมดเต็มจอและทำข้อสอบ
@@ -795,21 +446,14 @@ export default function ExamRoom() {
   return (
     <div 
       className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans select-none relative"
-      style={{
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        MozUserSelect: 'none',
-        msUserSelect: 'none'
-      }}
+      style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
     >
-      {/* 🛡️ Faint Security Watermark in background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.03] select-none flex flex-wrap gap-16 p-8 items-center justify-center font-mono font-bold text-zinc-900 text-lg rotate-[-15deg]">
         {Array.from({ length: 40 }).map((_, i) => (
           <span key={i}>{studentSession.student_id} • ANTI-CHEAT LOCK</span>
         ))}
       </div>
 
-      {/* ⚠️ Floating Security Toast Warning */}
       {toastWarning && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-rose-600 text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl flex items-center gap-2 animate-bounce">
           <AlertTriangle className="w-4 h-4" />
@@ -817,7 +461,6 @@ export default function ExamRoom() {
         </div>
       )}
 
-      {/* Header */}
       <header className="bg-white/95 backdrop-blur-md border-b border-zinc-200 sticky top-0 z-40 shadow-xs">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -840,16 +483,13 @@ export default function ExamRoom() {
           </div>
           
           <div className="flex items-center gap-2.5">
-            {/* Fullscreen Toggle */}
             <button
-              onClick={toggleFullscreen}
+              onClick={isFullscreen ? exitFullscreen : requestFullscreen}
               className="p-2 text-zinc-600 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer border border-zinc-200"
               title={isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'เข้าสู่โหมดเต็มหน้าจอ'}
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
-
-            {/* Timer */}
             <div className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-mono font-bold text-base ${
               timeLeft < 300 ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-200' : 'bg-zinc-100 text-zinc-800'
             }`}>
@@ -860,10 +500,8 @@ export default function ExamRoom() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 max-w-3xl mx-auto w-full p-4 py-5 space-y-5 relative z-10">
         
-        {/* 🎯 Retake Exam Notice Banner */}
         {isRetakeMode && (
           <div className="bg-amber-500/10 border border-amber-400/40 text-amber-900 p-3.5 rounded-2xl text-xs flex items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-2.5">
@@ -881,7 +519,6 @@ export default function ExamRoom() {
           </div>
         )}
 
-        {/* 🧭 Question Status Palette / Quick Navigator Grid */}
         <div className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-xs space-y-3">
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-zinc-800 flex items-center gap-1.5">
@@ -900,20 +537,17 @@ export default function ExamRoom() {
             </div>
           </div>
 
-          {/* Question Bubbles Grid */}
           <div className="flex flex-wrap gap-2 pt-1">
             {questions.map((q, idx) => {
               const isAnswered = answers[q.id] !== undefined;
               const isFlagged = flagged[q.id] === true;
               const isCurrentPage = idx >= startIndex && idx < startIndex + QUESTIONS_PER_PAGE;
-
               let style = 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-200';
               if (isFlagged) {
                 style = 'bg-amber-400 text-amber-950 border-amber-500 font-bold shadow-xs';
               } else if (isAnswered) {
                 style = 'bg-emerald-500 text-white border-emerald-600 font-bold shadow-xs';
               }
-
               return (
                 <button
                   key={q.id}
@@ -924,45 +558,32 @@ export default function ExamRoom() {
                   title={`ข้อ ${idx + 1}${isFlagged ? ' (ปักธง)' : isAnswered ? ' (ทำแล้ว)' : ' (ยังไม่ทำ)'}`}
                 >
                   {idx + 1}
-                  {isFlagged && (
-                    <Flag className="w-2.5 h-2.5 fill-amber-950 text-amber-950 absolute -top-1 -right-1" />
-                  )}
-                  {isAnswered && !isFlagged && (
-                    <Check className="w-2.5 h-2.5 text-white absolute -top-1 -right-1 stroke-[3]" />
-                  )}
+                  {isFlagged && <Flag className="w-2.5 h-2.5 fill-amber-950 text-amber-950 absolute -top-1 -right-1" />}
+                  {isAnswered && !isFlagged && <Check className="w-2.5 h-2.5 text-white absolute -top-1 -right-1 stroke-[3]" />}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* 📄 Displaying 2 Questions on Current Page */}
         <div className="space-y-5">
           {currentQuestions.map((q, localIdx) => {
             const actualIndex = startIndex + localIdx;
             const isAnswered = answers[q.id] !== undefined;
             const isFlagged = flagged[q.id] === true;
-
             return (
               <div 
                 key={q.id} 
                 className={`bg-white p-5 sm:p-6 rounded-2xl shadow-xs border transition-all ${
-                  isFlagged 
-                    ? 'border-amber-300 bg-amber-50/20 ring-1 ring-amber-200' 
-                    : isAnswered 
-                    ? 'border-emerald-200 bg-white' 
-                    : 'border-zinc-200/80 bg-white'
+                  isFlagged ? 'border-amber-300 bg-amber-50/20 ring-1 ring-amber-200' 
+                  : isAnswered ? 'border-emerald-200 bg-white' : 'border-zinc-200/80 bg-white'
                 }`}
               >
-                {/* Question Top Bar (Number + Flag Action) */}
                 <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-zinc-100">
                   <div className="flex items-center gap-2.5">
                     <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 font-mono ${
-                      isFlagged
-                        ? 'bg-amber-400 text-amber-950 font-black shadow-xs'
-                        : isAnswered 
-                        ? 'bg-emerald-500 text-white font-bold shadow-xs' 
-                        : 'bg-zinc-100 text-zinc-600'
+                      isFlagged ? 'bg-amber-400 text-amber-950 font-black shadow-xs'
+                      : isAnswered ? 'bg-emerald-500 text-white font-bold shadow-xs' : 'bg-zinc-100 text-zinc-600'
                     }`}>
                       {actualIndex + 1}
                     </span>
@@ -970,36 +591,26 @@ export default function ExamRoom() {
                       ข้อที่ {actualIndex + 1} จาก {questions.length}
                     </span>
                   </div>
-
-                  {/* Flag Toggle Button */}
                   <button
                     onClick={() => toggleFlag(q.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                      isFlagged
-                        ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-xs'
-                        : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'
+                      isFlagged ? 'bg-amber-100 text-amber-800 border-amber-300 shadow-xs'
+                      : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200'
                     }`}
                   >
                     <Flag className={`w-3.5 h-3.5 ${isFlagged ? 'fill-amber-600 text-amber-600' : 'text-zinc-400'}`} />
                     <span>{isFlagged ? 'ปักธงไว้แล้ว' : 'ปักธงข้อนี้'}</span>
                   </button>
                 </div>
-
-                {/* Question Text */}
-                <h3 className="text-base font-bold text-zinc-900 leading-relaxed mb-4">
-                  {q.question_text}
-                </h3>
-
-                {/* Choices List */}
+                <h3 className="text-base font-bold text-zinc-900 leading-relaxed mb-4 break-words whitespace-pre-wrap">{q.question_text}</h3>
                 <div className="space-y-2.5">
                   {q.choices.map((choice, cIdx) => {
                     const isSelected = answers[q.id] === choice.text;
                     return (
                       <label 
                         key={cIdx} 
-                        className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                          isSelected 
-                          ? 'bg-indigo-50/90 border-indigo-500 text-indigo-950 font-semibold shadow-xs ring-1 ring-indigo-300' 
+                        className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all touch-manipulation ${
+                          isSelected ? 'bg-indigo-50/90 border-indigo-500 text-indigo-950 font-semibold shadow-xs ring-1 ring-indigo-300' 
                           : 'bg-zinc-50/60 border-zinc-200/80 text-zinc-700 hover:bg-zinc-100/80 hover:border-zinc-300'
                         }`}
                       >
@@ -1009,11 +620,9 @@ export default function ExamRoom() {
                           value={choice.text}
                           checked={isSelected}
                           onChange={() => handleSelectChoice(q.id, choice.text)}
-                          className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                          className="w-4 h-4 mt-0.5 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
                         />
-                        <span className="text-sm select-none leading-relaxed">
-                          {choice.text}
-                        </span>
+                        <span className="text-sm select-none leading-relaxed break-words flex-1">{choice.text}</span>
                       </label>
                     );
                   })}
@@ -1023,7 +632,6 @@ export default function ExamRoom() {
           })}
         </div>
 
-        {/* 🔄 Bottom Pagination & Navigation Controls */}
         <div className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-xs flex items-center justify-between gap-3">
           <button
             onClick={() => {
@@ -1035,16 +643,12 @@ export default function ExamRoom() {
           >
             <ChevronLeft className="w-4 h-4" /> ก่อนหน้า
           </button>
-
           <div className="text-center">
-            <p className="text-xs font-bold text-zinc-800">
-              หน้า {currentPage + 1} / {totalPages}
-            </p>
+            <p className="text-xs font-bold text-zinc-800">หน้า {currentPage + 1} / {totalPages}</p>
             <p className="text-[11px] text-zinc-400 font-medium">
               ข้อ {startIndex + 1} - {Math.min(startIndex + QUESTIONS_PER_PAGE, questions.length)} จาก {questions.length} ข้อ
             </p>
           </div>
-
           {currentPage < totalPages - 1 ? (
             <button
               onClick={() => {
@@ -1065,7 +669,6 @@ export default function ExamRoom() {
           )}
         </div>
 
-        {/* Global Submit Floating Bar */}
         <div className="pt-2 pb-16 flex justify-center">
           <button 
             onClick={() => setIsSubmitModalOpen(true)}
@@ -1075,27 +678,18 @@ export default function ExamRoom() {
             <Send className="w-4 h-4" /> ตรวจทานและส่งข้อสอบ (ตอบแล้ว {answeredCount}/{questions.length})
           </button>
         </div>
-
       </main>
 
-      {/* 🚀 Submit Confirmation & Summary Modal */}
       {isSubmitModalOpen && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl border border-zinc-100 animate-in fade-in zoom-in duration-200">
             <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-indigo-100">
               <Send className="w-8 h-8" />
             </div>
-            
             <div className="space-y-1">
-              <h2 className="text-xl font-black text-zinc-900">
-                ยืนยันการส่งข้อสอบ?
-              </h2>
-              <p className="text-xs text-zinc-500 font-medium">
-                {sessionInfo?.title}
-              </p>
+              <h2 className="text-xl font-black text-zinc-900">ยืนยันการส่งข้อสอบ?</h2>
+              <p className="text-xs text-zinc-500 font-medium">{sessionInfo?.title}</p>
             </div>
-
-            {/* Answer Summary Card */}
             <div className="grid grid-cols-3 gap-2 bg-zinc-50 p-4 rounded-2xl border border-zinc-100 text-center">
               <div className="p-2 bg-emerald-50 rounded-xl border border-emerald-100">
                 <span className="block text-2xl font-black text-emerald-700 font-mono">{answeredCount}</span>
@@ -1110,13 +704,11 @@ export default function ExamRoom() {
                 <span className="text-[11px] font-bold text-rose-800">ยังไม่ทำ</span>
               </div>
             </div>
-
             {unansweredCount > 0 && (
               <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-2.5 rounded-xl border border-rose-100">
                 ⚠️ คุณยังมีข้อที่ยังไม่ได้ทำอีก {unansweredCount} ข้อ
               </p>
             )}
-
             <div className="flex gap-2.5 pt-1">
               <button
                 type="button"
@@ -1138,30 +730,22 @@ export default function ExamRoom() {
         </div>
       )}
 
-      {/* ⚠️ Security Warning Modal (Accidental tab / window switch) */}
       {warningModalOpen && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-4 shadow-2xl border border-rose-200 animate-in fade-in zoom-in duration-200">
             <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-rose-100">
               <AlertTriangle className="w-8 h-8" />
             </div>
-            
             <div className="space-y-1.5">
-              <h2 className="text-xl font-bold text-zinc-900">
-                คำเตือนความปลอดภัยในการสอบ!
-              </h2>
-              <p className="text-xs text-zinc-500 font-mono">
-                รหัสประจำตัว: {studentSession?.student_id}
-              </p>
+              <h2 className="text-xl font-bold text-zinc-900">คำเตือนความปลอดภัยในการสอบ!</h2>
+              <p className="text-xs text-zinc-500 font-mono">รหัสประจำตัว: {studentSession?.student_id}</p>
             </div>
-
             <p className="text-sm text-zinc-600 leading-relaxed bg-rose-50/70 p-4 rounded-2xl border border-rose-100 text-left">
               ระบบตรวจพบว่าคุณ<strong className="text-rose-700">สลับแท็บเบราว์เซอร์ ย่อหน้าจอ หรือเปิดโปรแกรมอื่น</strong><br /><br />
               <span className="text-rose-700 font-bold">
                 ⚠️ หากระบบตรวจพบการออกจากหน้าจอข้อสอบอีก การสอบของคุณจะถูกระงับทันที และส่งรายงานไปยังครูผู้คุมสอบ
               </span>
             </p>
-
             <button
               onClick={() => setWarningModalOpen(false)}
               className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl font-bold text-sm shadow-lg transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
@@ -1172,7 +756,6 @@ export default function ExamRoom() {
         </div>
       )}
 
-      {/* 😴 Sleep Warning Modal */}
       {sleepWarningModal && (
         <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-3 shadow-2xl">
@@ -1184,10 +767,7 @@ export default function ExamRoom() {
             <button
               onClick={() => {
                 setSleepWarningModal(false);
-                if (!document.fullscreenElement) {
-                  const el = document.documentElement;
-                  if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-                }
+                if (!isFullscreen) requestFullscreen();
               }}
               className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm transition-all cursor-pointer shadow-lg shadow-indigo-500/25"
             >
