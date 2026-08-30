@@ -64,12 +64,17 @@ src/
 1. **AI สร้างเนื้อหา** → ดู skill `ai-content-creator`
 2. **ครูแม็คนำเข้าเอง** (`.jsx` หรือ `.html`) → ดู skill `import-external-content`
 
-## ข้อมูลระบบ
+## 📚 สถาปัตยกรรมหลักสูตรและฐานข้อมูล (Supabase)
 
-- ทุกบทเรียนต้องมีครบ: `id`, `title`, `mainTitle`, `subTitle`, `description`, `content`
+- **Curriculum Subjects (`curriculum_subjects` table)**: ฐานข้อมูลส่วนกลางสำหรับเก็บข้อมูลรายวิชา (จุดประสงค์, สมรรถนะ, คำอธิบาย, รหัสวิชา) และ `syllabus_markdown` (ซึ่งย้ายมาจากไฟล์ .md)
+- **Teacher Subjects (`teacher_subjects` table)**: ตารางสอนของครูแม็ค (อ้างอิงข้อมูลจาก `curriculum_subjects`)
+- **AI Syllabus Agent**: หน้า `TeacherSubjects.jsx` มีระบบ AI Agent อัจฉริยะ ทำงานควบคู่กับโหมดดูตัวอย่าง (Preview Mode) ของ Markdown โดย AI สามารถอ่านค่าปัจจุบันและปรับแก้เนื้อหาให้โดยอัตโนมัติ
+
+## 💻 โครงสร้างเนื้อหาบทเรียน (Local E-Learning)
+
+- ทุกบทเรียนย่อยต้องมีครบ: `id`, `title`, `mainTitle`, `subTitle`, `description`, `content`
 - ทุกวิชาต้องมี: `id` (ระบุรหัสวิชาเสมอ เช่น `"21910-2004"`), `level`, `title`, `description`, `icon`, `chapters`
-- ทุกไฟล์ข้อมูลวิชาใน `src/data/` ต้องตั้งชื่อโดยนำหน้ารหัสวิชา เช่น `<รหัสวิชา>_<prefix>Course.js` (เช่น `21910-2004_wordCourse.js`)
-- ทุกวิชาต้องมีไฟล์หลักสูตรคู่กันที่ `docs/curriculum/<รหัสวิชา>_<prefix>_curriculum.md` โดย Heading 1 ต้องระบุ `# ชื่อวิชา (รหัสวิชา)`
+- ทุกไฟล์ข้อมูลวิชาใน `src/data/` ต้องตั้งชื่อโดยนำหน้ารหัสวิชา เช่น `<รหัสวิชา>_<prefix>Course.js` 
 - `<TeacherTask />` ต้องส่ง `title` + `taskText` เสมอ
 
 ## การบันทึกความเปลี่ยนแปลง

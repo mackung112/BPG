@@ -775,8 +775,8 @@ export default function pyUnit2_10_SequentialFlowchart() {
       
       {/* LAYER 1: Ambient Backdrop (Glowing blur rings) */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] right-[10%] w-[380px] h-[380px] rounded-full bg-cyan-100/40 blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-[20%] left-[5%] w-[420px] h-[420px] rounded-full bg-indigo-100/50 blur-[130px]"></div>
+        <div className="absolute top-[10%] right-[10%] w-[35vw] h-[35vw] rounded-full bg-cyan-100/40 blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[20%] left-[5%] w-[35vw] h-[35vw] rounded-full bg-indigo-100/50 blur-[130px]"></div>
       </div>
 
 

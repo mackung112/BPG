@@ -394,8 +394,8 @@ export default function Py4_12() {
       
       {/* Background Ambience */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-sky-100/60 blur-[120px]" />
-        <div className="absolute top-[50%] right-[-5%] w-[500px] h-[500px] rounded-full bg-orange-100/60 blur-[120px]" />
+        <div className="absolute top-[10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-sky-100/60 blur-[120px]" />
+        <div className="absolute top-[50%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-orange-100/60 blur-[120px]" />
       </div>
 
       <main className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">

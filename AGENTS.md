@@ -17,6 +17,7 @@
 | `quality-check` | ตรวจสอบคุณภาพก่อนจบงาน |
 | `create-skills` | วิธีสร้าง skill ใหม่ |
 | `ai-content-creator` | AI สร้างเนื้อหาบทเรียนใหม่ |
+| `ai-syllabus-agent` | โครงสร้างและกฎการทำงานของระบบ AI Agent ร่างหลักสูตร (Auto-update + Preview) |
 | `import-external-content` | นำเข้าไฟล์ React/HTML จากภายนอก |
 | `supabase` | จัดการระบบ Supabase (DB, Auth, Storage, Functions) |
 | `supabase-postgres-best-practices` | มาตรฐานและแนวทางปฏิบัติที่ดีที่สุดสำหรับ Postgres/Supabase |

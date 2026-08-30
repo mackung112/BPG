@@ -226,7 +226,7 @@ export default function AdminManagement() {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl backdrop-blur-md border transition-all duration-300 ${
+        <div className={`fixed top-4 right-4 sm:top-6 sm:right-6 left-4 sm:left-auto z-50 flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl shadow-2xl backdrop-blur-md border transition-all duration-300 ${
           toast.type === 'success' 
             ? 'bg-emerald-900/90 border-emerald-500/40 text-emerald-100 shadow-emerald-950/20' 
             : 'bg-rose-900/90 border-rose-500/40 text-rose-100 shadow-rose-950/20'
@@ -364,11 +364,11 @@ export default function AdminManagement() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-zinc-100 bg-zinc-50/80 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                <th className="px-6 py-4">ชื่อผู้สอน / แอดมิน</th>
-                <th className="px-6 py-4">อีเมลใช้งาน</th>
-                <th className="px-6 py-4">ระดับสิทธิ์</th>
-                <th className="px-6 py-4">วันที่เพิ่มในระบบ</th>
-                <th className="px-6 py-4 text-right">การจัดการ</th>
+                <th className="px-3.5 sm:px-6 py-3 sm:py-4">ชื่อผู้สอน / แอดมิน</th>
+                <th className="px-3.5 sm:px-6 py-3 sm:py-4">อีเมลใช้งาน</th>
+                <th className="px-3.5 sm:px-6 py-3 sm:py-4">ระดับสิทธิ์</th>
+                <th className="px-3.5 sm:px-6 py-3 sm:py-4">วันที่เพิ่มในระบบ</th>
+                <th className="px-3.5 sm:px-6 py-3 sm:py-4 text-right">การจัดการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 text-sm">
@@ -393,7 +393,7 @@ export default function AdminManagement() {
 
                   return (
                     <tr key={admin.id} className="hover:bg-indigo-50/30 transition-colors">
-                      <td className="px-6 py-4 font-semibold text-zinc-900 flex items-center gap-3">
+                      <td className="px-3.5 sm:px-6 py-3 sm:py-4 font-semibold text-zinc-900 flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm ${
                           isCurrentSuper 
                             ? 'bg-rose-100 text-rose-700 border border-rose-200' 
@@ -413,14 +413,14 @@ export default function AdminManagement() {
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 text-zinc-600 font-mono text-xs">
+                      <td className="px-3.5 sm:px-6 py-3 sm:py-4 text-zinc-600 font-mono text-xs">
                         <div className="flex items-center gap-2">
                           <Mail className="w-3.5 h-3.5 text-zinc-400" />
                           <span>{admin.email}</span>
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-3.5 sm:px-6 py-3 sm:py-4">
                         {isCurrentSuper ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100/80 text-rose-700 border border-rose-200/80 shadow-xs">
                             <Crown className="w-3.5 h-3.5 text-rose-600" />
@@ -434,7 +434,7 @@ export default function AdminManagement() {
                         )}
                       </td>
 
-                      <td className="px-6 py-4 text-zinc-500 text-xs">
+                      <td className="px-3.5 sm:px-6 py-3 sm:py-4 text-zinc-500 text-xs">
                         {admin.created_at 
                           ? new Date(admin.created_at).toLocaleDateString('th-TH', {
                               year: 'numeric',
@@ -445,7 +445,7 @@ export default function AdminManagement() {
                         }
                       </td>
 
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-3.5 sm:px-6 py-3 sm:py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Change Password Button (Super Admin) */}
                           <button

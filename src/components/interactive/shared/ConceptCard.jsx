@@ -62,7 +62,9 @@ export default function ConceptCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl border shadow-sm p-6 relative overflow-hidden transition-all duration-200
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`bg-white rounded-2xl border shadow-sm p-3.5 sm:p-6 relative overflow-hidden transition-all duration-200
         hover:-translate-y-0.5 hover:shadow-md
         ${onClick ? 'cursor-pointer active:scale-[0.98]' : ''}
         ${active ? `${a.border} ring-2 ${a.ring} ring-offset-1` : 'border-slate-200'}
@@ -73,29 +75,29 @@ export default function ConceptCard({
 
       {/* Symbol */}
       {symbol && (
-        <div className={`${symbolFont === 'mono' ? 'font-mono' : 'font-sans'} text-2xl font-bold ${a.symbol} mb-2 leading-tight`}>
+        <div className={`${symbolFont === 'mono' ? 'font-mono' : 'font-sans'} text-xl sm:text-2xl font-bold ${a.symbol} mb-1.5 sm:mb-2 leading-tight min-w-0 break-words`}>
           {symbol}
         </div>
       )}
 
       {/* Title */}
       {title && (
-        <h4 className="text-[15px] font-bold text-slate-800 mb-1 leading-snug">{title}</h4>
+        <h4 className="text-sm sm:text-[15px] font-bold text-slate-800 mb-1 leading-snug min-w-0 break-words">{title}</h4>
       )}
 
       {/* Description */}
       {description && (
-        <p className="text-[14px] text-slate-500 leading-relaxed mb-4">{description}</p>
+        <p className="text-xs sm:text-[14px] text-slate-500 leading-relaxed mb-3 sm:mb-4 min-w-0 break-words">{description}</p>
       )}
 
       {/* Code + Result strip */}
       {(code || result) && (
-        <div className="bg-slate-50 rounded-xl px-4 py-2.5 flex items-center justify-between gap-2 border border-slate-100">
+        <div className="bg-slate-50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border border-slate-100 min-w-0">
           {code && (
-            <code className="font-mono text-[13px] text-slate-700">{code}</code>
+            <code className="font-mono text-xs sm:text-[13px] text-slate-700 break-all sm:break-normal min-w-0 overflow-x-auto">{code}</code>
           )}
           {result && (
-            <span className={`font-semibold text-sm shrink-0 ${rc}`}>{result}</span>
+            <span className={`font-semibold text-xs sm:text-sm shrink-0 ${rc}`}>{result}</span>
           )}
         </div>
       )}

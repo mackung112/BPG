@@ -67,7 +67,7 @@ export default function TeacherBio() {
   ];
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-6 md:p-8 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
+    <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
       {/* Background soft blob inside card */}
       <div className="absolute bottom-[-50px] right-[-50px] w-80 h-80 rounded-full bg-teal-200/15 blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
       <div className="absolute top-[-30px] left-[-30px] w-60 h-60 rounded-full bg-cyan-200/15 blur-3xl pointer-events-none" />
@@ -81,7 +81,7 @@ export default function TeacherBio() {
             
             {/* Bezel frame */}
             <div className="relative bg-white/70 backdrop-blur-md border border-white rounded-[26px] p-2.5 shadow-2xl transition-transform duration-500 group-hover/avatar:-translate-y-1.5">
-              <div className="w-64 h-64 md:w-72 md:h-72 rounded-2xl overflow-hidden relative shadow-inner bg-slate-100">
+              <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-2xl overflow-hidden relative shadow-inner bg-slate-100">
                 <img
                   src="/images/media__1780183273005.png"
                   alt="อ.ธิติวุฒิ จันทร์โสม (ครูแม็ค)"
@@ -123,7 +123,7 @@ export default function TeacherBio() {
             </p>
 
             {/* Quick stats mini list */}
-            <div className="grid grid-cols-2 gap-3 text-xs md:text-sm text-slate-500">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs md:text-sm text-slate-500">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-teal-600" />
                 <span>หลักสูตร Interactive IT & Python</span>
@@ -150,7 +150,7 @@ export default function TeacherBio() {
                     href={c.href}
                     target={c.id !== 'phone' ? '_blank' : undefined}
                     rel={c.id !== 'phone' ? 'noopener noreferrer' : undefined}
-                    className={`flex items-center gap-3 p-3 rounded-xl border border-gray-200/60 font-semibold transition-all duration-300 cursor-pointer ${c.color} ${c.glow} group/card`}
+                    className={`flex items-center gap-3 p-3 min-h-[48px] rounded-xl border border-gray-200/60 font-semibold transition-all duration-300 cursor-pointer ${c.color} ${c.glow} group/card`}
                   >
                     <div className="p-2 bg-white rounded-lg shadow-sm border border-gray-100 group-hover/card:scale-105 group-hover/card:rotate-6 transition-transform text-current shrink-0">
                       <Icon className="w-4 h-4" />

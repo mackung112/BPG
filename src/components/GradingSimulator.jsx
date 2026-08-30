@@ -72,11 +72,11 @@ export default function GradingSimulator() {
   return (
     <div className="space-y-8">
       {/* Tab Switcher */}
-      <div className="flex justify-center">
-        <div className="inline-flex p-1 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-inner">
+      <div className="flex justify-center px-2 sm:px-0">
+        <div className="flex flex-col sm:inline-flex sm:flex-row p-1 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-inner gap-1 sm:gap-0 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('simulator')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${
               activeTab === 'simulator'
                 ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -87,7 +87,7 @@ export default function GradingSimulator() {
           </button>
           <button
             onClick={() => setActiveTab('standards')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${
               activeTab === 'standards'
                 ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -102,7 +102,7 @@ export default function GradingSimulator() {
       {activeTab === 'simulator' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Left Panel: Sliders Controls (Dark Glassmorphism) */}
-          <div className="lg:col-span-7 bg-slate-900/90 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl relative flex flex-col justify-between">
+          <div className="lg:col-span-7 bg-slate-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-6 border border-white/10 shadow-2xl relative flex flex-col justify-between">
             <span className="text-[9px] font-mono text-slate-500 absolute top-3 right-4 font-bold tracking-widest uppercase">
               Score Control Board
             </span>
@@ -120,15 +120,15 @@ export default function GradingSimulator() {
 
               {/* Sub-Group: 1. คะแนนระหว่างภาค 70 คะแนน */}
               <div className="mb-6 space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 pb-2 border-b border-white/5">
                   <span className="text-sm font-bold text-indigo-400">1. คะแนนระหว่างภาค (สัดส่วน 70 คะแนน)</span>
-                  <span className="text-xs font-mono font-bold bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                  <span className="text-xs font-mono font-bold bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20 self-start sm:self-auto">
                     ได้สะสม: {totalBetween.toFixed(1)} / 70 คะแนน
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(scoreLabels).slice(0, 7).map(([key, item]) => {
+                  {Object.entries(scoreLabels).map(([key, item]) => {
                     const IconComponent = item.icon;
                     return (
                       <div key={key} className="bg-slate-950/40 rounded-xl p-3.5 border border-white/5 space-y-2 hover:border-white/10 transition-colors">
@@ -138,21 +138,21 @@ export default function GradingSimulator() {
                               <IconComponent className="w-3.5 h-3.5" />
                             </div>
                             <div className="min-w-0">
-                              <span className="text-sm font-semibold text-slate-200 block truncate">{item.label}</span>
-                              <span className="text-[11px] text-slate-500 block truncate leading-tight">{item.desc}</span>
+                              <span className="text-xs font-bold text-slate-200 block truncate">{item.label}</span>
+                              <span className="text-[10px] text-slate-500 block truncate">{item.desc}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0">
                             <input
                               type="number"
                               min="0"
-                              max={maxScores[key]}
+                              max={item.max}
                               step="0.5"
                               value={scores[key]}
                               onChange={(e) => handleScoreChange(key, e.target.value)}
                               className="w-12 h-7 bg-slate-900 border border-white/10 rounded text-center text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
                             />
-                            <span className="text-[11px] text-slate-500 font-mono">/{maxScores[key]}</span>
+                            <span className="text-[10px] text-slate-500 font-mono">/{item.max}</span>
                           </div>
                         </div>
 
@@ -160,7 +160,7 @@ export default function GradingSimulator() {
                           <input
                             type="range"
                             min="0"
-                            max={maxScores[key]}
+                            max={item.max}
                             step="0.5"
                             value={scores[key]}
                             onChange={(e) => handleScoreChange(key, e.target.value)}
@@ -175,9 +175,9 @@ export default function GradingSimulator() {
 
               {/* Sub-Group: 2. คะแนนปลายภาค 30 คะแนน */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 pb-2 border-b border-white/5">
                   <span className="text-sm font-bold text-amber-400">2. คะแนนปลายภาค (สัดส่วน 30 คะแนน)</span>
-                  <span className="text-xs font-mono font-bold bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/20">
+                  <span className="text-xs font-mono font-bold bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/20 self-start sm:self-auto">
                     ได้สะสม: {totalFinal.toFixed(1)} / 30 คะแนน
                   </span>
                 </div>
@@ -234,7 +234,7 @@ export default function GradingSimulator() {
           </div>
 
           {/* Right Panel: Live Grade Board (Dark Oscilloscope Panel) */}
-          <div className="lg:col-span-5 bg-slate-950/95 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl relative flex flex-col justify-between items-stretch overflow-hidden">
+          <div className="lg:col-span-5 bg-slate-950/95 backdrop-blur-xl rounded-3xl p-4 sm:p-6 border border-white/5 shadow-2xl relative flex flex-col justify-between items-stretch overflow-hidden">
             {/* Corner Decorative lights */}
             <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-20 transition-all duration-500 ${gradeInfo.color.includes('emerald') ? 'bg-emerald-500' : gradeInfo.color.includes('teal') ? 'bg-teal-500' : gradeInfo.color.includes('blue') ? 'bg-blue-500' : gradeInfo.color.includes('indigo') ? 'bg-indigo-500' : gradeInfo.color.includes('rose') ? 'bg-rose-500' : gradeInfo.color.includes('red') ? 'bg-red-500' : 'bg-amber-500'}`} />
 
@@ -342,7 +342,7 @@ export default function GradingSimulator() {
         /* Tab 2: Standard Grading Criteria Grid (Beautiful Glassmorphism Cards) */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Card 1: 70 คะแนนระหว่างภาค (Glassmorphic) */}
-          <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-2xl p-6 hover:-translate-y-1 hover:shadow-2xl hover:border-indigo-500/30 transition-all duration-300 flex flex-col justify-between">
+          <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-2xl p-4 sm:p-6 hover:-translate-y-1 hover:shadow-2xl hover:border-indigo-500/30 transition-all duration-300 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-3.5 pb-4 border-b border-gray-200/50 mb-6">
                 <div className="p-3 rounded-2xl bg-indigo-50 text-indigo-600 shadow-inner">
@@ -377,14 +377,14 @@ export default function GradingSimulator() {
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200/50 flex justify-between items-center bg-indigo-50/50 -mx-6 -mb-6 p-4 rounded-b-2xl border-t border-indigo-100/50">
+            <div className="mt-6 pt-4 border-t border-gray-200/50 flex justify-between items-center bg-indigo-50/50 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 p-4 rounded-b-2xl border-t border-indigo-100/50">
               <span className="text-xs font-bold text-indigo-700">สัดส่วนรวมระหว่างภาค</span>
               <span className="text-lg font-black text-indigo-600 font-mono">70 คะแนน</span>
             </div>
           </div>
 
           {/* Card 2: 30 คะแนนปลายภาค (Glassmorphic) */}
-          <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-2xl p-6 hover:-translate-y-1 hover:shadow-2xl hover:border-amber-500/30 transition-all duration-300 flex flex-col justify-between">
+          <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-2xl p-4 sm:p-6 hover:-translate-y-1 hover:shadow-2xl hover:border-amber-500/30 transition-all duration-300 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-3.5 pb-4 border-b border-gray-200/50 mb-6">
                 <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 shadow-inner">
@@ -426,7 +426,7 @@ export default function GradingSimulator() {
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200/50 flex justify-between items-center bg-amber-50/50 -mx-6 -mb-6 p-4 rounded-b-2xl border-t border-amber-100/50">
+            <div className="mt-6 pt-4 border-t border-gray-200/50 flex justify-between items-center bg-amber-50/50 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 p-4 rounded-b-2xl border-t border-amber-100/50">
               <span className="text-xs font-bold text-amber-700">สัดส่วนรวมปลายภาค</span>
               <span className="text-lg font-black text-amber-600 font-mono">30 คะแนน</span>
             </div>

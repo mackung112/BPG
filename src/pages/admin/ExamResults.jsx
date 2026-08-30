@@ -475,7 +475,7 @@ export default function ExamResults() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-xl p-6 rounded-2xl border border-zinc-200/80 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-xl p-4 sm:p-6 rounded-2xl border border-zinc-200/80 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-gradient-to-br from-amber-500 to-indigo-600 rounded-xl text-white shadow-md shadow-amber-500/20">
             <Trophy className="w-6 h-6" />
@@ -509,7 +509,7 @@ export default function ExamResults() {
           <div className="p-4 border-b border-zinc-100 bg-zinc-50/50">
             <h2 className="font-bold text-xs text-zinc-700">เลือกรายการสอบ</h2>
           </div>
-          <div className="flex-1 overflow-auto divide-y divide-zinc-100 p-2 space-y-1">
+          <div className="flex-1 max-h-60 lg:max-h-none overflow-auto divide-y divide-zinc-100 p-2 space-y-1">
             {loading ? (
               <div className="p-8 text-center text-xs text-zinc-400">กำลังโหลด...</div>
             ) : sessions.length === 0 ? (
@@ -519,17 +519,19 @@ export default function ExamResults() {
                 <div 
                   key={s.id} 
                   onClick={() => setSelectedSession(s)}
-                  className={`p-3 rounded-xl cursor-pointer transition-all ${
+                  className={`p-3 rounded-xl border cursor-pointer transition-all ${
                     selectedSession?.id === s.id 
-                      ? 'bg-amber-50/80 border border-amber-200 text-amber-900 shadow-xs' 
-                      : 'hover:bg-zinc-50 text-zinc-700'
+                    ? 'bg-indigo-50/80 border-indigo-500 shadow-xs' 
+                    : 'hover:bg-zinc-50 border-zinc-200'
                   }`}
                 >
-                  <div className="font-bold text-xs truncate">{s.title}</div>
-                  <div className="text-[11px] text-zinc-500 mt-1 flex justify-between">
-                    <span>{new Date(s.created_at).toLocaleDateString('th-TH')}</span>
-                    <span className={`px-1.5 py-0.2 rounded font-semibold ${s.status === 'completed' ? 'text-zinc-600 bg-zinc-100' : 'text-emerald-700 bg-emerald-50'}`}>
-                      {s.status === 'completed' ? 'เสร็จสิ้น' : 'กำลังสอบ'}
+                  <div className="font-bold text-xs text-zinc-900 truncate">{s.title}</div>
+                  <div className="flex justify-between items-center text-[11px] text-zinc-500 mt-1">
+                    <span className="font-mono">{s.secret_code}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                      s.status === 'completed' ? 'bg-zinc-100 text-zinc-700' : 'bg-emerald-100 text-emerald-700'
+                    }`}>
+                      {s.status === 'completed' ? 'ปิดสอบแล้ว' : 'กำลังเปิด'}
                     </span>
                   </div>
                 </div>
@@ -626,7 +628,7 @@ export default function ExamResults() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5">
                     {/* Option 1: Best Score */}
                     <label className={`p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
                       retakePolicy === 'best' 

@@ -832,8 +832,8 @@ export default function pyUnit4_2_InputDemo() {
     <div className="font-sans text-slate-800 pb-24 selection:bg-emerald-200 selection:text-emerald-900 relative">
       {/* Background ambient glow layers */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-emerald-100/40 blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-[20%] right-[10%] w-[450px] h-[450px] rounded-full bg-teal-100/50 blur-[130px]"></div>
+        <div className="absolute top-[10%] left-[-5%] w-[35vw] h-[35vw] rounded-full bg-emerald-100/40 blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[20%] right-[10%] w-[38vw] h-[38vw] rounded-full bg-teal-100/50 blur-[130px]"></div>
       </div>
 
       <main className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10 pt-10 space-y-16">

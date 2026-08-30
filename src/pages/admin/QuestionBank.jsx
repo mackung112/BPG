@@ -318,7 +318,7 @@ export default function QuestionBank() {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl backdrop-blur-md border transition-all duration-300 ${
+        <div className={`fixed top-4 right-4 sm:top-6 sm:right-6 left-4 sm:left-auto z-50 flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl shadow-2xl backdrop-blur-md border transition-all duration-300 ${
           toast.type === 'success' 
             ? 'bg-emerald-900/90 border-emerald-500/40 text-emerald-100' 
             : 'bg-rose-900/90 border-rose-500/40 text-rose-100'
@@ -355,7 +355,7 @@ export default function QuestionBank() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[calc(100vh-12rem)] lg:h-[calc(100vh-12rem)]">
         
         {/* Left Column: Bank List */}
         <div className="bg-white rounded-2xl shadow-sm border border-zinc-200/80 flex flex-col overflow-hidden">
@@ -394,7 +394,7 @@ export default function QuestionBank() {
                   <span className="truncate">{b.title}</span>
                 </div>
                 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleOpenEditBank(b); }}
                     className="p-1 text-zinc-400 hover:text-indigo-600 hover:bg-white rounded"
@@ -484,7 +484,7 @@ export default function QuestionBank() {
                   ) : (
                     filteredQuestions.map((q, idx) => (
                       <div key={q.id} className="bg-zinc-50/80 p-3.5 rounded-xl border border-zinc-200/80 relative group hover:border-indigo-200 transition-colors">
-                        <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                        <div className="absolute top-2.5 right-2.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center gap-1">
                           <button 
                             onClick={() => handleOpenEditQuestion(q)} 
                             className="p-1.5 text-zinc-600 hover:text-indigo-600 bg-white rounded-lg border border-zinc-200 shadow-xs cursor-pointer"

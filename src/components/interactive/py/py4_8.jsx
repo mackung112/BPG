@@ -111,8 +111,8 @@ sentence = "Python is amazing"
       
       {/* Background Ambience */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-5%] left-[-10%] w-[600px] h-[600px] rounded-full bg-purple-200/40 blur-[120px]"></div>
-        <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-blue-200/30 blur-[120px]"></div>
+        <div className="absolute top-[-5%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-purple-200/40 blur-[120px]"></div>
+        <div className="absolute bottom-[10%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-blue-200/30 blur-[120px]"></div>
       </div>
 
       <main className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">

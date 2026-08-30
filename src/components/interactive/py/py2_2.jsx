@@ -180,8 +180,8 @@ export default function py2_2() {
         <div className="w-full mx-auto space-y-8 font-['Inter',_'Noto_Sans_Thai'] pb-12">
             {/* Layer 1: Ambient Backdrop */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[5%] left-[15%] w-[550px] h-[550px] bg-violet-500/8 rounded-full blur-[140px]"></div>
-                <div className="absolute bottom-[5%] right-[10%] w-[450px] h-[450px] bg-emerald-500/8 rounded-full blur-[120px]"></div>
+                <div className="absolute top-[5%] left-[15%] w-[40vw] h-[40vw] bg-violet-500/8 rounded-full blur-[140px]"></div>
+                <div className="absolute bottom-[5%] right-[10%] w-[38vw] h-[38vw] bg-emerald-500/8 rounded-full blur-[120px]"></div>
                 <div className="absolute top-[50%] left-[60%] w-[300px] h-[300px] bg-rose-500/6 rounded-full blur-[100px]"></div>
             </div>
 

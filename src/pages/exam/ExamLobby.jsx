@@ -117,7 +117,7 @@ export default function ExamLobby() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
         <div className="absolute top-[-10%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-rose-200/25 blur-[130px] animate-pulse" />
-        <div className="max-w-md w-full bg-white/90 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/60 p-8 text-center relative z-10 space-y-6">
+        <div className="max-w-md w-full bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-[32px] shadow-2xl border border-white/60 p-5 sm:p-8 text-center relative z-10 space-y-6">
           <div className="w-20 h-20 bg-rose-100 rounded-3xl flex items-center justify-center mx-auto text-rose-600 shadow-lg shadow-rose-200">
             <AlertCircle className="w-10 h-10" />
           </div>
@@ -147,7 +147,7 @@ export default function ExamLobby() {
   if (loading && !sessionInfo) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-        <div className="max-w-sm w-full bg-white/90 backdrop-blur-xl rounded-[28px] shadow-xl border border-white/60 p-8 text-center relative z-10 space-y-4">
+        <div className="max-w-sm w-full bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-[28px] shadow-xl border border-white/60 p-5 sm:p-8 text-center relative z-10 space-y-4">
           <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-bold text-gray-800">กำลังเชื่อมต่อห้องสอบ...</p>
           <p className="text-xs text-gray-400">กรุณารอสักครู่ ระบบกำลังดึงข้อมูลการสอบ</p>
@@ -167,7 +167,7 @@ export default function ExamLobby() {
       <div className="absolute top-[-10%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-indigo-200/25 blur-[130px] animate-pulse" />
       <div className="absolute bottom-[-10%] right-[10%] w-[38vw] h-[38vw] rounded-full bg-purple-200/20 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
 
-      <div className="max-w-lg w-full bg-white/85 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/60 p-8 text-center relative z-10">
+      <div className="max-w-lg w-full bg-white/85 backdrop-blur-xl rounded-2xl sm:rounded-[32px] shadow-2xl border border-white/60 p-5 sm:p-8 text-center relative z-10">
         
         {participantStatus === 'cheating' || participantStatus === 'disconnected' ? (
           <div className="space-y-5">

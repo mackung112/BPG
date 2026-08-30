@@ -33,24 +33,24 @@ export default function StandardHeader({
   }, [mainTitle, subTitle]);
 
   return (
-    <header className={`${transparent ? '' : 'bg-gradient-to-br from-[#f0fdfa] via-white to-[#ecfeff]'} border-b ${transparent ? 'border-transparent' : 'border-gray-100'} relative z-20 ${isCard ? 'p-6 md:p-8' : 'pt-6 pb-2 md:pt-8 md:pb-3 w-full'} overflow-hidden`}>
+    <header className={`${transparent ? '' : 'bg-gradient-to-br from-[#f0fdfa] via-white to-[#ecfeff]'} border-b ${transparent ? 'border-transparent' : 'border-gray-100'} relative z-20 ${isCard ? 'p-4 sm:p-6 md:p-8' : 'pt-4 sm:pt-6 pb-2 md:pt-8 md:pb-3 w-full'} overflow-hidden`}>
       <div className="absolute top-0 right-0 p-12 opacity-40 pointer-events-none">
         <div className="w-64 h-64 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl"></div>
       </div>
       
-      <div className={`relative z-10 ${isCard ? '' : 'max-w-7xl mx-auto px-6 lg:px-12'}`}>
+      <div className={`relative z-10 ${isCard ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-12'}`}>
         {chapterTitle && (
-          <span className="text-orange-500 font-bold tracking-widest text-sm md:text-base mb-2 block uppercase">
+          <span className="text-orange-500 font-bold tracking-widest text-xs sm:text-sm md:text-base mb-2 block uppercase">
             {chapterTitle}
           </span>
         )}
         {mainTitle && (
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-extrabold text-slate-800 leading-tight mb-1 tracking-tight">
+          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-slate-800 leading-tight mb-1 tracking-tight">
             {mainTitle}
           </h1>
         )}
         {subTitle && (
-          <h2 className={`text-2xl md:text-3xl lg:text-4xl font-black mb-3 !border-none pb-2 leading-snug text-transparent bg-clip-text bg-gradient-to-r ${randomGradient} tracking-tight drop-shadow-sm`}>
+          <h2 className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black mb-3 !border-none pb-2 leading-snug text-transparent bg-clip-text bg-gradient-to-r ${randomGradient} tracking-tight drop-shadow-sm`}>
             {subTitle}
           </h2>
         )}

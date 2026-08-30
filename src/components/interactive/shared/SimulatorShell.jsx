@@ -26,21 +26,21 @@ export default function SimulatorShell({
 }) {
   if (dark) {
     return (
-      <div className="bg-slate-900 rounded-[2rem] p-8 border border-slate-800 shadow-2xl relative overflow-hidden transition-all hover:shadow-slate-900/60 hover:-translate-y-0.5 group">
+      <div className="bg-slate-900 rounded-2xl sm:rounded-[2rem] p-3.5 sm:p-6 md:p-8 border border-slate-800 shadow-2xl relative overflow-hidden transition-all hover:shadow-slate-900/60 hover:-translate-y-0.5 group">
         {/* Ambient corner glow */}
         <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${glowColors} rounded-bl-full blur-3xl -z-0 transition-all duration-700 group-hover:scale-125 pointer-events-none`} />
 
         <div className="relative z-10">
           {/* Title row */}
           {(icon || title) && (
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
               {icon && (
-                <div className={`p-2.5 rounded-xl bg-white/10 ${iconColor} transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}>
+                <div className={`p-2 sm:p-2.5 rounded-xl bg-white/10 ${iconColor} shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}>
                   {icon}
                 </div>
               )}
               {title && (
-                <h4 className="text-2xl font-bold text-white">{title}</h4>
+                <h4 className="text-lg sm:text-2xl font-bold text-white min-w-0 break-words leading-snug">{title}</h4>
               )}
             </div>
           )}
@@ -51,21 +51,21 @@ export default function SimulatorShell({
   }
 
   return (
-    <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-lg relative overflow-hidden transition-all hover:shadow-xl hover:-translate-y-0.5 group">
+    <div className="bg-white rounded-2xl sm:rounded-[2rem] p-3.5 sm:p-6 md:p-8 border border-slate-200 shadow-lg relative overflow-hidden transition-all hover:shadow-xl hover:-translate-y-0.5 group">
       {/* Ambient corner decoration */}
       <div className={`absolute top-0 right-0 w-32 h-32 ${accentBg} rounded-bl-full z-0 pointer-events-none transition-all duration-500 group-hover:w-40 group-hover:h-40`} />
 
       <div className="relative z-10">
         {/* Title row */}
         {(icon || title) && (
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
             {icon && (
-              <div className={`p-2.5 rounded-xl ${accentBg} ${iconColor} transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}>
+              <div className={`p-2 sm:p-2.5 rounded-xl ${accentBg} ${iconColor} shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}>
                 {icon}
               </div>
             )}
             {title && (
-              <h4 className="text-2xl font-bold text-slate-800">{title}</h4>
+              <h4 className="text-lg sm:text-2xl font-bold text-slate-800 min-w-0 break-words leading-snug">{title}</h4>
             )}
           </div>
         )}

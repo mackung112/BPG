@@ -63,3 +63,10 @@ description: กฎเหล็กเขียนโค้ด React 19 + Tailwin
 ### Simulator
 - **ไม่บังคับทุกบท** — มีได้จะดี AI ประเมินเองว่าหัวข้อไหนเหมาะ
 - บทที่เหมาะ: แสดง flow การทำงาน, เปรียบเทียบ, ทดสอบตรรกะ
+
+### Mobile Responsive & Touch Accessibility (อัปเดตล่าสุด)
+- **ห้ามใช้ Fixed Width** (เช่น `w-[800px]`) ที่กว้างกว่า 320px โดยเด็ดขาด ให้ใช้ `w-full max-w-[800px]` แทนเสมอ
+- **ตารางทั้งหมด** ต้องถูกหุ้มด้วย `<div className="overflow-x-auto w-full">...</div>` เพื่อให้เลื่อนซ้ายขวาบนมือถือได้
+- **Touch Targets**: ปุ่มและเมนูต่างๆ ต้องมีขนาดสัมผัสอย่างน้อย 48px เพื่อรองรับนิ้วมือ
+- **Fluid Padding**: ค่า Padding ของ Card หรือ Container ต้องยืดหยุ่นตามจอ (เช่น `p-4 sm:p-6 md:p-8`)
+- **Mobile Hover Gating**: ห้ามซ่อนปุ่มด้วย Hover บนมือถือ (เพราะไม่มีเมาส์) ให้แสดงปุ่มเลยบนมือถือ แล้วค่อยซ่อนในจอใหญ่ เช่น `opacity-100 lg:opacity-0 lg:group-hover:opacity-100`

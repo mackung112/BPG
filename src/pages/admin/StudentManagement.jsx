@@ -10,7 +10,7 @@ import { useStudents } from '../../hooks/useStudents';
 function Toast({ toast, onClose }) {
   if (!toast) return null;
   return (
-    <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl backdrop-blur-md border transition-all duration-300 ${
+    <div className={`fixed top-4 right-4 sm:top-6 sm:right-6 left-4 sm:left-auto z-50 max-w-sm w-auto flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl shadow-2xl backdrop-blur-md border transition-all duration-300 ${
       toast.type === 'success'
         ? 'bg-emerald-900/90 border-emerald-500/40 text-emerald-100'
         : 'bg-rose-900/90 border-rose-500/40 text-rose-100'
@@ -200,7 +200,7 @@ export default function StudentManagement() {
         {/* Left: Forms */}
         <div className="space-y-6 lg:col-span-1">
           {/* Add Single Student */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200/80">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-zinc-200/80">
             <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2 mb-4">
               <UserPlus className="w-5 h-5 text-indigo-600" /> เพิ่มนักเรียนรายบุคคล
             </h2>
@@ -246,7 +246,7 @@ export default function StudentManagement() {
           </div>
 
           {/* CSV Import */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200/80">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-zinc-200/80">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
                 <Upload className="w-5 h-5 text-emerald-600" /> นำเข้าข้อมูล CSV

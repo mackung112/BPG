@@ -1115,8 +1115,8 @@ export default function py2_6() {
     <div className="font-sans text-slate-800 pb-24 selection:bg-cyan-100 selection:text-cyan-900 relative">
       {/* Ambient background blur layers */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] left-[-5%] w-[450px] h-[450px] rounded-full bg-cyan-500/10 blur-[130px] animate-pulse"></div>
-        <div className="absolute bottom-[20%] right-[5%] w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-[140px] animate-pulse"></div>
+        <div className="absolute top-[10%] left-[-5%] w-[38vw] h-[38vw] rounded-full bg-cyan-500/10 blur-[130px] animate-pulse"></div>
+        <div className="absolute bottom-[20%] right-[5%] w-[40vw] h-[40vw] rounded-full bg-indigo-500/10 blur-[140px] animate-pulse"></div>
       </div>
 
       <main className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10 pt-10 space-y-16">

@@ -114,9 +114,17 @@ export default function Storybook() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans relative">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div 
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden"
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-80' : 'w-0'} bg-white border-r border-slate-200 flex flex-col transition-all duration-300 overflow-hidden`}>
+      <aside className={`fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto ${sidebarOpen ? 'w-[280px] sm:w-80 max-w-[85vw] translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-0'} bg-white border-r border-slate-200 flex flex-col transition-all duration-300 overflow-hidden shadow-xl lg:shadow-none`}>
         <div className="p-4 border-b border-slate-100 bg-white sticky top-0 z-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -125,9 +133,17 @@ export default function Storybook() {
               </div>
               <h1 className="font-bold text-slate-800 tracking-tight">Component Storybook</h1>
             </div>
-            <button onClick={() => navigate('/')} className="text-xs text-slate-400 hover:text-indigo-600 transition-colors">
-              Exit
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setSidebarOpen(false)} 
+                className="lg:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <button onClick={() => navigate('/')} className="min-h-[44px] px-2 flex items-center text-xs text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer">
+                Exit
+              </button>
+            </div>
           </div>
           
           <div className="relative mb-4">
@@ -141,7 +157,7 @@ export default function Storybook() {
             />
           </div>
 
-          <div className="flex gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="flex flex-wrap gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
             <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md">PY: {stats.py}</span>
             <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-md">OOP: {stats.oop}</span>
             <span className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded-md">SQL: {stats.sql}</span>
@@ -153,8 +169,11 @@ export default function Storybook() {
           {filteredComponents.map((comp) => (
             <button
               key={comp.name}
-              onClick={() => setSelectedComponent(comp)}
-              className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all flex items-center justify-between group ${
+              onClick={() => {
+                setSelectedComponent(comp);
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2.5 min-h-[44px] rounded-xl text-sm transition-all flex items-center justify-between group cursor-pointer ${
                 selectedComponent?.name === comp.name 
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 font-medium' 
                   : 'text-slate-600 hover:bg-slate-100'
@@ -179,11 +198,11 @@ export default function Storybook() {
       {/* Main Preview Area */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-50">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0">
+        <header className="h-14 lg:h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-slate-100 rounded-lg text-slate-500 transition-colors cursor-pointer"
             >
               <Layout className="w-5 h-5" />
             </button>
@@ -200,10 +219,10 @@ export default function Storybook() {
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setSelectedComponent({...selectedComponent})} 
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-medium transition-all"
+              className="flex items-center gap-2 px-3 py-2 min-h-[40px] bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-medium transition-all cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              Reset State
+              <span className="hidden sm:inline">Reset State</span>
             </button>
           </div>
         </header>

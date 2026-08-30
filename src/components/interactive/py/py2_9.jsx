@@ -1130,8 +1130,8 @@ export default function pyUnit2_9_GoodFlowchartPractices() {
       
       {/* LAYER 1: Ambient Backdrop (Glowing blur rings) */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[8%] right-[12%] w-[420px] h-[420px] rounded-full bg-indigo-100/40 blur-[130px] animate-pulse"></div>
-        <div className="absolute bottom-[18%] left-[6%] w-[460px] h-[460px] rounded-full bg-cyan-100/50 blur-[140px]"></div>
+        <div className="absolute top-[8%] right-[12%] w-[35vw] h-[35vw] rounded-full bg-indigo-100/40 blur-[130px] animate-pulse"></div>
+        <div className="absolute bottom-[18%] left-[6%] w-[38vw] h-[38vw] rounded-full bg-cyan-100/50 blur-[140px]"></div>
       </div>
 
       {/* LAYER 3: Vertically Stacked Components */}

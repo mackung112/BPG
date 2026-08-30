@@ -547,8 +547,8 @@ export default function py4_5() {
     <div className="font-sans text-slate-800 pb-24 selection:bg-amber-200 selection:text-amber-900 relative">
       {/* Layer 1: Ambient Background Glow Layers */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] left-[-5%] w-[450px] h-[450px] rounded-full bg-amber-100/40 blur-[130px] animate-pulse"></div>
-        <div className="absolute bottom-[20%] right-[5%] w-[500px] h-[500px] rounded-full bg-orange-100/40 blur-[140px]"></div>
+        <div className="absolute top-[10%] left-[-5%] w-[38vw] h-[38vw] rounded-full bg-amber-100/40 blur-[130px] animate-pulse"></div>
+        <div className="absolute bottom-[20%] right-[5%] w-[40vw] h-[40vw] rounded-full bg-orange-100/40 blur-[140px]"></div>
       </div>
 
       <main className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10 pt-10 space-y-16">

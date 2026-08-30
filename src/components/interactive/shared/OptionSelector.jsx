@@ -27,27 +27,27 @@ export default function OptionSelector({
   mode = 'pill',
 }) {
   const gridClass = {
-    2: 'grid-cols-2',
-    3: 'grid-cols-3',
-    4: 'grid-cols-4',
-  }[cols] || 'grid-cols-2';
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
+    4: 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-4',
+  }[cols] || 'grid-cols-1 sm:grid-cols-2';
 
   return (
-    <div className={`grid ${gridClass} gap-3`}>
+    <div className={`grid ${gridClass} gap-2.5 sm:gap-3`}>
       {options.map((opt) => {
         const isActive = opt.value === value;
         return (
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
-            className={`p-3 rounded-xl border text-left transition-all active:scale-95 cursor-pointer ${
-              isActive ? activeColor : IDLE
-            } ${mode === 'card' ? 'flex flex-col gap-1' : ''}`}
+            className={`p-3 rounded-xl border text-left transition-all active:scale-95 cursor-pointer min-h-[44px] flex ${
+              mode === 'card' ? 'flex-col items-start gap-1 justify-center' : 'items-center justify-start'
+            } ${isActive ? activeColor : IDLE}`}
           >
             {mode === 'card' && opt.sublabel && (
-              <span className="text-[10px] opacity-75 leading-tight">{opt.sublabel}</span>
+              <span className="text-[10px] opacity-75 leading-tight break-words min-w-0">{opt.sublabel}</span>
             )}
-            <span className={`font-medium text-[13px] ${mode === 'card' ? 'font-mono font-bold' : ''}`}>
+            <span className={`font-medium text-xs sm:text-[13px] break-words min-w-0 ${mode === 'card' ? 'font-mono font-bold' : ''}`}>
               {opt.label}
             </span>
           </button>

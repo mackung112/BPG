@@ -414,7 +414,7 @@ export default function ExamControl() {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl backdrop-blur-md border transition-all duration-300 ${
+        <div className={`fixed top-4 right-4 sm:top-6 sm:right-6 left-4 sm:left-auto z-50 flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl shadow-2xl backdrop-blur-md border transition-all duration-300 ${
           toast.type === 'success' 
             ? 'bg-emerald-900/90 border-emerald-500/40 text-emerald-100 shadow-emerald-950/20' 
             : 'bg-rose-900/90 border-rose-500/40 text-rose-100 shadow-rose-950/20'
@@ -583,7 +583,7 @@ export default function ExamControl() {
           {/* Session List Card */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-200/80">
             <h2 className="text-base font-bold text-zinc-900 mb-3">รายการห้องสอบ</h2>
-            <div className="space-y-2 max-h-[380px] overflow-auto pr-1">
+            <div className="space-y-2 max-h-[380px] overflow-x-auto overflow-y-auto pr-1">
               {sessions.map(s => (
                 <div 
                   key={s.id} 
@@ -603,7 +603,7 @@ export default function ExamControl() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleOpenEditSession(s); }}
                         className="p-1 text-zinc-400 hover:text-indigo-600 rounded cursor-pointer"
@@ -655,21 +655,21 @@ export default function ExamControl() {
             <>
               {/* Incident Alert Banner (if any cheating/disconnected) */}
               {flaggedParticipants.length > 0 && (
-                <div className="bg-rose-50 border-b border-rose-200 p-3 px-5 flex items-center justify-between gap-3 animate-pulse">
+                <div className="bg-rose-50 border-b border-rose-200 p-3 px-4 sm:px-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-pulse">
                   <div className="flex items-center gap-2.5 text-rose-800 text-xs font-bold">
                     <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
                     <span>แจ้งเตือน: พบนักเรียนออกจากหน้าจอสอบ หรือขาดการเชื่อมต่อ {flaggedParticipants.length} คน!</span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => handleAllowAllRejoin('continue')}
-                      className="text-xs bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 font-bold cursor-pointer shadow-sm"
+                      className="flex-1 sm:flex-none text-xs bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 font-bold cursor-pointer shadow-sm"
                     >
                       แก้ข้อสอบเดิมทั้งหมด
                     </button>
                     <button
                       onClick={() => handleAllowAllRejoin('restart')}
-                      className="text-xs bg-rose-600 text-white px-3 py-1.5 rounded-lg hover:bg-rose-700 font-bold cursor-pointer shadow-sm"
+                      className="flex-1 sm:flex-none text-xs bg-rose-600 text-white px-3 py-1.5 rounded-lg hover:bg-rose-700 font-bold cursor-pointer shadow-sm"
                     >
                       เริ่มใหม่ทั้งหมด
                     </button>
@@ -769,7 +769,7 @@ export default function ExamControl() {
 
               {/* ⏱️ LIVE COUNTDOWN TIMER & REAL-TIME TIME CONTROL BAR */}
               {activeSession.status === 'active' && (
-                <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 border-b border-indigo-900/60 flex flex-wrap items-center justify-between gap-4 shadow-inner">
+                <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-3.5 sm:p-4 border-b border-indigo-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-inner">
                   {/* Left: Live Countdown Clock */}
                   <div className="flex items-center gap-3">
                     <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shadow-md ${
@@ -872,7 +872,7 @@ export default function ExamControl() {
                           </div>
                           <button
                             onClick={() => setDeletingParticipant(p)}
-                            className="p-1 text-zinc-400 hover:text-rose-600 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            className="p-1 text-zinc-400 hover:text-rose-600 rounded opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
                             title="เตะ/ลบออกจากห้องสอบ"
                           >
                             <UserMinus className="w-3.5 h-3.5" />

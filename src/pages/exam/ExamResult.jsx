@@ -145,7 +145,7 @@ export default function ExamResult() {
       <div className={`absolute top-[-10%] left-[-10%] w-[45vw] h-[45vw] rounded-full blur-[130px] animate-pulse ${isPass ? 'bg-emerald-200/25' : 'bg-rose-200/25'}`} />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-indigo-200/20 blur-[130px]" />
       
-      <div className="max-w-md w-full bg-white/95 backdrop-blur-xl rounded-[28px] shadow-2xl border border-white/60 p-7 text-center relative z-10 space-y-5">
+      <div className="max-w-md w-full bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-[28px] shadow-2xl border border-white/60 p-5 sm:p-7 text-center relative z-10 space-y-5">
         
         {toastMsg && (
           <div className={`p-3.5 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-bounce ${

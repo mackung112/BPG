@@ -62,7 +62,7 @@ export default function Login() {
       <div className="absolute top-[-10%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-indigo-200/25 blur-[130px] animate-pulse" />
       <div className="absolute bottom-[-10%] right-[10%] w-[38vw] h-[38vw] rounded-full bg-rose-200/20 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
 
-      <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 p-8 relative z-10">
+      <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-[32px] shadow-2xl border border-white/50 p-5 sm:p-8 relative z-10">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 mb-4 transform -rotate-3">
             <GraduationCap className="w-10 h-10 text-white" />

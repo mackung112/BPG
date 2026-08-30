@@ -39,10 +39,10 @@ export default function SectionBlock({
   const iconColor = ICON_COLOR[accent] || 'text-indigo-500';
 
   const containerClass = {
-    default: 'bg-gradient-to-br from-slate-50 to-white rounded-3xl border border-slate-100 p-8',
-    dark:    'bg-slate-900 rounded-3xl border border-slate-800 p-8',
-    tinted:  `bg-${accent}-50/40 rounded-3xl border border-${accent}-100 p-8`,
-  }[variant] || 'bg-gradient-to-br from-slate-50 to-white rounded-3xl border border-slate-100 p-8';
+    default: 'bg-gradient-to-br from-slate-50 to-white rounded-2xl sm:rounded-3xl border border-slate-100 p-3.5 sm:p-6 md:p-8',
+    dark:    'bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-800 p-3.5 sm:p-6 md:p-8',
+    tinted:  `bg-${accent}-50/40 rounded-2xl sm:rounded-3xl border border-${accent}-100 p-3.5 sm:p-6 md:p-8`,
+  }[variant] || 'bg-gradient-to-br from-slate-50 to-white rounded-2xl sm:rounded-3xl border border-slate-100 p-3.5 sm:p-6 md:p-8';
 
   const titleClass = variant === 'dark' ? 'text-white' : 'text-slate-800';
   const descClass  = variant === 'dark' ? 'text-slate-400' : 'text-slate-500';
@@ -51,17 +51,17 @@ export default function SectionBlock({
     <section className={containerClass}>
       {/* Section header */}
       {(title || icon) && (
-        <div className="mb-6">
-          <h3 className={`text-xl font-bold ${titleClass} flex items-center gap-2.5 mb-1`}>
+        <div className="mb-4 sm:mb-6">
+          <h3 className={`text-base sm:text-xl font-bold ${titleClass} flex items-center gap-2.5 mb-1 flex-wrap sm:flex-nowrap`}>
             {icon && (
-              <span className={`${iconColor} transition-transform duration-300`}>
+              <span className={`${iconColor} shrink-0 transition-transform duration-300`}>
                 {icon}
               </span>
             )}
-            {title}
+            <span className="min-w-0 break-words">{title}</span>
           </h3>
           {description && (
-            <p className={`text-[14px] ${descClass} leading-relaxed pl-8`}>{description}</p>
+            <p className={`text-xs sm:text-[14px] ${descClass} leading-relaxed pl-0 sm:pl-8 mt-1 min-w-0 break-words`}>{description}</p>
           )}
         </div>
       )}

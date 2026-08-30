@@ -11,10 +11,17 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import DashboardLayout from './pages/admin/DashboardLayout';
 import StudentManagement from './pages/admin/StudentManagement';
+import TeacherSubjects from './pages/admin/TeacherSubjects';
 import QuestionBank from './pages/admin/QuestionBank';
 import AdminManagement from './pages/admin/AdminManagement';
 import ExamControl from './pages/admin/ExamControl';
 import ExamResults from './pages/admin/ExamResults';
+import CurriculumDraft from './pages/admin/CurriculumDraft';
+import CurriculumStructure from './pages/admin/CurriculumStructure';
+import AIContentCreatorView from './pages/admin/AIContentCreatorView';
+import CourseDocumentsView from './pages/admin/CourseDocumentsView';
+import WorksheetsView from './pages/admin/WorksheetsView';
+import SystemDocsView from './pages/admin/SystemDocsView';
 import ExamLobby from './pages/exam/ExamLobby';
 import ExamRoom from './pages/exam/ExamRoom';
 import ExamResult from './pages/exam/ExamResult';
@@ -593,9 +600,16 @@ export default function App() {
               </div>
             } />
             <Route path="students" element={<StudentManagement />} />
+            <Route path="teacher-subjects" element={<TeacherSubjects />} />
+            <Route path="curriculum-draft" element={<CurriculumDraft />} />
+            <Route path="curriculum-structure" element={<CurriculumStructure />} />
+            <Route path="ai-creator" element={<AIContentCreatorView />} />
+            <Route path="documents" element={<CourseDocumentsView />} />
+            <Route path="worksheets" element={<WorksheetsView />} />
             <Route path="questions" element={<QuestionBank />} />
             <Route path="exam-control" element={<ExamControl />} />
             <Route path="exam-results" element={<ExamResults />} />
+            <Route path="docs" element={<SystemDocsView />} />
             <Route path="users" element={
               <ProtectedRoute requireSuperAdmin={true}>
                 <AdminManagement />

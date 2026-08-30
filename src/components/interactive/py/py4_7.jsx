@@ -127,8 +127,8 @@ z = x.copy()
       
       {/* Background Ambience */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[5%] right-[-5%] w-[600px] h-[600px] rounded-full bg-teal-100/60 blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-50/70 blur-[100px]"></div>
+        <div className="absolute top-[5%] right-[-5%] w-[45vw] h-[45vw] rounded-full bg-teal-100/60 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-cyan-50/70 blur-[100px]"></div>
       </div>
 
       <main className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">

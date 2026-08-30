@@ -212,8 +212,8 @@ export default function py1_2() {
 
       {/* 1️⃣ Layer 1: Ambient Backdrop & Dynamic Theme Gradients */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-5%] right-[-10%] w-[650px] h-[650px] rounded-full bg-blue-200/40 blur-[160px]"></div>
-        <div className="absolute bottom-[10%] left-[-5%] w-[550px] h-[550px] rounded-full bg-cyan-200/35 blur-[160px]"></div>
+        <div className="absolute top-[-5%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-blue-200/40 blur-[160px]"></div>
+        <div className="absolute bottom-[10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-cyan-200/35 blur-[160px]"></div>
       </div>
 
       {/* 3️⃣ Layer 3: Flexible Subtopics & Interactives */}

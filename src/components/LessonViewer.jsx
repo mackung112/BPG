@@ -112,7 +112,7 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
       const ImmersiveComponent = COMPONENT_MAP[immersivePart];
       const htmlSrc = HTML_MAP[immersivePart];
       return (
-        <section className="w-full immersive-page-wrapper bg-[#FAFAFA] min-h-screen" aria-label="Immersive Lesson" id="immersive-lesson-wrapper">
+        <section className="w-full max-w-full overflow-x-hidden immersive-page-wrapper bg-[#FAFAFA] min-h-screen" aria-label="Immersive Lesson" id="immersive-lesson-wrapper">
           {lesson.hideHeader !== true && (
             <StandardHeader 
               chapterTitle={chapter?.title}
@@ -123,7 +123,7 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
               transparent={true}
             />
           )}
-          <div className="immersive-content-block">
+          <div className="immersive-content-block w-full max-w-full overflow-x-auto">
             {ImmersiveComponent ? <ImmersiveComponent /> : htmlSrc ? <HtmlEmbed src={htmlSrc} /> : null}
           </div>
         </section>
@@ -131,8 +131,8 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
     }
 
     return (
-      <section className="p-4 md:p-8 lg:p-12 max-w-5xl mx-auto w-full" aria-label="Standard Lesson" id="standard-lesson-wrapper">
-        <article className="lesson-content bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden" id="lesson-card">
+      <section className="p-3 sm:p-4 md:p-8 lg:p-12 max-w-5xl mx-auto w-full" aria-label="Standard Lesson" id="standard-lesson-wrapper">
+        <article className="lesson-content bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 overflow-hidden" id="lesson-card">
           <StandardHeader 
             chapterTitle={chapter?.title}
             mainTitle={mainTitle}
@@ -141,7 +141,7 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
             isCard={true}
             transparent={false}
           />
-          <div className="p-8 md:p-12" id="lesson-body">
+          <div className="p-4 sm:p-6 md:p-12 overflow-x-auto break-words" id="lesson-body">
             {processedParts.map((part, idx) => {
               const Component = COMPONENT_MAP[part];
               if (Component) {
@@ -155,7 +155,7 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
                 return (
                   <div
                     key={idx}
-                    className="prose prose-indigo max-w-none prose-lg text-gray-700"
+                    className="prose prose-indigo max-w-none prose-base sm:prose-lg text-gray-700 overflow-x-auto"
                     dangerouslySetInnerHTML={{ __html: part }}
                   />
                 );
@@ -169,25 +169,25 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
   };
 
   return (
-    <div className="pb-20 w-full bg-[#FAFAFA]" id="lesson-viewer-root">
+    <div className="pb-20 w-full max-w-full overflow-x-hidden bg-[#FAFAFA]" id="lesson-viewer-root">
       {renderContent()}
 
       {/* Navigation buttons: Previous / Next */}
-      <nav className={`mt-12 flex items-center justify-between border-t border-gray-200 pt-8 gap-4 w-full px-6 mx-auto ${isImmersive ? 'max-w-7xl lg:px-12' : 'max-w-5xl'}`} aria-label="Lesson Navigation">
+      <nav className={`mt-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-t border-gray-200 pt-8 gap-4 w-full px-4 sm:px-6 mx-auto ${isImmersive ? 'max-w-7xl lg:px-12' : 'max-w-5xl'}`} aria-label="Lesson Navigation">
         {hasPrev ? (
           <button
             onClick={onPrev}
-            className="px-6 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-2xl font-bold hover:border-teal-300 hover:text-teal-600 hover:-translate-y-0.5 transition-all flex items-center gap-2 group shadow-sm cursor-pointer"
+            className="px-6 py-3.5 sm:py-4 min-h-[48px] bg-white text-gray-700 border-2 border-gray-200 rounded-2xl font-bold hover:border-teal-300 hover:text-teal-600 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group shadow-sm cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5 transform transition-transform group-hover:-translate-x-1" />
             เนื้อหาก่อนหน้า
           </button>
         ) : (
-          <div />
+          <div className="hidden sm:block" />
         )}
         <button
           onClick={() => { if(onComplete) onComplete(); if(onNext) onNext(); }}
-          className="px-6 py-4 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-teal-200/50 hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2 group cursor-pointer"
+          className="px-6 py-3.5 sm:py-4 min-h-[48px] bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-teal-200/50 hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2 group cursor-pointer"
         >
           {hasNext ? 'เนื้อหาถัดไป' : 'กลับหน้ารวมวิชา'}
           <ChevronRight className="w-5 h-5 transform transition-transform group-hover:translate-x-1" />

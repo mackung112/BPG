@@ -95,11 +95,18 @@ description: ระบบออกแบบ UI/UX โทเค็นสี ฟ�
 | `xl:` | ≥ 1280px | จอกว้าง |
 
 ### Sidebar (Navigation Drawer)
+- **5 หมวดหมู่หลัก**: 
+  1. `พื้นฐาน` (หน้าแรก, แดชบอร์ด, จัดการวิชา)
+  2. `วางแผนและออกแบบ` (ร่างหลักสูตร, โครงสร้างเนื้อหา)
+  3. `สร้างเนื้อหา` (AI Content Creator, ไฟล์เอกสาร)
+  4. `การสอนและการประเมิน` (ใบงาน, แบบทดสอบ, ระบบสอบ)
+  5. `ตั้งค่าและคู่มือ`
+
 | Breakpoint | ความกว้าง | พฤติกรรม |
 |---|---|---|
-| Mobile (< 768px) | 0px | ซ่อน → Hamburger → Overlay Drawer |
-| Tablet (md:) | 72px | Icon-only (ไม่มีข้อความ) |
-| Desktop (lg:) | 256px | Full (ไอคอน + ข้อความ) |
+| Mobile (< 768px) | 0px | ซ่อน → Hamburger Toggle → Overlay Drawer (บังคับมี Backdrop blur, Body scroll lock, และกด ESC/คลิกนอกเพื่อปิดได้) |
+| Tablet (md:) | 72px | Icon-only (แสดงเฉพาะไอคอน ไม่มีข้อความ) |
+| Desktop (lg:) | 256px | Full (แสดงทั้งไอคอนและข้อความ) |
 
 ### Navbar (Top App Bar)
 | Breakpoint | ความสูง |

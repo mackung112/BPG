@@ -823,8 +823,8 @@ export default function pyUnit2_12_LoopingFlowcharts() {
       
       {/* LAYER 1: Ambient Backdrop (Glowing blur rings) */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] right-[8%] w-[450px] h-[450px] rounded-full bg-cyan-100/40 blur-[130px] animate-pulse"></div>
-        <div className="absolute bottom-[20%] left-[8%] w-[480px] h-[480px] rounded-full bg-emerald-100/30 blur-[140px]"></div>
+        <div className="absolute top-[10%] right-[8%] w-[38vw] h-[38vw] rounded-full bg-cyan-100/40 blur-[130px] animate-pulse"></div>
+        <div className="absolute bottom-[20%] left-[8%] w-[40vw] h-[40vw] rounded-full bg-emerald-100/30 blur-[140px]"></div>
       </div>
 
 

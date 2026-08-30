@@ -469,7 +469,7 @@ export default function ExamRoom() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-bold text-zinc-900 truncate max-w-[180px] sm:max-w-xs text-sm">{sessionInfo.title}</h1>
+                <h1 className="font-bold text-zinc-900 truncate max-w-[120px] sm:max-w-xs text-sm">{sessionInfo.title}</h1>
                 {isRetakeMode && (
                   <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md border border-amber-300">
                     สอบซ่อม #{attemptNumber}
@@ -520,11 +520,11 @@ export default function ExamRoom() {
         )}
 
         <div className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-xs space-y-3">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
             <span className="font-bold text-zinc-800 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-indigo-600" /> แผนผังข้อสอบ (คลิกเพื่อไปยังข้อนั้น)
             </span>
-            <div className="flex items-center gap-3 text-[11px]">
+            <div className="flex flex-wrap items-center gap-2.5 text-[11px]">
               <span className="flex items-center gap-1 text-emerald-700 font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> ทำแล้ว ({answeredCount})
               </span>
@@ -574,7 +574,7 @@ export default function ExamRoom() {
             return (
               <div 
                 key={q.id} 
-                className={`bg-white p-5 sm:p-6 rounded-2xl shadow-xs border transition-all ${
+                className={`bg-white p-4 sm:p-6 rounded-2xl shadow-xs border transition-all ${
                   isFlagged ? 'border-amber-300 bg-amber-50/20 ring-1 ring-amber-200' 
                   : isAnswered ? 'border-emerald-200 bg-white' : 'border-zinc-200/80 bg-white'
                 }`}
