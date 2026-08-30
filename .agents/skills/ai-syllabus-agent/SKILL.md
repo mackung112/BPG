@@ -5,24 +5,24 @@ description: เอกสารคู่มือสำหรับระบบ 
 
 # ระบบ AI Syllabus Agent
 
-ระบบนี้คือ AI Assistant ที่ฝังอยู่ในหน้า `TeacherSubjects.jsx` ซึ่งช่วยครูจัดทำโครงสร้างเนื้อหาหลักสูตร (Syllabus) แบบ Markdown
+ระบบนี้คือ AI Assistant ที่ฝังอยู่ในหน้า `CourseMaterials.jsx` (หน้าจัดการสื่อรายวิชา) ซึ่งช่วยครูจัดทำโครงสร้างเนื้อหาหลักสูตร (Syllabus) แบบ Markdown และต่อยอดเป็นใบงาน/สื่อการสอน
 
 ## โครงสร้างและส่วนประกอบสำคัญ
 
 1. **`src/services/aiService.js`** 
    - จัดการเชื่อมต่อกับ Google Gemini API
    - `buildSystemInstruction(subjectData, currentMarkdown)`: ทำหน้าที่อัดฉีด Context ทั้งข้อมูลรายวิชาและ **เนื้อหา Markdown ปัจจุบัน** ให้ AI รับรู้
-   - **Fallback Mechanism**: ดักจับ Error 503 (High Demand) และสลับใช้โมเดลสำรอง (เช่น `gemini-3.7-flash` -> `gemini-3.5-flash`) อัตโนมัติ
+   - **Fallback Mechanism**: ดักจับ Error 503 (High Demand) และสลับใช้โมเดลสำรองอัตโนมัติ
 
 2. **`src/components/admin/SubjectAIAssistant.jsx`**
    - ส่วน UI หน้าต่างแชตที่อยู่ด้านขวาของกล่องข้อความ Markdown
    - **Parser System**: ดักจับคำสั่ง `<UPDATE_SYLLABUS>...</UPDATE_SYLLABUS>` จากคำตอบของ AI
    - เมื่อเจอแท็กนี้ จะดึงข้อความข้างในไปสั่ง **Replace** กล่อง Markdown อัตโนมัติ (ผ่าน `onApplyMarkdown(text, true)`)
 
-3. **`src/pages/admin/TeacherSubjects.jsx`**
-   - หน้า UI หลักสำหรับตารางสอนครู
-   - มี **โหมดดูตัวอย่าง (Preview Mode)** ที่สลับดูระหว่าง Raw Markdown และ HTML Render (`react-markdown`)
-   - ระบบ Auto-switch: เมื่อ AI Agent สั่งอัปเดตข้อความ ระบบจะสลับไปหน้า Preview อัตโนมัติเพื่อแสดงผลลัพธ์ที่สวยงามให้ครูเห็น
+3. **`src/pages/admin/CourseMaterials.jsx`**
+   - หน้า UI หลักสำหรับจัดการสื่อการสอนและ Syllabus (Backend Content Workspace)
+   - มี **โหมดดูตัวอย่าง (Preview Mode)** และระบบ **Topic Extraction** (แปลงหัวข้อ Markdown #, ## ออกมาเป็นรายการทางด้านขวา)
+   - สามารถต่อยอดหัวข้อ ไปเป็นสื่อ Interactive และใบงานได้ทันที
 
 ## กฎการแก้ไขระบบ AI Agent
 

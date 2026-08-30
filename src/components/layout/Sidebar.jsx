@@ -2,12 +2,15 @@ import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { NAVIGATION_CATEGORIES } from './sidebarNavigation';
+import { useTeacherSubjects } from '../../contexts/TeacherSubjectsContext';
+import { FileText } from 'lucide-react';
 import { LogOut, GraduationCap, X } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isSuperAdmin, logoutAdmin } = useAuth();
+  const { subjects, loading } = useTeacherSubjects();
 
   // Auto-lock body scroll on mobile drawer open
   useEffect(() => {
@@ -94,8 +97,26 @@ export default function Sidebar({ isOpen, onClose }) {
 
         {/* Scrollable Navigation Categories */}
         <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
-          {NAVIGATION_CATEGORIES.map((category) => {
-            const visibleItems = category.items.filter(
+                    {NAVIGATION_CATEGORIES.map((category) => {
+            let categoryItems = [...category.items];
+            
+            // Dynamically inject subjects into Course Materials
+            if (category.id === 'course_materials') {
+              if (loading) {
+                 categoryItems = [{ to: '#', label: '���ѧ��Ŵ...', icon: FileText }];
+              } else if (subjects.length > 0) {
+                 categoryItems = subjects.map(s => ({
+                    to: "/admin/course-materials/" + s.id,
+                    icon: FileText,
+                    label: s.subject_code,
+                    title: s.subject_name
+                 }));
+              } else {
+                 categoryItems = [{ to: '/admin/teacher-subjects', label: '�����Ԫҷ����', icon: BookOpen }];
+              }
+            }
+
+            const visibleItems = categoryItems.filter(
               (item) => !item.requireSuperAdmin || isSuperAdmin
             );
             if (visibleItems.length === 0) return null;
@@ -181,3 +202,5 @@ export default function Sidebar({ isOpen, onClose }) {
     </>
   );
 }
+
+

@@ -7,18 +7,17 @@ import Storybook from './components/Storybook';
 import GradingSimulator from './components/GradingSimulator';
 import TeacherBio from './components/TeacherBio';
 import { AuthProvider } from './contexts/AuthContext';
+import { TeacherSubjectsProvider } from './contexts/TeacherSubjectsContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import DashboardLayout from './pages/admin/DashboardLayout';
 import StudentManagement from './pages/admin/StudentManagement';
 import TeacherSubjects from './pages/admin/TeacherSubjects';
+import CourseMaterials from './pages/admin/CourseMaterials';
 import QuestionBank from './pages/admin/QuestionBank';
 import AdminManagement from './pages/admin/AdminManagement';
 import ExamControl from './pages/admin/ExamControl';
 import ExamResults from './pages/admin/ExamResults';
-import CurriculumDraft from './pages/admin/CurriculumDraft';
-import CurriculumStructure from './pages/admin/CurriculumStructure';
-import AIContentCreatorView from './pages/admin/AIContentCreatorView';
 import CourseDocumentsView from './pages/admin/CourseDocumentsView';
 import WorksheetsView from './pages/admin/WorksheetsView';
 import SystemDocsView from './pages/admin/SystemDocsView';
@@ -572,6 +571,7 @@ function CourseView() {
 export default function App() {
   return (
     <AuthProvider>
+      <TeacherSubjectsProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomeView />} />
@@ -601,9 +601,8 @@ export default function App() {
             } />
             <Route path="students" element={<StudentManagement />} />
             <Route path="teacher-subjects" element={<TeacherSubjects />} />
-            <Route path="curriculum-draft" element={<CurriculumDraft />} />
-            <Route path="curriculum-structure" element={<CurriculumStructure />} />
-            <Route path="ai-creator" element={<AIContentCreatorView />} />
+            {/* New Course Materials page */}
+            <Route path="course-materials/:subjectId" element={<CourseMaterials />} />
             <Route path="documents" element={<CourseDocumentsView />} />
             <Route path="worksheets" element={<WorksheetsView />} />
             <Route path="questions" element={<QuestionBank />} />
@@ -618,6 +617,10 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+          </TeacherSubjectsProvider>
     </AuthProvider>
   );
 }
+
+
+

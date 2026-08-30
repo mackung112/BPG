@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Search, Plus, Loader2, Trash2, Copy, Check, Clock, Calendar, AlertCircle, ChevronDown, ChevronUp, Edit2, X, Sparkles, Eye, Code } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { BookOpen, Search, Plus, Loader2, Trash2, Copy, Check, Clock, Calendar, AlertCircle, ChevronDown, ChevronUp, Edit2, X } from 'lucide-react';
 import { getTeacherSubjects, addTeacherSubject, deleteTeacherSubject } from '../../services/teacherSubjectService';
-import SubjectAIAssistant from '../../components/admin/SubjectAIAssistant';
 
 
 export default function TeacherSubjects() {
@@ -27,8 +24,6 @@ export default function TeacherSubjects() {
 
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState(null);
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [isPreviewSyllabus, setIsPreviewSyllabus] = useState(false);
 
   const toggleExpand = (id) => {
     if (editingId) return; // Prevent collapse while editing
@@ -54,7 +49,8 @@ export default function TeacherSubjects() {
     fetchInitialData();
   }, []);
 
-  const fetchInitialData = async () => {
+  async function fetchInitialData() {
+
     try {
       setLoading(true);
       const [teacherData, { data: curriculumData, error: currErr }] = await Promise.all([
@@ -70,7 +66,11 @@ export default function TeacherSubjects() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
   const handleSelectSubject = (subject) => {
     setSelectedSubject(subject);
@@ -120,7 +120,11 @@ export default function TeacherSubjects() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm('คุณต้องการลบรายวิชานี้ใช่หรือไม่?')) return;
@@ -130,7 +134,11 @@ export default function TeacherSubjects() {
     } catch (err) {
       alert(err.message);
     }
-  };
+  }
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
   const handleSaveEdit = async () => {
     try {
@@ -146,8 +154,7 @@ export default function TeacherSubjects() {
         learning_outcomes: editData.learning_outcomes,
         objectives: editData.objectives,
         competencies: editData.competencies,
-        description: editData.description,
-        syllabus_markdown: editData.syllabus_markdown
+        description: editData.description
       };
 
       // 1. Update curriculum_subjects (Global dataset)
@@ -166,13 +173,17 @@ export default function TeacherSubjects() {
 
       setEditingId(null);
       setEditData(null);
-      setShowAIAssistant(false);
+     ;
     } catch (err) {
       setError(err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูลแก้ไข');
     } finally {
       setIsSaving(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
   const handleCopyMarkdown = (subject) => {
     const text = `**รหัสวิชา:** ${subject.subject_code}
@@ -468,7 +479,7 @@ ${subject.description || '-'}`;
                             <Edit2 className="w-4 h-4" /> แก้ไขข้อมูลรายวิชา (แก้แล้วบันทึกลงฐานข้อมูลกลาง)
                           </h4>
                           <button 
-                            onClick={() => { setEditingId(null); setEditData(null); setShowAIAssistant(false); }}
+                            onClick={() => { setEditingId(null); setEditData(null); }}
                             className="p-1 text-gray-400 hover:bg-gray-200 rounded"
                           >
                             <X className="w-5 h-5" />
@@ -524,85 +535,11 @@ ${subject.description || '-'}`;
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[120px]"
                           />
                         </div>
-                        <div>
-                          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                              <label className="block text-sm font-medium text-gray-700">โครงสร้างเนื้อหาหลักสูตร (Syllabus Markdown)</label>
-                              
-                              <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
-                                <button 
-                                  type="button"
-                                  onClick={() => setIsPreviewSyllabus(false)}
-                                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-xs font-medium rounded-md transition-colors ${!isPreviewSyllabus ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}
-                                >
-                                  <Code className="w-3.5 h-3.5" />
-                                  แก้ไข
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => setIsPreviewSyllabus(true)}
-                                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-xs font-medium rounded-md transition-colors ${isPreviewSyllabus ? 'bg-white shadow-sm text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                  ดูตัวอย่าง
-                                </button>
-                              </div>
-                            </div>
-
-                            {!showAIAssistant && (
-                              <button
-                                type="button"
-                                onClick={() => setShowAIAssistant(true)}
-                                className="flex items-center justify-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors w-full sm:w-auto"
-                              >
-                                <Sparkles className="w-4 h-4" />
-                                AI ร่างหลักสูตร
-                              </button>
-                            )}
-                          </div>
-                          
-                          <div className={`flex flex-col ${showAIAssistant ? 'xl:flex-row' : ''} gap-4`}>
-                            {isPreviewSyllabus ? (
-                              <div className={`w-full px-4 py-4 border border-gray-300 rounded-lg text-sm min-h-[400px] max-h-[600px] overflow-y-auto bg-gray-50 prose prose-sm prose-indigo max-w-none ${showAIAssistant ? 'flex-1' : ''}`}>
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {editData.syllabus_markdown || '*ยังไม่มีเนื้อหา*'}
-                                </ReactMarkdown>
-                              </div>
-                            ) : (
-                              <textarea 
-                                value={editData.syllabus_markdown || ''} 
-                                onChange={(e) => setEditData({...editData, syllabus_markdown: e.target.value})}
-                                className={`w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[400px] font-mono ${showAIAssistant ? 'flex-1' : ''}`}
-                                placeholder="# โครงสร้างเนื้อหาหลักสูตร..."
-                              />
-                            )}
-                            
-                            {showAIAssistant && (
-                              <div className="xl:w-[450px] shrink-0 border border-indigo-100 rounded-xl overflow-hidden shadow-sm flex flex-col h-[600px] xl:h-auto">
-                                <SubjectAIAssistant 
-                                  subjectData={editData}
-                                  onClose={() => setShowAIAssistant(false)}
-                                  onApplyMarkdown={(markdown, isReplace = false) => {
-                                    setEditData(prev => ({ 
-                                      ...prev, 
-                                      syllabus_markdown: isReplace 
-                                        ? markdown 
-                                        : (prev.syllabus_markdown ? prev.syllabus_markdown + '\n\n' + markdown : markdown) 
-                                    }));
-                                    if (isReplace) {
-                                      setIsPreviewSyllabus(true);
-                                    }
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
                         
                         <div className="flex justify-end gap-3 pt-2">
                           <button 
                             type="button"
-                            onClick={() => { setEditingId(null); setEditData(null); setShowAIAssistant(false); }}
+                            onClick={() => { setEditingId(null); setEditData(null); }}
                             className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200"
                             disabled={isSaving}
                           >
@@ -663,16 +600,7 @@ ${subject.description || '-'}`;
                           </div>
                         )}
                         
-                        {subject.syllabus_markdown && (
-                          <div className="mt-4 border-t pt-4">
-                            <h4 className="font-bold text-indigo-900 mb-4">โครงสร้างเนื้อหาหลักสูตร</h4>
-                            <div className="prose prose-sm prose-indigo max-w-none bg-gray-50 p-4 rounded-lg border border-gray-200">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {subject.syllabus_markdown}
-                              </ReactMarkdown>
-                            </div>
-                          </div>
-                        )}
+                        
 
                         {!subject.objectives && !subject.competencies && !subject.description && (
                           <div className="text-gray-500 italic">ไม่มีข้อมูลรายละเอียดสำหรับรายวิชานี้ในระบบ</div>
@@ -689,3 +617,6 @@ ${subject.description || '-'}`;
     </div>
   );
 }
+
+
+

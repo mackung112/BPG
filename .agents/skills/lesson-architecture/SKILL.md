@@ -59,16 +59,16 @@ src/
 - **เนื้อหาลึกซึ้ง** — ครบทุกหัวข้อย่อย ห้ามละเว้น
 - **ไม่ต้องมีภารกิจจำลองแก้ปัญหา / Challenge / แบบทดสอบท้ายบท** — ให้เน้นเนื้อหาทฤษฎีลึกซึ้งและ Simulator ฝึกปฏิบัติแบบเปิด (Interactive Simulator Studio)
 
-## นำเข้าเนื้อหา 2 วิธี
+## นำเข้าเนื้อหา (Workflow ปัจจุบัน)
 
-1. **AI สร้างเนื้อหา** → ดู skill `ai-content-creator`
-2. **ครูแม็คนำเข้าเอง** (`.jsx` หรือ `.html`) → ดู skill `import-external-content`
+1. **ครูแม็คนำเข้าเอง** (`.jsx` หรือ `.html`) → ดู skill `import-external-content`
+2. **จัดการสื่อรายวิชา (`CourseMaterials.jsx`)** → พื้นที่วางแผนหลักสูตรและสร้างเนื้อหา (แทนที่ AI Content Creator เดิม)
 
 ## 📚 สถาปัตยกรรมหลักสูตรและฐานข้อมูล (Supabase)
 
 - **Curriculum Subjects (`curriculum_subjects` table)**: ฐานข้อมูลส่วนกลางสำหรับเก็บข้อมูลรายวิชา (จุดประสงค์, สมรรถนะ, คำอธิบาย, รหัสวิชา) และ `syllabus_markdown` (ซึ่งย้ายมาจากไฟล์ .md)
-- **Teacher Subjects (`teacher_subjects` table)**: ตารางสอนของครูแม็ค (อ้างอิงข้อมูลจาก `curriculum_subjects`)
-- **AI Syllabus Agent**: หน้า `TeacherSubjects.jsx` มีระบบ AI Agent อัจฉริยะ ทำงานควบคู่กับโหมดดูตัวอย่าง (Preview Mode) ของ Markdown โดย AI สามารถอ่านค่าปัจจุบันและปรับแก้เนื้อหาให้โดยอัตโนมัติ
+- **Teacher Subjects (`teacher_subjects` table)**: ตารางสอนของครูแม็ค (อ้างอิงข้อมูลจาก `curriculum_subjects`) นำมาผูกและแสดงผลทาง Sidebar เมนู "สื่อรายวิชา"
+- **AI Syllabus Agent**: อยู่ในหน้า `CourseMaterials.jsx` ทำงานควบคู่กับโหมดดูตัวอย่าง (Preview Mode) ของ Markdown โดยมีระบบแยกหัวข้อ (Topic Extraction) ให้พร้อมนำไปต่อยอดสร้างสื่อและใบงาน
 
 ## 💻 โครงสร้างเนื้อหาบทเรียน (Local E-Learning)
 

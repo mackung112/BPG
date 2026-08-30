@@ -1,19 +1,11 @@
-import {
-  Home,
-  LayoutDashboard,
-  BookOpen,
-  Users,
-  Sparkles,
-  Layers,
-  Wand2,
-  FileCode,
-  CheckSquare,
-  HelpCircle,
-  Play,
-  Trophy,
-  ShieldCheck,
+import { 
+  Home, 
+  LayoutDashboard, 
+  BookOpen, 
   BookMarked,
-  Palette
+  ShieldCheck,
+  Palette,
+  FileText
 } from 'lucide-react';
 
 export const NAVIGATION_CATEGORIES = [
@@ -24,37 +16,15 @@ export const NAVIGATION_CATEGORIES = [
     items: [
       { to: '/', icon: Home, label: 'หน้าแรก', exact: true, external: true },
       { to: '/admin', icon: LayoutDashboard, label: 'แดชบอร์ด', exact: true },
-      { to: '/admin/teacher-subjects', icon: BookOpen, label: 'จัดการวิชา' },
-      { to: '/admin/students', icon: Users, label: 'จัดการนักเรียน' }
+      { to: '/admin/teacher-subjects', icon: BookOpen, label: 'จัดการวิชา' }
     ]
   },
   {
-    id: 'planning',
-    label: 'วางแผนและออกแบบ',
-    labelEn: 'Planning & Design',
+    id: 'course_materials',
+    label: 'สื่อรายวิชา',
+    labelEn: 'Course Materials',
     items: [
-      { to: '/admin/curriculum-draft', icon: Sparkles, label: 'ร่างหลักสูตร', badge: 'AI' },
-      { to: '/admin/curriculum-structure', icon: Layers, label: 'โครงสร้างเนื้อหา' }
-    ]
-  },
-  {
-    id: 'content',
-    label: 'สร้างเนื้อหา',
-    labelEn: 'Content Creation',
-    items: [
-      { to: '/admin/ai-creator', icon: Wand2, label: 'AI Content Creator', badge: 'New' },
-      { to: '/admin/documents', icon: FileCode, label: 'ไฟล์เอกสาร' }
-    ]
-  },
-  {
-    id: 'teaching',
-    label: 'การสอนและการประเมิน',
-    labelEn: 'Teaching & Assessment',
-    items: [
-      { to: '/admin/worksheets', icon: CheckSquare, label: 'ใบงาน' },
-      { to: '/admin/questions', icon: HelpCircle, label: 'แบบทดสอบ' },
-      { to: '/admin/exam-control', icon: Play, label: 'ระบบสอบ' },
-      { to: '/admin/exam-results', icon: Trophy, label: 'ผลคะแนนสอบ' }
+      // Items here will be injected dynamically by Sidebar.jsx
     ]
   },
   {
