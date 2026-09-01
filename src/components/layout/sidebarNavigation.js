@@ -5,7 +5,11 @@ import {
   BookMarked,
   ShieldCheck,
   Palette,
-  FileText
+  FileText,
+  Users,
+  GraduationCap,
+  ClipboardList,
+  PenTool
 } from 'lucide-react';
 
 export const NAVIGATION_CATEGORIES = [
@@ -25,6 +29,19 @@ export const NAVIGATION_CATEGORIES = [
     labelEn: 'Course Materials',
     items: [
       // Items here will be injected dynamically by Sidebar.jsx
+    ]
+  },
+  {
+    id: 'teaching_and_assessment',
+    label: 'การสอนและการประเมิน',
+    labelEn: 'Teaching & Assessment',
+    items: [
+      { to: '/admin/students', icon: Users, label: 'การจัดการนักเรียน' },
+      { to: '/admin/questions', icon: ClipboardList, label: 'คลังข้อสอบ' },
+      { to: '/admin/exam-control', icon: PenTool, label: 'ระบบจัดการห้องสอบ' },
+      { to: '/admin/exam-results', icon: GraduationCap, label: 'ผลคะแนน' },
+      { to: '/admin/worksheets', icon: FileText, label: 'ใบงาน' },
+      { to: '/admin/documents', icon: FileText, label: 'เอกสารประกอบ' }
     ]
   },
   {
