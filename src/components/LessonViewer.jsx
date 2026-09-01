@@ -1,13 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import StandardHeader from './StandardHeader';
 
-const interactiveModules = import.meta.glob('./interactive/**/*.jsx', { eager: true });
+// Lazy-load interactive components — each gets its own chunk
+const interactiveModules = import.meta.glob('./interactive/**/*.jsx');
 
 const COMPONENT_MAP = {};
 for (const path in interactiveModules) {
   const componentName = path.split('/').pop().replace('.jsx', '');
-  COMPONENT_MAP[`[${componentName}]`] = interactiveModules[path].default;
+  COMPONENT_MAP[`[${componentName}]`] = lazy(interactiveModules[path]);
 }
 
 // HTML Embed component — ฝัง .html จาก interactive/<วิชา>/ ผ่าน iframe
@@ -124,7 +125,11 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
             />
           )}
           <div className="immersive-content-block w-full max-w-full overflow-x-auto">
-            {ImmersiveComponent ? <ImmersiveComponent /> : htmlSrc ? <HtmlEmbed src={htmlSrc} /> : null}
+            {ImmersiveComponent ? (
+              <Suspense fallback={<div className="flex items-center justify-center py-20"><div className="relative w-8 h-8"><div className="absolute inset-0 rounded-full border-[3px] border-indigo-100" /><div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-indigo-600 animate-spin" /></div></div>}>
+                <ImmersiveComponent />
+              </Suspense>
+            ) : htmlSrc ? <HtmlEmbed src={htmlSrc} /> : null}
           </div>
         </section>
       );
@@ -145,7 +150,11 @@ export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPr
             {processedParts.map((part, idx) => {
               const Component = COMPONENT_MAP[part];
               if (Component) {
-                return <Component key={idx} />;
+                return (
+                  <Suspense key={idx} fallback={<div className="flex items-center justify-center py-12"><div className="relative w-8 h-8"><div className="absolute inset-0 rounded-full border-[3px] border-indigo-100" /><div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-indigo-600 animate-spin" /></div></div>}>
+                    <Component />
+                  </Suspense>
+                );
               }
               const htmlSrc = HTML_MAP[part];
               if (htmlSrc) {

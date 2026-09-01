@@ -117,7 +117,7 @@ export function AuthProvider({ children }) {
       loginStudent,
       logoutStudent
     }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

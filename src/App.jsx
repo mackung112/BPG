@@ -1,33 +1,62 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Menu, CheckCircle, BookOpen, Sparkles, GraduationCap, Code2, Users, Zap, ArrowRight, X, Package, Award, Sliders, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu, CheckCircle, BookOpen, GraduationCap, Code2, Zap, ArrowRight, X } from 'lucide-react';
 import coursesData from './data';
-import LessonViewer from './components/LessonViewer';
-import Storybook from './components/Storybook';
-import GradingSimulator from './components/GradingSimulator';
-import TeacherBio from './components/TeacherBio';
 import { AuthProvider } from './contexts/AuthContext';
-import { TeacherSubjectsProvider } from './contexts/TeacherSubjectsContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
-import DashboardLayout from './pages/admin/DashboardLayout';
-import StudentManagement from './pages/admin/StudentManagement';
-import TeacherSubjects from './pages/admin/TeacherSubjects';
-import CourseMaterials from './pages/admin/CourseMaterials';
-import QuestionBank from './pages/admin/QuestionBank';
-import AdminManagement from './pages/admin/AdminManagement';
-import ExamControl from './pages/admin/ExamControl';
-import ExamResults from './pages/admin/ExamResults';
-import CourseDocumentsView from './pages/admin/CourseDocumentsView';
-import WorksheetsView from './pages/admin/WorksheetsView';
-import SystemDocsView from './pages/admin/SystemDocsView';
-import ExamLobby from './pages/exam/ExamLobby';
-import ExamRoom from './pages/exam/ExamRoom';
-import ExamResult from './pages/exam/ExamResult';
+import LoadingFallback, { PageLoadingFallback } from './components/LoadingFallback';
+
+// ─── Lazy-loaded page components ────────────────────────────
+// Public pages (lighter, loaded on demand)
+const Login = lazy(() => import('./pages/Login'));
+
+// Course view components (loaded when navigating to a course)
+const LessonViewer = lazy(() => import('./components/LessonViewer'));
+
+// Library / public pages
+const Storybook = lazy(() => import('./components/Storybook'));
+const GradingSimulator = lazy(() => import('./components/GradingSimulator'));
+const TeacherBio = lazy(() => import('./components/TeacherBio'));
+
+// Admin pages (heavy — only loaded when admin navigates there)
+const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
+const DashboardLayout = lazy(() => import('./pages/admin/DashboardLayout'));
+const StudentManagement = lazy(() => import('./pages/admin/StudentManagement'));
+const TeacherSubjects = lazy(() => import('./pages/admin/TeacherSubjects'));
+const CourseMaterials = lazy(() => import('./pages/admin/CourseMaterials'));
+const QuestionBank = lazy(() => import('./pages/admin/QuestionBank'));
+const AdminManagement = lazy(() => import('./pages/admin/AdminManagement'));
+const ExamControl = lazy(() => import('./pages/admin/ExamControl'));
+const ExamResults = lazy(() => import('./pages/admin/ExamResults'));
+const CourseDocumentsView = lazy(() => import('./pages/admin/CourseDocumentsView'));
+const WorksheetsView = lazy(() => import('./pages/admin/WorksheetsView'));
+const SystemDocsView = lazy(() => import('./pages/admin/SystemDocsView'));
+
+// Exam pages (loaded only when student enters exam)
+const ExamLobby = lazy(() => import('./pages/exam/ExamLobby'));
+const ExamRoom = lazy(() => import('./pages/exam/ExamRoom'));
+const ExamResult = lazy(() => import('./pages/exam/ExamResult'));
+
+// ─── Lazy-loaded context (admin-only) ────────────────────────
+// TeacherSubjectsProvider wraps only admin routes via AdminProviderWrapper
+const LazyTeacherSubjectsProvider = lazy(() =>
+  import('./contexts/TeacherSubjectsContext').then(mod => ({
+    default: mod.TeacherSubjectsProvider
+  }))
+);
+
+/** Wraps admin routes with TeacherSubjectsProvider — only loaded when needed */
+function AdminProviderWrapper({ children }) {
+  return (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <LazyTeacherSubjectsProvider>
+        {children}
+      </LazyTeacherSubjectsProvider>
+    </Suspense>
+  );
+}
 
 function PageLayout({ children, activePage }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   const navItems = [
     { name: 'หน้าแรก / รายวิชา', path: '/', id: 'home' },
@@ -163,13 +192,6 @@ function HomeView() {
     { key: '2', label: 'ปวช.', fullLabel: 'ประกาศนียบัตรวิชาชีพ', accent: 'indigo', gradient: 'from-indigo-600 to-purple-600' },
     { key: '3', label: 'ปวส.', fullLabel: 'ประกาศนียบัตรวิชาชีพชั้นสูง', accent: 'emerald', gradient: 'from-emerald-500 to-teal-500' },
   ];
-
-  const scrollToCourses = () => {
-    const element = document.getElementById('courses');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   const courseThemes = [
     { gradient: 'from-violet-600 via-indigo-600 to-blue-500', badge: 'bg-violet-50 text-violet-700 border-violet-100', accent: 'text-violet-600', glow: 'shadow-violet-200/30' },
@@ -365,7 +387,9 @@ function GradingView() {
               เกณฑ์การวัดและประเมินผลรายวิชา
             </h3>
           </div>
-          <GradingSimulator />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <GradingSimulator />
+          </Suspense>
         </section>
       </main>
     </PageLayout>
@@ -385,7 +409,9 @@ function InstructorView() {
               ข้อมูลอาจารย์ผู้สอน
             </h3>
           </div>
-          <TeacherBio />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <TeacherBio />
+          </Suspense>
         </section>
       </main>
     </PageLayout>
@@ -547,15 +573,17 @@ function CourseView() {
         <main ref={mainRef} className="flex-1 overflow-y-auto relative z-0">
           <div className="w-full">
             {currentLesson ? (
-              <LessonViewer
-                lesson={currentLesson}
-                chapter={currentChapter}
-                onComplete={markCompleted}
-                onNext={handleNextLesson}
-                onPrev={handlePrevLesson}
-                hasPrev={hasPrev}
-                hasNext={hasNext}
-              />
+              <Suspense fallback={<PageLoadingFallback />}>
+                <LessonViewer
+                  lesson={currentLesson}
+                  chapter={currentChapter}
+                  onComplete={markCompleted}
+                  onNext={handleNextLesson}
+                  onPrev={handlePrevLesson}
+                  hasPrev={hasPrev}
+                  hasNext={hasNext}
+                />
+              </Suspense>
             ) : (
               <div className="text-center py-20 text-gray-500 text-xl font-medium">
                 {course.chapters.length === 0 ? "📖 อยู่ระหว่างการเตรียมเนื้อหาบทเรียนสำหรับวิชานี้" : "โปรดเลือกบทเรียนจากเมนูด้านซ้าย"}
@@ -571,56 +599,58 @@ function CourseView() {
 export default function App() {
   return (
     <AuthProvider>
-      <TeacherSubjectsProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomeView />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/grading" element={<GradingView />} />
-          <Route path="/instructor" element={<InstructorView />} />
-          <Route path="/library" element={<Storybook />} />
-          
-          {/* Exam Routes (Protected implicitly inside components via useAuth) */}
-          <Route path="/exam-lobby/:sessionId" element={<ExamLobby />} />
-          <Route path="/exam-room/:sessionId" element={<ExamRoom />} />
-          <Route path="/exam-result/:sessionId" element={<ExamResult />} />
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            {/* Public routes — no heavy providers */}
+            <Route path="/" element={<HomeView />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/grading" element={<GradingView />} />
+            <Route path="/instructor" element={<InstructorView />} />
+            <Route path="/library" element={<Storybook />} />
+            
+            {/* Exam Routes */}
+            <Route path="/exam-lobby/:sessionId" element={<ExamLobby />} />
+            <Route path="/exam-room/:sessionId" element={<ExamRoom />} />
+            <Route path="/exam-result/:sessionId" element={<ExamResult />} />
 
-          <Route path="/course/:courseId" element={<CourseView />} />
-          <Route path="/course/:courseId/lesson/:lessonId" element={<CourseView />} />
-          
-          <Route path="/admin" element={
-            <ProtectedRoute requireAdmin={true}>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={
-              <div className="p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
-                <h1 className="text-2xl font-bold mb-4">ยินดีต้อนรับสู่ระบบจัดการ (Admin)</h1>
-                <p className="text-gray-500">เลือกเมนูด้านซ้ายเพื่อเริ่มต้นใช้งานระบบจัดการ LMS</p>
-              </div>
-            } />
-            <Route path="students" element={<StudentManagement />} />
-            <Route path="teacher-subjects" element={<TeacherSubjects />} />
-            {/* New Course Materials page */}
-            <Route path="course-materials/:subjectId" element={<CourseMaterials />} />
-            <Route path="documents" element={<CourseDocumentsView />} />
-            <Route path="worksheets" element={<WorksheetsView />} />
-            <Route path="questions" element={<QuestionBank />} />
-            <Route path="exam-control" element={<ExamControl />} />
-            <Route path="exam-results" element={<ExamResults />} />
-            <Route path="docs" element={<SystemDocsView />} />
-            <Route path="users" element={
-              <ProtectedRoute requireSuperAdmin={true}>
-                <AdminManagement />
-              </ProtectedRoute>
-            } />
-          </Route>
-        </Routes>
+            {/* Course Routes */}
+            <Route path="/course/:courseId" element={<CourseView />} />
+            <Route path="/course/:courseId/lesson/:lessonId" element={<CourseView />} />
+            
+            {/* Admin Routes — wrapped with TeacherSubjectsProvider only here */}
+            <Route path="/admin" element={
+              <AdminProviderWrapper>
+                <ProtectedRoute requireAdmin={true}>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              </AdminProviderWrapper>
+            }>
+              <Route index element={
+                <div className="p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+                  <h1 className="text-2xl font-bold mb-4">ยินดีต้อนรับสู่ระบบจัดการ (Admin)</h1>
+                  <p className="text-gray-500">เลือกเมนูด้านซ้ายเพื่อเริ่มต้นใช้งานระบบจัดการ LMS</p>
+                </div>
+              } />
+              <Route path="students" element={<StudentManagement />} />
+              <Route path="teacher-subjects" element={<TeacherSubjects />} />
+              {/* New Course Materials page */}
+              <Route path="course-materials/:subjectId" element={<CourseMaterials />} />
+              <Route path="documents" element={<CourseDocumentsView />} />
+              <Route path="worksheets" element={<WorksheetsView />} />
+              <Route path="questions" element={<QuestionBank />} />
+              <Route path="exam-control" element={<ExamControl />} />
+              <Route path="exam-results" element={<ExamResults />} />
+              <Route path="docs" element={<SystemDocsView />} />
+              <Route path="users" element={
+                <ProtectedRoute requireSuperAdmin={true}>
+                  <AdminManagement />
+                </ProtectedRoute>
+              } />
+            </Route>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
-          </TeacherSubjectsProvider>
     </AuthProvider>
   );
 }
-
-
-
