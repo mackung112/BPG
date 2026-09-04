@@ -20,6 +20,35 @@ import {
 
 const QUESTIONS_PER_PAGE = 2;
 
+const getDraftKey = (sId, stId) => `exam_draft_${sId}_${stId}`;
+const loadLocalDraft = (sId, stId, expectedAttempt) => {
+  try {
+    const raw = localStorage.getItem(getDraftKey(sId, stId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.attemptNumber === expectedAttempt && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+      return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to parse local draft:', e);
+  }
+  return null;
+};
+const saveLocalDraft = (sId, stId, data) => {
+  try {
+    localStorage.setItem(getDraftKey(sId, stId), JSON.stringify(data));
+  } catch (e) {
+    console.warn('Failed to save local draft:', e);
+  }
+};
+const clearLocalDraft = (sId, stId) => {
+  try {
+    localStorage.removeItem(getDraftKey(sId, stId));
+  } catch (e) {
+    console.warn('Failed to clear local draft:', e);
+  }
+};
+
 export default function ExamRoom() {
   const { sessionId } = useParams();
   const { studentSession, logoutStudent } = useAuth();
@@ -43,8 +72,13 @@ export default function ExamRoom() {
   const [initialWarnings, setInitialWarnings] = useState(0);
   const [examStartedAt, setExamStartedAt] = useState(null);
   const submitLockRef = useRef(false);
+  const handleSubmitRef = useRef();
 
-  const { timeLeft, setTimeLeft, addTime, deductTime } = useExamTimer(null, (autoSubmit) => handleSubmit(autoSubmit), !submitting && questions.length > 0);
+  const { timeLeft, setTimeLeft, deductTime } = useExamTimer(
+    null,
+    (autoSubmit) => handleSubmitRef.current?.(autoSubmit),
+    !submitting && questions.length > 0
+  );
   
   const showSecurityWarning = (msg) => {
     setToastWarning(msg);
@@ -167,6 +201,23 @@ export default function ExamRoom() {
       const pData = await getParticipant(sessionId, studentSession.student_id);
       setInitialWarnings(pData?.warnings_count || 0);
 
+      // Security check: หากสถานะเป็น cheating หรือ disconnected และครูยังไม่ได้ allow_rejoin ให้เด้งไปรอที่ Lobby ทันที
+      if ((pData?.status === 'cheating' || pData?.status === 'disconnected') && !pData?.allow_rejoin) {
+        navigate(`/exam-lobby/${sessionId}`, { replace: true });
+        return;
+      }
+
+      if (pData?.rejoin_mode === 'restart') {
+        clearLocalDraft(sessionId, studentSession.student_id);
+        if (pData?.saved_exam_state) {
+          await deleteSuspendedResult(sessionId, studentSession.student_id, pData.saved_exam_state.attemptNumber);
+          await updateParticipantStatus(sessionId, studentSession.student_id, {
+            rejoin_mode: null,
+            saved_exam_state: null
+          });
+        }
+      }
+
       if (pData?.rejoin_mode === 'continue' && pData?.saved_exam_state) {
         const saved = pData.saved_exam_state;
         setQuestions(saved.questions || []);
@@ -176,6 +227,13 @@ export default function ExamRoom() {
         setAttemptNumber(saved.attemptNumber || 1);
         setIsRetakeMode((saved.attemptNumber || 1) > 1);
         setExamStartedAt(pData.started_at || new Date().toISOString());
+
+        saveLocalDraft(sessionId, studentSession.student_id, {
+          questions: saved.questions || [],
+          answers: saved.answers || {},
+          flagged: saved.flagged || {},
+          attemptNumber: saved.attemptNumber || 1
+        });
 
         await deleteSuspendedResult(sessionId, studentSession.student_id, saved.attemptNumber);
         
@@ -189,14 +247,6 @@ export default function ExamRoom() {
         requestFullscreen();
         setLoading(false);
         return;
-      }
-
-      if (pData?.rejoin_mode === 'restart' && pData?.saved_exam_state) {
-        await deleteSuspendedResult(sessionId, studentSession.student_id, pData.saved_exam_state.attemptNumber);
-        await updateParticipantStatus(sessionId, studentSession.student_id, {
-          rejoin_mode: null,
-          saved_exam_state: null
-        });
       }
 
       const prevResults = await getStudentResults(sessionId, studentSession.student_id);
@@ -245,6 +295,17 @@ export default function ExamRoom() {
       
       setExamStartedAt(pData?.started_at || new Date().toISOString());
 
+      // ตรวจสอบว่ามีร่างข้อสอบในเครื่อง (LocalStorage) ที่ทำค้างไว้ในรอบนี้หรือไม่ (ป้องกันไฟดับ/รีเฟรชหน้าจอ)
+      const localDraft = loadLocalDraft(sessionId, studentSession.student_id, currentAttempt);
+      if (localDraft && Array.isArray(localDraft.questions) && localDraft.questions.length > 0) {
+        setQuestions(localDraft.questions);
+        setAnswers(localDraft.answers || {});
+        setFlagged(localDraft.flagged || {});
+        requestFullscreen();
+        setLoading(false);
+        return;
+      }
+
       const eqData = await getExamQuestions(sessionId);
       if (!eqData || eqData.length === 0) {
         setErrorMsg('ไม่พบข้อสอบในชุดนี้ หรือห้องสอบยังไม่ได้ตั้งค่าคำถาม');
@@ -267,15 +328,25 @@ export default function ExamRoom() {
       sampledQuestions = sampledQuestions.map(q => {
         const rawChoices = q.choices || [];
         let correctText = '';
-        const correctChoiceObj = rawChoices.find(c => typeof c === 'object' && (c.is_correct === true || c.isCorrect === true));
-        if (correctChoiceObj) {
-          correctText = correctChoiceObj.text || '';
-        } else if (typeof q.correct_answer_index === 'number' && rawChoices[q.correct_answer_index]) {
-          const c = rawChoices[q.correct_answer_index];
-          correctText = typeof c === 'object' ? c.text : c;
+
+        const normalizedChoices = rawChoices.map((c, idx) => {
+          if (typeof c === 'object' && c !== null) {
+            const text = c.text ?? '';
+            const isCorrect = Boolean(c.is_correct || c.isCorrect);
+            if (isCorrect) correctText = text;
+            return { text, is_correct: isCorrect };
+          }
+          const text = String(c);
+          const isCorrect = idx === q.correct_answer_index;
+          if (isCorrect) correctText = text;
+          return { text, is_correct: isCorrect };
+        });
+
+        if (!correctText && typeof q.correct_answer_index === 'number' && normalizedChoices[q.correct_answer_index]) {
+          correctText = normalizedChoices[q.correct_answer_index].text;
         }
 
-        const shuffledChoices = [...rawChoices].sort(() => Math.random() - 0.5);
+        const shuffledChoices = [...normalizedChoices].sort(() => Math.random() - 0.5);
         return {
           ...q,
           correctText: correctText,
@@ -285,6 +356,12 @@ export default function ExamRoom() {
       });
 
       setQuestions(sampledQuestions);
+      saveLocalDraft(sessionId, studentSession.student_id, {
+        questions: sampledQuestions,
+        answers: {},
+        flagged: {},
+        attemptNumber: currentAttempt
+      });
       requestFullscreen();
     } catch (err) {
       console.error('Error initializing exam:', err);
@@ -295,11 +372,36 @@ export default function ExamRoom() {
   };
 
   const handleSelectChoice = (questionId, choiceText) => {
-    setAnswers(prev => ({ ...prev, [questionId]: choiceText }));
+    setAnswers(prev => {
+      const updated = { ...prev, [questionId]: choiceText };
+      saveLocalDraft(sessionId, studentSession?.student_id, {
+        questions,
+        answers: updated,
+        flagged,
+        attemptNumber
+      });
+      return updated;
+    });
   };
 
   const toggleFlag = (questionId) => {
-    setFlagged(prev => ({ ...prev, [questionId]: !prev[questionId] }));
+    setFlagged(prev => {
+      const updated = { ...prev, [questionId]: !prev[questionId] };
+      saveLocalDraft(sessionId, studentSession?.student_id, {
+        questions,
+        answers,
+        flagged: updated,
+        attemptNumber
+      });
+      return updated;
+    });
+  };
+
+  const jumpToNextUnanswered = () => {
+    const nextIdx = questions.findIndex(q => answers[q.id] === undefined);
+    if (nextIdx !== -1) {
+      goToQuestion(nextIdx);
+    }
   };
 
   const goToQuestion = (index) => {
@@ -350,6 +452,7 @@ export default function ExamRoom() {
       });
 
       await exitFullscreen();
+      clearLocalDraft(sessionId, studentSession.student_id);
       navigate(`/exam-result/${sessionId}`, { replace: true });
     } catch (err) {
       console.error('Submit error:', err);
@@ -358,6 +461,7 @@ export default function ExamRoom() {
       submitLockRef.current = false;
     }
   };
+  handleSubmitRef.current = handleSubmit;
 
   const formatTime = (seconds) => {
     if (seconds === null) return '--:--';
@@ -534,6 +638,16 @@ export default function ExamRoom() {
               <span className="flex items-center gap-1 text-zinc-500 font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-200 border border-zinc-300" /> ยังไม่ทำ ({unansweredCount})
               </span>
+              {unansweredCount > 0 && (
+                <button
+                  type="button"
+                  onClick={jumpToNextUnanswered}
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 font-bold transition-all cursor-pointer"
+                  title="กระโดดไปยังข้อที่ยังไม่ได้ทำถัดไป"
+                >
+                  <Sparkles className="w-3 h-3" /> ไปข้อที่ยังไม่ทำ
+                </button>
+              )}
             </div>
           </div>
 
@@ -605,7 +719,8 @@ export default function ExamRoom() {
                 <h3 className="text-base font-bold text-zinc-900 leading-relaxed mb-4 break-words whitespace-pre-wrap">{q.question_text}</h3>
                 <div className="space-y-2.5">
                   {q.choices.map((choice, cIdx) => {
-                    const isSelected = answers[q.id] === choice.text;
+                    const choiceText = typeof choice === 'object' && choice !== null ? (choice.text ?? '') : String(choice);
+                    const isSelected = answers[q.id] === choiceText;
                     return (
                       <label 
                         key={cIdx} 
@@ -617,12 +732,12 @@ export default function ExamRoom() {
                         <input 
                           type="radio" 
                           name={`question_${q.id}`} 
-                          value={choice.text}
+                          value={choiceText}
                           checked={isSelected}
-                          onChange={() => handleSelectChoice(q.id, choice.text)}
+                          onChange={() => handleSelectChoice(q.id, choiceText)}
                           className="w-4 h-4 mt-0.5 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
                         />
-                        <span className="text-sm select-none leading-relaxed break-words flex-1">{choice.text}</span>
+                        <span className="text-sm select-none leading-relaxed break-words flex-1">{choiceText}</span>
                       </label>
                     );
                   })}

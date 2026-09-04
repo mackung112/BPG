@@ -100,24 +100,42 @@ export function useAntiCheat({
     };
 
     const handleKeyDown = (e) => {
-      if (e.key === 'F12' || e.key === 'F5') {
+      // F12, F5, F11
+      if (e.key === 'F12' || e.key === 'F5' || e.key === 'F11') {
         e.preventDefault();
-        onWarning('🚫 ไม่อนุญาตให้ใช้ปุ่มฟังก์ชันนี้');
+        onWarning('🚫 ไม่อนุญาตให้ใช้ปุ่มฟังก์ชันนี้ในห้องสอบ');
         return false;
       }
+
+      // PrintScreen (แคปหน้าจอ)
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        onWarning('🚫 ไม่อนุญาตให้แคปภาพหน้าจอในห้องสอบ');
+        return false;
+      }
+
+      // Ctrl / Command shortcuts
       if (e.ctrlKey || e.metaKey) {
         const key = e.key.toLowerCase();
-        if (['c', 'v', 'x', 'a', 'u', 's', 'p', 'r', 'j', 'i'].includes(key)) {
+        // DevTools: Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+        if (e.shiftKey && ['i', 'j', 'c'].includes(key)) {
+          e.preventDefault();
+          onWarning('🚫 ไม่อนุญาตให้เปิดเครื่องมือสำหรับนักพัฒนา');
+          return false;
+        }
+        if (['c', 'v', 'x', 'a', 'u', 's', 'p', 'r', 'j', 'i', 'w', 'q'].includes(key)) {
           e.preventDefault();
           onWarning(`🚫 ไม่อนุญาตให้ใช้คีย์ลัด Ctrl+${key.toUpperCase()}`);
           return false;
         }
       }
-      if (e.altKey && e.key === 'Tab') {
+
+      // Alt+Tab or Alt+F4
+      if (e.altKey && (e.key === 'Tab' || e.key === 'F4')) {
         e.preventDefault();
         if (!cheatingFlag.current) {
-            cheatingFlag.current = true;
-            onSuspended('พยายามใช้ Alt+Tab สลับหน้าต่าง');
+          cheatingFlag.current = true;
+          onSuspended('พยายามใช้คีย์ลัดสลับหน้าต่างหรือปิดโปรแกรม');
         }
         return false;
       }

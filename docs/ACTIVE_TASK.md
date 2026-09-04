@@ -33,6 +33,10 @@
 - [x] แยก `src/hooks/exam/useAntiCheat.js` (แยกโค้ดจับโกงออกจาก Component หลัก)
 - [x] แยก `src/hooks/exam/useExamTimer.js` และ `useExamRealtime.js`
 - [x] Refactor `ExamRoom.jsx`, `ExamLobby.jsx`, `ExamResult.jsx`
+- [x] เสริมระบบ LocalStorage Draft Persistence ป้องกันคำตอบและชุดข้อสอบหายเมื่อรีเฟรชหรือเครื่องดับ
+- [x] เสริม Anti-Cheat Hardening ดักจับ PrintScreen, DevTools (Ctrl+Shift+I/J/C), F11, Alt+F4
+- [x] ป้องกัน Direct URL Access สำหรับผู้สอบที่ติดสถานะ `cheating` หรือ `disconnected`
+- [x] ปรับปรุง Choice Normalization และปุ่มลัดกระโดดข้ามไปยังข้อที่ยังไม่ทำ (Jump to Next Unanswered)
 
 ---
 
