@@ -3,8 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { NAVIGATION_CATEGORIES } from './sidebarNavigation';
 import { useTeacherSubjects } from '../../contexts/TeacherSubjectsContext';
-import { FileText } from 'lucide-react';
-import { LogOut, GraduationCap, X } from 'lucide-react';
+import { FileText, LogOut, GraduationCap, X, BookOpen } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
@@ -103,7 +102,7 @@ export default function Sidebar({ isOpen, onClose }) {
             // Dynamically inject subjects into Course Materials
             if (category.id === 'course_materials') {
               if (loading) {
-                 categoryItems = [{ to: '#', label: '���ѧ��Ŵ...', icon: FileText }];
+                 categoryItems = [{ to: '#', label: 'กำลังโหลด...', icon: FileText }];
               } else if (subjects.length > 0) {
                  categoryItems = subjects.map(s => ({
                     to: "/admin/course-materials/" + s.id,
@@ -112,7 +111,7 @@ export default function Sidebar({ isOpen, onClose }) {
                     title: s.subject_name
                  }));
               } else {
-                 categoryItems = [{ to: '/admin/teacher-subjects', label: '�����Ԫҷ����', icon: BookOpen }];
+                 categoryItems = [{ to: '/admin/teacher-subjects', label: 'จัดการวิชาที่สอน', icon: BookOpen }];
               }
             }
 

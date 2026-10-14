@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import QuestionPicker from './QuestionPicker';
 import { useExamControl } from '../../hooks/admin/useExamControl';
+import { useExamSessionDraft } from '../../hooks/admin/useExamSessionDraft';
 import { examAdminService } from '../../services/examAdminService';
 
 export default function ExamControl() {
@@ -44,15 +45,25 @@ export default function ExamControl() {
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const [customTimeInput, setCustomTimeInput] = useState('');
 
-  // New Session Form
-  const [examConfig, setExamConfig] = useState(null);
+  // New Session Form (Draft persisted in localStorage)
+  const {
+    examConfig,
+    sessionTitle,
+    timeLimit,
+    examMode,
+    maxAttempts,
+    retakeUntilPass,
+    passingPercentage,
+    setExamConfig,
+    setSessionTitle,
+    setTimeLimit,
+    setExamMode,
+    setMaxAttempts,
+    setRetakeUntilPass,
+    setPassingPercentage,
+    resetDraft
+  } = useExamSessionDraft();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const [sessionTitle, setSessionTitle] = useState('');
-  const [timeLimit, setTimeLimit] = useState(60);
-  const [examMode, setExamMode] = useState('onsite');
-  const [maxAttempts, setMaxAttempts] = useState(1);
-  const [retakeUntilPass, setRetakeUntilPass] = useState(false);
-  const [passingPercentage, setPassingPercentage] = useState(50);
   const [isCreating, setIsCreating] = useState(false);
 
   // Edit Session Modal
@@ -201,11 +212,8 @@ export default function ExamControl() {
       const sessionData = await examAdminService.createExamSession(sessionPayload, examConfig.questions);
 
       showToast('success', `เปิดห้องสอบ "${sessionTitle}" สำเร็จ! รหัสห้องคือ ${secretCode}`);
-      setSessionTitle('');
+      resetDraft();
       setIsPickerOpen(false);
-      setExamConfig(null);
-      setExamMode('onsite');
-      setMaxAttempts(1);
       await fetchSessions();
       setActiveSession(sessionData);
     } catch (err) {
@@ -461,9 +469,25 @@ export default function ExamControl() {
         <div className="space-y-6 lg:col-span-1">
           {/* Create Session Card */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-200/80">
-            <h2 className="text-base font-bold text-zinc-900 mb-3.5 flex items-center gap-2">
-              <Plus className="w-5 h-5 text-indigo-600" /> เปิดห้องสอบใหม่
-            </h2>
+            <div className="flex items-center justify-between mb-3.5">
+              <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-indigo-600" /> เปิดห้องสอบใหม่
+              </h2>
+              {(examConfig || sessionTitle.trim()) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetDraft();
+                    showToast('info', 'รีเซ็ตแบบฟอร์มเรียบร้อย');
+                  }}
+                  className="text-xs text-zinc-400 hover:text-rose-600 flex items-center gap-1 transition-colors cursor-pointer"
+                  title="ล้างข้อมูลที่กรอกไว้ทั้งหมด"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>รีเซ็ต</span>
+                </button>
+              )}
+            </div>
             <form onSubmit={handleCreateSession} className="space-y-3 text-xs">
               <div>
                 <label className="block font-semibold text-zinc-600 mb-1">ชื่อการสอบ *</label>
@@ -479,24 +503,39 @@ export default function ExamControl() {
 
               <div>
                 <label className="block font-semibold text-zinc-600 mb-1">ชุดข้อสอบ *</label>
-                <div className="border border-zinc-200 rounded-xl p-3 bg-zinc-50 flex items-center justify-between">
-                  <div className="truncate pr-2">
-                    <div className="text-xs font-bold text-zinc-800">
+                <div className="border border-zinc-200 rounded-xl p-3 bg-zinc-50 flex items-center justify-between gap-2">
+                  <div className="truncate pr-2 flex-1">
+                    <div className="text-xs font-bold text-zinc-800 truncate">
                       {examConfig ? examConfig.summaryText : 'ยังไม่ได้เลือกข้อสอบ'}
                     </div>
                     {examConfig && (
-                      <div className="text-[11px] text-zinc-500">
-                        {examConfig.questions.length} ข้อ ({examConfig.totalScore} คะแนน)
+                      <div className="text-[11px] text-zinc-500 mt-0.5 flex items-center gap-2">
+                        <span>{examConfig.questions.length} ข้อ ({examConfig.totalScore} คะแนน)</span>
+                        <span className="px-1.5 py-0.2 text-[10px] bg-indigo-50 text-indigo-700 rounded font-medium">
+                          {examConfig.mode === 'random' ? 'สุ่มจากคลัง' : 'เลือกรายข้อ'}
+                        </span>
                       </div>
                     )}
                   </div>
-                  <button 
-                    type="button" 
-                    onClick={() => setIsPickerOpen(true)}
-                    className="px-2.5 py-1.5 text-xs font-semibold bg-white border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors shrink-0 cursor-pointer"
-                  >
-                    {examConfig ? 'เปลี่ยนชุด' : 'เลือกข้อสอบ'}
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {examConfig && (
+                      <button
+                        type="button"
+                        onClick={() => setExamConfig(null)}
+                        title="ยกเลิกชุดข้อสอบนี้"
+                        className="px-2 py-1.5 text-xs text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-rose-200"
+                      >
+                        ลบ
+                      </button>
+                    )}
+                    <button 
+                      type="button" 
+                      onClick={() => setIsPickerOpen(true)}
+                      className="px-2.5 py-1.5 text-xs font-semibold bg-white border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors shrink-0 cursor-pointer"
+                    >
+                      {examConfig ? 'เปลี่ยนชุด' : 'เลือกข้อสอบ'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1268,6 +1307,7 @@ export default function ExamControl() {
       {isPickerOpen && (
         <QuestionPicker 
           banks={banks} 
+          initialConfig={examConfig}
           onClose={() => setIsPickerOpen(false)} 
           onSave={(config) => {
             setExamConfig(config);

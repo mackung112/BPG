@@ -1,44 +1,118 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
-import { X, Shuffle, CheckSquare, ChevronDown, ChevronUp, Save, Search } from 'lucide-react';
+import { X, Shuffle, CheckSquare, ChevronDown, ChevronUp, Save, Search, RotateCcw } from 'lucide-react';
 
-export default function QuestionPicker({ onClose, onSave, banks }) {
-  const [activeTab, setActiveTab] = useState('random');
+export default function QuestionPicker({ onClose, onSave, banks = [], initialConfig = null }) {
+  const [activeTab, setActiveTab] = useState(
+    initialConfig?.rawConfig?.activeTab || initialConfig?.mode || 'random'
+  );
   const [questionsByBank, setQuestionsByBank] = useState({});
   const { fetchAllQuestions, loading } = useQuestionBank();
 
   // Random Mode State
-  const [randomConfigs, setRandomConfigs] = useState({}); // { bankId: { count: 0, points: 1 } }
+  const [randomConfigs, setRandomConfigs] = useState(
+    initialConfig?.rawConfig?.randomConfigs || {}
+  );
   
   // Manual Mode State
   const [expandedBanks, setExpandedBanks] = useState({});
-  const [selectedQuestions, setSelectedQuestions] = useState({}); // { questionId: { selected: true, points: 1 } }
+  const [selectedQuestions, setSelectedQuestions] = useState(
+    initialConfig?.rawConfig?.selectedQuestions || {}
+  );
   
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
+  const initializedRef = useRef(false);
 
   useEffect(() => {
+    let isMounted = true;
     const init = async () => {
       const data = await fetchAllQuestions();
-      if (data) {
-        const grouped = {};
-        const initialConfigs = {};
-        banks.forEach(b => {
-          grouped[b.id] = data.filter(q => q.bank_id === b.id);
-          initialConfigs[b.id] = { count: 0, points: 10 }; // Default total score for a bank is 10
-        });
-        setQuestionsByBank(grouped);
-        setRandomConfigs(initialConfigs);
+      if (!isMounted || !data) return;
+
+      const grouped = {};
+      const defaultConfigs = {};
+      banks.forEach(b => {
+        grouped[b.id] = data.filter(q => q.bank_id === b.id);
+        defaultConfigs[b.id] = { count: 0, points: 10 }; // Default total score for a bank is 10
+      });
+      setQuestionsByBank(grouped);
+
+      // Only run initial restoration once upon loading questions
+      if (!initializedRef.current) {
+        initializedRef.current = true;
+
+        // Restore randomConfigs
+        const savedRandom = initialConfig?.rawConfig?.randomConfigs;
+        if (savedRandom) {
+          const mergedRandom = { ...defaultConfigs };
+          Object.keys(savedRandom).forEach(bId => {
+            if (mergedRandom[bId]) {
+              mergedRandom[bId] = {
+                count: savedRandom[bId]?.count ?? 0,
+                points: savedRandom[bId]?.points ?? 10
+              };
+            } else {
+              mergedRandom[bId] = savedRandom[bId];
+            }
+          });
+          setRandomConfigs(mergedRandom);
+        } else {
+          setRandomConfigs(defaultConfigs);
+        }
+
+        // Restore selectedQuestions
+        let savedSelected = initialConfig?.rawConfig?.selectedQuestions;
+        if (!savedSelected && initialConfig?.mode === 'manual' && Array.isArray(initialConfig?.questions)) {
+          savedSelected = {};
+          initialConfig.questions.forEach(q => {
+            savedSelected[q.id] = { selected: true, points: q.points || 1 };
+          });
+        }
+
+        if (savedSelected && Object.keys(savedSelected).length > 0) {
+          setSelectedQuestions(savedSelected);
+
+          // Auto-expand banks that have selected questions
+          const autoExpanded = {};
+          data.forEach(q => {
+            if (savedSelected[q.id]?.selected) {
+              autoExpanded[q.bank_id] = true;
+            }
+          });
+          setExpandedBanks(autoExpanded);
+        }
+
+        if (initialConfig?.rawConfig?.activeTab) {
+          setActiveTab(initialConfig.rawConfig.activeTab);
+        } else if (initialConfig?.mode) {
+          setActiveTab(initialConfig.mode);
+        }
       }
     };
     init();
-  }, [banks, fetchAllQuestions]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [banks, fetchAllQuestions, initialConfig]);
 
   const handleRandomConfigChange = (bankId, field, value) => {
-    setRandomConfigs(prev => ({
-      ...prev,
-      [bankId]: { ...prev[bankId], [field]: Number(value) }
-    }));
+    setRandomConfigs(prev => {
+      const current = prev[bankId] || { count: 0, points: 10 };
+      let val = Number(value);
+      if (field === 'count') {
+        const totalQ = questionsByBank[bankId]?.length || 0;
+        if (val < 0) val = 0;
+        if (totalQ > 0 && val > totalQ) val = totalQ;
+      } else if (field === 'points') {
+        if (val < 0) val = 0;
+      }
+      return {
+        ...prev,
+        [bankId]: { ...current, [field]: val }
+      };
+    });
   };
 
   const toggleBankExpand = (bankId) => {
@@ -60,8 +134,37 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
   const handleQuestionPoints = (qId, points) => {
     setSelectedQuestions(prev => ({
       ...prev,
-      [qId]: { ...prev[qId], points: Number(points) }
+      [qId]: { ...prev[qId], points: Math.max(0.1, Number(points)) }
     }));
+  };
+
+  const handleSelectAllInBank = (bankQuestions, selectAll) => {
+    setSelectedQuestions(prev => {
+      const next = { ...prev };
+      bankQuestions.forEach(q => {
+        if (selectAll) {
+          next[q.id] = next[q.id] || { selected: true, points: 1 };
+          next[q.id].selected = true;
+        } else {
+          delete next[q.id];
+        }
+      });
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => {
+    if (activeTab === 'random') {
+      setRandomConfigs(prev => {
+        const reset = {};
+        Object.keys(prev).forEach(bId => {
+          reset[bId] = { ...prev[bId], count: 0 };
+        });
+        return reset;
+      });
+    } else {
+      setSelectedQuestions({});
+    }
   };
 
   const handleSave = () => {
@@ -73,9 +176,9 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
       // Process Random Mode: Store all questions from selected banks in the pool
       banks.forEach(bank => {
         const config = randomConfigs[bank.id];
-        if (config.count > 0) {
+        if (config && config.count > 0) {
           const bankQuestions = questionsByBank[bank.id] || [];
-          const pointsPerQuestion = config.points / config.count; // Points per sampled question
+          const pointsPerQuestion = Number((config.points / config.count).toFixed(2));
           
           // Add all available questions in this bank into the pool
           bankQuestions.forEach(q => {
@@ -89,8 +192,8 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
     } else {
       // Process Manual Mode
       Object.keys(selectedQuestions).forEach(qId => {
-        if (selectedQuestions[qId].selected) {
-          const points = selectedQuestions[qId].points;
+        if (selectedQuestions[qId]?.selected) {
+          const points = selectedQuestions[qId].points ?? 1;
           finalQuestions.push({ id: qId, points: points });
           totalScore += points;
         }
@@ -103,20 +206,31 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
       return;
     }
 
+    const calculatedTotalScore = Number(totalScore.toFixed(2));
+
     onSave({
       questions: finalQuestions,
       questionCount: targetQuestionCount,
-      totalScore,
+      totalScore: calculatedTotalScore,
       mode: activeTab,
       summaryText: activeTab === 'random' 
-        ? `สุ่มแบบอิสระ ${targetQuestionCount} ข้อ/คน (จากคลัง ${finalQuestions.length} ข้อ, เต็ม ${totalScore} คะแนน)`
-        : `เลือกเจาะจง ${finalQuestions.length} ข้อ (เต็ม ${totalScore} คะแนน)`
+        ? `สุ่มแบบอิสระ ${targetQuestionCount} ข้อ/คน (จากคลัง ${finalQuestions.length} ข้อ, เต็ม ${calculatedTotalScore} คะแนน)`
+        : `เลือกเจาะจง ${finalQuestions.length} ข้อ (เต็ม ${calculatedTotalScore} คะแนน)`,
+      rawConfig: {
+        activeTab,
+        randomConfigs,
+        selectedQuestions
+      }
     });
   };
 
   const filteredBanks = banks.filter(b => 
     b.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalRandomQuestions = banks.reduce((acc, b) => acc + (randomConfigs[b.id]?.count || 0), 0);
+  const selectedManualCount = Object.values(selectedQuestions).filter(q => q?.selected).length;
+  const hasSelectedItems = activeTab === 'random' ? totalRandomQuestions > 0 : selectedManualCount > 0;
 
   if (loading) {
     return (
@@ -137,9 +251,9 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
         <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
           <div>
             <h2 className="text-xl font-bold text-gray-900">ตั้งค่าการเลือกข้อสอบ</h2>
-            <p className="text-sm text-gray-500 mt-1">กำหนดรูปแบบการดึงข้อสอบเข้าสู่ห้องสอบนี้</p>
+            <p className="text-sm text-gray-500 mt-1">กำหนดรูปแบบการดึงข้อสอบเข้าสู่ห้องสอบนี้ (ระบบจะจำรายการที่เลือกไว้ให้อัตโนมัติ)</p>
           </div>
-          <button type="button" onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
+          <button type="button" onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -150,14 +264,14 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
             <button 
               type="button"
               onClick={() => setActiveTab('random')}
-              className={`px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm border-b-2 flex items-center gap-2 transition-colors ${activeTab === 'random' ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm border-b-2 flex items-center gap-2 transition-colors cursor-pointer ${activeTab === 'random' ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
             >
               <Shuffle className="w-4 h-4" /> สุ่มจากคลัง
             </button>
             <button 
               type="button"
               onClick={() => setActiveTab('manual')}
-              className={`px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm border-b-2 flex items-center gap-2 transition-colors ${activeTab === 'manual' ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm border-b-2 flex items-center gap-2 transition-colors cursor-pointer ${activeTab === 'manual' ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
             >
               <CheckSquare className="w-4 h-4" /> เลือกรายข้อ
             </button>
@@ -211,7 +325,7 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
                               type="number" 
                               min="0" 
                               max={totalQ}
-                              value={randomConfigs[bank.id]?.count || 0}
+                              value={randomConfigs[bank.id]?.count ?? 0}
                               onChange={(e) => handleRandomConfigChange(bank.id, 'count', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-center bg-white"
                             />
@@ -221,7 +335,7 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
                               type="number" 
                               min="0.1" 
                               step="0.1"
-                              value={randomConfigs[bank.id]?.points || 1}
+                              value={randomConfigs[bank.id]?.points ?? 10}
                               onChange={(e) => handleRandomConfigChange(bank.id, 'points', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-center bg-white"
                             />
@@ -249,54 +363,88 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
                     const bQuestions = questionsByBank[bank.id] || [];
                     if (bQuestions.length === 0) return null;
                     const isExpanded = expandedBanks[bank.id];
+                    const bankSelectedCount = bQuestions.filter(q => selectedQuestions[q.id]?.selected).length;
                   
                   return (
                     <div key={bank.id} className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
-                      <button 
-                        type="button"
-                        onClick={() => toggleBankExpand(bank.id)}
-                        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="font-bold text-gray-700">{bank.title} <span className="text-gray-400 font-normal ml-2 text-sm">({bQuestions.length} ข้อ)</span></div>
-                        {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-                      </button>
+                      <div className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <button 
+                          type="button"
+                          onClick={() => toggleBankExpand(bank.id)}
+                          className="flex-1 flex items-center justify-between text-left cursor-pointer"
+                        >
+                          <div className="font-bold text-gray-700 flex items-center gap-2 flex-wrap">
+                            <span>{bank.title}</span>
+                            <span className="text-gray-400 font-normal text-sm">({bQuestions.length} ข้อ)</span>
+                            {bankSelectedCount > 0 && (
+                              <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded-full">
+                                เลือกแล้ว {bankSelectedCount}/{bQuestions.length} ข้อ
+                              </span>
+                            )}
+                          </div>
+                          {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-500 shrink-0 ml-2" /> : <ChevronDown className="w-5 h-5 text-gray-500 shrink-0 ml-2" />}
+                        </button>
+                      </div>
                       
                       {isExpanded && (
-                        <div className="divide-y divide-gray-100 p-2">
-                          {bQuestions.map((q, idx) => {
-                            const isSelected = selectedQuestions[q.id]?.selected || false;
-                            const points = selectedQuestions[q.id]?.points || 1;
-                            
-                            return (
-                              <div key={q.id} className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${isSelected ? 'bg-indigo-50/50' : 'hover:bg-gray-50'}`}>
-                                <div className="pt-1">
-                                  <input 
-                                    type="checkbox" 
-                                    checked={isSelected}
-                                    onChange={(e) => handleQuestionSelect(q.id, e.target.checked)}
-                                    className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                                  />
-                                </div>
-                                <div className="flex-1 text-sm text-gray-800 pt-1">
-                                  <span className="font-medium text-gray-500 mr-2">{idx + 1}.</span>
-                                  {q.question_text}
-                                </div>
-                                {isSelected && (
-                                  <div className="flex items-center gap-2 w-32 shrink-0">
-                                    <label className="text-xs text-gray-500">คะแนน:</label>
+                        <div>
+                          <div className="flex items-center justify-between px-4 py-2 bg-indigo-50/40 border-b border-gray-100 text-xs text-gray-600">
+                            <span>เลือกแล้ว {bankSelectedCount} จาก {bQuestions.length} ข้อ</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleSelectAllInBank(bQuestions, true)}
+                                className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
+                              >
+                                เลือกทั้งหมด
+                              </button>
+                              <span className="text-gray-300">|</span>
+                              <button
+                                type="button"
+                                onClick={() => handleSelectAllInBank(bQuestions, false)}
+                                className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                              >
+                                ยกเลิกทั้งหมด
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="divide-y divide-gray-100 p-2">
+                            {bQuestions.map((q, idx) => {
+                              const isSelected = selectedQuestions[q.id]?.selected || false;
+                              const points = selectedQuestions[q.id]?.points ?? 1;
+                              
+                              return (
+                                <div key={q.id} className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${isSelected ? 'bg-indigo-50/50' : 'hover:bg-gray-50'}`}>
+                                  <div className="pt-1">
                                     <input 
-                                      type="number" 
-                                      min="0.1" 
-                                      step="0.1"
-                                      value={points}
-                                      onChange={(e) => handleQuestionPoints(q.id, e.target.value)}
-                                      className="flex-1 px-2 py-1.5 border border-gray-200 rounded-md text-sm text-center focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                                      type="checkbox" 
+                                      checked={isSelected}
+                                      onChange={(e) => handleQuestionSelect(q.id, e.target.checked)}
+                                      className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer"
                                     />
                                   </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                                  <div className="flex-1 text-sm text-gray-800 pt-1">
+                                    <span className="font-medium text-gray-500 mr-2">{idx + 1}.</span>
+                                    {q.question_text}
+                                  </div>
+                                  {isSelected && (
+                                    <div className="flex items-center gap-2 w-32 shrink-0">
+                                      <label className="text-xs text-gray-500">คะแนน:</label>
+                                      <input 
+                                        type="number" 
+                                        min="0.1" 
+                                        step="0.1"
+                                        value={points}
+                                        onChange={(e) => handleQuestionPoints(q.id, e.target.value)}
+                                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-md text-sm text-center focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -310,18 +458,29 @@ export default function QuestionPicker({ onClose, onSave, banks }) {
 
         {/* Footer */}
         <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="text-sm font-medium text-gray-700 text-center sm:text-left">
+          <div className="text-sm font-medium text-gray-700 text-center sm:text-left flex items-center justify-center sm:justify-start gap-3 flex-wrap">
             {activeTab === 'random' ? (
-              <span>รวมข้อสอบที่สุ่ม: <strong className="text-indigo-600 text-lg">{banks.reduce((acc, b) => acc + (randomConfigs[b.id]?.count || 0), 0)}</strong> ข้อ</span>
+              <span>รวมข้อสอบที่สุ่ม: <strong className="text-indigo-600 text-lg">{totalRandomQuestions}</strong> ข้อ</span>
             ) : (
-              <span>เลือกข้อสอบแล้ว: <strong className="text-indigo-600 text-lg">{Object.values(selectedQuestions).filter(q => q.selected).length}</strong> ข้อ</span>
+              <span>เลือกข้อสอบแล้ว: <strong className="text-indigo-600 text-lg">{selectedManualCount}</strong> ข้อ</span>
+            )}
+            {hasSelectedItems && (
+              <button
+                type="button"
+                onClick={handleClearSelection}
+                className="text-xs text-rose-600 hover:text-rose-800 flex items-center gap-1 font-normal cursor-pointer ml-1"
+                title="ล้างข้อสอบที่เลือกในแท็บนี้"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>ล้างที่เลือกทั้งหมด</span>
+              </button>
             )}
           </div>
           <div className="flex gap-2 sm:gap-3">
-            <button type="button" onClick={onClose} className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
+            <button type="button" onClick={onClose} className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
               ยกเลิก
             </button>
-            <button type="button" onClick={handleSave} className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 flex items-center justify-center gap-2 transition-colors">
+            <button type="button" onClick={handleSave} className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 flex items-center justify-center gap-2 transition-colors cursor-pointer">
               <Save className="w-4 h-4" /> บันทึกและตั้งค่า
             </button>
           </div>
