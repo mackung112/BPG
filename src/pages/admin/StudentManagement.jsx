@@ -55,7 +55,7 @@ function ConfirmModal({ title, description, onConfirm, onCancel, loading, confir
 export default function StudentManagement() {
   const {
     students, loading, reload, classrooms,
-    filterStudents, addStudent, editStudent, removeStudent,
+    filterStudents, addStudent, editStudent, removeStudent, removeStudents,
     importCSV, exportCSV, downloadTemplate,
   } = useStudents();
 
@@ -63,6 +63,11 @@ export default function StudentManagement() {
   const [toast, setToast] = useState(null);
   const [search, setSearch] = useState('');
   const [classroomFilter, setClassroomFilter] = useState('all');
+
+  // Selection & Bulk Delete State
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Add Form State
   const [addForm, setAddForm] = useState({ student_id: '', first_name: '', last_name: '', nickname: '', classroom: '' });
@@ -131,11 +136,28 @@ export default function StudentManagement() {
     try {
       await removeStudent(deletingStudent.student_id);
       showToast('success', `ลบนักเรียนรหัส ${deletingStudent.student_id} เรียบร้อยแล้ว`);
+      setSelectedIds(prev => prev.filter(id => id !== deletingStudent.student_id));
       setDeletingStudent(null);
     } catch (err) {
       showToast('error', err.message);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    setBulkDeleting(true);
+    try {
+      const count = selectedIds.length;
+      await removeStudents(selectedIds);
+      showToast('success', `ลบนักเรียนที่เลือก ${count} คนเรียบร้อยแล้ว`);
+      setSelectedIds([]);
+      setConfirmBulkDelete(false);
+    } catch (err) {
+      showToast('error', err.message || 'เกิดข้อผิดพลาดในการลบนักเรียน');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -164,6 +186,30 @@ export default function StudentManagement() {
   };
 
   const filteredStudents = filterStudents(search, classroomFilter);
+  const filteredStudentIds = filteredStudents.map(s => s.student_id);
+
+  const isAllFilteredSelected =
+    filteredStudentIds.length > 0 &&
+    filteredStudentIds.every(id => selectedIds.includes(id));
+
+  const isSomeFilteredSelected =
+    filteredStudentIds.some(id => selectedIds.includes(id)) && !isAllFilteredSelected;
+
+  const handleToggleSelectOne = (studentId) => {
+    setSelectedIds(prev =>
+      prev.includes(studentId)
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    if (isAllFilteredSelected) {
+      setSelectedIds(prev => prev.filter(id => !filteredStudentIds.includes(id)));
+    } else {
+      setSelectedIds(prev => Array.from(new Set([...prev, ...filteredStudentIds])));
+    }
+  };
 
   // ─── Render ───────────────────────────────────────────────────
   return (
@@ -290,7 +336,7 @@ export default function StudentManagement() {
         </div>
 
         {/* Right: Table */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-zinc-200/80 flex flex-col">
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-zinc-200/80 flex flex-col overflow-hidden">
           {/* Filter Bar */}
           <div className="p-4 border-b border-zinc-100 flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -320,11 +366,55 @@ export default function StudentManagement() {
             </button>
           </div>
 
+          {/* Selection Action Bar */}
+          {selectedIds.length > 0 && (
+            <div className="bg-indigo-50/90 border-b border-indigo-100 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 transition-all animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+                <span className="text-xs font-bold text-indigo-900">
+                  เลือกอยู่ {selectedIds.length} คน
+                </span>
+                <span className="text-xs text-indigo-600 hidden sm:inline">
+                  (จากทั้งหมด {students.length} คน)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds([])}
+                  className="px-3 py-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-900 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-xl cursor-pointer transition-all shadow-sm"
+                >
+                  ยกเลิกการเลือก
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmBulkDelete(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 rounded-xl shadow-sm hover:shadow cursor-pointer transition-all"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  ลบที่เลือก ({selectedIds.length} คน)
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Table */}
           <div className="flex-1 overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead className="bg-zinc-50 text-zinc-500 font-semibold uppercase tracking-wider border-b border-zinc-100">
                 <tr>
+                  <th className="w-12 px-4 py-3 text-center">
+                    <label className="flex items-center justify-center cursor-pointer" title={isAllFilteredSelected ? "ยกเลิกเลือกทั้งหมด" : "เลือกทั้งหมด"}>
+                      <input
+                        type="checkbox"
+                        ref={el => { if (el) el.indeterminate = isSomeFilteredSelected; }}
+                        checked={isAllFilteredSelected}
+                        onChange={handleToggleSelectAll}
+                        disabled={loading || filteredStudents.length === 0}
+                        className="w-4 h-4 text-indigo-600 rounded border-zinc-300 focus:ring-indigo-500 cursor-pointer accent-indigo-600 disabled:opacity-40"
+                      />
+                    </label>
+                  </th>
                   <th className="px-4 py-3">รหัส</th>
                   <th className="px-4 py-3">ชื่อ-สกุล</th>
                   <th className="px-4 py-3">ชื่อเล่น</th>
@@ -334,37 +424,53 @@ export default function StudentManagement() {
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {loading ? (
-                  <tr><td colSpan={5} className="text-center py-12 text-zinc-400">กำลังโหลด...</td></tr>
+                  <tr><td colSpan={6} className="text-center py-12 text-zinc-400">กำลังโหลด...</td></tr>
                 ) : filteredStudents.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-12 text-zinc-400">ไม่พบข้อมูลนักเรียน</td></tr>
-                ) : filteredStudents.map(s => (
-                  <tr key={s.student_id} className="hover:bg-zinc-50/80 transition-colors">
-                    <td className="px-4 py-3 font-mono font-bold text-indigo-600">{s.student_id}</td>
-                    <td className="px-4 py-3 font-semibold text-zinc-900">{s.first_name} {s.last_name}</td>
-                    <td className="px-4 py-3 text-zinc-500">{s.nickname || '-'}</td>
-                    <td className="px-4 py-3">
-                      <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-lg font-semibold">{s.classroom}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleOpenEdit(s)}
-                          className="p-1.5 text-zinc-400 hover:text-indigo-600 rounded-lg cursor-pointer transition-colors"
-                          title="แก้ไข"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setDeletingStudent(s)}
-                          className="p-1.5 text-zinc-400 hover:text-rose-600 rounded-lg cursor-pointer transition-colors"
-                          title="ลบ"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                  <tr><td colSpan={6} className="text-center py-12 text-zinc-400">ไม่พบข้อมูลนักเรียน</td></tr>
+                ) : filteredStudents.map(s => {
+                  const isSelected = selectedIds.includes(s.student_id);
+                  return (
+                    <tr
+                      key={s.student_id}
+                      className={`transition-colors ${isSelected ? 'bg-indigo-50/70 hover:bg-indigo-50' : 'hover:bg-zinc-50/80'}`}
+                    >
+                      <td className="w-12 px-4 py-3 text-center">
+                        <label className="flex items-center justify-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleSelectOne(s.student_id)}
+                            className="w-4 h-4 text-indigo-600 rounded border-zinc-300 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                          />
+                        </label>
+                      </td>
+                      <td className="px-4 py-3 font-mono font-bold text-indigo-600">{s.student_id}</td>
+                      <td className="px-4 py-3 font-semibold text-zinc-900">{s.first_name} {s.last_name}</td>
+                      <td className="px-4 py-3 text-zinc-500">{s.nickname || '-'}</td>
+                      <td className="px-4 py-3">
+                        <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-lg font-semibold">{s.classroom}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEdit(s)}
+                            className="p-1.5 text-zinc-400 hover:text-indigo-600 rounded-lg cursor-pointer transition-colors"
+                            title="แก้ไข"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingStudent(s)}
+                            className="p-1.5 text-zinc-400 hover:text-rose-600 rounded-lg cursor-pointer transition-colors"
+                            title="ลบ"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -413,7 +519,7 @@ export default function StudentManagement() {
         </div>
       )}
 
-      {/* Delete Modal */}
+      {/* Single Delete Modal */}
       {deletingStudent && (
         <ConfirmModal
           title="ยืนยันลบนักเรียน?"
@@ -422,6 +528,19 @@ export default function StudentManagement() {
           onCancel={() => setDeletingStudent(null)}
           loading={deleting}
           confirmLabel="ยืนยันลบ"
+        />
+      )}
+
+      {/* Bulk Delete Modal */}
+      {confirmBulkDelete && (
+        <ConfirmModal
+          title={`ยืนยันลบนักเรียนที่เลือก ${selectedIds.length} คน?`}
+          description={`คุณต้องการลบนักเรียนที่เลือกจำนวน ${selectedIds.length} คน ออกจากระบบหรือไม่? ข้อมูลของนักเรียนเหล่านี้จะถูกลบออกจากฐานข้อมูล`}
+          onConfirm={handleBulkDelete}
+          onCancel={() => setConfirmBulkDelete(false)}
+          loading={bulkDeleting}
+          confirmLabel={`ยืนยันลบ (${selectedIds.length} คน)`}
+          danger={true}
         />
       )}
     </div>

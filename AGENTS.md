@@ -9,21 +9,16 @@
 ### 🛠️ Local Project Skills
 | Skill | หน้าที่ |
 |---|---|
-| `concise-response` | กฎตอบกระชับ ทำแค่ที่สั่ง |
+| `clean-architecture-react` | สถาปัตยกรรมโค้ดที่ถูกต้อง — บังคับแยก Services/Hooks/Components ห้าม Supabase ใน UI |
 | `react-tailwind-coding` | กฎเหล็กเขียนโค้ด + มาตรฐานคอมโพเนนต์ |
 | `design-system` | โทเค็นสี ฟอนต์ เลย์เอาต์ คอมโพเนนต์ UI |
 | `lesson-architecture` | สถาปัตยกรรมหลักสูตร + บริบทโปรเจกต์ |
 | `svg-flowchart` | มาตรฐาน SVG และผังงาน |
-| `quality-check` | ตรวจสอบคุณภาพก่อนจบงาน |
-| `create-skills` | วิธีสร้าง skill ใหม่ |
 | `ai-syllabus-agent` | AI ร่างหลักสูตรและสร้างเนื้อหา (CourseMaterials Workspace) |
 | `import-external-content` | นำเข้าไฟล์ React/HTML จากภายนอก |
 | `supabase` | จัดการระบบ Supabase (DB, Auth, Storage, Functions) |
 | `supabase-postgres-best-practices` | มาตรฐานและแนวทางปฏิบัติที่ดีที่สุดสำหรับ Postgres/Supabase |
 | `supabase-auth-admin` | การตั้งค่า Auth และสิทธิ์ Super Admin |
-| `clean-architecture-react` | สถาปัตยกรรมโค้ดที่ถูกต้อง — บังคับแยก Services/Hooks/Components ห้าม Supabase ใน UI |
-| `auto-subagent-delegation` | วิเคราะห์และแตกงานย่อยให้ Subagents ทำงานขนานกันอัตโนมัติ โดยไม่ต้องถาม |
-| `exam-blueprint-formatter` | จัดรูปแบบแนวข้อสอบสำหรับส่งใน LINE |
 
 ---
 

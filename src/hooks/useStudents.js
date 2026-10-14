@@ -4,6 +4,7 @@ import {
   createStudent,
   updateStudent,
   deleteStudent,
+  deleteStudents,
   importStudentsFromCSV,
   exportStudentsToCSV,
   downloadCSVTemplate,
@@ -52,6 +53,13 @@ export function useStudents() {
     setStudents(prev => prev.filter(s => s.student_id !== student_id));
   };
 
+  const removeStudents = async (student_ids) => {
+    if (!student_ids || student_ids.length === 0) return;
+    await deleteStudents(student_ids);
+    const idSet = new Set(student_ids);
+    setStudents(prev => prev.filter(s => !idSet.has(s.student_id)));
+  };
+
   // ─── BULK IMPORT ──────────────────────────────────────────────
   const importCSV = async (csvText) => {
     const count = await importStudentsFromCSV(csvText);
@@ -86,6 +94,7 @@ export function useStudents() {
     addStudent,
     editStudent,
     removeStudent,
+    removeStudents,
     importCSV,
     exportCSV: () => exportStudentsToCSV(students),
     downloadTemplate: downloadCSVTemplate,

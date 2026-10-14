@@ -48,6 +48,16 @@ export const deleteStudent = async (student_id) => {
   if (error) throw error;
 };
 
+export const deleteStudents = async (student_ids) => {
+  if (!student_ids || student_ids.length === 0) return;
+  const { error } = await supabase
+    .from('students')
+    .delete()
+    .in('student_id', student_ids);
+  if (error) throw error;
+};
+
+
 // ─── BULK IMPORT (CSV) ───────────────────────────────────────────
 export const importStudentsFromCSV = async (csvText) => {
   const lines = csvText.split('\n');
