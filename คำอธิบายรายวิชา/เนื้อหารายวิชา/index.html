@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สไลด์นำเสนอ บทที่ 1: วงจรการพัฒนาซอฟต์แวร์และการออกแบบแนวคิดแอปพลิเคชัน | Red Broadcast</title>
+  
+  <!-- Google Fonts: Roboto, Roboto Mono & Sarabun ตาม design.md -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#FF0000',
+              redHover: '#CC0000',
+              blue: '#065FD4',
+              neutral: '#606060',
+              dark: '#0F0F0F',
+              surface: '#F2F2F2',
+              surfaceHover: '#E5E5E5',
+              border: '#E5E5E5',
+              success: '#2BA640',
+              warning: '#FB8C00'
+            }
+          },
+          fontFamily: {
+            sans: ['Roboto', 'Sarabun', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Roboto', 'Sarabun', sans-serif;
+      color: #0F0F0F;
+      background-color: #0F0F0F;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* สัดส่วนสไลด์ 16:9 */
+    .aspect-16-9 {
+      aspect-ratio: 16 / 9;
+    }
+
+    /* ซ่อน Scrollbar ของ Thumbnail Drawer */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* สไตล์ความลึกตามข้อกำหนด design.md */
+    .elevation-0 { box-shadow: none; }
+    .elevation-1 { box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .elevation-2 { box-shadow: 0 4px 32px rgba(0,0,0,0.1); }
+    .elevation-3 { box-shadow: 0 8px 40px rgba(0,0,0,0.25); }
+
+    /* Transitions การเปลี่ยนสไลด์ */
+    .slide-item {
+      display: none;
+      opacity: 0;
+      transform: scale(0.985);
+      transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+    }
+    .slide-item.active {
+      display: flex;
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Slide Thumbnails */
+    .thumb-card.active {
+      border-color: #FF0000;
+      background-color: rgba(255, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col select-none bg-[#0F0F0F] text-[#0F0F0F]">
+
+  <!-- ========================================================================= -->
+  <!-- TOP BAR (56px Height ตาม design.md) -->
+  <!-- ========================================================================= -->
+  <header class="h-14 bg-white border-b border-[#E5E5E5] px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 elevation-1">
+    <!-- โลโก้และชื่อวิชา -->
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-6 bg-[#FF0000] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">
+        <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-sm sm:text-base text-[#0F0F0F]">ห้องเรียนครูแม็ค</span>
+        <span class="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider text-[#FF0000] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">SLIDE DECK</span>
+        <span class="text-[#E5E5E5] hidden md:inline">|</span>
+        <span class="text-xs text-[#606060] hidden md:inline truncate max-w-xs lg:max-w-md">31910-2022 การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา</span>
+      </div>
+    </div>
+
+    <!-- ส่วนกลาง: แถบตัวเลขสไลด์และปุ่มลัด -->
+    <div class="flex items-center gap-2 bg-[#F2F2F2] px-3 py-1.5 rounded-full border border-[#E5E5E5]">
+      <span class="text-xs font-mono font-bold text-[#0F0F0F]" id="slideCounter">01 / 17</span>
+      <div class="w-[1px] h-3 bg-[#E5E5E5] mx-1"></div>
+      <span class="text-[11px] text-[#606060] hidden sm:inline" id="slideTitlePreview">หน้าปกบทเรียน</span>
+    </div>
+
+    <!-- ปุ่มเครื่องมือฝั่งขวา -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <!-- ปุ่มเปิด/ปิด Thumbnail Drawer -->
+      <button id="toggleThumbBtn" onclick="toggleThumbnails()" class="h-9 px-3 rounded-full text-xs font-medium text-[#0F0F0F] bg-[#F2F2F2] hover:bg-[#E5E5E5] flex items-center gap-1.5 transition" title="ดูภาพรวมสไลด์ทั้งหมด (T)">
+        <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        <span class="hidden md:inline">สารบัญสไลด์</span>
+      </button>
+
+      <!-- ปุ่มเปิด/ปิด Speaker Notes -->
+      <button id="toggleNotesBtn" onclick="toggleSpeakerNotes()" class="h-9 px-3 rounded-full text-xs font-medium text-[#0F0F0F] bg-[#F2F2F2] hover:bg-[#E5E5E5] flex items-center gap-1.5 transition" title="บันทึกผู้สอน (N)">
+        <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+        <span class="hidden md:inline">คำอธิบายครู</span>
+      </button>
+
+      <!-- ปุ่ม Fullscreen -->
+      <button onclick="toggleFullscreen()" class="w-9 h-9 rounded-full bg-[#0F0F0F] hover:bg-black text-white flex items-center justify-center transition" title="นำเสนอเต็มจอ (F)">
+        <svg id="fullscreenIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- PROGRESS BAR (สีแดง Primary Red #FF0000 ตาม design.md) -->
+  <!-- ========================================================================= -->
+  <div class="w-full h-1 bg-zinc-800 shrink-0">
+    <div id="progressBar" class="h-full bg-[#FF0000] transition-all duration-300 w-[5.88%]"></div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SLIDE THEATER STAGE (จอแสดงผลสไลด์หลัก 16:9) -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 flex items-center justify-center p-2 sm:p-4 lg:p-6 overflow-hidden relative">
+
+    <!-- กรอบ Slide Card 16:9 สไตล์ Red Broadcast สะอาดตา ไม่ใช้กรอบหนาเทอะทะ -->
+    <div class="w-full max-w-6xl aspect-16-9 bg-white rounded-2xl shadow-2xl border border-[#E5E5E5] flex flex-col overflow-hidden relative">
+
+      <!-- ─── SLIDE 1: หน้าปกบทเรียน ─── -->
+      <section class="slide-item active flex-1 flex flex-col justify-between p-8 sm:p-12 lg:p-14 bg-gradient-to-br from-white via-white to-zinc-50" data-title="หน้าปกบทเรียน" data-notes="ยินดีต้อนรับนักศึกษา ปวส.1 สู่บทเรียนแรก ในบทนี้เราจะไม่เขียนโค้ด แต่เราจะวางวิธีคิดแบบวิศวกรซอฟต์แวร์และการแก้ปัญหาธุรกิจจริง">
+        <div class="flex items-center justify-between border-b border-[#E5E5E5] pb-4">
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FF0000] text-white">
+              LECTURE SLIDE
+            </span>
+            <span class="text-xs text-[#606060] font-mono">CHAPTER 01</span>
+          </div>
+          <span class="text-xs font-mono text-[#065FD4] font-medium">รหัสวิชา 31910-2022</span>
+        </div>
+
+        <div class="my-auto max-w-3xl">
+          <div class="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#FF0000] mb-3">
+            การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา
+          </div>
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-[#0F0F0F] tracking-tight leading-tight">
+            วงจรการพัฒนาซอฟต์แวร์ และการออกแบบแนวคิดแอปพลิเคชัน
+          </h1>
+          <p class="text-base sm:text-xl text-[#606060] mt-4 font-normal leading-relaxed">
+            เปลี่ยนปัญหาหน้างานของชุมชน ให้กลายเป็นพิมพ์เขียวโมบายล์แอปพลิเคชัน 9 มิติ (App Concept Canvas)
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between border-t border-[#E5E5E5] pt-4 text-xs text-[#606060]">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs ring-1 ring-[#FF0000]">MK</div>
+            <span class="font-bold text-[#0F0F0F]">ครูแม็ค (Mac Teacher)</span>
+            <span class="text-[#2BA640]">● ผู้เชี่ยวชาญคอมพิวเตอร์และธุรกิจดิจิทัล</span>
+          </div>
+          <div>หลักสูตร ปวส. 2563 • ภาคเรียนที่ 2/2569</div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 2: บทนำ - พลังของโมบายล์แอป ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="พลังของโมบายล์แอป" data-notes="ชี้ให้เห็นว่ามือถือไม่ใช่แค่คอมพิวเตอร์ย่อส่วน แต่มีเซนเซอร์พิเศษที่คอมตั้งโต๊ะทำไม่ได้ เช่น กล้องสแกน QR และ GPS">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">บทนำ • MOBILE POWER</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ทำไมธุรกิจยุคใหม่ต้องพึ่งพา "โมบายล์แอป"?</h2>
+          <p class="text-sm text-[#606060] mt-1">สมาร์ตโฟนคือคอมพิวเตอร์พกพาที่อยู่ติดตัวมนุษย์ตลอด 24 ชั่วโมง พร้อมฮาร์ดแวร์เฉพาะตัว 4 ด้าน:</p>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 my-auto">
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-[#FF0000] flex items-center justify-center mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            </div>
+            <h4 class="font-bold text-sm text-[#0F0F0F]">Anywhere, Anytime</h4>
+            <p class="text-xs text-[#606060] mt-1">เข้าถึงข้อมูล ทำธุรกรรม และสั่งการได้ทุกที่ ไม่ต้องนั่งเฝ้าโต๊ะทำงาน</p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-[#FF0000] flex items-center justify-center mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+            </div>
+            <h4 class="font-bold text-sm text-[#0F0F0F]">Camera & Scanner</h4>
+            <p class="text-xs text-[#606060] mt-1">สแกน QR Code พร้อมเพย์, บาร์โค้ดสินค้า และถ่ายรูปหลักฐานหน้างาน</p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-[#FF0000] flex items-center justify-center mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+            </div>
+            <h4 class="font-bold text-sm text-[#0F0F0F]">GPS Location</h4>
+            <p class="text-xs text-[#606060] mt-1">เช็กอินพิกัดร้านค้า ติดตามรถจัดส่ง และคำนวณระยะทางแบบแม่นยำ</p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-[#FF0000] flex items-center justify-center mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+            </div>
+            <h4 class="font-bold text-sm text-[#0F0F0F]">Push Alert & Touch</h4>
+            <p class="text-xs text-[#606060] mt-1">ส่งแจ้งเตือนสถานะทันที และรองรับการเซ็นชื่อดิจิทัลรับสินค้าบนจอ</p>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>ความได้เปรียบ: ฮาร์ดแวร์ผสานซอฟต์แวร์ในเครื่องเดียว</span>
+          <span>สไลด์ 02 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 3: หลุมพรางที่แอป 90% เจ๊ง ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="หลุมพรางแอป 90% ถูกลบทิ้ง" data-notes="เน้นย้ำกฎทองของครู: ตกหลุมรักที่ปัญหาของลูกค้า ไม่ใช่ตกหลุมรักที่โค้ดของเราเอง">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">ข้อคิดเตือนใจ • APP REALITY</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ทำไมแอปพลิเคชันกว่า 90% จึงถูกลบทิ้งใน 30 วัน?</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-auto">
+          <div class="p-6 rounded-2xl border border-red-200 bg-red-50/50">
+            <div class="text-2xl font-black text-[#FF0000] mb-2">01</div>
+            <h4 class="font-bold text-base text-[#0F0F0F]">สร้างสิ่งที่ไม่มีใครต้องการ</h4>
+            <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+              (Building Nobody Wants) มโนไปเองว่าฟังก์ชันนี้เจ๋ง คิดแทนลูกค้า แต่เมื่อทำเสร็จพบว่าไม่มีใครยอมเปิดใช้งาน
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <div class="text-2xl font-black text-[#0F0F0F] mb-2">02</div>
+            <h4 class="font-bold text-base text-[#0F0F0F]">ใช้งานยาก ซับซ้อนเกินไป</h4>
+            <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+              (Poor UX) เมนูซับซ้อน ตัวหนังสือเล็ก กดไปตรงไหนก็ไม่รู้เรื่อง ผู้ใช้หงุดหงิดและลบทิ้งทันที
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <div class="text-2xl font-black text-[#0F0F0F] mb-2">03</div>
+            <h4 class="font-bold text-base text-[#0F0F0F]">ไม่ตอบโจทย์จุดเจ็บปวดจริง</h4>
+            <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+              (No Clear Pain Point) ไม่รู้ว่าแอปนี้ดีกว่าการใช้กระดาษจดอย่างไร ทำแล้วไม่ได้ช่วยประหยัดเวลาหรือเพิ่มรายได้
+            </p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-[#0F0F0F] text-white flex items-center justify-between text-xs">
+          <span class="font-bold text-[#FF0000]">💡 กฎทองของผู้สร้างแอป:</span>
+          <span class="text-zinc-200">"จงตกหลุมรักที่ 'ปัญหาของลูกค้า' ไม่ใช่ตกหลุมรักที่ 'โค้ดหรือไอเดียของเราเอง'"</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 4: ภาพรวมวงจร SDLC 6 ขั้นตอน ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="ภาพรวมวงจร SDLC 6 ขั้นตอน" data-notes="อธิบายภาพรวม SDLC เปรียบเหมือนพิมพ์เขียวสร้างบ้าน หากข้ามขั้นตอนใดขั้นตอนหนึ่ง บ้านจะพัง">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">SOFTWARE ENGINEERING • SDLC</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">วงจรการพัฒนาซอฟต์แวร์ (SDLC)</h2>
+          <p class="text-sm text-[#606060] mt-1">6 ขั้นตอนมาตรฐานสากลตั้งแต่เริ่มต้นไอเดียจนถึงการเปิดให้ใช้งานจริง:</p>
+        </div>
+
+        <!-- แผนภาพ 6 ขั้นตอนแนวนอน -->
+        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 my-auto">
+          <div class="p-3 rounded-xl border-2 border-[#FF0000] bg-red-50 text-center">
+            <span class="text-xs font-black text-[#FF0000]">01</span>
+            <div class="font-bold text-xs text-[#0F0F0F] mt-1">Planning</div>
+            <div class="text-[10px] text-[#606060] mt-1">วิเคราะห์ปัญหา & ความต้องการ</div>
+          </div>
+          <div class="p-3 rounded-xl border border-[#E5E5E5] bg-white text-center">
+            <span class="text-xs font-black text-[#0F0F0F]">02</span>
+            <div class="font-bold text-xs text-[#0F0F0F] mt-1">Design</div>
+            <div class="text-[10px] text-[#606060] mt-1">ออกแบบฐานข้อมูล & UI บน Figma</div>
+          </div>
+          <div class="p-3 rounded-xl border border-[#E5E5E5] bg-white text-center">
+            <span class="text-xs font-black text-[#0F0F0F]">03</span>
+            <div class="font-bold text-xs text-[#0F0F0F] mt-1">Develop</div>
+            <div class="text-[10px] text-[#606060] mt-1">สร้างระบบบน AppSheet</div>
+          </div>
+          <div class="p-3 rounded-xl border border-[#E5E5E5] bg-white text-center">
+            <span class="text-xs font-black text-[#0F0F0F]">04</span>
+            <div class="font-bold text-xs text-[#0F0F0F] mt-1">Testing</div>
+            <div class="text-[10px] text-[#606060] mt-1">ทดสอบหาข้อผิดพลาด (Bugs)</div>
+          </div>
+          <div class="p-3 rounded-xl border border-[#E5E5E5] bg-white text-center">
+            <span class="text-xs font-black text-[#0F0F0F]">05</span>
+            <div class="font-bold text-xs text-[#0F0F0F] mt-1">Deploy</div>
+            <div class="text-[10px] text-[#606060] mt-1">ติดตั้งใช้งานจริงหน้าร้าน</div>
+          </div>
+          <div class="p-3 rounded-xl border border-[#E5E5E5] bg-white text-center">
+            <span class="text-xs font-black text-[#0F0F0F]">06</span>
+            <div class="font-bold text-xs text-[#0F0F0F] mt-1">Maintain</div>
+            <div class="text-[10px] text-[#606060] mt-1">ดูแลรักษาและต่อยอดฟีเจอร์</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg bg-[#F8F8F8] border border-[#E5E5E5] text-xs text-[#606060] flex items-center gap-2">
+          <span class="font-bold text-[#0F0F0F]">สัปดาห์นี้เราอยู่ที่ขั้นตอนที่ 1:</span>
+          <span>การวางแผนหาความต้องการ (Planning & Problem Framing) และการทำ App Concept Canvas</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 5: เจาะลึก SDLC ขั้น 1-2 ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="SDLC ขั้นที่ 1-2 (Plan & Design)" data-notes="ขั้นที่ 1 เปรียบเหมือนสำรวจทำเลเปิดร้าน ขั้นที่ 2 เปรียบเหมือนเขียนแปลนตกแต่งร้าน">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">SDLC DEEP DIVE • PART 1</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ขั้นที่ 1: วางแผน & ขั้นที่ 2: ออกแบบ</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+          <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-full bg-[#FF0000] text-white flex items-center justify-center font-bold text-xs">1</span>
+              <h4 class="font-bold text-base text-[#0F0F0F]">Planning & Analysis (วางแผนและสำรวจ)</h4>
+            </div>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              ตอบคำถามว่า <strong>"แก้ปัญหาอะไร และทำไมต้องแก้?"</strong> สำรวจความต้องการ 2 ด้าน:
+            </p>
+            <div class="space-y-1.5 text-xs">
+              <div class="p-2 rounded bg-white border border-[#E5E5E5]">
+                <strong class="text-[#0F0F0F]">Functional Req:</strong> ระบบต้องทำอะไรได้บ้าง เช่น สแกนบาร์โค้ดได้
+              </div>
+              <div class="p-2 rounded bg-white border border-[#E5E5E5]">
+                <strong class="text-[#0F0F0F]">Non-Functional Req:</strong> ประมวลผลใน 2 วินาที, ข้อมูลปลอดภัย
+              </div>
+            </div>
+            <div class="text-[11px] text-[#065FD4]">💡 เปรียบเทียบ: สำรวจว่าคนแถวนี้ชอบกินอะไร มีเงินจ่ายเท่าไหร่</div>
+          </div>
+
+          <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs">2</span>
+              <h4 class="font-bold text-base text-[#0F0F0F]">System & UI/UX Design (ออกแบบสถาปัตยกรรม)</h4>
+            </div>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              แปลงความต้องการให้กลายเป็นพิมพ์เขียวโครงสร้างข้อมูลและหน้าตาแอป:
+            </p>
+            <div class="space-y-1.5 text-xs">
+              <div class="p-2 rounded bg-white border border-[#E5E5E5]">
+                <strong class="text-[#0F0F0F]">Database Design:</strong> ออกแบบตารางใน Google Sheets
+              </div>
+              <div class="p-2 rounded bg-white border border-[#E5E5E5]">
+                <strong class="text-[#0F0F0F]">UI/UX Prototype:</strong> วาด Wireframe และจำลองการกดบน Figma
+              </div>
+            </div>
+            <div class="text-[11px] text-[#065FD4]">💡 เปรียบเทียบ: สถาปนิกเขียนแปลนร้าน วาดป้ายเมนู จัดวางโต๊ะ</div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>สัปดาห์ที่ 2-4 ของวิชานี้เราจะใช้ Figma ในขั้นตอนนี้อย่างเต็มรูปแบบ</span>
+          <span>สไลด์ 05 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 6: เจาะลึก SDLC ขั้น 3-4 ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="SDLC ขั้นที่ 3-4 (Develop & Test)" data-notes="ขั้นที่ 3 เราใช้ Google AppSheet ช่วยสร้างแอปได้ไว ไม่ต้องเขียนโค้ดหลักพันบรรทัด">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">SDLC DEEP DIVE • PART 2</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ขั้นที่ 3: พัฒนาแอป & ขั้นที่ 4: ทดสอบ</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+          <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs">3</span>
+              <h4 class="font-bold text-base text-[#0F0F0F]">Implementation (ลงมือสร้างระบบ)</h4>
+            </div>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              นำพิมพ์เขียวมาสร้างเป็นแอปจริง ในวิชานี้เราใช้ <strong>No-Code (Google AppSheet)</strong>:
+            </p>
+            <ul class="text-xs text-[#0F0F0F] space-y-1.5 list-disc pl-5">
+              <li>เชื่อมต่อตาราง Google Sheets เข้ากับระบบแอป</li>
+              <li>สร้างปุ่ม Action สั่งการ เช่น ปุ่มโทร, ปุ่มเปลี่ยนสถานะ</li>
+              <li>สร้างบอท Automation ส่งอีเมลและสร้างใบเสร็จ PDF</li>
+            </ul>
+            <div class="text-[11px] text-[#065FD4]">💡 เปรียบเทียบ: ช่างเริ่มก่ออิฐ ติดตั้งเตาแก๊ส เดินท่อน้ำในครัว</div>
+          </div>
+
+          <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs">4</span>
+              <h4 class="font-bold text-base text-[#0F0F0F]">Testing & QA (ทดสอบคุณภาพ)</h4>
+            </div>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              ทดสอบบนอุปกรณ์จริงก่อนส่งถึงมือผู้ใช้งาน:
+            </p>
+            <ul class="text-xs text-[#0F0F0F] space-y-1.5 list-disc pl-5">
+              <li><strong>Functional:</strong> ตรวจสอบว่าคำนวณเงินถูกไหม สแกนบาร์โค้ดติดไหม</li>
+              <li><strong>Usability:</strong> ให้คนอื่นลองกดดูว่าปุ่มเล็กไปไหม ใช้ง่ายไหม</li>
+              <li><strong>Compatibility:</strong> ทดสอบทั้งบน Android, iOS และแท็บเล็ต</li>
+            </ul>
+            <div class="text-[11px] text-[#065FD4]">💡 เปรียบเทียบ: ชิมอาหารก่อนเสิร์ฟ ตรวจสอบว่าหัวเตารั่วหรือไม่</div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>สัปดาห์ที่ 5-14 จะเป็นช่วงเวลาของการลงมือทำใน 2 ขั้นตอนนี้</span>
+          <span>สไลด์ 06 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 7: เจาะลึก SDLC ขั้น 5-6 ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="SDLC ขั้นที่ 5-6 (Deploy & Maintain)" data-notes="ซอฟต์แวร์ไม่มีวันเสร็จสมบูรณ์แบบถาวร เมื่อมีคนใช้จริงจะได้รับฟีดแบ็กมาอัปเดตเสมอ">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">SDLC DEEP DIVE • PART 3</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ขั้นที่ 5: ส่งมอบ & ขั้นที่ 6: ดูแลรักษา</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+          <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs">5</span>
+              <h4 class="font-bold text-base text-[#0F0F0F]">Deployment & Release (ส่งมอบระบบ)</h4>
+            </div>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              การนำแอปไปให้ร้านค้าหรือผู้ใช้จริงใช้งาน:
+            </p>
+            <ul class="text-xs text-[#0F0F0F] space-y-1.5 list-disc pl-5">
+              <li>แชร์ลิงก์ติดตั้งลงมือถือเจ้าของร้านและพนักงาน</li>
+              <li>ติดตั้งป้ายสแตนดี้ QR Code ขนาดใหญ่หน้าร้าน</li>
+              <li>นำเสนอ Live Demo ฉายขึ้นจอโปรเจกเตอร์ในสัปดาห์ที่ 15</li>
+            </ul>
+            <div class="text-[11px] text-[#065FD4]">💡 เปรียบเทียบ: วัน Grand Opening ตัดริบบิ้นเปิดร้านอย่างเป็นทางการ</div>
+          </div>
+
+          <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs">6</span>
+              <h4 class="font-bold text-base text-[#0F0F0F]">Maintenance & Iteration (พัฒนาต่อเนื่อง)</h4>
+            </div>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              รับฟังฟีดแบ็กจากผู้ใช้เพื่อปรับปรุงระบบให้ดียิ่งขึ้น:
+            </p>
+            <ul class="text-xs text-[#0F0F0F] space-y-1.5 list-disc pl-5">
+              <li>แก้ไขปัญหาและข้อผิดพลาดที่เพิ่งถูกค้นพบ</li>
+              <li>เพิ่มหมวดหมู่สินค้าและโปรโมชันใหม่ๆ</li>
+              <li>ซอฟต์แวร์ไม่มีวันจบสิ้น มีการหมุนลูปกลับไปขั้นที่ 1 เสมอ</li>
+            </ul>
+            <div class="text-[11px] text-[#065FD4]">💡 เปรียบเทียบ: เพิ่มเมนูใหม่ตามฤดูกาล ซ่อมแซมเก้าอี้ที่ชำรุด</div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>จบภาพรวมกระบวนการ SDLC ครบทั้ง 6 ขั้นตอน</span>
+          <span>สไลด์ 07 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 8: การกำหนดกรอบปัญหา (Problem Framing & Pain) ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="การค้นหา Pain Points 4 มิติ" data-notes="สอนเด็กให้มองปัญหาเป็น 4 มิติ: เวลา เงิน กระบวนการ ความรู้สึก">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">PROBLEM FRAMING • จุดเจ็บปวด</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">4 มิติของ "จุดเจ็บปวด (Pain Points)"</h2>
+          <p class="text-sm text-[#606060] mt-1">ปัญหาที่แท้จริงต้องทำให้เกิดความสูญเสียซ้ำๆ ทุกวัน จนผู้ใช้ยอมเปลี่ยนพฤติกรรม:</p>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 my-auto">
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white">
+            <span class="text-xs font-bold text-[#FF0000] uppercase">มิติที่ 1</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F] mt-1">ด้านเวลา (Time)</h4>
+            <p class="text-xs text-[#606060] mt-1">ต้องรอนาน ขั้นตอนซ้ำซ้อน เสียเวลาพักเที่ยงมายืนต่อแถว</p>
+            <div class="mt-3 text-[11px] p-2 rounded bg-[#F8F8F8] text-[#0F0F0F]">ตัวอย่าง: ยืนรอกาแฟ 20 นาที</div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white">
+            <span class="text-xs font-bold text-[#FF0000] uppercase">มิติที่ 2</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F] mt-1">ด้านเงิน (Financial)</h4>
+            <p class="text-xs text-[#606060] mt-1">รายได้รั่วไหล สต๊อกสูญหาย ซื้ออะไหล่ซ้ำซ้อน</p>
+            <div class="mt-3 text-[11px] p-2 rounded bg-[#F8F8F8] text-[#0F0F0F]">ตัวอย่าง: อะไหล่อู่หาย สต๊อกไม่ตรง</div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white">
+            <span class="text-xs font-bold text-[#FF0000] uppercase">มิติที่ 3</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F] mt-1">ด้านกระบวนการ (Process)</h4>
+            <p class="text-xs text-[#606060] mt-1">ความผิดพลาดจากคน ลายมืออ่านไม่ออก จดกระดาษหาย</p>
+            <div class="mt-3 text-[11px] p-2 rounded bg-[#F8F8F8] text-[#0F0F0F]">ตัวอย่าง: จดออร์เดอร์ผิด ชงผิดแก้ว</div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white">
+            <span class="text-xs font-bold text-[#FF0000] uppercase">มิติที่ 4</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F] mt-1">ด้านความรู้สึก (Feeling)</h4>
+            <p class="text-xs text-[#606060] mt-1">หงุดหงิด กังวล ไม่มั่นใจว่างานจะเสร็จเมื่อไหร่</p>
+            <div class="mt-3 text-[11px] p-2 rounded bg-[#F8F8F8] text-[#0F0F0F]">ตัวอย่าง: ส่งผ้าซักแล้วไม่รู้เสร็จยัง</div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>ข้อสังเกต: ถ้าไม่มี Pain Point ที่ชัดเจน แอปนั้นจะกลายเป็นเพียง "มีก็ดี ไม่มีก็ได้"</span>
+          <span>สไลด์ 08 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 9: การค้นหาโอกาสทางธุรกิจ ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="การค้นหาโอกาสทางธุรกิจในชุมชน" data-notes="ทำไมแอปส่งอาหารใหญ่ๆ ไม่ตอบโจทย์ร้านในโรงเรียน? เพราะ GP แพง และซับซ้อนเกินไป นี่คือโอกาส">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">MARKET OPPORTUNITY • ช่องว่างในตลาด</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ค้นหา "ช่องว่าง" ในธุรกิจชุมชน</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+          <div class="p-5 rounded-2xl border border-zinc-300 bg-zinc-50 space-y-2">
+            <h4 class="font-bold text-sm text-[#0F0F0F]">ข้อจำกัดของแอปขนาดใหญ่ในตลาด (Food Delivery Apps):</h4>
+            <ul class="text-xs text-[#606060] space-y-2 list-disc pl-5">
+              <li>เก็บค่าธรรมเนียมสูงถึง <strong>30-35% (GP)</strong> ร้านค้าเล็กๆ ในโรงเรียนสู้ต้นทุนไม่ไหว</li>
+              <li>ระบบเน้นการส่งข้ามเมือง ไม่ตอบโจทย์การ "สั่งแล้วเดินมาหยิบเอง" ในวิทยาลัย</li>
+              <li>ต้องมีสัญญาและอุปกรณ์เชื่อมต่อที่ซับซ้อน</li>
+            </ul>
+          </div>
+
+          <div class="p-5 rounded-2xl border-2 border-[#FF0000] bg-red-50/40 space-y-2">
+            <h4 class="font-bold text-sm text-[#FF0000]">โอกาสทองของนักศึกษาธุรกิจดิจิทัล:</h4>
+            <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
+              <li>สร้างแอปชุมชนด้วย <strong>ต้นทุน 0 บาท</strong> ผ่าน AppSheet & Google Sheets</li>
+              <li>ออกแบบให้ตรงกับพฤติกรรมจริงของร้านค้าและเพื่อนนักศึกษา</li>
+              <li>ร้านค้าได้เงินเต็ม 100% ผ่านพร้อมเพย์ ไม่ต้องเสียค่าธรรมเนียมให้แพลตฟอร์ม</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg bg-[#0F0F0F] text-white text-xs flex justify-between">
+          <span>เป้าหมายของเรา: เป็นที่ปรึกษาและผู้สร้างโซลูชันดิจิทัลให้ร้านค้าชุมชน</span>
+          <span class="text-[#FF0000] font-bold">สไลด์ 09 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 10: แนะนำ App Concept Canvas ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="แนะนำ App Concept Canvas" data-notes="นี่คือกระดานแผ่นเดียวที่รวบรวมแก่นของแอป 9 มิติ ช่วยให้นักศึกษาไม่หลงทาง">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">THE BLUEPRINT • พิมพ์เขียวแผ่นเดียว</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">กระดานแนวคิดแอปพลิเคชัน (App Concept Canvas)</h2>
+          <p class="text-sm text-[#606060] mt-1">เครื่องมือวางแผน 9 มิติยุทธศาสตร์ เพื่อกลั่นกรองไอเดียให้กลายเป็นพิมพ์เขียวที่สร้างได้จริง:</p>
+        </div>
+
+        <div class="p-4 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] my-auto">
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="p-3 bg-white rounded-lg border border-[#E5E5E5]">
+              <span class="text-[10px] text-[#FF0000] font-bold block">01</span>
+              <strong class="text-[#0F0F0F]">ปัญหาและโอกาส</strong>
+            </div>
+            <div class="p-3 bg-white rounded-lg border-2 border-[#0F0F0F]">
+              <span class="text-[10px] text-[#FF0000] font-bold block">03 (หัวใจ)</span>
+              <strong class="text-[#0F0F0F]">คุณค่าที่ส่งมอบ</strong>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#E5E5E5]">
+              <span class="text-[10px] text-[#FF0000] font-bold block">02</span>
+              <strong class="text-[#0F0F0F]">กลุ่มเป้าหมาย</strong>
+            </div>
+
+            <div class="p-3 bg-white rounded-lg border border-[#E5E5E5] col-span-3 grid grid-cols-2 gap-2">
+              <div class="p-2 bg-[#F2F2F2] rounded">
+                <span class="text-[10px] text-[#FF0000] font-bold block">04</span>
+                <strong class="text-[#0F0F0F]">ฟีเจอร์หลัก (MVP)</strong>
+              </div>
+              <div class="p-2 bg-[#F2F2F2] rounded">
+                <span class="text-[10px] text-[#FF0000] font-bold block">05</span>
+                <strong class="text-[#0F0F0F]">ประสบการณ์ & หน้าจอสำคัญ</strong>
+              </div>
+            </div>
+
+            <div class="p-3 bg-white rounded-lg border border-[#E5E5E5]">
+              <span class="text-[10px] text-[#FF0000] font-bold block">06</span>
+              <strong class="text-[#0F0F0F]">แพลตฟอร์ม & เทคโนโลยี</strong>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#E5E5E5]">
+              <span class="text-[10px] text-[#FF0000] font-bold block">07</span>
+              <strong class="text-[#0F0F0F]">ช่องทาง & การเข้าถึง</strong>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#E5E5E5]">
+              <span class="text-[10px] text-[#FF0000] font-bold block">08</span>
+              <strong class="text-[#0F0F0F]">ตัวชี้วัดความสำเร็จ</strong>
+            </div>
+
+            <div class="p-2 bg-zinc-900 text-white rounded-lg col-span-3 text-[11px]">
+              <span class="text-[#FF0000] font-bold">09</span> ระบบสนับสนุนและส่วนขยายที่อยากให้มี (Web & Extension Ecosystem)
+            </div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>สไลด์ถัดไปจะเจาะลึกทีละช่องอย่างละเอียด</span>
+          <span>สไลด์ 10 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 11: Canvas มิติที่ 1-3 ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="Canvas ช่องที่ 1, 2, 3" data-notes="สอนเรื่อง Persona ห้ามตอบว่าสำหรับทุกคน และ Value Proposition ต้องพูดจบใน 1 ประโยค">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">CANVAS DEEP DIVE • PART 1</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ช่องที่ 1, 2 และ 3: รากฐานของแอป</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-auto">
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+            <span class="text-xs font-bold text-[#FF0000]">ช่องที่ 1</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F]">ปัญหาและโอกาส (Problems & Pain)</h4>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              อะไรคือความลำบากที่เขาเจอทุกวัน ทำไมต้องแก้ตอนนี้? แอปเดิมขาดอะไร?
+            </p>
+            <div class="text-[11px] p-2 bg-white rounded border border-[#E5E5E5] text-[#0F0F0F]">
+              ตัวอย่าง: พักเที่ยงรอนาน 20 นาที ชงผิดแก้ว กระดาษจดคิวเปียกหาย
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+            <span class="text-xs font-bold text-[#FF0000]">ช่องที่ 2</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F]">กลุ่มเป้าหมาย (Personas)</h4>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              ระบุผู้ใช้ 2 ฝั่งให้ชัดเจน:
+              <br>• ฝั่งลูกค้า: นักเรียน วัย 16-20 ปี
+              <br>• ฝั่งร้านค้า: แม่ค้า วัย 45 ปี
+            </p>
+            <div class="text-[11px] p-2 bg-white rounded border border-[#E5E5E5] text-[#FF0000]">
+              คำเตือน: ห้ามตอบว่า "สำหรับทุกคน" เด็ดขาด!
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border-2 border-[#0F0F0F] bg-white space-y-2">
+            <span class="text-xs font-bold text-[#0F0F0F]">ช่องที่ 3 (หัวใจหลัก)</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F]">คุณค่าที่ส่งมอบ (Value Proposition)</h4>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              จุดขายที่แตกต่าง และผลประโยชน์สูงสุดที่ผู้ใช้จะได้รับใน 1 ประโยค:
+            </p>
+            <div class="text-[11px] p-2 bg-red-50 rounded border border-red-200 text-[#0F0F0F] font-bold">
+              "สั่งเครื่องดื่มล่วงหน้าใน 3 คลิก ไม่ต้องยืนรอคิว ได้รสชาติถูกต้อง 100%"
+            </div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>หัวใจของความสำเร็จคือความชัดเจนของ 3 ช่องนี้</span>
+          <span>สไลด์ 11 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 12: Canvas มิติที่ 4-5 ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="Canvas ช่องที่ 4, 5 (MVP & UX)" data-notes="สอนหลัก Minimum Viable Product ห้ามโลภใส่ทุกฟีเจอร์ลงมา ให้เอาเฉพาะ Must-Have">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">CANVAS DEEP DIVE • PART 2</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ช่องที่ 4 และ 5: ฟีเจอร์ MVP & หน้าจอ</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+          <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#FF0000]">ช่องที่ 4</span>
+              <span class="px-2 py-0.5 rounded bg-zinc-200 text-[10px] font-bold text-[#0F0F0F]">MVP CONCEPT</span>
+            </div>
+            <h4 class="font-bold text-base text-[#0F0F0F]">ฟีเจอร์หลัก (Key Features / MVP)</h4>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              เลือกเฉพาะสิ่งที่ <strong>"ต้องมี (Must-Have)"</strong> ในเวอร์ชันแรกเพื่อแก้ปัญหาหลัก:
+            </p>
+            <ul class="text-xs text-[#0F0F0F] space-y-1 list-disc pl-5">
+              <li>✅ เมนูพร้อมภาพและราคา</li>
+              <li>✅ ตัวเลือกระดับความหวาน</li>
+              <li>✅ ตะกร้าคำนวณเงิน + QR Code พร้อมเพย์</li>
+              <li>✅ หน้าจอดูคิวสำหรับแม่ค้า</li>
+              <li>❌ ระบบสะสมแต้ม / แอนิเมชัน (เก็บไว้ทำเวอร์ชันถัดไป)</li>
+            </ul>
+          </div>
+
+          <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#FF0000]">ช่องที่ 5</span>
+              <span class="px-2 py-0.5 rounded bg-zinc-200 text-[10px] font-bold text-[#0F0F0F]">USER EXPERIENCE</span>
+            </div>
+            <h4 class="font-bold text-base text-[#0F0F0F]">ประสบการณ์ & หน้าจอสำคัญ (UX & Screens)</h4>
+            <p class="text-xs text-[#606060] leading-relaxed">
+              วาดเส้นทางผู้ใช้ (User Flow) และลิสต์รายชื่อหน้าจอ:
+            </p>
+            <div class="p-2 rounded bg-white border border-[#E5E5E5] text-[11px] text-[#065FD4] font-mono">
+              เปิดแอป ➔ เลือกเครื่องดื่ม ➔ ใส่ตะกร้า ➔ โอนเงิน ➔ รับคิว
+            </div>
+            <div class="text-xs text-[#0F0F0F]">
+              <strong>5 หน้าจอหลัก:</strong> 1. Home Menu, 2. Item Detail, 3. Cart Checkout, 4. Queue Status, 5. Kitchen Order List
+            </div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>รายชื่อหน้าจอในช่องที่ 5 จะถูกนำไปวาด Wireframe ในสัปดาห์หน้า</span>
+          <span>สไลด์ 12 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 13: Canvas มิติที่ 6-9 ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="Canvas ช่องที่ 6, 7, 8, 9" data-notes="สรุปเทคโนโลยี No-Code และการวัดผลตัวชี้วัดความสำเร็จที่ต้องวัดเป็นตัวเลขได้">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-2">CANVAS DEEP DIVE • PART 3</div>
+          <h2 class="text-2xl sm:text-4xl font-bold text-[#0F0F0F] tracking-tight">ช่องที่ 6, 7, 8 และ 9: เทคโนโลยี & ตัวชี้วัด</h2>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 my-auto text-xs">
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <span class="text-[10px] font-bold text-[#FF0000] uppercase">ช่องที่ 6</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F] mt-1">Platform & Tech</h4>
+            <p class="text-[#606060] mt-1">Cross-Platform รองรับ iOS/Android/Web</p>
+            <div class="mt-2 text-[11px] text-[#065FD4] font-medium">• Figma (UI)<br>• Google Sheets (DB)<br>• AppSheet (No-Code)</div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <span class="text-[10px] font-bold text-[#FF0000] uppercase">ช่องที่ 7</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F] mt-1">Channels & Retention</h4>
+            <p class="text-[#606060] mt-1">ดึงดูดคนใหม่และรักษาคนเดิม</p>
+            <div class="mt-2 text-[11px] text-[#0F0F0F]">• สแตนดี้ QR Code หน้าร้าน<br>• ปุ่มสั่งเมนูเดิมใน 1 คลิก<br>• แจ้งเตือนเมื่อชงเสร็จ</div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <span class="text-[10px] font-bold text-[#FF0000] uppercase">ช่องที่ 8</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F] mt-1">Key Metrics</h4>
+            <p class="text-[#606060] mt-1">วัดผลเชิงตัวเลขชัดเจน</p>
+            <div class="mt-2 text-[11px] text-[#2BA640] font-bold">• ลดเวลารอเหลือ &lt; 1 นาที<br>• ชงผิดพลาดเหลือ 0 ครั้ง<br>• ยอดสั่งในแอป &gt; 50 แก้ว/วัน</div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+            <span class="text-[10px] font-bold text-[#FF0000] uppercase">ช่องที่ 9</span>
+            <h4 class="font-bold text-sm text-[#0F0F0F] mt-1">Extension Ecosystem</h4>
+            <p class="text-[#606060] mt-1">ระบบสนับสนุนหลังบ้าน</p>
+            <div class="mt-2 text-[11px] text-[#0F0F0F]">• Web Dashboard สรุปยอด<br>• ใบเสร็จรับเงิน PDF<br>• แจ้งเตือนผ่าน LINE OA</div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>ครบทั้ง 9 ช่องของ App Concept Canvas อย่างสมบูรณ์</span>
+          <span>สไลด์ 13 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 14: กรณีศึกษาที่ 1 - มิตรภาพ คาเฟ่ ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="กรณีศึกษาที่ 1: มิตรภาพ คาเฟ่" data-notes="ตัวอย่างจริงของร้านกาแฟ แสดงการจับคู่ปัญหาเข้ากับฟีเจอร์แอป">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">CASE STUDY 01 • RETAIL & BEVERAGE</div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight">กรณีศึกษา: ร้านกาแฟ "มิตรภาพ คาเฟ่"</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-auto text-xs">
+          <div class="p-4 rounded-xl border border-red-200 bg-red-50/50 space-y-2">
+            <span class="font-bold text-[#FF0000]">1. ปัญหาหน้างานจริง</span>
+            <p class="text-[#606060] leading-relaxed">
+              พักเที่ยงคนยืนรอ 50 คน ป้าสมศรีชงคนเดียว จดใส่เศษกระดาษปลิวหาย ทอนเงินผิดพลาด ลูกค้ารอนาน 20 นาที
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border-2 border-[#0F0F0F] bg-white space-y-2">
+            <span class="font-bold text-[#0F0F0F]">3. คุณค่าที่ส่งมอบ</span>
+            <p class="text-[#0F0F0F] font-bold leading-relaxed">
+              "สั่งเครื่องดื่มล่วงหน้าใน 3 คลิก ไม่ต้องยืนรอคิว ได้รสชาติถูกต้อง 100% พร้อมรับทันทีที่เดินมาถึง"
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-green-200 bg-green-50/50 space-y-2">
+            <span class="font-bold text-[#2BA640]">8. ผลลัพธ์ตัวชี้วัด</span>
+            <p class="text-[#0F0F0F] leading-relaxed">
+              เวลารอคิวลดลงเหลือไม่เกิน 1 นาที และอัตราชงผิดพลาดสูตรเครื่องดื่มลดลงเหลือ 0 ครั้งต่อวัน
+            </p>
+          </div>
+        </div>
+
+        <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] text-xs flex flex-wrap items-center justify-between gap-2">
+          <span><strong>MVP ฟีเจอร์:</strong> แคตตาล็อกเมนู + ตัวเลือกระดับหวาน 0-100% + สแกนจ่ายพร้อมเพย์ + หน้าจอรับออร์เดอร์ป้าสมศรี</span>
+          <span class="font-mono text-[#065FD4]">Tech: AppSheet + Figma</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 15: กรณีศึกษาที่ 2 - ช่างศักดิ์ การช่าง ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="กรณีศึกษาที่ 2: ช่างศักดิ์ การช่าง" data-notes="ตัวอย่างงานบริการและสต๊อกอะไหล่ แสดงการประยุกต์ใช้กล้องมือถือถ่ายรูปรถ">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#065FD4] mb-1">CASE STUDY 02 • SERVICE & GARAGE</div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight">กรณีศึกษา: อู่ซ่อมรถ "ช่างศักดิ์ การช่าง"</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-auto text-xs">
+          <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2">
+            <span class="font-bold text-[#065FD4]">1. ปัญหาหน้างานจริง</span>
+            <p class="text-[#606060] leading-relaxed">
+              สับสนคิวรถซ่อม อะไหล่หมดไม่รู้ตัว รื้อเครื่องแล้วไม่มีหัวเทียน ค้นประวัติการซ่อมเดิมไม่เจอ
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border-2 border-[#0F0F0F] bg-white space-y-2">
+            <span class="font-bold text-[#0F0F0F]">3. คุณค่าที่ส่งมอบ</span>
+            <p class="text-[#0F0F0F] font-bold leading-relaxed">
+              "เปิดใบซ่อมไวด้วยการถ่ายรูป เช็กสต๊อกอะไหล่ได้เรียลไทม์ และแจ้งเตือนลูกค้าอัตโนมัติเมื่อซ่อมเสร็จ"
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-green-200 bg-green-50/50 space-y-2">
+            <span class="font-bold text-[#2BA640]">8. ผลลัพธ์ตัวชี้วัด</span>
+            <p class="text-[#0F0F0F] leading-relaxed">
+              อะไหล่ขาดสต๊อกลดลงเหลือ 0 ครั้ง และค้นหาประวัติการซ่อมเดิมได้ใน 15 วินาทีด้วยเลขทะเบียน
+            </p>
+          </div>
+        </div>
+
+        <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] text-xs flex flex-wrap items-center justify-between gap-2">
+          <span><strong>MVP ฟีเจอร์:</strong> ถ่ายรูปสภาพรถ + ตัดสต๊อกอะไหล่อัตโนมัติ + เตือนสต๊อกใกล้หมด (&lt; 3 ชิ้น) + ส่งใบเสร็จ PDF เข้า LINE</span>
+          <span class="font-mono text-[#065FD4]">Tech: AppSheet Tablet</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 16: คำถามทบทวนประจำบท ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-white" data-title="คำถามทบทวนประจำบท" data-notes="กระตุ้นให้นักศึกษาในห้องช่วยกันตอบ 3 คำถามนี้ก่อนเริ่มลงมือทำใบงาน">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">REVIEW & DISCUSSION</div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight">คำถามทบทวนและสะท้อนคิด</h2>
+        </div>
+
+        <div class="space-y-3 my-auto text-xs">
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold shrink-0">1</span>
+            <div>
+              <div class="font-bold text-sm text-[#0F0F0F]">อุปกรณ์พกพา (Mobile) แตกต่างจากคอมพิวเตอร์ตั้งโต๊ะอย่างไรในแง่ธุรกิจ?</div>
+              <div class="text-[#606060] mt-1">สมาร์ตโฟนมีความสามารถพกพาเข้าถึงได้ 24 ชม. และมีฮาร์ดแวร์พิเศษในตัว (กล้องสแกน QR, GPS, Push Alerts)</div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold shrink-0">2</span>
+            <div>
+              <div class="font-bold text-sm text-[#0F0F0F]">เหตุใดขั้นตอน Planning & Analysis ใน SDLC จึงสำคัญที่สุด?</div>
+              <div class="text-[#606060] mt-1">เพราะหากเข้าใจปัญหาผิด จะทำให้ขั้นตอน Design และ Code ล้มเหลว กลายเป็นการสร้างสิ่งที่ไม่มีใครใช้</div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold shrink-0">3</span>
+            <div>
+              <div class="font-bold text-sm text-[#0F0F0F]">หลักการ Minimum Viable Product (MVP) ช่วยลดความเสี่ยงอย่างไร?</div>
+              <div class="text-[#606060] mt-1">ช่วยให้สร้างเฉพาะฟังก์ชันที่จำเป็นที่สุดในเวอร์ชันแรก ส่งมอบได้ไว ไม่เสียเวลากับฟีเจอร์เสริมที่ยังไม่จำเป็น</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#606060] border-t border-[#E5E5E5] pt-3 flex justify-between">
+          <span>ฝึกทักษะการคิดวิเคราะห์ก่อนลงมือทำเวิร์กช็อป</span>
+          <span>สไลด์ 16 / 17</span>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 17: สรุป & ภารกิจสัปดาห์ถัดไป ─── -->
+      <section class="slide-item flex-1 flex flex-col justify-between p-8 sm:p-12 bg-gradient-to-br from-white to-red-50/40" data-title="สรุป & ภารกิจถัดไป" data-notes="สรุปบทเรียน และบอกนักศึกษาให้เตรียมตัวใช้ Figma ในสัปดาห์หน้า">
+        <div class="flex items-center justify-between border-b border-[#E5E5E5] pb-4">
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#0F0F0F] text-white">
+              CHAPTER SUMMARY
+            </span>
+            <span class="text-xs text-[#2BA640] font-bold">● COMPLETE</span>
+          </div>
+          <span class="text-xs text-[#606060] font-mono">NEXT CHAPTER: FIGMA WIREFRAME</span>
+        </div>
+
+        <div class="my-auto max-w-3xl space-y-4">
+          <h2 class="text-3xl sm:text-4xl font-black text-[#0F0F0F] tracking-tight">
+            สรุปบทเรียน: จากกระดานแผ่นเดียว สู่แอปพลิเคชันจริง
+          </h2>
+          <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+            เราได้วางรากฐานที่มั่นคงที่สุดแล้ว นั่นคือการเข้าใจ <strong>"ปัญหาของลูกค้า"</strong> และกำหนด <strong>"พิมพ์เขียว 9 มิติ"</strong> ลงบน App Concept Canvas
+          </p>
+
+          <div class="p-5 rounded-2xl bg-white border-2 border-[#FF0000] shadow-sm">
+            <div class="text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">🎯 ภารกิจในบทถัดไป:</div>
+            <div class="font-bold text-base text-[#0F0F0F]">การออกแบบโครงสร้างหน้าจอ Wireframe ด้วย Figma</div>
+            <div class="text-xs text-[#606060] mt-1">
+              นำรายชื่อหน้าจอในช่องที่ 5 (Key Screens) ไปวาดโครงสร้างจัดวางปุ่มกด กล่องข้อความ และรูปภาพบนโปรแกรม Figma
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between border-t border-[#E5E5E5] pt-4 text-xs text-[#606060]">
+          <div>ขอให้นักศึกษาทุกคนเตรียมบัญชี Google ให้พร้อมสำหรับการใช้งาน Figma</div>
+          <button onclick="goToSlide(1)" class="text-[#FF0000] font-bold hover:underline">↺ เริ่มต้นดูใหม่อีกครั้ง</button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SLIDE NAVIGATION BUTTONS (Floating Controls) -->
+    <!-- ===================================================================== -->
+    <!-- ปุ่มย้อนกลับ Prev -->
+    <button id="prevBtn" onclick="prevSlide()" class="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white text-[#0F0F0F] shadow-xl border border-[#E5E5E5] flex items-center justify-center transition hover:scale-110 z-20 group" title="สไลด์ก่อนหน้า (ลูกศรซ้าย)">
+      <svg class="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+    </button>
+
+    <!-- ปุ่มถัดไป Next -->
+    <button id="nextBtn" onclick="nextSlide()" class="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-[#0F0F0F] hover:bg-black text-white shadow-xl flex items-center justify-center transition hover:scale-110 z-20 group ring-2 ring-[#FF0000]" title="สไลด์ถัดไป (ลูกศรขวา / Spacebar)">
+      <svg class="w-6 h-6 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- SPEAKER NOTES POPUP DRAWER (คำอธิบายสำหรับครูผู้สอน) -->
+  <!-- ========================================================================= -->
+  <div id="speakerNotesDrawer" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 w-11/12 max-w-3xl bg-[#0F0F0F] text-white p-5 rounded-2xl border border-zinc-700 shadow-2xl z-40 elevation-3">
+    <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+        <span class="text-xs font-bold uppercase tracking-wider text-zinc-300">SPEAKER NOTES • คำอธิบายประกอบการสอนของครู</span>
+      </div>
+      <button onclick="toggleSpeakerNotes()" class="text-zinc-400 hover:text-white text-xs font-bold">✕ ปิด</button>
+    </div>
+    <p id="speakerNotesText" class="text-sm text-zinc-200 mt-3 leading-relaxed font-sans">
+      ยินดีต้อนรับนักศึกษา ปวส.1 สู่บทเรียนแรก ในบทนี้เราจะไม่เขียนโค้ด แต่เราจะวางวิธีคิดแบบวิศวกรซอฟต์แวร์และการแก้ปัญหาธุรกิจจริง
+    </p>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- BOTTOM THUMBNAILS DRAWER (สไลด์ย่อทั้งหมด 17 สไลด์) -->
+  <!-- ========================================================================= -->
+  <footer id="thumbnailsDrawer" class="bg-white border-t border-[#E5E5E5] px-4 py-2 shrink-0 transition-all duration-300 z-30">
+    <div class="max-w-6xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar py-1" id="thumbContainer">
+      <!-- จะถูกสร้างอัตโนมัติด้วย JavaScript -->
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT CONTROLLER (Keyboard Navigation & Slide Engine) -->
+  <!-- ========================================================================= -->
+  <script>
+    const slides = document.querySelectorAll('.slide-item');
+    const totalSlides = slides.length;
+    let currentSlide = 0;
+
+    const slideCounter = document.getElementById('slideCounter');
+    const slideTitlePreview = document.getElementById('slideTitlePreview');
+    const progressBar = document.getElementById('progressBar');
+    const speakerNotesText = document.getElementById('speakerNotesText');
+    const speakerNotesDrawer = document.getElementById('speakerNotesDrawer');
+    const thumbContainer = document.getElementById('thumbContainer');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // สร้าง Thumbnails ด้านล่าง
+    function initThumbnails() {
+      thumbContainer.innerHTML = '';
+      slides.forEach((slide, idx) => {
+        const title = slide.getAttribute('data-title') || `สไลด์ ${idx + 1}`;
+        const btn = document.createElement('button');
+        btn.className = `thumb-card flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium shrink-0 transition ${idx === 0 ? 'active border-[#FF0000] bg-red-50 font-bold text-[#FF0000]' : 'border-[#E5E5E5] text-[#606060] hover:bg-[#F2F2F2]'}`;
+        btn.innerHTML = `
+          <span class="font-mono text-[10px] text-zinc-400">${String(idx + 1).padStart(2, '0')}</span>
+          <span class="truncate max-w-[120px]">${title}</span>
+        `;
+        btn.onclick = () => goToSlide(idx + 1);
+        thumbContainer.appendChild(btn);
+      });
+    }
+
+    // แสดงสไลด์ตามหมายเลข (1-indexed)
+    function goToSlide(slideNum) {
+      if (slideNum < 1 || slideNum > totalSlides) return;
+      currentSlide = slideNum - 1;
+
+      slides.forEach((slide, idx) => {
+        if (idx === currentSlide) {
+          slide.classList.add('active');
+        } else {
+          slide.classList.remove('active');
+        }
+      });
+
+      // อัปเดตข้อมูลบนแถบควบคุม
+      const activeSlide = slides[currentSlide];
+      const title = activeSlide.getAttribute('data-title') || '';
+      const notes = activeSlide.getAttribute('data-notes') || 'ไม่มีคำอธิบายเพิ่มเติมสำหรับสไลด์นี้';
+
+      slideCounter.innerText = `${String(currentSlide + 1).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+      slideTitlePreview.innerText = title;
+      speakerNotesText.innerText = notes;
+
+      // อัปเดต Progress Bar
+      const progressPercent = ((currentSlide + 1) / totalSlides) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+
+      // อัปเดต Thumbnails Active
+      const thumbCards = document.querySelectorAll('.thumb-card');
+      thumbCards.forEach((card, idx) => {
+        if (idx === currentSlide) {
+          card.className = 'thumb-card active flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold shrink-0 transition border-[#FF0000] bg-red-50 text-[#FF0000]';
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } else {
+          card.className = 'thumb-card flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium shrink-0 transition border-[#E5E5E5] text-[#606060] hover:bg-[#F2F2F2]';
+        }
+      });
+
+      // ปรับสถานะปุ่ม Prev / Next
+      prevBtn.style.opacity = currentSlide === 0 ? '0.3' : '1';
+      prevBtn.style.pointerEvents = currentSlide === 0 ? 'none' : 'auto';
+      nextBtn.style.opacity = currentSlide === totalSlides - 1 ? '0.7' : '1';
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        goToSlide(currentSlide + 2);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        goToSlide(currentSlide);
+      }
+    }
+
+    // สลับเปิด/ปิด Speaker Notes
+    function toggleSpeakerNotes() {
+      speakerNotesDrawer.classList.toggle('hidden');
+    }
+
+    // สลับเปิด/ปิด Thumbnails Drawer
+    function toggleThumbnails() {
+      const drawer = document.getElementById('thumbnailsDrawer');
+      drawer.classList.toggle('hidden');
+    }
+
+    // สลับ Fullscreen
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      } else if (e.key === 'n' || e.key === 'N') {
+        toggleSpeakerNotes();
+      } else if (e.key === 't' || e.key === 'T') {
+        toggleThumbnails();
+      } else if (e.key === 'Home') {
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        goToSlide(totalSlides);
+      }
+    });
+
+    // เริ่มต้นระบบ
+    initThumbnails();
+    goToSlide(1);
+  </script>
+</body>
+</html>
