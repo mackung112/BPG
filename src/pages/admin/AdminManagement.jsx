@@ -48,6 +48,7 @@ export default function AdminManagement() {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState('admin');
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
 
   // Edit Modal State
   const [editingAdmin, setEditingAdmin] = useState(null);
@@ -71,7 +72,7 @@ export default function AdminManagement() {
 
   const showToast = (type, message) => {
     setToast({ type, message });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), type === 'error' ? 6000 : 4000);
   };
 
   const fetchAdmins = async () => {
@@ -95,7 +96,9 @@ export default function AdminManagement() {
   // 1. Create Admin
   const handleCreateAdmin = async (e) => {
     e.preventDefault();
+    setCreateError(null);
     if (!newEmail || !newPassword || !newFirstName) {
+      setCreateError('กรุณากรอกข้อมูลให้ครบทุกช่อง');
       showToast('error', 'กรุณากรอกข้อมูลให้ครบทุกช่อง');
       return;
     }
@@ -108,10 +111,13 @@ export default function AdminManagement() {
       setNewPassword(''); 
       setNewFirstName('');
       setNewRole('admin');
+      setCreateError(null);
       setIsCreateModalOpen(false);
       fetchAdmins();
     } catch (err) {
-      showToast('error', 'เกิดข้อผิดพลาด: ' + err.message);
+      const msg = err.message || 'เกิดข้อผิดพลาดในการสร้างบัญชี';
+      setCreateError(msg);
+      showToast('error', msg);
     } finally {
       setCreating(false);
     }
@@ -268,7 +274,10 @@ export default function AdminManagement() {
           </button>
 
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => {
+              setCreateError(null);
+              setIsCreateModalOpen(true);
+            }}
             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-600/20 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer"
           >
             <Plus className="w-5 h-5" />
@@ -516,6 +525,16 @@ export default function AdminManagement() {
               </button>
             </div>
 
+            {createError && (
+              <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2.5 text-xs text-rose-800 leading-relaxed">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <strong className="font-semibold block mb-0.5">เกิดข้อผิดพลาด:</strong>
+                  <span>{createError}</span>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleCreateAdmin} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-zinc-700 mb-1.5">ชื่อ-นามสกุล / ชื่อผู้สอน</label>
@@ -542,9 +561,10 @@ export default function AdminManagement() {
                     onChange={(e) => setNewEmail(e.target.value)}
                     type="email"
                     className="w-full pl-10 pr-4 py-2.5 text-sm border border-zinc-200 rounded-xl focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all"
-                    placeholder="teacher@example.com"
+                    placeholder="teacher@example.com หรือ user@test.local"
                   />
                 </div>
+                <p className="text-[11px] text-zinc-400 mt-1">💡 ใช้อีเมลสมมุติได้ (เช่น <code>user@test.com</code> หรือ <code>ครู1@school.local</code>)</p>
               </div>
 
               <div>

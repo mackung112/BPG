@@ -7,11 +7,19 @@ export const STASH_SEMESTER_ID = '__STASH__';
 
 const DEFAULT_SEMESTERS = [
   {
+    id: 'term-2-2569',
+    name: 'ภาคเรียนที่ 2/2569',
+    academic_year: '2569',
+    term_number: '2',
+    is_current: true,
+    created_at: new Date('2026-10-01').toISOString()
+  },
+  {
     id: 'term-1-2567',
     name: 'ภาคเรียนที่ 1/2567',
     academic_year: '2567',
     term_number: '1',
-    is_current: true,
+    is_current: false,
     created_at: new Date('2026-05-15').toISOString()
   },
   {
@@ -38,6 +46,13 @@ export const getSemesters = () => {
     if (!Array.isArray(parsed) || parsed.length === 0) {
       localStorage.setItem(STORAGE_KEY_SEMESTERS, JSON.stringify(DEFAULT_SEMESTERS));
       return DEFAULT_SEMESTERS;
+    }
+    // ตรวจสอบว่ามี ภาคเรียนที่ 2/2569 หรือไม่ ถ้ายังไม่มีให้เพิ่มเข้าไปเป็นภาคเรียนปัจจุบัน
+    if (!parsed.some(s => s.name?.includes('2/2569') || (s.academic_year === '2569' && s.term_number === '2'))) {
+      const term2569 = DEFAULT_SEMESTERS[0];
+      const updated = [term2569, ...parsed.map(s => ({ ...s, is_current: false }))];
+      localStorage.setItem(STORAGE_KEY_SEMESTERS, JSON.stringify(updated));
+      return updated;
     }
     return parsed;
   } catch (err) {

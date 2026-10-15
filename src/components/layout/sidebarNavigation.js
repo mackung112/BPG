@@ -2,14 +2,12 @@ import {
   Home, 
   LayoutDashboard, 
   BookOpen, 
-  BookMarked,
-  ShieldCheck,
-  Palette,
-  FileText,
-  Users,
-  GraduationCap,
-  ClipboardList,
-  PenTool
+  ShieldCheck, 
+  Palette, 
+  Users, 
+  GraduationCap, 
+  ClipboardList, 
+  PenTool 
 } from 'lucide-react';
 
 export const NAVIGATION_CATEGORIES = [
@@ -39,9 +37,7 @@ export const NAVIGATION_CATEGORIES = [
       { to: '/admin/students', icon: Users, label: 'การจัดการนักเรียน' },
       { to: '/admin/questions', icon: ClipboardList, label: 'คลังข้อสอบ' },
       { to: '/admin/exam-control', icon: PenTool, label: 'ระบบจัดการห้องสอบ' },
-      { to: '/admin/exam-results', icon: GraduationCap, label: 'ผลคะแนน' },
-      { to: '/admin/worksheets', icon: FileText, label: 'ใบงาน' },
-      { to: '/admin/documents', icon: FileText, label: 'เอกสารประกอบ' }
+      { to: '/admin/exam-results', icon: GraduationCap, label: 'ผลคะแนน' }
     ]
   },
   {
@@ -50,7 +46,6 @@ export const NAVIGATION_CATEGORIES = [
     labelEn: 'Settings & Documentation',
     items: [
       { to: '/admin/users', icon: ShieldCheck, label: 'จัดการผู้ใช้งาน / แอดมิน', requireSuperAdmin: true },
-      { to: '/admin/docs', icon: BookMarked, label: 'คู่มือและมาตรฐาน' },
       { to: '/library', icon: Palette, label: 'Storybook UI' }
     ]
   }

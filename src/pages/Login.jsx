@@ -47,10 +47,16 @@ export default function Login() {
     setLoading(true);
     setError(null);
     try {
-      await loginAdmin(email, password);
+      await loginAdmin(email.trim().toLowerCase(), password);
       navigate('/admin');
-    } catch {
-      setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    } catch (err) {
+      if (err.message?.includes('Email not confirmed')) {
+        setError('บัญชีนี้ยังไม่ได้รับการยืนยันอีเมล กรุณาตรวจสอบกล่องจดหมาย หรือติดต่อ Super Admin');
+      } else if (err.message?.includes('Invalid login credentials')) {
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else {
+        setError(err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      }
     } finally {
       setLoading(false);
     }

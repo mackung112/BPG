@@ -12,13 +12,10 @@ export default function Navbar({ onToggleMobileMenu }) {
     if (pathname.startsWith('/admin/curriculum-draft')) return 'ร่างหลักสูตร (AI Syllabus)';
     if (pathname.startsWith('/admin/curriculum-structure')) return 'โครงสร้างเนื้อหาหลักสูตร';
     if (pathname.startsWith('/admin/ai-creator')) return 'AI Content Creator';
-    if (pathname.startsWith('/admin/documents')) return 'ไฟล์เอกสารและคลังสื่อ';
-    if (pathname.startsWith('/admin/worksheets')) return 'ใบงานและภารกิจการสอน';
     if (pathname.startsWith('/admin/questions')) return 'คลังข้อสอบ';
     if (pathname.startsWith('/admin/exam-control')) return 'ระบบสอบ (ควบคุม)';
     if (pathname.startsWith('/admin/exam-results')) return 'ผลคะแนนและการประเมิน';
     if (pathname.startsWith('/admin/users')) return 'จัดการผู้ใช้และแอดมิน';
-    if (pathname.startsWith('/admin/docs')) return 'คู่มือและมาตรฐานระบบ';
     return 'แผงควบคุมระบบ';
   };
 

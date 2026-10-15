@@ -27,9 +27,6 @@ const QuestionBank = lazy(() => import('./pages/admin/QuestionBank'));
 const AdminManagement = lazy(() => import('./pages/admin/AdminManagement'));
 const ExamControl = lazy(() => import('./pages/admin/ExamControl'));
 const ExamResults = lazy(() => import('./pages/admin/ExamResults'));
-const CourseDocumentsView = lazy(() => import('./pages/admin/CourseDocumentsView'));
-const WorksheetsView = lazy(() => import('./pages/admin/WorksheetsView'));
-const SystemDocsView = lazy(() => import('./pages/admin/SystemDocsView'));
 
 // Exam pages (loaded only when student enters exam)
 const ExamLobby = lazy(() => import('./pages/exam/ExamLobby'));
@@ -636,12 +633,9 @@ export default function App() {
               <Route path="teacher-subjects" element={<TeacherSubjects />} />
               {/* New Course Materials page */}
               <Route path="course-materials/:subjectId" element={<CourseMaterials />} />
-              <Route path="documents" element={<CourseDocumentsView />} />
-              <Route path="worksheets" element={<WorksheetsView />} />
               <Route path="questions" element={<QuestionBank />} />
               <Route path="exam-control" element={<ExamControl />} />
               <Route path="exam-results" element={<ExamResults />} />
-              <Route path="docs" element={<SystemDocsView />} />
               <Route path="users" element={
                 <ProtectedRoute requireSuperAdmin={true}>
                   <AdminManagement />

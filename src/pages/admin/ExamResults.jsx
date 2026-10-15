@@ -130,6 +130,20 @@ export default function ExamResults() {
     });
 
     const scores = sortedAttempts.map(a => Number(a.score));
+    const round1Score = scores[0];
+    const sessionPassRate = (selectedSession?.passing_percentage || 50) / 100;
+    const passingScore = totalScoreVal * sessionPassRate;
+    const passedRound1 = round1Score >= passingScore;
+    const hasRetake = sortedAttempts.length > 1;
+
+    // ถ้าไม่มีการสอบซ่อม (สอบแค่รอบแรก) เกณฑ์สอบซ่อมจะไม่นำมานับรวมเพื่อปรับลดคะแนน
+    if (!hasRetake) {
+      return {
+        finalScore: round1Score,
+        effectiveTotal: totalScoreVal
+      };
+    }
+
     let finalScore = 0;
     let effectiveTotal = totalScoreVal;
 
@@ -150,18 +164,42 @@ export default function ExamResults() {
         break;
 
       case 'capped': {
-        // คะแนนที่ดีที่สุด แต่จำกัดเพดานไม่ให้เกิน capScore
-        const best = Math.max(...scores);
-        finalScore = Math.min(best, Number(capScore || totalScoreVal));
+        // จำกัดเพดานคะแนนสำหรับรอบสอบซ่อม (ครั้งที่ 2 เป็นต้นไป)
+        const capVal = Number(capScore || totalScoreVal);
+        if (passedRound1) {
+          // หากผ่านเกณฑ์รอบแรกแล้ว ครั้งแรกคงไว้ไม่ถูกลดเพดาน แต่รอบซ่อมจำกัดเพดาน
+          const retestScores = scores.slice(1);
+          const cappedRetestBest = Math.max(...retestScores.map(s => Math.min(s, capVal)));
+          finalScore = Math.max(round1Score, cappedRetestBest);
+        } else {
+          // ถ้าไม่ผ่านรอบแรก คิดรวมปกติโดยจำกัดเพดานคะแนน
+          const best = Math.max(...scores);
+          finalScore = Math.min(best, capVal);
+        }
         break;
       }
 
       case 'scaled': {
-        // กำหนดคะแนนเต็มใหม่ตามที่ครูกำหนด
-        const best = Math.max(...scores);
+        // กำหนดคะแนนเต็มใหม่ตามสัดส่วนสำหรับรอบสอบซ่อม
         const newMax = Number(customMaxScore || totalScoreVal);
-        finalScore = (best / totalScoreVal) * newMax;
-        effectiveTotal = newMax;
+        if (passedRound1) {
+          // หากผ่านรอบแรกแล้ว ได้คะแนนเต็มเดิม ไม่ถูกปรับลด
+          const retestScores = scores.slice(1);
+          const retestBest = Math.max(...retestScores);
+          const scaledRetest = (retestBest / totalScoreVal) * newMax;
+          if ((round1Score / totalScoreVal) >= (scaledRetest / newMax)) {
+            finalScore = round1Score;
+            effectiveTotal = totalScoreVal;
+          } else {
+            finalScore = scaledRetest;
+            effectiveTotal = newMax;
+          }
+        } else {
+          // คนที่มีการสอบซ่อม คิดรวมปกติ โดยหารลดตามสัดส่วนคะแนนเต็มใหม่
+          const best = Math.max(...scores);
+          finalScore = (best / totalScoreVal) * newMax;
+          effectiveTotal = newMax;
+        }
         break;
       }
 
@@ -455,7 +493,7 @@ export default function ExamResults() {
   const passCount = studentList.filter(s => s.isPass).length;
   const retakeApprovedCount = studentList.filter(s => s.isRetakeAllowed).length;
   const retakenStudentsCount = studentList.filter(s => s.attempts.length > 1).length;
-  const avgFinalScore = totalStudents > 0 ? Math.round(studentList.reduce((sum, s) => sum + s.finalScore, 0) / totalStudents) : 0;
+  const avgFinalScore = totalStudents > 0 ? Math.round((studentList.reduce((sum, s) => sum + s.finalScore, 0) / totalStudents) * 10) / 10 : 0;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -706,6 +744,7 @@ export default function ExamResults() {
                         />
                         <span className="font-bold text-zinc-900">🛡️ จำกัดเพดานคะแนน</span>
                       </div>
+                      <p className="text-[11px] text-zinc-500 leading-tight mb-1">จำกัดเพดานคะแนนรอบซ่อม (คนผ่านรอบแรกคงคะแนนเดิม)</p>
                       <div className="mt-1 flex items-center gap-1.5">
                         <span className="text-[11px] text-zinc-500">ไม่เกิน:</span>
                         <input 
@@ -738,6 +777,7 @@ export default function ExamResults() {
                         />
                         <span className="font-bold text-zinc-900">🎯 กำหนดคะแนนเต็มใหม่</span>
                       </div>
+                      <p className="text-[11px] text-zinc-500 leading-tight mb-1">หารลดสัดส่วนคะแนนเต็มใหม่รอบซ่อม (คนผ่านรอบแรกได้เต็มเดิม)</p>
                       <div className="mt-1 flex items-center gap-1.5">
                         <span className="text-[11px] text-zinc-500">เต็มใหม่:</span>
                         <input 
