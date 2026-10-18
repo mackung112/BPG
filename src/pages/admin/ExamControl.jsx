@@ -22,7 +22,10 @@ import {
   Timer,
   Hourglass,
   PlusCircle,
-  RotateCcw
+  RotateCcw,
+  MessageSquare,
+  CheckCircle,
+  Send
 } from 'lucide-react';
 import QuestionPicker from './QuestionPicker';
 import { useExamControl } from '../../hooks/admin/useExamControl';
@@ -39,6 +42,9 @@ export default function ExamControl() {
   } = useExamControl();
 
   const [rejoinModeModalOpen, setRejoinModeModalOpen] = useState(false);
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcasting, setBroadcasting] = useState(false);
 
   // Live Timer & Quick Time Edit State
   const [activeTimeRemaining, setActiveTimeRemaining] = useState(null);
@@ -778,6 +784,14 @@ export default function ExamControl() {
                       <Play className="w-4 h-4" /> เริ่มสอบทันที
                     </button>
                   )}
+                  <button 
+                    onClick={() => setIsBroadcastModalOpen(true)}
+                    className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                    title="ส่งข้อความประกาศด่วนเด้งบนหน้าจอนักเรียนทุกคน"
+                  >
+                    <MessageSquare className="w-4 h-4" /> ประกาศด่วน
+                  </button>
+
                   {activeSession.status === 'active' && (
                     <button 
                       onClick={() => setIsEndModalOpen(true)} 
@@ -788,6 +802,27 @@ export default function ExamControl() {
                   )}
                   {activeSession.status === 'completed' && (
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          try {
+                            const nextState = !activeSession.solutions_released;
+                            await examAdminService.toggleSolutionsRelease(activeSession.id, nextState);
+                            setActiveSession(prev => ({ ...prev, solutions_released: nextState }));
+                            showToast('success', nextState ? 'เปิดเฉลยให้นักเรียนดูแล้ว' : 'ปิดการแสดงเฉลยแล้ว');
+                          } catch (err) {
+                            showToast('error', err.message);
+                          }
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                          activeSession.solutions_released
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                            : 'bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-zinc-200'
+                        }`}
+                        title="เปิดหรือปิดการแสดงเฉลยคำตอบในหน้าผลสอบของนักเรียน"
+                      >
+                        <CheckCircle className="w-4 h-4" /> {activeSession.solutions_released ? 'เปิดเฉลยแล้ว' : 'เปิดเฉลย'}
+                      </button>
+
                       <div className="flex items-center gap-1.5 bg-zinc-100 text-zinc-700 border border-zinc-300 px-3 py-2 rounded-xl text-xs font-bold">
                         <Lock className="w-3.5 h-3.5 text-zinc-600" /> ปิดสอบแล้ว
                       </div>
@@ -918,39 +953,85 @@ export default function ExamControl() {
                           </button>
                         </div>
                         
-                        <div className="flex justify-between items-center pt-2 border-t border-zinc-100">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                            p.status === 'waiting' ? 'bg-amber-100 text-amber-700' :
-                            p.status === 'testing' ? 'bg-indigo-100 text-indigo-700' :
-                            p.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                            'bg-rose-100 text-rose-700'
-                          }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${
-                              p.status === 'testing' ? 'bg-indigo-500 animate-pulse' : 'bg-current'
-                            }`} />
-                            {p.status.toUpperCase()}
-                          </span>
-
-                          {p.status === 'completed' && hasPassed(p.student_id) ? (
-                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg font-semibold">
-                              ✅ ผ่านแล้ว
+                        <div className="flex justify-between items-center pt-2 border-t border-zinc-100 flex-wrap gap-1.5">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                              p.status === 'waiting' ? 'bg-amber-100 text-amber-700' :
+                              p.status === 'testing' ? 'bg-indigo-100 text-indigo-700' :
+                              p.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                              'bg-rose-100 text-rose-700'
+                            }`}>
+                              <div className={`w-1.5 h-1.5 rounded-full ${
+                                p.status === 'testing' ? 'bg-indigo-500 animate-pulse' : 'bg-current'
+                              }`} />
+                              {p.status.toUpperCase()}
                             </span>
-                          ) : isFlagged ? (
-                            <div className="flex gap-1">
+
+                            {(Number(p.strike_count || 0) > 0 || Number(p.warnings_count || 0) > 0) && (
+                              <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded-md border border-rose-200">
+                                ⚡ {p.strike_count || p.warnings_count} Strikes
+                              </span>
+                            )}
+
+                            {Number(p.extra_time_minutes || 0) > 0 && (
+                              <span className="text-[10px] bg-cyan-100 text-cyan-800 font-bold px-1.5 py-0.5 rounded-md border border-cyan-200">
+                                +{p.extra_time_minutes}m
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            {p.status === 'testing' && (
                               <button
-                                onClick={() => handleAllowRejoinWithMode(p.id, 'continue')}
-                                className="text-[10px] bg-amber-600 text-white px-1.5 py-0.5 rounded-lg hover:bg-amber-700 font-semibold cursor-pointer shadow-xs"
+                                onClick={async () => {
+                                  try {
+                                    await examAdminService.addExtraTimeToStudent(p.id, 5);
+                                    showToast('success', `เพิ่มเวลาให้ ${p.students?.first_name || p.student_id} +5 นาทีแล้ว`);
+                                    fetchParticipants(activeSession.id);
+                                  } catch (err) {
+                                    showToast('error', err.message);
+                                  }
+                                }}
+                                className="text-[10px] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-1.5 py-0.5 rounded-md font-bold cursor-pointer transition-colors"
+                                title="เพิ่มเวลาเฉพาะคนนี้ +5 นาที"
                               >
-                                แก้ข้อสอบเดิม
+                                +5m
                               </button>
-                              <button
-                                onClick={() => handleAllowRejoinWithMode(p.id, 'restart')}
-                                className="text-[10px] bg-rose-600 text-white px-1.5 py-0.5 rounded-lg hover:bg-rose-700 font-semibold cursor-pointer shadow-xs"
-                              >
-                                เริ่มใหม่
-                              </button>
-                            </div>
-                          ) : null}
+                            )}
+
+                            {p.status === 'completed' && hasPassed(p.student_id) ? (
+                              <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg font-semibold">
+                                ✅ ผ่านแล้ว
+                              </span>
+                            ) : isFlagged ? (
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => handleAllowRejoinWithMode(p.id, 'continue')}
+                                  className="text-[10px] bg-amber-600 text-white px-1.5 py-0.5 rounded-lg hover:bg-amber-700 font-semibold cursor-pointer shadow-xs"
+                                  title="ปลดล็อกให้สอบต่อจากข้อเดิม"
+                                >
+                                  ปลดล็อก
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if (confirm(`ต้องการสั่งตรวจและยุติการสอบของ ${p.students?.first_name || p.student_id} ทันทีหรือไม่?`)) {
+                                      try {
+                                        await examAdminService.resolveSuspension(activeSession.id, p.student_id, 'force_submit');
+                                        showToast('success', `สั่งยุติการสอบของ ${p.student_id} เรียบร้อยแล้ว`);
+                                        fetchParticipants(activeSession.id);
+                                      } catch (err) {
+                                        showToast('error', err.message);
+                                      }
+                                    }
+                                  }}
+                                  className="text-[10px] bg-zinc-800 text-white px-1.5 py-0.5 rounded-lg hover:bg-black font-semibold cursor-pointer shadow-xs"
+                                  title="ตรวจและปิดการสอบทันที (Force Submit)"
+                                >
+                                  สั่งส่ง
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
                     );
@@ -1303,7 +1384,82 @@ export default function ExamControl() {
         </div>
       )}
 
-      {/* Modals */}
+      {/* 📢 Broadcast Announcement Modal */}
+      {isBroadcastModalOpen && (
+        <div className="fixed inset-0 z-50 bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-zinc-100 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-zinc-900">ประกาศด่วนถึงนักเรียนทุกคน</h3>
+                  <p className="text-xs text-zinc-500">ข้อความจะเด้ง Pop-up ขึ้นหน้าจอนักเรียนทุกคนทันที</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsBroadcastModalOpen(false)}
+                className="p-1.5 text-zinc-400 hover:text-zinc-700 rounded-lg cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!broadcastMessage.trim()) return;
+              setBroadcasting(true);
+              try {
+                await examAdminService.broadcastAnnouncement(
+                  activeSession.id,
+                  broadcastMessage.trim(),
+                  user?.user_metadata?.first_name || 'ครูผู้คุมสอบ'
+                );
+                showToast('success', 'ส่งประกาศด่วนถึงนักเรียนทุกคนแล้ว!');
+                setBroadcastMessage('');
+                setIsBroadcastModalOpen(false);
+              } catch (err) {
+                showToast('error', 'ส่งประกาศไม่สำเร็จ: ' + err.message);
+              } finally {
+                setBroadcasting(false);
+              }
+            }} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-zinc-700 mb-1.5">
+                  ข้อความประกาศ
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={broadcastMessage}
+                  onChange={e => setBroadcastMessage(e.target.value)}
+                  placeholder="เช่น เหลือเวลาสอบอีก 10 นาที หรือ ข้อ 5 มีการแก้ไขโจทย์..."
+                  className="w-full p-3.5 text-sm border border-zinc-200 rounded-2xl focus:border-indigo-500 outline-none resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button 
+                  type="button" 
+                  onClick={() => setIsBroadcastModalOpen(false)} 
+                  className="flex-1 py-3 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-600 hover:bg-zinc-50 cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={broadcasting || !broadcastMessage.trim()}
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{broadcasting ? 'กำลังส่ง...' : 'ส่งประกาศทันที'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       {isPickerOpen && (
         <QuestionPicker 
           banks={banks} 

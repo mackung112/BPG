@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase.js';
 
 export const examAdminService = {
   // --- Exam Sessions ---
@@ -64,7 +64,7 @@ export const examAdminService = {
   async fetchExamParticipantsForResults(sessionId) {
     const { data, error } = await supabase
       .from('exam_participants')
-      .select('id, student_id, status, allow_rejoin, retake_requested, retake_requested_at')
+      .select('id, student_id, status, allow_rejoin, retake_requested, retake_requested_at, strike_count, extra_time_minutes')
       .eq('session_id', sessionId);
     if (error) throw error;
     return data;
@@ -103,6 +103,137 @@ export const examAdminService = {
       .delete()
       .eq('id', participantId);
     if (error) throw error;
+  },
+
+  // --- Realtime Operations (Broadcast, Extra Time & Suspension Resolution) ---
+  async broadcastAnnouncement(sessionId, message, teacherName = 'ครูผู้คุมสอบ') {
+    const channel = supabase.channel(`room:exam_${sessionId}`);
+    const payload = {
+      message,
+      teacherName,
+      timestamp: new Date().toISOString()
+    };
+    await channel.send({
+      type: 'broadcast',
+      event: 'broadcast_announcement',
+      payload
+    });
+    return payload;
+  },
+
+  async addExtraTimeToStudent(participantId, additionalMinutes = 5) {
+    // Fetch current extra time
+    const { data: pData, error: fetchErr } = await supabase
+      .from('exam_participants')
+      .select('extra_time_minutes, student_id, session_id')
+      .eq('id', participantId)
+      .maybeSingle();
+
+    if (fetchErr) throw fetchErr;
+
+    const currentExtra = Number(pData?.extra_time_minutes || 0);
+    const newTotal = currentExtra + Number(additionalMinutes);
+
+    const { error: updateErr } = await supabase
+      .from('exam_participants')
+      .update({ extra_time_minutes: newTotal })
+      .eq('id', participantId);
+
+    if (updateErr) throw updateErr;
+
+    // Send realtime notification
+    if (pData?.session_id) {
+      const channel = supabase.channel(`room:exam_${pData.session_id}`);
+      await channel.send({
+        type: 'broadcast',
+        event: 'time_extended',
+        payload: {
+          studentId: pData.student_id,
+          additionalMinutes,
+          newTotal
+        }
+      });
+    }
+
+    return { success: true, newTotal };
+  },
+
+  async resolveSuspension(sessionId, studentId, action, reason = null) {
+    if (action === 'resume') {
+      const { error } = await supabase
+        .from('exam_participants')
+        .update({
+          status: 'testing',
+          allow_rejoin: true,
+          strike_count: 0,
+          warnings_count: 0
+        })
+        .eq('session_id', sessionId)
+        .eq('student_id', studentId);
+
+      if (error) throw error;
+
+      // Realtime notification to student
+      const channel = supabase.channel(`room:exam_${sessionId}`);
+      await channel.send({
+        type: 'broadcast',
+        event: 'suspension_resolved',
+        payload: {
+          studentId,
+          action: 'resume'
+        }
+      });
+
+      return { success: true, action: 'resume' };
+    }
+
+    if (action === 'force_submit') {
+      // Call RPC to grade existing draft answers as suspended
+      const { data, error } = await supabase.rpc('submit_exam_result', {
+        p_session_id: sessionId,
+        p_student_id: studentId,
+        p_answers: {},
+        p_time_spent: 0,
+        p_is_suspended: true,
+        p_note: reason || 'ครูผู้คุมสอบสั่งยุติการสอบทันที (Force Submit)'
+      });
+
+      if (error) throw error;
+
+      const channel = supabase.channel(`room:exam_${sessionId}`);
+      await channel.send({
+        type: 'broadcast',
+        event: 'suspension_resolved',
+        payload: {
+          studentId,
+          action: 'force_submit'
+        }
+      });
+
+      return { success: true, action: 'force_submit', data };
+    }
+
+    throw new Error(`Unknown resolution action: ${action}`);
+  },
+
+  async toggleSolutionsRelease(sessionId, released = true) {
+    const { data, error } = await supabase
+      .from('exam_sessions')
+      .update({ solutions_released: released })
+      .eq('id', sessionId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const channel = supabase.channel(`room:exam_${sessionId}`);
+    await channel.send({
+      type: 'broadcast',
+      event: 'solutions_released',
+      payload: { released }
+    });
+
+    return data;
   },
 
   // --- Results ---

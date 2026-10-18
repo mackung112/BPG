@@ -1,39 +1,80 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-export function useExamTimer(initialTimeLeft, onSubmit, isActive = true) {
-  const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
-  const lastTickTimeRef = useRef(Date.now());
+/**
+ * Calculates remaining seconds based on server start time and duration.
+ */
+export function calculateRemainingSeconds(startedAt, durationMinutes, extraTimeMinutes = 0, serverNow = Date.now()) {
+  if (!startedAt || durationMinutes === undefined || durationMinutes === null) return null;
+  const startMs = new Date(startedAt).getTime();
+  if (isNaN(startMs)) return null;
+
+  const totalDurationMs = (Number(durationMinutes) + Number(extraTimeMinutes || 0)) * 60 * 1000;
+  const endMs = startMs + totalDurationMs;
+  const remainingMs = endMs - serverNow;
+  return Math.max(0, Math.floor(remainingMs / 1000));
+}
+
+/**
+ * Hook for managing the exam timer.
+ * Can be initialized with a simple number (initialTimeLeft) or server config { startedAt, durationMinutes, extraTimeMinutes }.
+ */
+export function useExamTimer(configOrInitialSeconds, onSubmit, isActive = true) {
+  const isServerMode = typeof configOrInitialSeconds === 'object' && configOrInitialSeconds !== null;
+  
+  const startedAt = isServerMode ? configOrInitialSeconds.startedAt : null;
+  const durationMinutes = isServerMode ? configOrInitialSeconds.durationMinutes : null;
+  const extraTimeMinutes = isServerMode ? (configOrInitialSeconds.extraTimeMinutes || 0) : 0;
+
+  const getInitialSeconds = useCallback(() => {
+    if (isServerMode) {
+      return calculateRemainingSeconds(startedAt, durationMinutes, extraTimeMinutes);
+    }
+    return typeof configOrInitialSeconds === 'number' ? configOrInitialSeconds : null;
+  }, [isServerMode, startedAt, durationMinutes, extraTimeMinutes, configOrInitialSeconds]);
+
+  const [timeLeft, setTimeLeft] = useState(getInitialSeconds);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
-    setTimeLeft(initialTimeLeft);
-  }, [initialTimeLeft]);
+    setTimeLeft(getInitialSeconds());
+  }, [getInitialSeconds]);
 
   useEffect(() => {
     if (!isActive) return;
-    if (timeLeft === null || timeLeft <= 0) {
-      if (timeLeft === 0 && isActive) {
-        onSubmit(true); // Auto-submit when time is up
+
+    const tick = () => {
+      if (isServerMode && startedAt && durationMinutes) {
+        const remaining = calculateRemainingSeconds(startedAt, durationMinutes, extraTimeMinutes);
+        setTimeLeft(remaining);
+        if (remaining !== null && remaining <= 0 && !submittedRef.current) {
+          submittedRef.current = true;
+          onSubmit?.(true);
+        }
+      } else {
+        setTimeLeft((prev) => {
+          if (prev === null) return null;
+          if (prev <= 1) {
+            if (!submittedRef.current) {
+              submittedRef.current = true;
+              onSubmit?.(true);
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
       }
-      return;
-    }
+    };
 
-    lastTickTimeRef.current = Date.now();
-    const timer = setInterval(() => {
-      const now = Date.now();
-      const drift = Math.floor((now - lastTickTimeRef.current) / 1000);
-      lastTickTimeRef.current = now;
-      setTimeLeft((prev) => Math.max(0, prev - Math.max(1, drift)));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft, onSubmit, isActive]);
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [isActive, isServerMode, startedAt, durationMinutes, extraTimeMinutes, onSubmit]);
 
   const addTime = (seconds) => {
-    setTimeLeft((prev) => prev + seconds);
+    setTimeLeft((prev) => (prev !== null ? prev + seconds : seconds));
   };
 
   const deductTime = (seconds) => {
-    setTimeLeft((prev) => Math.max(0, (prev || 0) - seconds));
+    setTimeLeft((prev) => (prev !== null ? Math.max(0, prev - seconds) : 0));
   };
 
   return { timeLeft, setTimeLeft, addTime, deductTime };
