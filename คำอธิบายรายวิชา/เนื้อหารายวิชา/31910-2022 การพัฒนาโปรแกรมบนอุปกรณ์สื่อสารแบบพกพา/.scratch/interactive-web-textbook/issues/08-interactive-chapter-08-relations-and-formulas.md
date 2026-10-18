@@ -1,0 +1,18 @@
+# 08: Interactive Web Chapter 08 - Relational Ref & Formula Calculations
+
+**What to build:** สร้างหน้าเว็บ บทที่ 08 (ระบบสั่งซื้อและสูตรคำนวณเงิน) สถาปัตยกรรม Red Broadcast เทียบเคียง 90KB พร้อม Interactive Order Line-Item Simulator กดเพิ่มรายการแล้วยอดรวมคำนวณอัตโนมัติ, ปุ่มคัดลอกสูตร SUM/SELECT/Ref, Rubric Calculator และ Checklist บันทึกสถานะ
+
+**Blocked by:** 07
+
+**Status:** ready-for-agent
+
+## Acceptance Criteria
+- [x] สถาปัตยกรรม Red Broadcast (Top Bar 56px, Sidebar 240px, Pill Chips, Lecture Theater Stage)
+- [x] ความลึกเนื้อหาเทียบเคียง 80-100 KB ครบถ้วนทั้งทฤษฎี เวิร์กช็อป กรณีศึกษา คำถามทบทวน และรูบริก
+- [x] Reading Scroll Progress Bar สีแดงที่ขอบบนสุดของหน้าต่าง
+- [x] Tri-Archetype Interactive Switcher (Fresh Brew, Happy Paws, Smart Borrow)
+- [x] Interactive Mobile Viewport Simulator สอดคล้องกับเนื้อหาเฉพาะบท
+- [x] Interactive Self-Checklist พร้อม LocalStorage และ % บาร์ความคืบหน้า
+- [x] Interactive Rubric Calculator คลิกให้คะแนนแล้วคำนวณผลรวม 10 คะแนนอัตโนมัติ
+- [x] ปุ่มคัดลอกโค้ด/สูตรแบบ One-Click พร้อมแอนิเมชันยืนยัน
+- [x] ลิงก์เชื่อมโยงบทเรียน ก่อนหน้า / หน้าหลัก / ถัดไป

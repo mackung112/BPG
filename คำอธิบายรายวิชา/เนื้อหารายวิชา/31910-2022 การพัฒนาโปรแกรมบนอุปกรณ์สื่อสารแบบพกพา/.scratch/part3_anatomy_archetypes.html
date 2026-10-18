@@ -1,0 +1,368 @@
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 4: ปฏิบัติการสร้าง MOBILE FRAME & กายวิภาค 3 โซน -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="mobile-anatomy" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 4</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            ปฏิบัติการสร้าง Mobile Frame และกายวิภาค 3 โซนของหน้าจอมือถือ
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-base">
+            <h3 class="text-lg font-bold text-[#0F0F0F]">4.1 การสร้าง Frame หน้าจอมือถือมาตรฐาน (390 x 844 พิกเซล)</h3>
+            <p>
+              ในอุตสาหกรรมการพัฒนาโมบายล์แอปพลิเคชันยุคปัจจุบัน ขนาดหน้าจอที่นิยมใช้เป็นขนาดตั้งต้นมาตรฐาน (Base Viewport Dimension) มากที่สุดคือ <strong>390 x 844 พิกเซล</strong> ซึ่งเทียบเท่ากับหน้าจอ iPhone 13, 14 และ 15 (และใกล้เคียงกับมาตรฐาน Android Large ทั่วไป) ขนาดนี้มีอัตราส่วนสายตา (Aspect Ratio ~19.5:9) ที่เหมาะสมที่สุดในการจัดสรรพื้นที่หน้าจอ
+            </p>
+
+            <div class="flex items-center gap-3 bg-[#F8F8F8] p-3 rounded-xl border border-[#E5E5E5]">
+              <span class="text-xs text-[#606060]">มิติหน้าจอมาตรฐาน:</span>
+              <code class="px-2.5 py-1 bg-white border border-[#CCCCCC] rounded text-sm font-bold text-[#FF0000] font-mono">W: 390 px  |  H: 844 px</code>
+              <button onclick="copyToClipboard('390x844')" class="ml-auto px-3 py-1 bg-[#0F0F0F] text-white rounded text-xs hover:bg-black transition">คัดลอกขนาด 390x844</button>
+            </div>
+
+            <!-- 4.2 กายวิภาค 3 โซน -->
+            <h3 class="text-lg font-bold text-[#0F0F0F] pt-4">4.2 โครงสร้างกายวิภาค 3 โซนของแอปพลิเคชันมือถือ (The 3 Anatomy Zones)</h3>
+            <p>
+              ไม่ว่าจะเป็นแอปพลิเคชันรูปแบบใด หน้าจอมือถือจะถูกแบ่งโซนการใช้งานออกเป็น 3 ส่วนหลักตามสรีรศาสตร์เสมอ:
+            </p>
+
+            <div class="space-y-4 my-4">
+              <!-- โซน 1 -->
+              <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white flex items-start gap-3">
+                <div class="w-10 h-10 rounded-lg bg-zinc-100 flex flex-col items-center justify-center font-bold text-xs text-[#FF0000] shrink-0 border border-zinc-200">
+                  <span>TOP</span>
+                  <span class="text-[9px] text-[#606060]">ZONE</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-bold text-sm text-[#0F0F0F]">โซนที่ 1: Top Navigation / Header Area</h4>
+                    <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-100 text-[#606060]">ความสูงคงที่: 56 - 64 px</span>
+                  </div>
+                  <p class="text-xs text-[#606060] mt-1 leading-relaxed">
+                    วางไว้บนสุดของหน้าจอ ประกอบด้วยปุ่มย้อนกลับ <code>[←]</code> หรือปุ่มเมนูแฮมเบอร์เกอร์ <code>[≡]</code>, ป้ายชื่อหน้าจอปัจจุบัน, และไอคอนทางลัดเร่งด่วน เช่น ปุ่มค้นหา หรือกระดิ่งแจ้งเตือน
+                  </p>
+                </div>
+              </div>
+
+              <!-- โซน 2 -->
+              <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white flex items-start gap-3">
+                <div class="w-10 h-10 rounded-lg bg-zinc-100 flex flex-col items-center justify-center font-bold text-xs text-[#065FD4] shrink-0 border border-zinc-200">
+                  <span>MID</span>
+                  <span class="text-[9px] text-[#606060]">ZONE</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-bold text-sm text-[#0F0F0F]">โซนที่ 2: Main Scrollable Content Area</h4>
+                    <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-100 text-[#606060]">ความสูงยืดหยุ่น: 700+ px</span>
+                  </div>
+                  <p class="text-xs text-[#606060] mt-1 leading-relaxed">
+                    เป็นพื้นที่เลื่อนขึ้นลงได้ (Scroll View) รวบรวมองค์ประกอบเนื้อหาทั้งหมด เช่น ชิปเลือกหมวดหมู่, การ์ดแสดงรายการสินค้า/บริการ, รายละเอียดข้อกำหนด, และฟอร์มกรอกข้อมูล
+                  </p>
+                </div>
+              </div>
+
+              <!-- โซน 3 -->
+              <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white flex items-start gap-3">
+                <div class="w-10 h-10 rounded-lg bg-zinc-100 flex flex-col items-center justify-center font-bold text-xs text-[#2BA640] shrink-0 border border-zinc-200">
+                  <span>BTM</span>
+                  <span class="text-[9px] text-[#606060]">ZONE</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-bold text-sm text-[#0F0F0F]">โซนที่ 3: Bottom Navigation / Sticky Action Bar</h4>
+                    <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-100 text-[#606060]">ความสูงคงที่: 64 - 80 px</span>
+                  </div>
+                  <p class="text-xs text-[#606060] mt-1 leading-relaxed">
+                    อยู่ในตำแหน่ง <strong>Thumb Zone</strong> ที่นิ้วโป้งของผู้ใช้กดได้ง่ายที่สุดโดยไม่ต้องเอื้อมมือ นิยมวางแถบเมนูหลัก (Bottom Tab Bar 3-4 ปุ่ม) หรือปุ่มกดสำคัญสูงสุดของหน้านั้น เช่น <strong>"เพิ่มลงตะกร้า"</strong> หรือ <strong>"ยืนยันสั่งซื้อ"</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4.3 ทฤษฎี Thumb Zone -->
+            <h3 class="text-lg font-bold text-[#0F0F0F] pt-4">4.3 ทฤษฎีพื้นที่สัมผัสของนิ้วโป้ง (The Mobile Thumb Zone Theory)</h3>
+            <p>
+              งานวิจัยด้านการออกแบบพฤติกรรมผู้ใช้สมาร์ตโฟนของ Steven Hoober ระบุว่า ผู้ใช้งานกว่า <strong>75% ควบคุมโทรศัพท์มือถือด้วยนิ้วโป้งเพียงนิ้วเดียว</strong> (One-handed thumb operation) ดังนั้นการจัดวางตำแหน่งปุ่มจึงส่งผลต่ออัตราความสำเร็จของแอปโดยตรง:
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4 text-xs">
+              <div class="p-3 bg-green-50 border border-green-200 rounded-xl">
+                <div class="font-bold text-[#2BA640] mb-1">🟢 Natural Zone (กดสบายสุด)</div>
+                <p class="text-zinc-700 leading-relaxed">พื้นที่ครึ่งล่างของหน้าจอ นิ้วโป้งกวาดถึงได้เป็นธรรมชาติ เหมาะอย่างยิ่งสำหรับปุ่ม Call-to-Action (CTA), ปุ่มกดซื้อ, และเมนูนำทางหลัก</p>
+              </div>
+              <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <div class="font-bold text-amber-700 mb-1">🟡 Stretch Zone (ต้องเอื้อมนิ้ว)</div>
+                <p class="text-zinc-700 leading-relaxed">พื้นที่กึ่งกลางจอ นิ้วโป้งเอื้อมถึงแต่ต้องขยับฝ่ามือเล็กน้อย เหมาะสำหรับเนื้อหาอ่าน หรือการ์ดรายการสินค้าที่ผู้ใช้เลื่อนดู</p>
+              </div>
+              <div class="p-3 bg-red-50 border border-red-200 rounded-xl">
+                <div class="font-bold text-[#FF0000] mb-1">🔴 Hard to Reach Zone (เอื้อมยาก)</div>
+                <p class="text-zinc-700 leading-relaxed">พื้นที่มุมบนซ้ายและมุมบนขวา นิ้วโป้งเอื้อมไม่ถึงเว้นแต่จะใช้สองมือ เหมาะสำหรับปุ่มย้อนกลับ <code>[←]</code> หรือปุ่มลบข้อมูล เพื่อป้องกันการกดพลาดโดยไม่ได้ตั้งใจ</p>
+              </div>
+            </div>
+
+            <!-- 4.4 Wireframe UI Kit -->
+            <h3 class="text-lg font-bold text-[#0F0F0F] pt-4">4.4 ชุดสัญลักษณ์มาตรฐานของ Wireframe (Wireframe UI Kit)</h3>
+            <p>เมื่อไม่มีรูปภาพจริงและไม่มีสีสัน เราต้องใช้ภาษาภาพสากลเพื่อสื่อสารกับเพื่อนร่วมทีมและโปรแกรมเมอร์:</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
+              <div class="p-3.5 border border-[#E5E5E5] rounded-xl bg-white flex items-center gap-3">
+                <div class="w-14 h-14 rounded-lg wireframe-img-box shrink-0"></div>
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">1. กล่องรูปภาพ (Image Placeholder)</div>
+                  <div class="text-[#606060] mt-0.5">กล่องสี่เหลี่ยมสีเทาอ่อน #F2F2F2 พร้อมเส้นทแยงมุมไขว้เป็นรูปกากบาท แทนพื้นที่ใส่รูปถ่ายสินค้าจริง</div>
+                </div>
+              </div>
+
+              <div class="p-3.5 border border-[#E5E5E5] rounded-xl bg-white flex items-center gap-3">
+                <div class="w-14 h-14 rounded-lg bg-zinc-50 border border-[#E5E5E5] p-2 flex flex-col justify-center gap-1.5 shrink-0">
+                  <div class="h-2 w-full bg-zinc-400 rounded"></div>
+                  <div class="h-1.5 w-3/4 bg-zinc-300 rounded"></div>
+                  <div class="h-1.5 w-1/2 bg-zinc-200 rounded"></div>
+                </div>
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">2. ข้อความจำลอง (Text Skeleton)</div>
+                  <div class="text-[#606060] mt-0.5">แท่งสี่เหลี่ยมแนวนอนสีเทาเข้มแทนชื่อหัวข้อ และเส้นแนวนอนหนา 2-3px แทนคำอธิบายรายละเอียด</div>
+                </div>
+              </div>
+
+              <div class="p-3.5 border border-[#E5E5E5] rounded-xl bg-white flex items-center gap-3">
+                <div class="w-14 h-14 rounded-lg bg-zinc-50 border border-[#E5E5E5] flex items-center justify-center p-2 shrink-0">
+                  <div class="w-full py-1.5 bg-[#0F0F0F] text-white text-[9px] font-bold text-center rounded">ปุ่มกด</div>
+                </div>
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">3. ปุ่มกดหลัก (Primary Button)</div>
+                  <div class="text-[#606060] mt-0.5">ปุ่มพื้นดำทึบ #0F0F0F ตัวหนังสือขาว สูงอย่างน้อย 44-48px ตามมาตรฐานขนาดปลายนิ้วสัมผัส (Minimum Tap Target)</div>
+                </div>
+              </div>
+
+              <div class="p-3.5 border border-[#E5E5E5] rounded-xl bg-white flex items-center gap-3">
+                <div class="w-14 h-14 rounded-lg bg-zinc-50 border border-[#E5E5E5] flex items-center justify-center p-2 shrink-0">
+                  <div class="w-full py-1 px-1.5 bg-white border border-[#CCCCCC] rounded text-[8px] text-zinc-400">ค้นหา...</div>
+                </div>
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">4. ช่องกรอกข้อมูล (Input Field)</div>
+                  <div class="text-[#606060] mt-0.5">กล่องขาวขอบเทากลาง #CCCCCC มีข้อความตัวอย่างจาง ๆ อยู่ข้างใน พร้อมความสูง 40-44px</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 5: เจาะลึก 3 รูปแบบธุรกิจ (TRI-ARCHETYPE COMPARISON) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="archetypes-comparison" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 5 • โมเดลธุรกิจอ้างอิง</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            เจาะลึกโครงสร้าง 3 รูปแบบธุรกิจ (Tri-Archetype Switcher)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            เลือกศึกษารูปแบบโครงสร้างหน้าจอ 4 ขั้นตอนที่ตรงกับโจทย์โปรเจกต์ของกลุ่มตนเอง:
+          </p>
+
+          <!-- ตัวสลับ 3 แท็บ Archetype Switcher -->
+          <div class="flex items-center bg-[#F2F2F2] rounded-xl p-1 border border-[#E5E5E5] mb-6">
+            <button id="tabArch1" onclick="switchArchetype(1)" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-2">
+              <span>☕</span>
+              <span>1. Retail & Ordering (Fresh Brew)</span>
+            </button>
+            <button id="tabArch2" onclick="switchArchetype(2)" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-2">
+              <span>🐾</span>
+              <span>2. Service & Booking (Happy Paws)</span>
+            </button>
+            <button id="tabArch3" onclick="switchArchetype(3)" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-2">
+              <span>📦</span>
+              <span>3. Asset & Operations (Smart Borrow)</span>
+            </button>
+          </div>
+
+          <!-- กล่องเนื้อหา Archetype 1: Fresh Brew -->
+          <div id="archContent1" class="archetype-box block space-y-6">
+            <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-3">
+                <div>
+                  <span class="px-2.5 py-1 rounded bg-red-50 text-[#FF0000] font-bold text-xs uppercase border border-red-200">
+                    RETAIL & ORDERING ARCHETYPE
+                  </span>
+                  <h3 class="text-xl font-bold text-[#0F0F0F] mt-1.5">ร้านกาแฟและชานม Fresh Brew</h3>
+                </div>
+                <div class="text-xs text-[#606060]">เป้าหมาย: สั่งล่วงหน้า รับของใน 1 นาที ไม่ต้องยืนรอคิว</div>
+              </div>
+
+              <p class="text-xs text-[#606060] leading-relaxed">
+                เหมาะสำหรับธุรกิจจำหน่ายสินค้าที่มีแคตตาล็อก เช่น ร้านชานมไข่มุก, ร้านเบเกอรี, ร้านอาหารตามสั่ง, ร้านของชำชุมชน หรือร้านเสื้อผ้าแฟชั่น เน้นการเลือกสินค้า ค้นหา ดูภาพประกอบ ปรับแต่งตัวเลือก (เช่น หวาน 50%, เพิ่มไข่มุก) คำนวณยอดเงิน และออกใบเสร็จ
+              </p>
+
+              <!-- Flow 4 หน้าจอของ Fresh Brew -->
+              <div class="space-y-2">
+                <div class="text-xs font-bold text-[#0F0F0F] uppercase tracking-wider">เส้นทางการทำงาน 4 หน้าจอ (User Flow 4 Screens):</div>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">1. Catalog Screen</div>
+                    <div class="text-[11px] text-[#606060] mt-1">ช่องค้นหา, ชิปหมวดหมู่แนวนอน, ตารางการ์ดสินค้า 2 คอลัมน์พร้อมรูปและราคา</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">2. Detail & Options</div>
+                    <div class="text-[11px] text-[#606060] mt-1">รูปสินค้าใหญ่ 16:9, Radio button เลือกระดับความหวาน, Checkbox เลือกท็อปปิ้ง</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">3. Cart & Checkout</div>
+                    <div class="text-[11px] text-[#606060] mt-1">สรุปรายการพร้อมปุ่ม +/- ปรับจำนวน, สรุปยอดเงินรวม, วิธีการชำระเงิน</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">4. Order Success</div>
+                    <div class="text-[11px] text-[#606060] mt-1">ไอคอนสำเร็จตัวใหญ่, หมายเลขคำสั่งซื้อ #TB-8821, สถานะกำลังชง, ปุ่มกลับหน้าหลัก</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ASCII Diagram ของ Fresh Brew -->
+              <div class="font-mono text-xs overflow-x-auto bg-[#F8F8F8] p-4 rounded-xl border border-[#E5E5E5]">
+<pre class="text-[#0F0F0F]">
+[1. Catalog]                [2. Detail]                 [3. Cart]                   [4. Confirmation]
+┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐
+│ [=] Fresh Brew      [🛒]│  │ [← ย้อนกลับ]            │  │ [←] ตะกร้าสินค้า        │  │                         │
+│ ┌─────────────────────┐ │  │ ┌─────────────────────┐ │  │ รายการสินค้า (2 รายการ)  │  │         ( ✔ )           │
+│ │ 🔍 ค้นหาเครื่องดื่ม... │ │  │ │ ╲               ╱ │ │  │ ┌─────────────────────┐ │  │      สั่งซื้อสำเร็จ!     │
+│ └─────────────────────┘ │  │ │   รูปสินค้าใหญ่     │ │  │ │ [IMG] ชานมไต้หวัน   │ │  │                         │
+│ [ทั้งหมด] [ชา] [กาแฟ]    │  │ └─────────────────────┘ │  │ │  หวาน 50%  x2  ฿110  │ │  │ รหัสคำสั่งซื้อ: #TB-8821│
+│ ┌─────────┐ ┌─────────┐ │  │ ชานมไต้หวันบราวชูการ์   │ │  │ └─────────────────────┘ │  │ ┌─────────────────────┐ │
+│ │ [IMG]   │ │ [IMG]   │ │  │ ฿55.00                │ │  │ ┌─────────────────────┐ │  │ │ สรุปยอด: ฿150.00     │ │
+│ │ ชานม    │ │ ชาเขียว │ │  │ ระดับความหวาน:         │ │  │ │ [IMG] ขนมปังปิ้งเนย │ │  │ │ สแกน QR หน้าร้าน     │ │
+│ │ ฿55     │ │ ฿60     │ │  │ ( ) 100%  (•) 50%  ( )0%│ │  │ └─────────────────────┘ │  │ └─────────────────────┘ │
+│ └─────────┘ └─────────┘ │  │ ┌─────────────────────┐ │  │ ยอดรวม: ฿150.00         │  │ ┌─────────────────────┐ │
+│ [🏠หน้าแรก] [📋ออร์เดอร์] │  │ │ [ + เพิ่มลงตะกร้า ]  │ │  │ ┌─────────────────────┐ │  │ │  [ กลับสู่หน้าหลัก ]  │ │
+│ └─────────────────────┘ │  │ └─────────────────────┘ │  │ │   [ ยืนยันสั่งซื้อ ]  │ │  │ └─────────────────────┘ │
+└─────────────────────────┘  └─────────────────────────┘  └─────────────────────────┘  └─────────────────────────┘</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- กล่องเนื้อหา Archetype 2: Happy Paws -->
+          <div id="archContent2" class="archetype-box hidden space-y-6">
+            <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-3">
+                <div>
+                  <span class="px-2.5 py-1 rounded bg-blue-50 text-[#065FD4] font-bold text-xs uppercase border border-blue-200">
+                    SERVICE & BOOKING ARCHETYPE
+                  </span>
+                  <h3 class="text-xl font-bold text-[#0F0F0F] mt-1.5">คลินิกและกรูมมิ่ง Happy Paws Care</h3>
+                </div>
+                <div class="text-xs text-[#606060]">เป้าหมาย: จองคิวนัดหมายออนไลน์ ไม่ต้องพาสัตว์เลี้ยงมานั่งรอแออัด</div>
+              </div>
+
+              <p class="text-xs text-[#606060] leading-relaxed">
+                เหมาะสำหรับธุรกิจให้บริการและนัดหมายเวลา เช่น คลินิกสัตว์เลี้ยง, ร้านตัดผมเสริมสวย, สปา, อู่ซ่อมรถยนต์, คลินิกทันตกรรม หรือสตูดิโอซ้อมดนตรี เน้นการเลือกประเภทบริการ, ปฏิทินเลือกวันและรอบเวลา (Time Slots) ที่ยังว่างอยู่, แบบฟอร์มข้อมูลลูกค้า และการออกบัตรนัดหมาย
+              </p>
+
+              <!-- Flow 4 หน้าจอของ Happy Paws -->
+              <div class="space-y-2">
+                <div class="text-xs font-bold text-[#0F0F0F] uppercase tracking-wider">เส้นทางการทำงาน 4 หน้าจอ (User Flow 4 Screens):</div>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">1. Service List</div>
+                    <div class="text-[11px] text-[#606060] mt-1">การ์ดบริการเด่น (อาบน้ำ/ตัดขน, ฉีดวัคซีน), ระยะเวลาบริการ (นาที), ราคาเริ่มต้น</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">2. Date & Time Slots</div>
+                    <div class="text-[11px] text-[#606060] mt-1">ปฏิทินแบบ Mini Month View, ปุ่มชิปรอบเวลาแสดงสถานะ [ว่าง] และ [เต็ม]</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">3. Customer Form</div>
+                    <div class="text-[11px] text-[#606060] mt-1">ฟอร์มกรอกชื่อน้องหมา/แมว, สายพันธุ์, เบอร์โทรเจ้าของ, หมายเหตุอาการ</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">4. Booking Pass</div>
+                    <div class="text-[11px] text-[#606060] mt-1">บัตรคิวนัดหมายดิจิทัล #Q-014, วันเวลานัด, ชื่อช่างผู้ดูแล, ปุ่มบันทึกลงปฏิทิน</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ASCII Diagram ของ Happy Paws -->
+              <div class="font-mono text-xs overflow-x-auto bg-[#F8F8F8] p-4 rounded-xl border border-[#E5E5E5]">
+<pre class="text-[#0F0F0F]">
+[1. Service List]           [2. Date & Slots]           [3. Customer Form]          [4. Booking Pass]
+┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐
+│ [=] Happy Paws Care [🔔]│  │ [←] เลือกวันและเวลา     │  │ [←] ข้อมูลผู้รับบริการ  │  │                         │
+│ ┌─────────────────────┐ │  │ บริการ: อาบน้ำตัดขน     │  │ สรุปการจอง: อาบน้ำตัดขน │  │      ( นัดหมายสำเร็จ )   │
+│ │ 📅 คิวว่างวันนี้: 4 คิว│ │  │ ┌─────────────────────┐ │  │ วันที่ 24 ต.ค. เวลา 13:00│  │                         │
+│ └─────────────────────┘ │  │ │ [ < ] ต.ค. 2026 [ > ] │ │  │ ─────────────────────── │  │ บัตรคิวที่: #Q-014     │
+│ ┌─────────────────────┐ │  │ │ จ  อ  พ  พฤ  ศ  ส  อา │ │  │ ชื่อสัตว์เลี้ยง:          │  │ ┌─────────────────────┐ │
+│ │ [IMG] อาบน้ำ-ตัดขน   │ │  │ │    [24] 25 26 27 28 29 │ │  │ [ น้องมอมแมม          ]│  │ │ คลินิก Happy Paws   │ │
+│ │ สุนัข/แมว  ฿350-500 │ │  │ └─────────────────────┘ │  │ เบอร์โทรเจ้าของ:        │  │ │ วันที่: 24 ต.ค. 2026 │ │
+│ └─────────────────────┘ │  │ รอบเวลาที่ว่าง:        │  │ [ 081-234-5678        ]│  │ │ เวลา: 13:00 - 14:30  │ │
+│ ┌─────────────────────┐ │  │ ┌──────┐ ┌──────┐       │  │ ┌─────────────────────┐ │  │ └─────────────────────┘ │
+│ │ [IMG] ฉีดวัคซีนรวม   │ │  │ │ 10:00│ │(11:30)เต็ม   │  │ │   [ ยืนยันการจองคิว ] │ │  │ กรุณามาถึงก่อนเวลา 10 น.│
+│ │ ฿450                │ │  │ └──────┘ └──────┘       │  │ └─────────────────────┘ │  │ ┌─────────────────────┐ │
+│ └─────────────────────┘ │  │ ┌─────────────────────┐ │  │                         │  │ │  [ บันทึกบัตรนัด ]   │ │
+│ [🏠หน้าหลัก] [📅คิวของฉัน]│  │ │ [ ถัดไป: กรอกข้อมูล ] │ │  │                         │  │ └─────────────────────┘ │
+└─────────────────────────┘  └─────────────────────────┘  └─────────────────────────┘  └─────────────────────────┘</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- กล่องเนื้อหา Archetype 3: Smart Borrow -->
+          <div id="archContent3" class="archetype-box hidden space-y-6">
+            <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-3">
+                <div>
+                  <span class="px-2.5 py-1 rounded bg-green-50 text-[#2BA640] font-bold text-xs uppercase border border-green-200">
+                    ASSET & OPERATIONS ARCHETYPE
+                  </span>
+                  <h3 class="text-xl font-bold text-[#0F0F0F] mt-1.5">ระบบยืม-คืนพัสดุครุภัณฑ์ Smart Borrow</h3>
+                </div>
+                <div class="text-xs text-[#606060]">เป้าหมาย: ตรวจสอบสถานะอุปกรณ์ สแกนยืม-คืน และมีลายเซ็นรับผิดชอบ 100%</div>
+              </div>
+
+              <p class="text-xs text-[#606060] leading-relaxed">
+                เหมาะสำหรับการบริหารจัดการภายในองค์กร เช่น ยืม-คืนอุปกรณ์กล้อง/โสตทัศนูปกรณ์แผนกวิชา, เบิกจ่ายเครื่องมือช่างในโรงประลอง, คลังเวชภัณฑ์ห้องพยาบาล หรือห้องสมุด เน้นการระบุรหัสครุภัณฑ์ (Asset ID), ตำแหน่งตู้จัดเก็บ, เงื่อนไขสภาพอุปกรณ์, การกำหนดวันส่งคืน และช่องเซ็นชื่อลายมือชื่อดิจิทัล
+              </p>
+
+              <!-- Flow 4 หน้าจอของ Smart Borrow -->
+              <div class="space-y-2">
+                <div class="text-xs font-bold text-[#0F0F0F] uppercase tracking-wider">เส้นทางการทำงาน 4 หน้าจอ (User Flow 4 Screens):</div>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">1. Asset Catalog</div>
+                    <div class="text-[11px] text-[#606060] mt-1">ปุ่มใหญ่สแกนบาร์โค้ดหาอุปกรณ์, ฟิลเตอร์สถานะ [ทั้งหมด] [ว่าง] [ถูกยืม], รายการครุภัณฑ์</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">2. Specification</div>
+                    <div class="text-[11px] text-[#606060] mt-1">รหัสพัสดุ #CAM-SONY-04, ตำแหน่งตู้เก็บ B2, รายการอุปกรณ์ส่วนควบในเซ็ต</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">3. Borrow Form</div>
+                    <div class="text-[11px] text-[#606060] mt-1">กำหนดวันส่งคืน, วัตถุประสงค์การใช้งาน, กรอบพื้นที่เซ็นลายมือชื่อดิจิทัล (Sign Pad)</div>
+                  </div>
+                  <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                    <div class="font-bold text-[#0F0F0F]">4. Borrow Receipt</div>
+                    <div class="text-[11px] text-[#606060] mt-1">QR Code สำหรับเจ้าหน้าที่สแกนรับของคืน, สรุปใบยืม #BR-2026-092, ปุ่มดาวน์โหลด PDF</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ASCII Diagram ของ Smart Borrow -->
+              <div class="font-mono text-xs overflow-x-auto bg-[#F8F8F8] p-4 rounded-xl border border-[#E5E5E5]">
+<pre class="text-[#0F0F0F]">
+[1. Asset Catalog]          [2. Specification]          [3. Checkout Form]          [4. Return QR Pass]
+┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐
+│ [=] Smart Borrow    [🔍]│  │ [←] รายละเอียดครุภัณฑ์  │  │ [←] แบบฟอร์มทำรายการยืม │  │                         │
+│ ┌─────────────────────┐ │  │ รหัส: #CAM-SONY-04      │  │ รายการที่เลือก: 1 รายการ │  │      ( บันทึกสำเร็จ )   │
+│ │ [📷 สแกนบาร์โค้ดหา] │ │  │ ┌─────────────────────┐ │  │ ┌─────────────────────┐ │  │                         │
+│ └─────────────────────┘ │  │ │ ╲                 ╱ │ │  │ │ [IMG] SONY A7 IV    │ │  │ รหัสใบยืม: #BR-2026-092 │
+│ สถานะ: [ทั้งหมด] [ว่าง] │  │ │    รูปถ่ายอุปกรณ์   │ │  │ └─────────────────────┘ │  │ ┌─────────────────────┐ │
+│ ┌─────────────────────┐ │  │ └─────────────────────┘ │  │ กำหนดส่งคืนภายใน:        │  │ │      [ QR CODE ]      │ │
+│ │ [IMG] กล้อง Sony A7 │ │  │ ตำแหน่งเก็บ: ตู้ B2    │  │ [ 26 ต.ค. 2026 (16:30) ]│  │ │    สำหรับสแกนคืนพัสดุ  │ │
+│ │ สถานะ: [ ว่าง ]     │ │  │ สภาพ: พร้อมใช้งาน ดีมาก│  │ วัตถุประสงค์: ถ่ายงาน วท. │  │ └─────────────────────┘ │
+│ └─────────────────────┘ │  │ อุปกรณ์ควบ: แบต 2, แท่น│  │ ลายมือชื่อผู้ขอยืม (Sign):│  │ ผู้ยืม: นายสมศักดิ์    │
+│ ┌─────────────────────┐ │  │ ┌─────────────────────┐ │  │ ┌─────────────────────┐ │  │ ┌─────────────────────┐ │
+│ │ [IMG] ขาตั้งกล้อง   │ │  │ │ [ ทำรายการยืมชิ้นนี้ ]│ │  │ │ (เซ็นชื่อดิจิทัลที่นี่)│ │  │ │  [ ดาวน์โหลดใบยืม ] │ │
+│ └─────────────────────┘ │  │ └─────────────────────┘ │  │ └─────────────────────┘ │  │ └─────────────────────┘ │
+└─────────────────────────┘  └─────────────────────────┘  └─────────────────────────┘  └─────────────────────────┘</pre>
+              </div>
+            </div>
+          </div>
+        </article>

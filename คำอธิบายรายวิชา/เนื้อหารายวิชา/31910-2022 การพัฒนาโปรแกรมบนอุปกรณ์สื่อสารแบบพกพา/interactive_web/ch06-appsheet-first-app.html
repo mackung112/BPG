@@ -1,0 +1,2999 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 6: การสร้างแอปแรกและดึงข้อมูลขึ้นหน้าจอมือถือด้วย AppSheet | Red Broadcast</title>
+  
+  <!-- Google Fonts: Roboto, Roboto Mono, Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;600&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#FF0000',
+              redHover: '#CC0000',
+              blue: '#065FD4',
+              neutral: '#606060',
+              dark: '#0F0F0F',
+              surface: '#F2F2F2',
+              surfaceHover: '#E5E5E5',
+              border: '#E5E5E5',
+              success: '#2BA640',
+              warning: '#FB8C00'
+            }
+          },
+          fontFamily: {
+            sans: ['Roboto', 'Sarabun', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Roboto', 'Sarabun', sans-serif;
+      color: #0F0F0F;
+      background-color: #FFFFFF;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .elevation-0 { box-shadow: none; }
+    .elevation-1 { box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .elevation-2 { box-shadow: 0 4px 32px rgba(0,0,0,0.1); }
+    .elevation-3 { box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Custom Table Styles */
+    .sheet-table th, .sheet-table td {
+      border: 1px solid #E5E5E5;
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+    .sheet-table th {
+      background-color: #F8F8F8;
+      font-weight: 600;
+      color: #0F0F0F;
+    }
+
+    /* Phone Simulator Frame */
+    .phone-mockup {
+      width: 320px;
+      height: 640px;
+      border: 12px solid #1E1E1E;
+      border-radius: 40px;
+      position: relative;
+      overflow: hidden;
+      background: #FFFFFF;
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.3);
+    }
+    .phone-notch {
+      width: 130px;
+      height: 20px;
+      background: #1E1E1E;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+    }
+
+    /* Copy Button Tooltip */
+    .copy-toast {
+      visibility: hidden;
+      min-width: 140px;
+      background-color: #0F0F0F;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px 14px;
+      position: fixed;
+      z-index: 999;
+      bottom: 30px;
+      right: 30px;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .copy-toast.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .code-box {
+      font-family: 'Roboto Mono', monospace;
+      background-color: #1A1A1A;
+      color: #00E676;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body class="bg-white text-[#0F0F0F] min-h-screen flex flex-col relative">
+
+  <!-- ========================================================================= -->
+  <!-- 1. READING SCROLL PROGRESS BAR (Fixed top, 0-100% Red line) -->
+  <!-- ========================================================================= -->
+  <div id="scrollProgressBar" class="fixed top-0 left-0 h-1 bg-[#FF0000] z-[100] transition-all duration-75 w-0"></div>
+
+  <!-- Toast Notification for Copy Action -->
+  <div id="copyToast" class="copy-toast">📋 คัดลอกข้อมูลเรียบร้อยแล้ว!</div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. STICKY TOP BAR (56px Height, Brand Logo, Search, NO PRINT BUTTON) -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 h-14 bg-white border-b border-[#E5E5E5] px-4 flex items-center justify-between elevation-1">
+    <!-- ฝั่งซ้าย: ปุ่มเมนู + โลโก้แบรนด์ -->
+    <div class="flex items-center gap-4">
+      <button id="toggleSidebarBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] transition text-[#606060]" title="สลับแถบเมนู">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      
+      <a href="index.html" class="flex items-center gap-2 group">
+        <div class="w-8 h-6 bg-[#FF0000] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+          <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="flex items-center">
+          <span class="font-bold text-lg tracking-tight text-[#0F0F0F]">ห้องเรียนครูแม็ค</span>
+          <span class="text-[10px] ml-1.5 font-bold uppercase tracking-wider text-[#FF0000] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">BROADCAST</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- ส่วนกลาง: ช่องค้นหา (Search Bar) -->
+    <div class="hidden sm:flex items-center flex-1 max-w-[560px] mx-6">
+      <div class="flex w-full items-center">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="ค้นหาในบทเรียน (เช่น Key, Label, Card View, Show_If, Live Sync)..." 
+            class="w-full h-10 pl-4 pr-3 bg-white border border-[#E5E5E5] rounded-l-full text-sm text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#065FD4]"
+          />
+        </div>
+        <button 
+          id="searchBtn"
+          onclick="searchTopic()"
+          class="h-10 px-5 bg-[#F8F8F8] border border-l-0 border-[#E5E5E5] rounded-r-full hover:bg-[#F2F2F2] text-[#606060] flex items-center justify-center transition" 
+          title="ค้นหา">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: การแจ้งเตือน และโปรไฟล์ผู้สอน (NO PRINT BUTTON EXPLICITLY) -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Quick Nav Hub -->
+      <a href="index.html" class="hidden md:flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E5E5E5] text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+        <span>🏠 สารบัญบทเรียน</span>
+      </a>
+
+      <!-- Notification Bell -->
+      <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] text-[#606060] transition relative" title="การแจ้งเตือน">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-[#FF0000] rounded-full"></span>
+      </button>
+
+      <!-- Teacher Avatar Profile -->
+      <div class="flex items-center gap-2 pl-1">
+        <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#FF0000]">
+          MK
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN LAYOUT WRAPPER (SIDEBAR + MAIN CONTENT VIEWPORT) -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- 3. COLLAPSIBLE 240px SIDEBAR (With Sections + Course Metadata) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="w-60 bg-white border-r border-[#E5E5E5] shrink-0 hidden lg:flex flex-col justify-between overflow-y-auto transition-all duration-200">
+      <div class="p-3 space-y-1">
+        <div class="text-[11px] font-bold text-[#606060] px-3 py-2 uppercase tracking-wider">สารบัญบทที่ 6</div>
+
+        <a href="#learning-plan" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+          <span class="truncate">เป้าหมาย & ผัง 4 ชั่วโมง</span>
+        </a>
+
+        <a href="#appsheet-overview" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">1. รู้จัก Google AppSheet</span>
+        </a>
+
+        <a href="#connect-sheets" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">2. เชื่อมต่อชีต (2 วิธี)</span>
+        </a>
+
+        <a href="#appsheet-studio" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">3. โครงสร้าง AppSheet Studio</span>
+        </a>
+
+        <a href="#key-label" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">4. เช็กบ็อกซ์ Key & Label</span>
+        </a>
+
+        <a href="#data-types" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">5. ชนิดข้อมูล (Data Types)</span>
+        </a>
+
+        <a href="#view-types" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">6. ออกแบบแคตตาล็อก & Views</span>
+        </a>
+
+        <a href="#card-customization" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">7. ปรับแต่ง Card View เชิงลึก</span>
+        </a>
+
+        <a href="#archetypes-spec" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">8. สเปก 3 รูปแบบธุรกิจ</span>
+        </a>
+
+        <a href="#show-if-expressions" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">9. เทคนิคสูตร Show_If</span>
+        </a>
+
+        <a href="#phone-simulator-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          <span class="truncate">10. Phone Simulator (4 Views)</span>
+        </a>
+
+        <a href="#live-sync-testing" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">11. ติดตั้งมือถือ & Live Sync</span>
+        </a>
+
+        <a href="#team-collaboration" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">12. การแบ่งหน้าที่ในทีม 3 คน</span>
+        </a>
+
+        <a href="#faqs-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">13. FAQs คำถามพบบ่อย</span>
+        </a>
+
+        <a href="#checklist-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-[#2BA640]"></span>
+          <span class="truncate">14. Self-Checklist ตรวจงาน</span>
+        </a>
+
+        <a href="#rubric-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-[#FB8C00]"></span>
+          <span class="truncate">15. เครื่องคำนวณรูบริก (10 คะแนน)</span>
+        </a>
+
+        <div class="border-t border-[#E5E5E5] my-3"></div>
+
+        <!-- Course Meta Info Box -->
+        <div class="px-3 py-2.5 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+          <div class="text-[10px] font-bold text-[#FF0000] tracking-wider uppercase">รหัสวิชา 31910-2022</div>
+          <div class="text-xs font-semibold text-[#0F0F0F] mt-0.5 leading-snug">การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา</div>
+          <div class="text-[11px] text-[#606060] mt-1">สัปดาห์ที่ 6 • 4 ชั่วโมง (240 นาที)</div>
+          <div class="text-[10px] text-zinc-500 mt-1">หลักสูตร ปวส. 2563 | สาขาธุรกิจดิจิทัล</div>
+        </div>
+
+        <!-- Course Navigation Box in Sidebar -->
+        <div class="pt-2">
+          <div class="text-[10px] font-bold text-[#606060] uppercase tracking-wider mb-1.5 px-1">นำทางหลักสูตร</div>
+          <div class="space-y-1">
+            <a href="ch05-google-sheets-database.html" class="flex items-center justify-between text-xs p-2 rounded-lg bg-white border border-[#E5E5E5] hover:border-[#0F0F0F] text-[#0F0F0F] transition">
+              <span>← บทที่ 5 Google Sheets DB</span>
+              <span class="text-[10px] text-zinc-400">สัปดาห์ 5</span>
+            </a>
+            <a href="ch07-appsheet-forms-validation.html" class="flex items-center justify-between text-xs p-2 rounded-lg bg-white border border-[#E5E5E5] hover:border-[#0F0F0F] text-[#0F0F0F] transition">
+              <span>บทที่ 7 ฟอร์ม & Validation →</span>
+              <span class="text-[10px] text-[#FF0000] font-bold">สัปดาห์ 7</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer in Sidebar -->
+      <div class="p-3 border-t border-[#E5E5E5] text-[11px] text-[#606060]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#2BA640]"></span>
+          <span>Red Broadcast v4.5 Active</span>
+        </div>
+        <div class="mt-0.5 text-[10px] text-zinc-400">AppSheet Mobile Engine Guide</div>
+      </div>
+    </aside>
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- MAIN CONTENT VIEWPORT (Scrollable) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <main class="flex-1 overflow-y-auto bg-white flex flex-col">
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 4. STICKY HORIZONTAL PILL CHIP FILTER BAR -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="sticky top-0 z-40 bg-white border-b border-[#E5E5E5] py-2.5 px-4 sm:px-8 shadow-sm">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <button onclick="filterChip('all', this)" class="chip-btn active h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white transition shrink-0">ทั้งหมด</button>
+          <button onclick="filterChip('learning-plan', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ผังการเรียนรู้</button>
+          <button onclick="filterChip('appsheet-overview', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">รู้จัก AppSheet</button>
+          <button onclick="filterChip('connect-sheets', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">เชื่อมต่อชีต (2 วิธี)</button>
+          <button onclick="filterChip('appsheet-studio', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">AppSheet Studio</button>
+          <button onclick="filterChip('key-label', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Key [✓] & Label [✓]</button>
+          <button onclick="filterChip('data-types', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ชนิดข้อมูล Data Types</button>
+          <button onclick="filterChip('view-types', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">มุมมอง UX Views</button>
+          <button onclick="filterChip('card-customization', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ปรับแต่ง Card View</button>
+          <button onclick="filterChip('archetypes-spec', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">3 Archetypes Spec</button>
+          <button onclick="filterChip('show-if-expressions', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">สูตร Show_If</button>
+          <button onclick="filterChip('phone-simulator-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Phone Simulator</button>
+          <button onclick="filterChip('live-sync-testing', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ทดสอบ Live Sync</button>
+          <button onclick="filterChip('team-collaboration', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">การแบ่งทีม 3 คน</button>
+          <button onclick="filterChip('checklist-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Self-Checklist</button>
+          <button onclick="filterChip('rubric-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">เกณฑ์ประเมิน (Rubric)</button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 5. BROADCAST LECTURE THEATER HERO STAGE (Dark BG, Badges) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <section class="max-w-5xl mx-auto w-full px-4 sm:px-8 py-6">
+        
+        <!-- Broadcast Stage Frame -->
+        <div class="w-full bg-[#0F0F0F] text-white rounded-2xl overflow-hidden relative border border-black shadow-lg">
+          <div class="p-6 sm:p-10 flex flex-col justify-between min-h-[320px] sm:min-h-[380px] relative z-10">
+            <!-- Badges แถวบน -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FF0000] text-white">
+                  <span class="w-2 h-2 rounded-full bg-white pulse-live"></span>
+                  LECTURE BROADCAST
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-zinc-300 border border-white/10">
+                  ระยะที่ 2: Database & Core App
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-950/60 text-red-300 border border-red-800/40">
+                  สัปดาห์ที่ 6 / 15
+                </span>
+              </div>
+              <span class="font-mono text-xs text-zinc-400">COURSE ID: 31910-2022</span>
+            </div>
+
+            <!-- ข้อความชื่อบทเรียนขนาดใหญ่ -->
+            <div class="my-6">
+              <div class="text-xs uppercase tracking-widest text-[#FF0000] font-bold mb-2">บทที่ 6 • NO-CODE MOBILE APP ARCHITECTURE & CATALOG VIEWS</div>
+              <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+                การสร้างแอปแรกและดึงข้อมูลขึ้นหน้าจอมือถือด้วย AppSheet
+              </h1>
+              <p class="text-sm sm:text-base text-zinc-300 mt-3 max-w-3xl leading-relaxed">
+                เปลี่ยนพิมพ์เขียว Google Sheets สู่ Native Mobile App บนสมาร์ตโฟนจริงในเวลา 30 วินาที เรียนรู้กลไก <strong>Key [✓] และ Label [✓]</strong> ปรับแต่งประเภทข้อมูลสกุลเงินบาท ฿ และรูปภาพ ออกแบบแคตตาล็อก <strong>Card View & Gallery View</strong> และทดสอบระบบ <strong>Live Sync</strong> แบบสองทางเรียลไทม์
+              </p>
+            </div>
+
+            <!-- แถบสรุปสถานะการเรียนรู้ -->
+            <div class="space-y-2 pt-2 border-t border-zinc-800">
+              <div class="flex flex-wrap justify-between text-xs text-zinc-400 font-mono gap-2">
+                <span>⏱️ ความยาวบทเรียน: 4 ชั่วโมง (240 นาที)</span>
+                <span>📊 ความคืบหน้าหลักสูตร: สัปดาห์ที่ 6 (40% ของภาคเรียน)</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div class="h-full bg-[#FF0000] w-[40%]"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Decorative Gradient Background Behind Stage -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-black via-zinc-900 to-red-950/30 pointer-events-none"></div>
+        </div>
+
+        <!-- Instructor Stack & Social Metadata Bar -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-4 py-3 border-b border-[#E5E5E5]">
+          <!-- ผู้สอน / Channel Profile -->
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-sm ring-2 ring-[#FF0000]">
+              MK
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-sm text-[#0F0F0F]">ครูแม็ค (Mac Teacher)</span>
+                <!-- Verified Badge (#2BA640) -->
+                <svg class="w-4 h-4 text-[#2BA640]" fill="currentColor" viewBox="0 0 24 24" title="ผู้สอนผ่านการรับรอง"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              </div>
+              <div class="text-xs text-[#606060]">
+                ผู้เชี่ยวชาญการพัฒนา No-Code Apps & Cloud Database • ผู้เรียน 1,420 คน
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons (Subscribe + Like/Share) -->
+          <div class="flex items-center gap-2">
+            <button class="h-9 px-5 bg-[#0F0F0F] hover:bg-black text-white text-xs font-medium rounded-full flex items-center gap-1.5 transition shadow-sm">
+              <svg class="w-3.5 h-3.5 fill-current text-[#FF0000]" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span>ติดตามรายวิชา</span>
+            </button>
+
+            <!-- Segmented Action Pair (Like / Share) -->
+            <div class="flex items-center bg-[#F2F2F2] rounded-full p-0.5 border border-[#E5E5E5]">
+              <button id="likeBtn" onclick="toggleLike()" class="flex items-center gap-1.5 h-8 px-3.5 rounded-full hover:bg-white text-xs text-[#0F0F0F] font-medium transition">
+                <svg id="likeIcon" class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                <span id="likeCount">389</span>
+              </button>
+              <div class="w-[1px] h-4 bg-[#E5E5E5]"></div>
+              <button onclick="shareLesson()" class="flex items-center gap-1.5 h-8 px-3.5 rounded-full hover:bg-white text-xs text-[#0F0F0F] font-medium transition" title="แชร์บทเรียน">
+                <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                <span>แชร์</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course Quick Navigation Strip (Top) -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 p-3 bg-[#F8F8F8] border border-[#E5E5E5] rounded-xl text-xs">
+          <a href="ch05-google-sheets-database.html" class="flex items-center gap-1 text-[#606060] hover:text-[#0F0F0F] font-medium transition">
+            <span>← บทก่อนหน้า: บทที่ 5 การวางโครงสร้างฐานข้อมูลร้านค้าด้วย Google Sheets</span>
+          </a>
+          <a href="index.html" class="font-bold text-[#FF0000] hover:underline">
+            🏠 สารบัญบทเรียนทั้งหมด
+          </a>
+          <a href="ch07-appsheet-forms-validation.html" class="flex items-center gap-1 text-[#065FD4] hover:underline font-medium transition">
+            <span>บทถัดไป: บทที่ 7 การสร้างแบบฟอร์มและการตรวจสอบข้อมูลด้วย AppSheet →</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 6. MAIN CONTENT SECTIONS (Deep Academic & Technical Rigor) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="max-w-5xl mx-auto w-full px-4 sm:px-8 py-8 space-y-16">
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 0: OBJECTIVES & 4-HOUR TIMELINE -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="learning-plan" class="space-y-6 pt-2">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              COURSE ROADMAP & COMPETENCY TARGETS
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              จุดประสงค์การเรียนรู้ประจำบท และแผนผังการเรียนรู้สัปดาห์ที่ 6
+            </h2>
+          </div>
+
+          <!-- Objectives Grid (7 ข้อ) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">1</span>
+                <h3 class="text-xs font-bold text-[#0F0F0F] uppercase">สถาปัตยกรรม AppSheet</h3>
+              </div>
+              <p class="text-xs text-[#606060] leading-relaxed">
+                อธิบายสถาปัตยกรรมและหลักการทำงานของ Google AppSheet ในการแปลงข้อมูลบน Google Sheets ให้กลายเป็นโมบายล์แอปพลิเคชันแบบ No-Code ได้อย่างถูกต้อง
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">2</span>
+                <h3 class="text-xs font-bold text-[#0F0F0F] uppercase">เชื่อมต่อฐานข้อมูลชีต</h3>
+              </div>
+              <p class="text-xs text-[#606060] leading-relaxed">
+                เชื่อมต่อไฟล์ Google Sheets (จากบทที่ 5) เข้าสู่ระบบ AppSheet เพื่อสร้างแอปพลิเคชันแรกได้สำเร็จทั้ง 2 วิธีโดยไม่เกิดข้อผิดพลาดด้านสิทธิ์หรือโครงสร้าง
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-[#FF0000] text-white flex items-center justify-center text-xs font-bold">3</span>
+                <h3 class="text-xs font-bold text-[#0F0F0F] uppercase">กำหนด Key [✓] และ Label [✓]</h3>
+              </div>
+              <p class="text-xs text-[#606060] leading-relaxed">
+                ตั้งค่าโครงสร้างคอลัมน์โดยระบุ <strong>Key Column (คีย์หลักประจำแถว)</strong> และ <strong>Label Column (คอลัมน์แสดงผลที่ตามนุษย์มองเห็น)</strong> ได้อย่างแม่นยำ 100%
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">4</span>
+                <h3 class="text-xs font-bold text-[#0F0F0F] uppercase">ปรับแต่ง Data Types & Currency</h3>
+              </div>
+              <p class="text-xs text-[#606060] leading-relaxed">
+                ปรับแต่งชนิดข้อมูล Price สกุลเงินบาท ฿, Image รูปภาพสินค้าจาก Drive, Enum ตัวเลือกหมวดหมู่, และ Number ได้อย่างสอดคล้องกับพฤติกรรมผู้ใช้
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">5</span>
+                <h3 class="text-xs font-bold text-[#0F0F0F] uppercase">ออกแบบ Card & Gallery Views</h3>
+              </div>
+              <p class="text-xs text-[#606060] leading-relaxed">
+                ออกแบบมุมมองแคตตาล็อกสินค้า Card View และ Gallery View พร้อมจัดกลุ่ม Group by หมวดหมู่ และเรียงราคา Sort by ตามโจทย์ 3 Archetypes
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-[#2BA640] text-white flex items-center justify-center text-xs font-bold">6</span>
+                <h3 class="text-xs font-bold text-[#0F0F0F] uppercase">ทดสอบ Live Sync บนมือถือจริง</h3>
+              </div>
+              <p class="text-xs text-[#606060] leading-relaxed">
+                ติดตั้ง AppSheet บนสมาร์ตโฟนจริง (iOS หรือ Android) และสาธิตการซิงก์ข้อมูลไป-กลับแบบเรียลไทม์ (Bi-directional Live Sync) ได้อย่างไร้รอยต่อ
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8] space-y-2 md:col-span-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-[#065FD4] text-white flex items-center justify-center text-xs font-bold">7</span>
+                <h3 class="text-xs font-bold text-[#0F0F0F] uppercase">การทำงานร่วมกันในทีม 3 คน & การแชร์สิทธิ์</h3>
+              </div>
+              <p class="text-xs text-[#606060] leading-relaxed">
+                แบ่งบทบาทหน้าที่ในทีม 3 คน (App Creator, UX Designer, QA Tester) ตรวจสอบความถูกต้องตาม Self-Checklist และแชร์สิทธิ์ Share App Link ส่งตรวจ
+              </p>
+            </div>
+          </div>
+
+          <!-- 4-Hour Visual Flowchart -->
+          <div class="p-5 bg-white rounded-2xl border border-[#E5E5E5] elevation-1 space-y-4">
+            <div class="text-xs font-bold text-[#0F0F0F] uppercase tracking-wider flex items-center justify-between">
+              <span>แผนผังการปฏิบัติการ 4 ชั่วโมง (240 นาที)</span>
+              <span class="text-[#FF0000] font-mono">1 สัปดาห์ = 1 ก้าวสำคัญ</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+              <!-- Hour 1 -->
+              <div class="p-3.5 rounded-xl border border-zinc-200 bg-[#F8F8F8] flex flex-col justify-between space-y-2">
+                <div>
+                  <div class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-[#FF0000] text-white mb-1.5">ชั่วโมงที่ 1</div>
+                  <div class="font-bold text-[#0F0F0F]">กำเนิดแอปแรกด้วย AppSheet</div>
+                  <ul class="mt-2 space-y-1 text-zinc-600 list-disc list-inside">
+                    <li>รู้จัก No-Code Architecture</li>
+                    <li>เชื่อมต่อชีตสู่แอป (2 วิธี)</li>
+                    <li>สำรวจ AppSheet Studio</li>
+                    <li>ทดลอง Mobile Emulator</li>
+                  </ul>
+                </div>
+                <div class="text-[11px] text-zinc-400 font-mono">00:00 - 60:00 น.</div>
+              </div>
+
+              <!-- Hour 2 -->
+              <div class="p-3.5 rounded-xl border border-zinc-200 bg-[#F8F8F8] flex flex-col justify-between space-y-2">
+                <div>
+                  <div class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-[#0F0F0F] text-white mb-1.5">ชั่วโมงที่ 2</div>
+                  <div class="font-bold text-[#0F0F0F]">ตั้งค่าโครงสร้างข้อมูล</div>
+                  <ul class="mt-2 space-y-1 text-zinc-600 list-disc list-inside">
+                    <li>เข้าเมนู Data -> Columns</li>
+                    <li>2 เช็กบ็อกซ์ Key & Label</li>
+                    <li>เปลี่ยน Currency เป็น บาท ฿</li>
+                    <li>ตั้งค่า Image & Enum List</li>
+                  </ul>
+                </div>
+                <div class="text-[11px] text-zinc-400 font-mono">60:00 - 120:00 น.</div>
+              </div>
+
+              <!-- Hour 3 -->
+              <div class="p-3.5 rounded-xl border border-zinc-200 bg-[#F8F8F8] flex flex-col justify-between space-y-2">
+                <div>
+                  <div class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-[#0F0F0F] text-white mb-1.5">ชั่วโมงที่ 3</div>
+                  <div class="font-bold text-[#0F0F0F]">ออกแบบแคตตาล็อก UX</div>
+                  <ul class="mt-2 space-y-1 text-zinc-600 list-disc list-inside">
+                    <li>สร้าง Card & Gallery View</li>
+                    <li>Layout Large vs List</li>
+                    <li>Group by หมวดหมู่สินค้า</li>
+                    <li>Sort by เรียงตามราคา</li>
+                  </ul>
+                </div>
+                <div class="text-[11px] text-zinc-400 font-mono">120:00 - 180:00 น.</div>
+              </div>
+
+              <!-- Hour 4 -->
+              <div class="p-3.5 rounded-xl border border-zinc-200 bg-red-50/50 border-red-200 flex flex-col justify-between space-y-2">
+                <div>
+                  <div class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-[#2BA640] text-white mb-1.5">ชั่วโมงที่ 4</div>
+                  <div class="font-bold text-[#0F0F0F]">ทดสอบบนมือถือ & ส่งงาน</div>
+                  <ul class="mt-2 space-y-1 text-zinc-600 list-disc list-inside">
+                    <li>ลง AppSheet บนมือถือจริง</li>
+                    <li>ทดสอบปาฏิหาริย์ Live Sync</li>
+                    <li>ตรวจ Self-Checklist 6 ข้อ</li>
+                    <li>แชร์ Browser Link ส่งงาน</li>
+                  </ul>
+                </div>
+                <div class="text-[11px] text-red-600 font-mono font-bold">180:00 - 240:00 น.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 1: KNOW GOOGLE APPSHEET -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="appsheet-overview" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 1: ARCHITECTURE & CLOUD ENGINE
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              1. รู้จัก Google AppSheet: เปลี่ยนสเปรดชีตให้เป็นแอปมือถือใน 30 วินาที
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            ในบทที่ 5 เราได้เนรมิตพิมพ์เขียวฐานข้อมูลบน Google Sheets ไว้ตามกฎเหล็ก 5 ประการอย่างสมบูรณ์แบบ ทั้งการกำหนด Primary Key การตั้งค่า Data Validation และการแปลงลิงก์รูปภาพ ในบทเรียนนี้คือช่วงเวลาที่น่าตื่นเต้นที่สุดของการเรียนรู้: <strong>"การแปลงข้อมูลตารางสเปรดชีตเหล่านั้น ให้กลายเป็นแอปพลิเคชันมือถือที่ใช้งานได้จริงบนสมาร์ตโฟน!"</strong>
+          </p>
+
+          <!-- Core AppSheet Architecture Concept -->
+          <div class="p-6 bg-[#F8F8F8] rounded-2xl border border-[#E5E5E5] space-y-4">
+            <h3 class="text-sm font-bold text-[#0F0F0F] uppercase tracking-wide flex items-center gap-2">
+              <svg class="w-5 h-5 text-[#FF0000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+              <span>1.1 Google AppSheet คืออะไร? และทำงานอย่างไร?</span>
+            </h3>
+            
+            <p class="text-xs sm:text-sm text-zinc-700 leading-relaxed">
+              <strong>Google AppSheet</strong> เป็นแพลตฟอร์มการพัฒนาซอฟต์แวร์แบบ <strong>No-Code (ไม่ต้องเขียนโค้ดภาษาโปรแกรมแม้แต่บรรทัดเดียว)</strong> ที่ถูกเข้าซื้อและพัฒนาต่อโดย Google Cloud มีจุดเด่นเชิงวิศวกรรมที่ทรงพลัง 4 ประการ:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+              <div class="p-4 bg-white rounded-xl border border-zinc-200 space-y-1.5">
+                <div class="font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                  <span class="text-base">☁️</span>
+                  <span>ทำงานร่วมกับ Google Workspace 100%</span>
+                </div>
+                <p class="text-zinc-600 leading-relaxed">
+                  เชื่อมต่อตรงกับ Google Sheets เพื่ออ่าน-เขียนฐานข้อมูล อ่านรูปภาพจาก Google Drive ส่งอีเมลแจ้งเตือนผ่าน Gmail และสร้างเอกสารผ่าน Google Docs โดยไม่ต้องเขียน API
+                </p>
+              </div>
+
+              <div class="p-4 bg-white rounded-xl border border-zinc-200 space-y-1.5">
+                <div class="font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                  <span class="text-base">📱</span>
+                  <span>Cross-Platform อัตโนมัติในคลิกเดียว</span>
+                </div>
+                <p class="text-zinc-600 leading-relaxed">
+                  สร้างครั้งเดียว ใช้งานได้ทันทีบน iPhone (iOS), Android สมาร์ตโฟน, แท็บเล็ต iPad, และหน้าจอคอมพิวเตอร์ (Web Browser) โดยระบบจะปรับขนาดและ Layout ให้เหมาะสมตามอุปกรณ์
+                </p>
+              </div>
+
+              <div class="p-4 bg-white rounded-xl border border-zinc-200 space-y-1.5">
+                <div class="font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                  <span class="text-base">🎓</span>
+                  <span>เปิดใช้งานฟรีเพื่อการศึกษาและต้นแบบ</span>
+                </div>
+                <p class="text-zinc-600 leading-relaxed">
+                  สามารถสร้าง ทดสอบ และใช้งานระบบต้นแบบ (Prototype) ได้ฟรีโดยไม่มีค่าใช้จ่าย รองรับผู้ร่วมทดสอบในบัญชี Google ได้สูงสุด 10 คนต่อแอปพลิเคชัน
+                </p>
+              </div>
+
+              <div class="p-4 bg-white rounded-xl border border-zinc-200 space-y-1.5">
+                <div class="font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                  <span class="text-base">⚡</span>
+                  <span>Offline-First พร้อมระบบ Live Sync</span>
+                </div>
+                <p class="text-zinc-600 leading-relaxed">
+                  แม้เน็ตหลุดหรืออยู่ในพื้นที่ไม่มีสัญญาณ แอปยังเปิดดูแคตตาล็อกและบันทึกข้อมูลได้ เมื่อเชื่อมต่อเน็ตได้อีกครั้ง ระบบจะส่งข้อมูลไปซิงก์กับ Google Sheets บนคลาวด์อัตโนมัติ
+                </p>
+              </div>
+            </div>
+
+            <!-- Architecture Diagram -->
+            <div class="mt-4 p-5 bg-[#0F0F0F] text-white rounded-xl font-mono text-xs overflow-x-auto space-y-2 border border-zinc-800">
+              <div class="text-[#FF0000] font-bold text-center mb-3">─── สถาปัตยกรรมการทำงานของ GOOGLE APPSHEET ENGINE ───</div>
+              <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-center">
+                <div class="p-3.5 bg-zinc-900 border border-zinc-700 rounded-lg flex-1 w-full">
+                  <div class="text-green-400 font-bold mb-1">📊 1. Data Layer</div>
+                  <div class="text-[11px] text-zinc-300">Google Sheets Database</div>
+                  <div class="text-[10px] text-zinc-500 mt-1">คอลัมน์, แถว, ตาราง Products, รูปภาพใน Drive</div>
+                </div>
+                
+                <div class="text-[#FF0000] font-bold text-lg hidden md:block">⇆</div>
+                <div class="text-[#FF0000] font-bold text-lg md:hidden">⇅</div>
+
+                <div class="p-3.5 bg-red-950/40 border border-red-700/60 rounded-lg flex-1 w-full">
+                  <div class="text-red-400 font-bold mb-1">⚡ 2. AppSheet Cloud Engine</div>
+                  <div class="text-[11px] text-zinc-200">Business Logic & UI Generator</div>
+                  <div class="text-[10px] text-zinc-400 mt-1">แปลงโครงสร้างตารางเป็น UI, ควบคุม Key/Label, ความปลอดภัย</div>
+                </div>
+
+                <div class="text-[#FF0000] font-bold text-lg hidden md:block">⇆</div>
+                <div class="text-[#FF0000] font-bold text-lg md:hidden">⇅</div>
+
+                <div class="p-3.5 bg-zinc-900 border border-zinc-700 rounded-lg flex-1 w-full">
+                  <div class="text-blue-400 font-bold mb-1">📱 3. Presentation Layer</div>
+                  <div class="text-[11px] text-zinc-300">Native Mobile Apps</div>
+                  <div class="text-[10px] text-zinc-500 mt-1">iOS, Android, Web Tablet พร้อม Live Sync แบบสองทาง</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 2: CONNECTING SHEETS (2 METHODS) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="connect-sheets" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 2: DATABASE LINKING
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              2. สองวิธีในการสร้างแอป AppSheet จาก Google Sheets
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            ผู้เรียนสามารถเลือกสร้างแอปพลิเคชันขึ้นมาได้จาก 2 เส้นทางหลัก ซึ่งทั้งสองวิธีจะนำพามาสู่ AppSheet Studio เหมือนกัน แต่มีความสะดวกและขั้นตอนที่แตกต่างกันเล็กน้อย:
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Method 1 -->
+            <div class="p-5 bg-white rounded-2xl border-2 border-red-100 hover:border-[#FF0000] transition space-y-4 elevation-1">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-100 text-[#FF0000]">
+                  วิธีที่ 1 (แนะนำ: เร็วและง่ายที่สุด)
+                </span>
+                <span class="text-xs font-bold text-zinc-500">⏱️ ใช้เวลา 15 วินาที</span>
+              </div>
+              
+              <h3 class="text-base font-bold text-[#0F0F0F]">
+                สร้างโดยตรงจากหน้า Google Sheets
+              </h3>
+              
+              <p class="text-xs text-zinc-600 leading-relaxed">
+                เหมาะอย่างยิ่งสำหรับการเริ่มต้นโปรเจกต์ใหม่ เพราะระบบจะเลือกไฟล์สเปรดชีตปัจจุบันให้โดยอัตโนมัติ ไม่ต้องค้นหาไฟล์ในไดรฟ์
+              </p>
+
+              <div class="space-y-2.5 text-xs text-zinc-800">
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                  <span>เปิดไฟล์ Google Sheets ของกลุ่มที่ทำไว้ในบทที่ 5 (เช่น <code>Group03_FreshBrew_Database</code>)</span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                  <span>ที่แถบเมนูด้านบน คลิกที่คำว่า <strong>"ส่วนขยาย (Extensions)"</strong></span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                  <span>เลื่อนเมาส์ไปที่หัวข้อ <strong>"AppSheet"</strong></span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">4</span>
+                  <span>คลิกคำว่า <strong>"สร้างแอป (Create an app)"</strong></span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-[#2BA640] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+                  <span class="text-green-800 font-medium">ระบบจะเปิดแท็บใหม่ อ่านโครงสร้างตาราง และเนรมิตหน้าจอมือถือจำลองให้ทันที!</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Method 2 -->
+            <div class="p-5 bg-white rounded-2xl border border-zinc-200 hover:border-zinc-400 transition space-y-4 elevation-1">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-700">
+                  วิธีที่ 2 (แบบมาตรฐานผ่านเว็บหลัก)
+                </span>
+                <span class="text-xs font-bold text-zinc-500">⏱️ ใช้เวลา 45 วินาที</span>
+              </div>
+              
+              <h3 class="text-base font-bold text-[#0F0F0F]">
+                สร้างผ่านเว็บไซต์ AppSheet.com
+              </h3>
+              
+              <p class="text-xs text-zinc-600 leading-relaxed">
+                เหมาะสำหรับกรณีต้องการสร้างแอปจากเทมเพลต หรือต้องการรวมแหล่งข้อมูลหลายแหล่งเข้าด้วยกันภายหลัง
+              </p>
+
+              <div class="space-y-2.5 text-xs text-zinc-800">
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-zinc-700 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                  <span>เปิดเว็บเบราว์เซอร์ เข้าเว็บไซต์ <a href="https://www.appsheet.com" target="_blank" class="text-[#065FD4] underline font-medium">www.appsheet.com</a></span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-zinc-700 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                  <span>คลิก <strong>"Sign In"</strong> มุมขวาบน -> เลือก <strong>"Google"</strong> (ใช้อีเมลเดียวกับ Drive)</span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-zinc-700 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                  <span>ที่แถบซ้าย คลิกปุ่ม <strong>"+ Create"</strong> -> <strong>"App"</strong> -> <strong>"Start with existing data"</strong></span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-zinc-700 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">4</span>
+                  <span>ตั้งชื่อแอปในช่อง App name (เช่น <code>Fresh Brew Delivery</code>) และเลือก Category</span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-zinc-700 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">5</span>
+                  <span>คลิก <strong>"Choose your data"</strong> -> ค้นหาและเลือกไฟล์ชีตของกลุ่มจาก Google Drive</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparison Table -->
+          <div class="overflow-x-auto rounded-xl border border-[#E5E5E5]">
+            <table class="w-full text-left sheet-table">
+              <thead>
+                <tr>
+                  <th class="w-1/4">มิติการเปรียบเทียบ</th>
+                  <th class="w-3/8 text-[#FF0000]">วิธีที่ 1: ผ่านเมนูส่วนขยายในชีต</th>
+                  <th class="w-3/8">วิธีที่ 2: ผ่านเว็บไซต์ AppSheet.com</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-bold bg-[#F8F8F8]">ความเร็วในการเริ่มต้น</td>
+                  <td class="text-green-700 font-semibold">⚡ เร็วมาก (คลิกเดียวเข้าสู่ระบบทันที)</td>
+                  <td>ต้องค้นหาโฟลเดอร์ใน Google Drive</td>
+                </tr>
+                <tr>
+                  <td class="font-bold bg-[#F8F8F8]">โอกาสเลือกไฟล์ผิดพลาด</td>
+                  <td class="text-green-700 font-semibold">แทบเป็นศูนย์ (เชื่อมตรงกับไฟล์ที่เปิดอยู่)</td>
+                  <td>อาจเผลอเลือกเวอร์ชันเก่าหากมีชื่อซ้ำกัน</td>
+                </tr>
+                <tr>
+                  <td class="font-bold bg-[#F8F8F8]">การตั้งชื่อแอปเริ่มต้น</td>
+                  <td>ใช้ชื่อไฟล์ Google Sheets เป็นชื่อแอป</td>
+                  <td>สามารถตั้งชื่อแอปใหม่ได้ตั้งแต่ขั้นตอนสร้าง</td>
+                </tr>
+                <tr>
+                  <td class="font-bold bg-[#F8F8F8]">ความเหมาะสม</td>
+                  <td class="font-semibold text-[#0F0F0F]">เหมาะสำหรับผู้เริ่มต้น & คลาสปฏิบัติการ 4 ชม.</td>
+                  <td>เหมาะสำหรับผู้ดูแลระบบหรือสร้างแอปที่ซับซ้อน</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 3: APPSHEET STUDIO INTERFACE -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="appsheet-studio" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 3: STUDIO ENVIRONMENT
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              3. โครงสร้างหน้าต่างทำงานของ AppSheet Studio (The AppSheet Interface)
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            เมื่อระบบสร้างแอปเสร็จสิ้น เราจะเข้าสู่พื้นที่ทำงานหลักของนักพัฒนา เรียกว่า <strong>"AppSheet Studio"</strong> ซึ่งแบ่งออกเป็น 3 โซนทำงานหลักที่ต้องคุ้นเคย:
+          </p>
+
+          <!-- Studio Mockup Canvas -->
+          <div class="bg-[#0F0F0F] text-white rounded-2xl p-5 sm:p-6 border border-zinc-800 space-y-4 font-mono text-xs shadow-xl">
+            <!-- Studio Top Bar -->
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-800 text-[11px]">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                <span class="ml-2 font-bold text-white">AppSheet Studio • Fresh Brew Delivery</span>
+                <span class="text-zinc-500">v1.0.4</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="px-2.5 py-1 bg-zinc-800 rounded text-zinc-300">👥 Share</span>
+                <span class="px-3 py-1 bg-[#065FD4] text-white font-bold rounded shadow flex items-center gap-1">
+                  <span>💾 Save</span>
+                </span>
+                <span class="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center font-bold">MK</span>
+              </div>
+            </div>
+
+            <!-- Studio 3 Columns Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <!-- Left Sidebar Menu -->
+              <div class="lg:col-span-3 bg-zinc-900/90 rounded-xl p-3 border border-zinc-800 space-y-2">
+                <div class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-2">โซนที่ 1: แถบเครื่องมือซ้าย</div>
+                
+                <div class="p-2 rounded bg-red-950/40 border border-red-700/60 text-white flex items-center justify-between">
+                  <span>📊 Data (ตาราง & คอลัมน์)</span>
+                  <span class="text-[10px] bg-red-600 px-1 rounded">ชั่วโมง 2</span>
+                </div>
+                <div class="p-2 rounded bg-zinc-800 text-zinc-300 flex items-center justify-between">
+                  <span>📱 Views (หน้าจอ UI)</span>
+                  <span class="text-[10px] bg-blue-600 px-1 rounded">ชั่วโมง 3</span>
+                </div>
+                <div class="p-2 rounded bg-zinc-800/60 text-zinc-400 flex items-center justify-between">
+                  <span>⚡ Actions (ปุ่มสั่งการ)</span>
+                  <span class="text-[10px] text-zinc-500">บท 8</span>
+                </div>
+                <div class="p-2 rounded bg-zinc-800/60 text-zinc-400 flex items-center justify-between">
+                  <span>🤖 Automation (บอท & อีเมล)</span>
+                  <span class="text-[10px] text-zinc-500">บท 9</span>
+                </div>
+                <div class="p-2 rounded bg-zinc-800/60 text-zinc-400 flex items-center justify-between">
+                  <span>⚙️ Settings (ตั้งค่าแอป)</span>
+                  <span class="text-[10px] text-zinc-500">ตั้งค่า</span>
+                </div>
+
+                <div class="pt-3 border-t border-zinc-800 text-[10px] text-zinc-400 leading-normal">
+                  💡 <strong>Tip:</strong> ในบทที่ 6 เราจะทำงานที่เมนู <strong>Data</strong> และ <strong>Views</strong> เป็นหลัก
+                </div>
+              </div>
+
+              <!-- Center Inspector -->
+              <div class="lg:col-span-5 bg-zinc-900/90 rounded-xl p-3.5 border border-zinc-800 space-y-3">
+                <div class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">โซนที่ 2: พื้นที่ตั้งค่า (Inspector)</div>
+                <div class="p-2 bg-zinc-950 rounded border border-zinc-800 space-y-2 text-[11px]">
+                  <div class="text-zinc-400">View configuration: <span class="text-white font-bold">Products_Card</span></div>
+                  <div class="flex items-center justify-between text-zinc-300">
+                    <span>View type:</span>
+                    <span class="bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-700">card</span>
+                  </div>
+                  <div class="flex items-center justify-between text-zinc-300">
+                    <span>Card layout:</span>
+                    <span class="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded">Large photo</span>
+                  </div>
+                  <div class="flex items-center justify-between text-zinc-300">
+                    <span>Title:</span>
+                    <span class="text-yellow-400 font-bold">[ Product_Name ]</span>
+                  </div>
+                  <div class="flex items-center justify-between text-zinc-300">
+                    <span>Subtitle:</span>
+                    <span class="text-green-400 font-bold">[ Unit_Price (฿) ]</span>
+                  </div>
+                  <div class="flex items-center justify-between text-zinc-300">
+                    <span>Group by:</span>
+                    <span class="text-cyan-400 font-bold">[ Category_Name ]</span>
+                  </div>
+                </div>
+                <div class="text-[10px] text-zinc-400">
+                  ปรับคุณสมบัติ ละเอียดทุกตัวเลือก ทั้งขนาดรูป ฟอนต์ และปุ่มลอย
+                </div>
+              </div>
+
+              <!-- Right Mobile Emulator -->
+              <div class="lg:col-span-4 bg-zinc-900/90 rounded-xl p-3.5 border border-zinc-800 flex flex-col items-center justify-between space-y-3">
+                <div class="w-full flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                  <span>โซนที่ 3: จอจำลองมือถือ</span>
+                  <span class="text-green-400 font-mono">LIVE PREVIEW</span>
+                </div>
+
+                <!-- Mini Phone -->
+                <div class="w-[210px] h-[280px] bg-white text-zinc-900 rounded-2xl border-4 border-zinc-700 p-2.5 flex flex-col justify-between shadow-lg relative overflow-hidden font-sans">
+                  <!-- Notch -->
+                  <div class="w-20 h-3 bg-zinc-800 rounded-b-md mx-auto mb-1"></div>
+                  
+                  <!-- App Header -->
+                  <div class="flex items-center justify-between px-1 py-1 border-b border-zinc-200 text-[11px] font-bold">
+                    <span>☕ Fresh Brew</span>
+                    <span class="text-zinc-500">🔍 ↻</span>
+                  </div>
+
+                  <!-- Mini Card Item -->
+                  <div class="my-auto p-1.5 rounded-lg border border-zinc-200 bg-zinc-50 space-y-1">
+                    <div class="w-full h-16 bg-zinc-200 rounded flex items-center justify-center text-xs text-zinc-400">
+                      [ รูปแก้วชาชานม ]
+                    </div>
+                    <div class="text-[11px] font-bold text-zinc-900">ชานมไต้หวันบราวชูการ์</div>
+                    <div class="flex items-center justify-between text-[10px]">
+                      <span class="font-bold text-[#FF0000]">฿55.00</span>
+                      <span class="bg-zinc-200 px-1 rounded text-zinc-600">ชานม</span>
+                    </div>
+                  </div>
+
+                  <!-- Bottom Nav -->
+                  <div class="pt-1 border-t border-zinc-200 flex justify-around text-[9px] text-zinc-500">
+                    <span class="text-[#FF0000] font-bold">🏠 สินค้า</span>
+                    <span>📋 คำสั่งซื้อ</span>
+                    <span>⚙️ อื่นๆ</span>
+                  </div>
+                </div>
+
+                <div class="text-[10px] text-zinc-400 text-center">
+                  คลิกลองเล่นได้ทันที เสมือนถือโทรศัพท์จริงอยู่ในมือ
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 4: KEY & LABEL CHECKBOXES -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="key-label" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 4: DATABASE SCHEMA INTEGRITY
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              4. สองเช็กบ็อกซ์วิเศษ: Key [✓] และ Label [✓] (หัวใจสำคัญที่สุดของ AppSheet!)
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            ก่อนจะไปแต่งหน้าตาแอปให้สวยงาม ขั้นตอนที่สำคัญที่สุดและเป็น <strong>"เส้นแบ่งระหว่างแอปทำงานได้สมบูรณ์ กับแอปที่พังจนข้อมูลสูญหาย"</strong> คือการทำความเข้าใจและกำหนด 2 เช็กบ็อกซ์นี้ในหน้า <code>Data -> Columns</code> ให้ถูกต้อง:
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Box 1: Key -->
+            <div class="p-6 bg-white rounded-2xl border-2 border-red-500 space-y-4 elevation-1">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 text-[#FF0000]">
+                  ช่องที่ 1: Key [✓] (Primary Key)
+                </span>
+                <span class="text-xs font-mono font-bold text-red-600">คอมพิวเตอร์ใช้อ้างอิง</span>
+              </div>
+
+              <h3 class="text-base font-bold text-[#0F0F0F]">
+                รหัสพิกัดประจำแถว (ห้ามซ้ำและห้ามเปลี่ยน)
+              </h3>
+
+              <p class="text-xs text-zinc-700 leading-relaxed">
+                คือคอลัมน์ที่ระบบ AppSheet Cloud ใช้เป็น <strong>"ตัวระบุเอกลักษณ์ประจำแถว"</strong> เพื่อให้รู้ว่ากำลังอ่านหรือแก้ไขข้อมูลแถวไหน
+              </p>
+
+              <div class="p-3 bg-red-50 rounded-xl border border-red-200 text-xs text-red-900 space-y-1.5 font-medium">
+                <div>📌 <strong>กฎเหล็กของ Key:</strong></div>
+                <ul class="list-disc list-inside space-y-1 text-red-800">
+                  <li>ใน 1 ตาราง ต้องมี Key ได้ <strong>เพียง 1 คอลัมน์เท่านั้น</strong></li>
+                  <li>ข้อมูลในคอลัมน์ Key <strong>ห้ามซ้ำกันเด็ดขาด</strong> (Unique Value)</li>
+                  <li>เมื่อสร้างข้อมูลแล้ว <strong>ห้ามแก้ไขค่าในคีย์หลัก</strong></li>
+                  <li>ตัวอย่างที่ดี: <code>Product_ID</code>, <code>Order_ID</code>, <code>Asset_ID</code></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Box 2: Label -->
+            <div class="p-6 bg-white rounded-2xl border-2 border-blue-500 space-y-4 elevation-1">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-[#065FD4]">
+                  ช่องที่ 2: Label [✓] (Display Header)
+                </span>
+                <span class="text-xs font-mono font-bold text-blue-600">ตามนุษย์มองเห็น</span>
+              </div>
+
+              <h3 class="text-base font-bold text-[#0F0F0F]">
+                ชื่อสื่อความหมายที่แสดงบนหน้าจอ
+              </h3>
+
+              <p class="text-xs text-zinc-700 leading-relaxed">
+                คือชื่อหัวเรื่องที่ <strong>"ตามนุษย์ใช้อ่านและเข้าใจ"</strong> เพื่อสื่อความหมายเมื่อไปปรากฏในรายการดรอปดาวน์หรือหัวข้อการ์ด
+              </p>
+
+              <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 text-xs text-blue-900 space-y-1.5 font-medium">
+                <div>📌 <strong>กฎเหล็กของ Label:</strong></div>
+                <ul class="list-disc list-inside space-y-1 text-blue-800">
+                  <li>ใน 1 ตาราง ควรมี Label ได้ <strong>เพียง 1 คอลัมน์เท่านั้น</strong></li>
+                  <li>เมื่อตารางอื่นอ้างอิงถึงข้อมูลนี้ (Ref) AppSheet จะดึงค่าในช่อง Label ไปแสดงให้คนอ่านรู้เรื่อง</li>
+                  <li>ค่าในช่อง Label สามารถซ้ำกันได้ตามธรรมชาติของชื่อสินค้า</li>
+                  <li>ตัวอย่างที่ดี: <code>Product_Name</code>, <code>Service_Name</code>, <code>Asset_Name</code></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fatal Mistake Warning Callout -->
+          <div class="p-5 bg-amber-50 rounded-2xl border border-amber-300 space-y-2">
+            <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+              <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              <span>ข้อควรระวังอันตรายถึงชีวิต (Fatal Mistake!):</span>
+            </div>
+            <p class="text-xs sm:text-sm text-amber-900 leading-relaxed">
+              <strong>ห้ามติ๊กช่อง Key [✓] ที่คอลัมน์ราคา (<code>Unit_Price</code>) หรือคอลัมน์รูปภาพเด็ดขาด!</strong> เพราะหากสินค้า 2 ชิ้นมีราคาเท่ากัน เช่น 55 บาททั้งคู่ AppSheet จะเข้าใจผิดว่าสินค้า 2 ตัวนี้คือชิ้นเดียวกัน และจะทำการ <strong>"เขียนทับข้อมูลจนหายนะ"</strong>! ให้ติ๊ก Key ที่รหัสประจำตัวของแถวนั้น เช่น <code>Product_ID</code> เท่านั้น!
+            </p>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 5: DATA TYPES CONFIGURATION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="data-types" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 5: DATA TYPES & CURRENCY SETUP
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              5. การปรับแต่งชนิดข้อมูล (Data Types) ให้ตรงตามฟังก์ชันจริง
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            เมื่อเชื่อมต่อ Google Sheets ในตอนแรก AppSheet จะพยายามเดาชนิดข้อมูลให้โดยอัตโนมัติ แต่บ่อยครั้งที่ระบบเดาผิดพลาด เช่น มองราคาเป็นตัวเลขธรรมดา หรือมองรูปภาพเป็นข้อความยาว ดังนั้นนักพัฒนาต้องเข้าไปปรับแต่งใน <code>Data -> Columns -> ตาราง Products</code> ให้แม่นยำ:
+          </p>
+
+          <!-- Data Types Mapping Table -->
+          <div class="overflow-x-auto rounded-xl border border-[#E5E5E5] shadow-sm">
+            <table class="w-full text-left sheet-table">
+              <thead>
+                <tr>
+                  <th class="w-1/6">ชื่อคอลัมน์</th>
+                  <th class="w-1/6 text-center">Type ที่ต้องปรับ</th>
+                  <th class="w-1/12 text-center">Key [✓]</th>
+                  <th class="w-1/12 text-center">Label [✓]</th>
+                  <th class="w-1/2">ขั้นตอนการตั้งค่าเพิ่มเติมที่ต้องทำใน AppSheet</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-mono font-bold text-[#0F0F0F]">Product_ID</td>
+                  <td class="text-center"><span class="px-2 py-0.5 rounded bg-zinc-100 font-mono text-xs font-bold">Text</span></td>
+                  <td class="text-center text-green-600 font-bold text-base">✓</td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-xs text-zinc-700">ติ๊กถูกช่อง <strong>Key [✓]</strong> และช่อง <strong>Require? [✓]</strong> (ห้ามว่าง)</td>
+                </tr>
+                <tr>
+                  <td class="font-mono font-bold text-[#0F0F0F]">Product_Name</td>
+                  <td class="text-center"><span class="px-2 py-0.5 rounded bg-zinc-100 font-mono text-xs font-bold">Text</span></td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-center text-blue-600 font-bold text-base">✓</td>
+                  <td class="text-xs text-zinc-700">ติ๊กถูกช่อง <strong>Label [✓]</strong> และติ๊กช่อง <strong>Search? [✓]</strong> (เพื่อให้ค้นหาชื่อสินค้าได้)</td>
+                </tr>
+                <tr>
+                  <td class="font-mono font-bold text-[#0F0F0F]">Category_Name</td>
+                  <td class="text-center"><span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 font-mono text-xs font-bold">Enum</span></td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-xs text-zinc-700">คลิกดินสอ [✎] ที่หัวข้อ <strong>Values</strong> เพิ่มรายการ: <code>ชานม</code>, <code>กาแฟ</code>, <code>ขนม</code></td>
+                </tr>
+                <tr>
+                  <td class="font-mono font-bold text-[#0F0F0F]">Unit_Price</td>
+                  <td class="text-center"><span class="px-2 py-0.5 rounded bg-green-100 text-green-800 font-mono text-xs font-bold">Price</span></td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-xs text-zinc-700">
+                    คลิกดินสอ [✎] เลื่อนลงมาที่ช่อง <strong>Currency symbol</strong> เปลี่ยนจาก <code>$</code> เป็น <strong><code>฿</code></strong> (ทศนิยม 2 ตำแหน่ง)
+                  </td>
+                </tr>
+                <tr>
+                  <td class="font-mono font-bold text-[#0F0F0F]">Stock_Qty</td>
+                  <td class="text-center"><span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-xs font-bold">Number</span></td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-xs text-zinc-700">กำหนด <strong>Minimum value = 0</strong> (ป้องกันสต็อกสินค้าติดลบ)</td>
+                </tr>
+                <tr>
+                  <td class="font-mono font-bold text-[#0F0F0F]">Image_URL</td>
+                  <td class="text-center"><span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-mono text-xs font-bold">Image</span></td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-xs text-zinc-700">สำหรับดึงรูปภาพขนาดใหญ่จาก Google Drive มาแสดงเป็นภาพปก</td>
+                </tr>
+                <tr>
+                  <td class="font-mono font-bold text-[#0F0F0F]">Description</td>
+                  <td class="text-center"><span class="px-2 py-0.5 rounded bg-zinc-100 font-mono text-xs font-bold">LongText</span></td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-xs text-zinc-700">สำหรับข้อความบรรยายสรรพคุณ รายละเอียดวัตถุดิบ ความยาวหลายบรรทัด</td>
+                </tr>
+                <tr>
+                  <td class="font-mono font-bold text-[#0F0F0F]">Is_Available</td>
+                  <td class="text-center"><span class="px-2 py-0.5 rounded bg-cyan-100 text-cyan-800 font-mono text-xs font-bold">Yes/No</span></td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-center text-zinc-300">−</td>
+                  <td class="text-xs text-zinc-700">สวิตช์เปิด/ปิด สถานะพร้อมจำหน่าย (Initial Value: <code>TRUE</code>)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Currency Tutorial Callout -->
+          <div class="p-5 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="text-xs font-bold text-[#0F0F0F] uppercase">วิธีเปลี่ยนสกุลเงินเป็นบาท (฿) อย่างละเอียด:</div>
+              <p class="text-xs text-zinc-600">
+                1. คลิกรูปดินสอ [✎] หน้าคอลัมน์ Unit_Price &nbsp;•&nbsp; 2. เลื่อนลงมาที่หัวข้อ "Type Details" &nbsp;•&nbsp; 3. ในช่อง Currency symbol พิมพ์ <code>฿</code> &nbsp;•&nbsp; 4. กด Done & Save
+              </p>
+            </div>
+            <button onclick="copyToClipboard('฿', 'คัดลอกสัญลักษณ์ ฿ เรียบร้อยแล้ว!')" class="h-9 px-4 rounded-lg bg-white border border-[#E5E5E5] hover:border-[#FF0000] text-xs font-bold text-[#0F0F0F] flex items-center gap-1.5 shrink-0 transition">
+              <span>📋 คัดลอกสัญลักษณ์ ฿</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 6: DESIGNING CATALOG VIEWS (UX) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="view-types" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 6: UX DESIGN & VIEW TYPES
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              6. ปฏิบัติการออกแบบมุมมองแคตตาล็อกสินค้า (Designing Mobile Catalog Views)
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            เมื่อข้อมูลถูกตั้งค่าอย่างถูกต้องตามหลักวิศวกรรมแล้ว ตอนนี้ถึงเวลาเนรมิตหน้าจอแคตตาล็อกให้สวยงามเหมือนที่ออกแบบไว้ใน Figma! AppSheet มีประเภทมุมมอง (View Types) ให้เลือกหลากหลายตามลักษณะธุรกิจ:
+          </p>
+
+          <!-- View Types Comparison Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Card View -->
+            <div class="p-5 bg-white rounded-2xl border-2 border-red-200 hover:border-[#FF0000] transition space-y-3 elevation-1">
+              <div class="flex items-center justify-between">
+                <span class="w-9 h-9 rounded-xl bg-red-100 text-[#FF0000] flex items-center justify-center font-bold text-lg">🎴</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#FF0000] text-white">แนะนำสูงสุด</span>
+              </div>
+              <h3 class="text-base font-bold text-[#0F0F0F]">1. Card View (มุมมองการ์ด)</h3>
+              <p class="text-xs text-zinc-600 leading-relaxed">
+                ภาพปกขนาดใหญ่ วางหัวข้อ ราคา และปุ่มกดได้เด่นชัด เหมาะอย่างยิ่งสำหรับร้านกาแฟ เบเกอรี่ และบริการสัตว์เลี้ยง
+              </p>
+              <div class="text-[11px] text-zinc-500 pt-2 border-t border-zinc-100">
+                ✔️ จุดเด่น: สวยงาม ดึงดูดสายตา แตะสั่งซื้อง่าย
+              </div>
+            </div>
+
+            <!-- Gallery View -->
+            <div class="p-5 bg-white rounded-2xl border border-zinc-200 hover:border-zinc-400 transition space-y-3 elevation-1">
+              <div class="flex items-center justify-between">
+                <span class="w-9 h-9 rounded-xl bg-blue-100 text-[#065FD4] flex items-center justify-center font-bold text-lg">🖼️</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-100 text-zinc-700">ดูรูปเยอะ</span>
+              </div>
+              <h3 class="text-base font-bold text-[#0F0F0F]">2. Gallery View (แกลเลอรี)</h3>
+              <p class="text-xs text-zinc-600 leading-relaxed">
+                จัดวางภาพเป็นตารางกริด 2 คอลัมน์ (สไตล์ Instagram) เน้นดูภาพสินค้าจำนวนมากพร้อมกัน ประหยัดพื้นที่หน้าจอ
+              </p>
+              <div class="text-[11px] text-zinc-500 pt-2 border-t border-zinc-100">
+                ✔️ จุดเด่น: กะทัดรัด เห็นสินค้าหลายตัวในหน้าเดียว
+              </div>
+            </div>
+
+            <!-- Deck / Table View -->
+            <div class="p-5 bg-white rounded-2xl border border-zinc-200 hover:border-zinc-400 transition space-y-3 elevation-1">
+              <div class="flex items-center justify-between">
+                <span class="w-9 h-9 rounded-xl bg-zinc-100 text-zinc-700 flex items-center justify-center font-bold text-lg">📋</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-100 text-zinc-700">คลัง & สต็อก</span>
+              </div>
+              <h3 class="text-base font-bold text-[#0F0F0F]">3. Deck / Table View</h3>
+              <p class="text-xs text-zinc-600 leading-relaxed">
+                จัดเรียงเป็นแถวแนวนอน ภาพขนาดเล็กด้านซ้าย ข้อมูลสต็อกตรงกลาง เหมาะสำหรับระบบยืมคืนอุปกรณ์ที่ต้องการดูสถานะเร็วๆ
+              </p>
+              <div class="text-[11px] text-zinc-500 pt-2 border-t border-zinc-100">
+                ✔️ จุดเด่น: ข้อมูลหนาแน่น ตรวจสอบสต็อกรวดเร็ว
+              </div>
+            </div>
+          </div>
+
+          <!-- Step-by-Step Create View Guide -->
+          <div class="p-5 bg-[#F8F8F8] rounded-2xl border border-[#E5E5E5] space-y-3">
+            <div class="text-xs font-bold text-[#0F0F0F] uppercase tracking-wide">ขั้นตอนการสร้างมุมมองใหม่ใน AppSheet (ทีละคลิก):</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 space-y-1">
+                <div class="font-bold text-[#FF0000]">ขั้นตอนที่ 1</div>
+                <div class="text-zinc-800 font-semibold">ไปที่เมนู Views</div>
+                <p class="text-zinc-500 text-[11px]">คลิกไอคอนรูปจอมือถือที่แถบซ้ายสุด</p>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 space-y-1">
+                <div class="font-bold text-[#FF0000]">ขั้นตอนที่ 2</div>
+                <div class="text-zinc-800 font-semibold">กด + Add View</div>
+                <p class="text-zinc-500 text-[11px]">หรือคลิกแก้ไขมุมมองเดิมที่มีอยู่</p>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 space-y-1">
+                <div class="font-bold text-[#FF0000]">ขั้นตอนที่ 3</div>
+                <div class="text-zinc-800 font-semibold">ผูกตาราง For this data</div>
+                <p class="text-zinc-500 text-[11px]">เลือกตารางฐานข้อมูลหลัก: Products</p>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 space-y-1">
+                <div class="font-bold text-[#FF0000]">ขั้นตอนที่ 4</div>
+                <div class="text-zinc-800 font-semibold">เลือก View Type = card</div>
+                <p class="text-zinc-500 text-[11px]">เลือกประเภทการ์ดเพื่อเปิดใช้งานโหมดแคตตาล็อก</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 7: CARD VIEW DEEP DIVE -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="card-customization" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 7: ADVANCED CARD CONFIGURATION
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              7. การปรับแต่ง Card View ให้สวยงามระดับมืออาชีพ
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            เมื่อเลือกประเภทมุมมองเป็น <strong>Card View</strong> แล้ว ให้เลื่อนลงมาปรับแต่ง 5 คุณสมบัติหลักในพื้นที่ตั้งค่า (Inspector) ดังนี้:
+          </p>
+
+          <div class="space-y-4">
+            <!-- 1. Layout Mode -->
+            <div class="p-5 bg-white rounded-xl border border-[#E5E5E5] space-y-3 elevation-1">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-[#0F0F0F]">1. Layout (เค้าโครงของการ์ด)</h3>
+                <span class="text-xs bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded font-mono">card_layout</span>
+              </div>
+              <p class="text-xs text-zinc-600 leading-relaxed">
+                AppSheet มีเค้าโครงให้เลือก 4 แบบ: <strong>Large</strong> (ภาพขนาดใหญ่เต็มความกว้าง เหมาะกับร้านกาแฟ), <strong>Photo</strong> (ภาพเต็มการ์ดพร้อมข้อความลอย), <strong>List</strong> (การ์ดแนวนอน ภาพอยู่ซ้าย ข้อความอยู่ขวา เหมาะกับบริการสัตว์เลี้ยง), และ <strong>Header</strong> (แบบกะทัดรัด)
+              </p>
+            </div>
+
+            <!-- 2. Content Binding -->
+            <div class="p-5 bg-white rounded-xl border border-[#E5E5E5] space-y-3 elevation-1">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-[#0F0F0F]">2. การผูกคอลัมน์ข้อมูลลงในการ์ด (Card Content Binding)</h3>
+                <span class="text-xs bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded font-mono">data_mapping</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <div class="p-3 bg-[#F8F8F8] rounded-lg border border-zinc-200">
+                  <span class="text-zinc-500 block">Title (หัวเรื่องหลัก):</span>
+                  <strong class="text-[#0F0F0F]">Product_Name</strong>
+                </div>
+                <div class="p-3 bg-[#F8F8F8] rounded-lg border border-zinc-200">
+                  <span class="text-zinc-500 block">Subtitle (หัวเรื่องรอง):</span>
+                  <strong class="text-[#FF0000]">Unit_Price (แสดงราคา ฿)</strong>
+                </div>
+                <div class="p-3 bg-[#F8F8F8] rounded-lg border border-zinc-200">
+                  <span class="text-zinc-500 block">Main Image (ภาพปก):</span>
+                  <strong class="text-blue-700">Image_URL</strong>
+                </div>
+                <div class="p-3 bg-[#F8F8F8] rounded-lg border border-zinc-200">
+                  <span class="text-zinc-500 block">Summary (ป้ายแท็ก):</span>
+                  <strong class="text-purple-700">Category_Name</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Group by & Sort by -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-5 bg-white rounded-xl border border-[#E5E5E5] space-y-2 elevation-1">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-sm font-bold text-[#0F0F0F]">3. การจัดกลุ่มข้อมูล (Group by)</h3>
+                  <span class="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded font-bold">หมวดหมู่</span>
+                </div>
+                <p class="text-xs text-zinc-600 leading-relaxed">
+                  ในหัวข้อ View options -> คลิกช่อง <strong>Group by</strong> -> เลือกคอลัมน์ <code>Category_Name</code> แบบ Ascending (ก-ฮ)
+                </p>
+                <div class="p-2.5 bg-zinc-50 rounded border border-zinc-200 text-xs text-zinc-700 font-mono">
+                  ✨ <strong>ผลลัพธ์:</strong> หน้าจอจะแบ่งสัดส่วนเมนูออกเป็นหมวด เช่น "ชานม (4)", "กาแฟ (3)" โดยอัตโนมัติ!
+                </div>
+              </div>
+
+              <div class="p-5 bg-white rounded-xl border border-[#E5E5E5] space-y-2 elevation-1">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-sm font-bold text-[#0F0F0F]">4. การเรียงลำดับสินค้า (Sort by)</h3>
+                  <span class="text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-bold">ราคาถูกไปแพง</span>
+                </div>
+                <p class="text-xs text-zinc-600 leading-relaxed">
+                  คลิกที่ช่อง <strong>Sort by</strong> -> เลือก <code>Unit_Price</code> แบบ <code>Ascending</code> (เรียงจากราคาย่อมเยาขึ้นก่อน)
+                </p>
+                <div class="p-2.5 bg-zinc-50 rounded border border-zinc-200 text-xs text-zinc-700 font-mono">
+                  ✨ <strong>ผลลัพธ์:</strong> สินค้าถูกจัดเรียงราคาอย่างเป็นระเบียบ ช่วยให้ลูกค้าตัดสินใจซื้อง่ายขึ้น
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Save Button Callout -->
+          <div class="p-4 bg-blue-50 rounded-xl border border-blue-200 flex items-center gap-3">
+            <span class="text-2xl">💾</span>
+            <div class="text-xs sm:text-sm text-blue-900 leading-relaxed">
+              <strong>ข้อเตือนใจ:</strong> ทุกครั้งที่ปรับแต่งเสร็จสิ้น อย่าลืมคลิกปุ่มสีฟ้า <strong>"💾 Save"</strong> ที่มุมขวาบนของหน้าจอ AppSheet Studio เสมอ เพื่อให้ระบบประมวลผลและแสดงผลลัพธ์บนจอมือถือจำลอง
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 8: 3 ARCHETYPES WORKSHOP -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="archetypes-spec" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 8: TRI-ARCHETYPE IMPLEMENTATION
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              8. เวิร์กช็อปภาคปฏิบัติ: สเปกการตั้งค่า View สำหรับ 3 รูปแบบธุรกิจ (Archetypes)
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            ให้นักเรียนคลิกแท็บเพื่อดูสเปกการตั้งค่ามุมมองเฉพาะของรูปแบบธุรกิจที่กลุ่มตนเองรับผิดชอบ พร้อมนำค่าเหล่านี้ไปกรอกใน AppSheet Studio:
+          </p>
+
+          <!-- Tri-Archetype Switcher Tabs -->
+          <div class="p-1.5 bg-[#F2F2F2] rounded-xl flex flex-wrap gap-1 border border-[#E5E5E5]">
+            <button id="archTab-freshbrew" onclick="switchArchetype('freshbrew')" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-1.5">
+              <span>☕ 1. Fresh Brew & Bakery</span>
+            </button>
+            <button id="archTab-happypaws" onclick="switchArchetype('happypaws')" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5">
+              <span>🐾 2. Happy Paws Care</span>
+            </button>
+            <button id="archTab-smartborrow" onclick="switchArchetype('smartborrow')" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5">
+              <span>📦 3. Smart Equipment Borrow</span>
+            </button>
+          </div>
+
+          <!-- Archetype 1 Content: Fresh Brew -->
+          <div id="archContent-freshbrew" class="space-y-4">
+            <div class="p-5 bg-white rounded-2xl border border-zinc-200 elevation-1 space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-base font-bold text-[#0F0F0F]">☕ รูปแบบที่ 1: Fresh Brew & Bakery (ร้านอาหารและเครื่องดื่ม)</h3>
+                  <div class="text-xs text-zinc-500">เป้าหมาย: แคตตาล็อกภาพแก้วเครื่องดื่มขนาดใหญ่ ป้ายราคาชัดเจน จัดกลุ่มตามประเภทน้ำ</div>
+                </div>
+                <button onclick="copyArchetypeSpec('fb')" class="h-8 px-3 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-xs font-bold text-zinc-800 transition">
+                  📋 คัดลอกสเปก
+                </button>
+              </div>
+
+              <!-- Spec Table -->
+              <div class="overflow-x-auto rounded-xl border border-zinc-200">
+                <table class="w-full text-left sheet-table">
+                  <tbody>
+                    <tr><td class="w-1/3 font-bold bg-[#F8F8F8]">View Name</td><td class="font-mono text-blue-700">Drink_Menu</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">For this data (ตาราง)</td><td class="font-mono">Products</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">View Type</td><td class="font-mono font-bold text-red-600">card</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Card Layout</td><td class="font-mono font-bold">Large (ภาพขนาดใหญ่เต็มความกว้าง)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Title (หัวข้อ)</td><td class="font-mono">[ Product_Name ] (ชื่อเครื่องดื่มฟอนต์หนา)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Subtitle (หัวข้อรอง)</td><td class="font-mono text-green-700 font-bold">[ Unit_Price ] (แสดงป้ายราคา เช่น ฿55.00)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Main Image (ภาพปก)</td><td class="font-mono">[ Image_URL ] (ภาพถ่ายแก้วชาไดคัท)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Group by (จัดกลุ่ม)</td><td class="font-mono text-purple-700 font-bold">[ Category_Name ] (ชานม, กาแฟ, ขนม)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Sort by (เรียงลำดับ)</td><td class="font-mono">[ Unit_Price ] Ascending (ราคาถูกไปแพง)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Position (ตำแหน่ง)</td><td class="font-mono">first / primary (ปุ่มซ้ายสุดของแถบล่าง)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Icon ประจำปุ่ม</td><td class="font-mono">coffee หรือ local_drink</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Archetype 2 Content: Happy Paws -->
+          <div id="archContent-happypaws" class="space-y-4 hidden">
+            <div class="p-5 bg-white rounded-2xl border border-zinc-200 elevation-1 space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-base font-bold text-[#0F0F0F]">🐾 รูปแบบที่ 2: Happy Paws Care (คลินิกและบริการสัตว์เลี้ยง)</h3>
+                  <div class="text-xs text-zinc-500">เป้าหมาย: หน้ารายการบริการ (Service Catalog) แนวนอน แสดงระยะเวลาและราคาค่าบริการ</div>
+                </div>
+                <button onclick="copyArchetypeSpec('hp')" class="h-8 px-3 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-xs font-bold text-zinc-800 transition">
+                  📋 คัดลอกสเปก
+                </button>
+              </div>
+
+              <!-- Spec Table -->
+              <div class="overflow-x-auto rounded-xl border border-zinc-200">
+                <table class="w-full text-left sheet-table">
+                  <tbody>
+                    <tr><td class="w-1/3 font-bold bg-[#F8F8F8]">View Name</td><td class="font-mono text-blue-700">Service_List</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">For this data (ตาราง)</td><td class="font-mono">Services</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">View Type</td><td class="font-mono font-bold text-red-600">card</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Card Layout</td><td class="font-mono font-bold">List (แนวนอน ภาพอยู่ซ้าย รายละเอียดอยู่ขวา)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Title (หัวข้อ)</td><td class="font-mono">[ Service_Name ] (ชื่อบริการ เช่น สปาอาบน้ำตัดขน)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Subtitle (หัวข้อรอง)</td><td class="font-mono text-green-700 font-bold">[ Price ] (แสดงราคา เช่น ฿350.00)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Description</td><td class="font-mono">[ Duration_Mins ] (ใส่ข้อความ เช่น 60 นาที)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Main Image</td><td class="font-mono">[ Image_URL ] (รูปน้องหมาน้องแมวสดใส)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Group by</td><td class="font-mono text-purple-700 font-bold">[ Category ] (กรูมมิ่ง, ฉีดวัคซีน, ฝากเลี้ยง)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Position</td><td class="font-mono">first / primary</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Icon ประจำปุ่ม</td><td class="font-mono">pets (รูปรอยเท้าน้องหมา)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Archetype 3 Content: Smart Borrow -->
+          <div id="archContent-smartborrow" class="space-y-4 hidden">
+            <div class="p-5 bg-white rounded-2xl border border-zinc-200 elevation-1 space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-base font-bold text-[#0F0F0F]">📦 รูปแบบที่ 3: Smart Equipment Borrow (ระบบยืม-คืนอุปกรณ์และครุภัณฑ์)</h3>
+                  <div class="text-xs text-zinc-500">เป้าหมาย: แดชบอร์ดคลังครุภัณฑ์ มองเห็นรหัสตู้จัดเก็บ และสถานะว่าง (Available) ชัดเจน</div>
+                </div>
+                <button onclick="copyArchetypeSpec('sb')" class="h-8 px-3 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-xs font-bold text-zinc-800 transition">
+                  📋 คัดลอกสเปก
+                </button>
+              </div>
+
+              <!-- Spec Table -->
+              <div class="overflow-x-auto rounded-xl border border-zinc-200">
+                <table class="w-full text-left sheet-table">
+                  <tbody>
+                    <tr><td class="w-1/3 font-bold bg-[#F8F8F8]">View Name</td><td class="font-mono text-blue-700">Equipment_Inventory</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">For this data (ตาราง)</td><td class="font-mono">Assets</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">View Type</td><td class="font-mono font-bold text-red-600">card หรือ deck</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Card Layout</td><td class="font-mono font-bold">Photo หรือ List</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Title (หัวข้อ)</td><td class="font-mono">[ Asset_Name ] (เช่น SONY Alpha A7 IV)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Subtitle (หัวข้อรอง)</td><td class="font-mono">[ Asset_ID ] (รหัสครุภัณฑ์ เช่น #CAM-SONY-04)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Description</td><td class="font-mono text-zinc-700">[ Storage_Box ] (ตำแหน่งตู้เก็บ เช่น ตู้ B2 ชั้น 3)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Badge / Tag</td><td class="font-mono text-green-700 font-bold">[ Current_Status ] (แสดงสถานะ: Available / Borrowed)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Group by</td><td class="font-mono text-purple-700 font-bold">[ Current_Status ] (จัดกลุ่ม: ว่าง vs ถูกยืมแล้ว)</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Position</td><td class="font-mono">first / primary</td></tr>
+                    <tr><td class="font-bold bg-[#F8F8F8]">Icon ประจำปุ่ม</td><td class="font-mono">photo_camera หรือ inventory</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 9: ADVANCED SHOW_IF EXPRESSIONS -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="show-if-expressions" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 9: CONDITIONAL LOGIC & EXPRESSIONS
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              9. เทคนิคขั้นสูง: การใช้สูตร Show_If ควบคุมการแสดงผล (Show_If Expressions)
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            ใน AppSheet เราสามารถควบคุมการ <strong>"ซ่อนหรือแสดง"</strong> คอลัมน์ ปุ่มกด หรือหน้าจอ ได้อย่างยืดหยุ่นด้วยสูตรตรรกะในช่อง <strong>Show_If</strong> (ถ้าสูตรคำนวณได้ <code>TRUE</code> จะแสดงผล ถ้าได้ <code>FALSE</code> จะซ่อนอัตโนมัติ):
+          </p>
+
+          <!-- 6 Essential Show_If Formula Cards with One-Click Copy -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Formula 1 -->
+            <div class="p-4 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#0F0F0F]">1. แสดงเฉพาะในมุมมอง Card View</span>
+                <button onclick="copyFormula('=CONTEXT(&quot;View&quot;) = &quot;Products_Card&quot;')" class="text-xs px-2.5 py-1 rounded bg-white border border-zinc-200 hover:border-[#FF0000] text-zinc-700 font-bold transition">
+                  📋 คัดลอกสูตร
+                </button>
+              </div>
+              <div class="code-box">=CONTEXT("View") = "Products_Card"</div>
+              <p class="text-[11px] text-zinc-600">ซ่อนฟิลด์ไม่ให้รกในตารางอื่น แต่ให้แสดงเด่นชัดเมื่ออยู่ในหน้า Card View</p>
+            </div>
+
+            <!-- Formula 2 -->
+            <div class="p-4 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#0F0F0F]">2. แสดงเฉพาะสินค้าที่พร้อมจำหน่าย</span>
+                <button onclick="copyFormula('[Is_Available] = TRUE')" class="text-xs px-2.5 py-1 rounded bg-white border border-zinc-200 hover:border-[#FF0000] text-zinc-700 font-bold transition">
+                  📋 คัดลอกสูตร
+                </button>
+              </div>
+              <div class="code-box">[Is_Available] = TRUE</div>
+              <p class="text-[11px] text-zinc-600">ซ่อนสินค้าที่ปิดการขายชั่วคราว ไม่ให้ปรากฏให้ลูกค้ากดสั่งซื้อ</p>
+            </div>
+
+            <!-- Formula 3 -->
+            <div class="p-4 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#0F0F0F]">3. ซ่อนปุ่มสั่งซื้อเมื่อของหมดสต็อก</span>
+                <button onclick="copyFormula('[Stock_Qty] > 0')" class="text-xs px-2.5 py-1 rounded bg-white border border-zinc-200 hover:border-[#FF0000] text-zinc-700 font-bold transition">
+                  📋 คัดลอกสูตร
+                </button>
+              </div>
+              <div class="code-box">[Stock_Qty] > 0</div>
+              <p class="text-[11px] text-zinc-600">ป้องกันลูกค้าสั่งซื้อเกินจำนวนที่มีในคลังสต็อก</p>
+            </div>
+
+            <!-- Formula 4 -->
+            <div class="p-4 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#0F0F0F]">4. แสดงราคาทุนเฉพาะแอดมิน</span>
+                <button onclick="copyFormula('USEREMAIL() = &quot;admin@freshbrew.com&quot;')" class="text-xs px-2.5 py-1 rounded bg-white border border-zinc-200 hover:border-[#FF0000] text-zinc-700 font-bold transition">
+                  📋 คัดลอกสูตร
+                </button>
+              </div>
+              <div class="code-box">USEREMAIL() = "admin@freshbrew.com"</div>
+              <p class="text-[11px] text-zinc-600">ซ่อนข้อมูลความลับทางการค้า เช่น ต้นทุนสินค้า ไม่ให้พนักงานทั่วไปมองเห็น</p>
+            </div>
+
+            <!-- Formula 5 -->
+            <div class="p-4 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#0F0F0F]">5. แสดงรูปภาพเฉพาะเมื่อมีลิงก์รูป</span>
+                <button onclick="copyFormula('ISNOTBLANK([Image_URL])')" class="text-xs px-2.5 py-1 rounded bg-white border border-zinc-200 hover:border-[#FF0000] text-zinc-700 font-bold transition">
+                  📋 คัดลอกสูตร
+                </button>
+              </div>
+              <div class="code-box">ISNOTBLANK([Image_URL])</div>
+              <p class="text-[11px] text-zinc-600">ป้องกันการแสดงกรอบรูปภาพเปล่าหรือสัญลักษณ์ตกใจเมื่อสินค้ายังไม่มีรูป</p>
+            </div>
+
+            <!-- Formula 6 -->
+            <div class="p-4 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#0F0F0F]">6. อนุญาตให้ยืมเฉพาะอุปกรณ์ที่สถานะว่าง</span>
+                <button onclick="copyFormula('[Current_Status] = &quot;Available&quot;')" class="text-xs px-2.5 py-1 rounded bg-white border border-zinc-200 hover:border-[#FF0000] text-zinc-700 font-bold transition">
+                  📋 คัดลอกสูตร
+                </button>
+              </div>
+              <div class="code-box">[Current_Status] = "Available"</div>
+              <p class="text-[11px] text-zinc-600">ใช้ในระบบ Smart Equipment เพื่อไม่ให้ผู้ใช้กดยืมอุปกรณ์ที่ถูกยืมไปแล้ว</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 10: INTERACTIVE PHONE SIMULATOR -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="phone-simulator-section" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 10: INTERACTIVE PHONE SIMULATOR
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              10. จอจำลองมือถือเสมือนจริง: ทดสอบสลับ 4 รูปแบบมุมมอง (Card / Deck / Table / Detail)
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            สัมผัสประสบการณ์จริงของแอปพลิเคชัน AppSheet บนสมาร์ตโฟนขนาด 320x640 พิกเซล สามารถคลิกสลับรูปแบบมุมมอง (Views) และเปลี่ยนโหมดธุรกิจ (Archetypes) เพื่อดูการเปลี่ยนแปลงของ UI ได้แบบเรียลไทม์:
+          </p>
+
+          <!-- Simulator Container -->
+          <div class="p-6 bg-[#F8F8F8] rounded-3xl border border-[#E5E5E5] flex flex-col lg:flex-row items-center justify-center gap-8">
+            
+            <!-- Phone Mockup Device (320x640) -->
+            <div class="phone-mockup shrink-0">
+              <!-- Phone Notch -->
+              <div class="phone-notch"></div>
+
+              <!-- Phone Screen Content Viewport -->
+              <div class="w-full h-full flex flex-col bg-white overflow-hidden text-xs">
+                
+                <!-- Status Bar -->
+                <div class="h-8 bg-zinc-900 text-white px-5 pt-1.5 flex items-center justify-between text-[10px] font-mono shrink-0 select-none">
+                  <span>09:41</span>
+                  <div class="flex items-center gap-1.5">
+                    <span>5G</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+
+                <!-- App Header Bar -->
+                <div class="h-12 bg-white border-b border-zinc-200 px-3 flex items-center justify-between shrink-0 shadow-sm">
+                  <div class="flex items-center gap-2">
+                    <span id="phoneAppIcon" class="text-lg">☕</span>
+                    <span id="phoneAppTitle" class="font-bold text-xs text-zinc-900 truncate max-w-[130px]">Fresh Brew Cafe</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button onclick="phoneSearchToggle()" class="w-7 h-7 rounded-full hover:bg-zinc-100 flex items-center justify-center text-zinc-600" title="ค้นหา">
+                      🔍
+                    </button>
+                    <button id="phoneSyncBtn" onclick="triggerPhoneSync()" class="w-7 h-7 rounded-full hover:bg-zinc-100 flex items-center justify-center text-zinc-600 transition" title="กดเพื่อ Live Sync">
+                      ↻
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Mini Search Bar inside Phone (collapsible) -->
+                <div id="phoneSearchBox" class="p-2 bg-zinc-100 border-b border-zinc-200 hidden">
+                  <input type="text" id="phoneFilterInput" onkeyup="filterPhoneItems()" placeholder="พิมพ์ชื่อเพื่อกรอง..." class="w-full px-2 py-1 bg-white border border-zinc-300 rounded text-[11px] focus:outline-none">
+                </div>
+
+                <!-- Sync Notification Pill -->
+                <div id="phoneSyncNotice" class="hidden bg-green-600 text-white text-[10px] py-1 px-2 text-center font-bold tracking-wide transition">
+                  ✓ Live Sync สำเร็จ: อัปเดตข้อมูลจากชีตแล้ว!
+                </div>
+
+                <!-- Scrollable Screen Content -->
+                <div id="phoneScreenBody" class="flex-1 overflow-y-auto p-3 space-y-3 bg-[#F8F8F8]">
+                  
+                  <!-- Category Header Pill -->
+                  <div id="phoneCategoryHeader" class="text-[11px] font-bold text-zinc-600 bg-white px-2.5 py-1 rounded-md border border-zinc-200 shadow-sm flex items-center justify-between">
+                    <span id="phoneCategoryName">หมวด: ชานมและชาผลไม้</span>
+                    <span id="phoneItemCount" class="text-[10px] text-zinc-400">2 รายการ</span>
+                  </div>
+
+                  <!-- 1. Card View Screen (Default) -->
+                  <div id="simScreen-card" class="space-y-3">
+                    <!-- Item 1 -->
+                    <div onclick="openSimDetail(1)" class="cursor-pointer bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm hover:shadow transition">
+                      <div class="h-28 bg-zinc-200 overflow-hidden relative">
+                        <img id="simImg1" src="https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500" alt="Item" class="w-full h-full object-cover">
+                        <span id="simTag1" class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-mono font-bold">P-001</span>
+                      </div>
+                      <div class="p-2.5 space-y-1">
+                        <div id="simTitle1" class="font-bold text-zinc-900 text-xs">ชานมไต้หวันบราวชูการ์</div>
+                        <div id="simDesc1" class="text-[10px] text-zinc-500 line-clamp-1">ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับเคี่ยวสด</div>
+                        <div class="flex items-center justify-between pt-1 border-t border-zinc-100">
+                          <span id="simPrice1" class="font-bold text-[#FF0000] text-xs">฿55.00</span>
+                          <button onclick="event.stopPropagation(); incrementCart();" class="px-2 py-0.5 rounded bg-[#0F0F0F] text-white text-[10px] font-bold hover:bg-black">
+                            + สั่งซื้อ
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div onclick="openSimDetail(2)" class="cursor-pointer bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm hover:shadow transition">
+                      <div class="h-28 bg-zinc-200 overflow-hidden relative">
+                        <img id="simImg2" src="https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500" alt="Item" class="w-full h-full object-cover">
+                        <span id="simTag2" class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-mono font-bold">P-002</span>
+                      </div>
+                      <div class="p-2.5 space-y-1">
+                        <div id="simTitle2" class="font-bold text-zinc-900 text-xs">ชาเขียวมัทฉะลาเต้เย็น</div>
+                        <div id="simDesc2" class="text-[10px] text-zinc-500 line-clamp-1">มัทฉะอุจิแท้ 100% นมสดพรีเมียม หอมนุ่มละมุน</div>
+                        <div class="flex items-center justify-between pt-1 border-t border-zinc-100">
+                          <span id="simPrice2" class="font-bold text-[#FF0000] text-xs">฿65.00</span>
+                          <button onclick="event.stopPropagation(); incrementCart();" class="px-2 py-0.5 rounded bg-[#0F0F0F] text-white text-[10px] font-bold hover:bg-black">
+                            + สั่งซื้อ
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2. Deck View Screen (Compact Horizontal List) -->
+                  <div id="simScreen-deck" class="space-y-2 hidden">
+                    <div onclick="openSimDetail(1)" class="cursor-pointer p-2 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm hover:shadow transition">
+                      <img id="deckImg1" src="https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500" class="w-14 h-14 rounded-lg object-cover shrink-0">
+                      <div class="flex-1 min-w-0">
+                        <div id="deckTitle1" class="font-bold text-zinc-900 text-xs truncate">ชานมไต้หวันบราวชูการ์</div>
+                        <div id="deckSub1" class="text-[10px] text-zinc-500">รหัส P-001 • คงเหลือ 120</div>
+                        <div id="deckPrice1" class="font-bold text-[#FF0000] text-xs">฿55.00</div>
+                      </div>
+                      <span class="text-zinc-400 font-bold">›</span>
+                    </div>
+
+                    <div onclick="openSimDetail(2)" class="cursor-pointer p-2 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm hover:shadow transition">
+                      <img id="deckImg2" src="https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500" class="w-14 h-14 rounded-lg object-cover shrink-0">
+                      <div class="flex-1 min-w-0">
+                        <div id="deckTitle2" class="font-bold text-zinc-900 text-xs truncate">ชาเขียวมัทฉะลาเต้เย็น</div>
+                        <div id="deckSub2" class="text-[10px] text-zinc-500">รหัส P-002 • คงเหลือ 85</div>
+                        <div id="deckPrice2" class="font-bold text-[#FF0000] text-xs">฿65.00</div>
+                      </div>
+                      <span class="text-zinc-400 font-bold">›</span>
+                    </div>
+                  </div>
+
+                  <!-- 3. Table View Screen (Dense Spreadsheet Rows) -->
+                  <div id="simScreen-table" class="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm hidden">
+                    <table class="w-full text-left text-[10px]">
+                      <thead class="bg-zinc-100 text-zinc-700 font-bold border-b border-zinc-200">
+                        <tr>
+                          <th class="p-1.5">ID</th>
+                          <th class="p-1.5">รายการ</th>
+                          <th class="p-1.5 text-right">ราคา</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-zinc-100">
+                        <tr onclick="openSimDetail(1)" class="cursor-pointer hover:bg-zinc-50">
+                          <td class="p-1.5 font-mono font-bold text-zinc-500" id="tblId1">P-001</td>
+                          <td class="p-1.5 font-medium truncate max-w-[110px]" id="tblTitle1">ชานมไต้หวัน</td>
+                          <td class="p-1.5 text-right font-bold text-[#FF0000]" id="tblPrice1">฿55.00</td>
+                        </tr>
+                        <tr onclick="openSimDetail(2)" class="cursor-pointer hover:bg-zinc-50">
+                          <td class="p-1.5 font-mono font-bold text-zinc-500" id="tblId2">P-002</td>
+                          <td class="p-1.5 font-medium truncate max-w-[110px]" id="tblTitle2">ชาเขียวมัทฉะ</td>
+                          <td class="p-1.5 text-right font-bold text-[#FF0000]" id="tblPrice2">฿65.00</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- 4. Detail View Screen (Opened on Tap) -->
+                  <div id="simScreen-detail" class="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm space-y-3 hidden">
+                    <div class="h-36 bg-zinc-200 relative">
+                      <img id="detailImg" src="https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500" class="w-full h-full object-cover">
+                      <button onclick="closeSimDetail()" class="absolute top-2 left-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center font-bold">
+                        ←
+                      </button>
+                    </div>
+                    <div class="p-3 space-y-2">
+                      <div class="flex items-center justify-between">
+                        <span id="detailTag" class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 font-mono text-[9px] font-bold">P-001</span>
+                        <span id="detailCat" class="text-[10px] text-zinc-500">ชานม</span>
+                      </div>
+                      <h4 id="detailTitle" class="text-sm font-bold text-zinc-900">ชานมไต้หวันบราวชูการ์</h4>
+                      <div id="detailPrice" class="text-base font-bold text-[#FF0000]">฿55.00</div>
+                      <p id="detailDesc" class="text-[11px] text-zinc-600 leading-relaxed border-t border-zinc-100 pt-2">
+                        ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับเคี่ยวสดใหม่ หอมกลิ่นน้ำตาลทรายแดงแท้จากไต้หวัน เลือกระดับความหวานได้ 0-100%
+                      </p>
+                      <button onclick="incrementCart(); closeSimDetail();" class="w-full py-2 rounded-lg bg-[#FF0000] text-white font-bold text-xs hover:bg-[#CC0000] transition">
+                        🛒 ยืนยันรายการ
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Phone Bottom Navigation Bar -->
+                <div class="h-12 bg-white border-t border-zinc-200 px-3 flex items-center justify-around text-[10px] font-medium text-zinc-500 shrink-0 select-none">
+                  <div class="flex flex-col items-center text-[#FF0000] font-bold">
+                    <span>🏠</span>
+                    <span>เมนู</span>
+                  </div>
+                  <div class="flex flex-col items-center hover:text-zinc-900 cursor-pointer relative">
+                    <span>🛒</span>
+                    <span>ตะกร้า</span>
+                    <span id="phoneCartBadge" class="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-[#FF0000] text-white text-[9px] font-bold flex items-center justify-center">0</span>
+                  </div>
+                  <div class="flex flex-col items-center hover:text-zinc-900 cursor-pointer">
+                    <span>👤</span>
+                    <span>โปรไฟล์</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Simulator Control Panel & Explanations -->
+            <div class="max-w-md w-full space-y-4 text-xs">
+              
+              <!-- Archetype Toggle Buttons -->
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 space-y-2">
+                <span class="font-bold text-[#0F0F0F] uppercase tracking-wide block">1. เลือกธุรกิจจำลอง (Archetype):</span>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <button id="simArchBtn-fb" onclick="setSimArchetype('fb')" class="py-2 px-2 rounded-lg text-xs font-bold bg-[#0F0F0F] text-white transition">
+                    ☕ ชานม
+                  </button>
+                  <button id="simArchBtn-hp" onclick="setSimArchetype('hp')" class="py-2 px-2 rounded-lg text-xs font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition">
+                    🐾 สัตว์เลี้ยง
+                  </button>
+                  <button id="simArchBtn-sb" onclick="setSimArchetype('sb')" class="py-2 px-2 rounded-lg text-xs font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition">
+                    📦 ยืมอุปกรณ์
+                  </button>
+                </div>
+              </div>
+
+              <!-- View Switcher Buttons -->
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 space-y-2">
+                <span class="font-bold text-[#0F0F0F] uppercase tracking-wide block">2. สลับโหมดมุมมอง (View Types):</span>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <button id="simViewBtn-card" onclick="setSimView('card')" class="py-2 px-2 rounded-lg text-xs font-bold bg-[#FF0000] text-white transition">
+                    🎴 Card View
+                  </button>
+                  <button id="simViewBtn-deck" onclick="setSimView('deck')" class="py-2 px-2 rounded-lg text-xs font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition">
+                    📋 Deck View
+                  </button>
+                  <button id="simViewBtn-table" onclick="setSimView('table')" class="py-2 px-2 rounded-lg text-xs font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition">
+                    📊 Table View
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dynamic Explanation Box -->
+              <div id="simExplanationBox" class="p-4 bg-white rounded-xl border border-[#E5E5E5] space-y-2">
+                <div class="font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                  <span>💡 คำอธิบายมุมมองปัจจุบัน:</span>
+                </div>
+                <p id="simExplanationText" class="text-zinc-600 leading-relaxed text-xs">
+                  <strong>Card View:</strong> ภาพปกขนาดใหญ่ ป้ายราคาตัวเลขสีแดงเด่นชัด เหมาะกับผู้บริโภคที่ต้องการเห็นสินค้าและแตะกดสั่งซื้อได้ทันที
+                </p>
+              </div>
+
+              <div class="p-3 bg-zinc-100 rounded-xl text-zinc-500 text-[11px] leading-relaxed">
+                👉 <strong>ลองทดสอบ:</strong> คลิกที่รูปสินค้าเพื่อเปิดดู <strong>Detail View</strong> หรือคลิกปุ่ม <strong>↻ (Sync)</strong> ด้านบนขวาเพื่อดูเอฟเฟกต์การซิงก์ข้อมูลแบบ Live Sync!
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 11: PHYSICAL PHONE & LIVE SYNC TESTING -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="live-sync-testing" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 11: LIVE SYNC & HARDWARE DEPLOYMENT
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              11. การติดตั้งแอปพลิเคชันบนสมาร์ตโฟนจริงและการทดสอบระบบ Live Sync
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            ถึงเวลาที่น่าภาคภูมิใจที่สุดของการเป็นนักพัฒนา: นำแอปพลิเคชันที่สร้างขึ้นไปเปิดใช้งานบนโทรศัพท์มือถือจริงในมือของตนเองและสมาชิกทุกคนในทีม:
+          </p>
+
+          <!-- Step Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-5 bg-white rounded-2xl border border-zinc-200 space-y-3 elevation-1">
+              <div class="text-xs font-bold text-[#FF0000] uppercase tracking-wide">ขั้นตอนติดตั้งบนมือถือจริง</div>
+              <div class="space-y-2 text-xs text-zinc-700">
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#0F0F0F]">1.</span>
+                  <span>เปิด <strong>App Store (iPhone)</strong> หรือ <strong>Google Play (Android)</strong> ค้นหาแอปชื่อ <strong>"AppSheet"</strong> (พัฒนาโดย Google LLC) แล้วกดติดตั้ง</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#0F0F0F]">2.</span>
+                  <span>เปิดแอป AppSheet ขึ้นมา แตะปุ่ม <strong>"Sign in with Google"</strong></span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#0F0F0F]">3.</span>
+                  <span>ล็อกอินด้วยอีเมล Google บัญชีเดียวกับที่ใช้สร้างไฟล์ในคอมพิวเตอร์</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#0F0F0F]">4.</span>
+                  <span>จะพบชื่อแอปของกลุ่มตนเองปรากฏในแท็บ <strong>"Owned by me"</strong> แตะเปิดแอปใช้งานได้ทันที!</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Sync Experiment -->
+            <div class="p-5 bg-red-50/60 rounded-2xl border border-red-200 space-y-3 elevation-1">
+              <div class="text-xs font-bold text-[#FF0000] uppercase tracking-wide">ปาฏิหาริย์แห่ง Live Sync (เวิร์กช็อป 6 สเต็ป)</div>
+              <div class="space-y-2 text-xs text-zinc-800">
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#FF0000]">สเต็ป 1:</span>
+                  <span>เพื่อนคนที่ 1 นั่งหน้าจอคอม เปิดไฟล์ Google Sheets ขึ้นมา</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#FF0000]">สเต็ป 2:</span>
+                  <span>แก้ไขราคาสินค้าแถวที่ 2 จาก <code>55.00</code> เปลี่ยนเป็น <code>99.00</code> แล้วกด Enter</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#FF0000]">สเต็ป 3:</span>
+                  <span>เพื่อนคนที่ 2 ถือสมาร์ตโฟนจริง แตะ <strong>"ไอคอนหมุนวน (Sync Button)"</strong> มุมขวาบน</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#2BA640]">สเต็ป 4:</span>
+                  <span class="font-bold text-green-900">ราคาบนหน้าจอมือถือจะเปลี่ยนเป็น ฿99.00 บาททันทีแบบเรียลไทม์!</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-bold text-[#0F0F0F]">สเต็ป 5:</span>
+                  <span>ทดสอบย้อนกลับ: แก้ไขสต็อกบนมือถือ -> ข้อมูลใน Google Sheets บนคอมพิวเตอร์จะอัปเดตตามทันที!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 12: 3-PERSON TEAM COLLABORATION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="team-collaboration" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 12: COLLABORATION MATRIX
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              12. การทำงานร่วมกันในทีม 3 คน (Collaboration Matrix)
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+            การพัฒนาแอปพลิเคชันอย่างมืออาชีพต้องอาศัยการแบ่งบทบาทที่ชัดเจน ตารางความรับผิดชอบของสมาชิกทั้ง 3 คนในทีมสำหรับสัปดาห์ที่ 6 มีดังนี้:
+          </p>
+
+          <div class="overflow-x-auto rounded-xl border border-[#E5E5E5] shadow-sm">
+            <table class="w-full text-left sheet-table">
+              <thead>
+                <tr>
+                  <th class="w-1/4">บทบาทสมาชิก</th>
+                  <th class="w-1/4">ตำแหน่งหน้าที่</th>
+                  <th class="w-1/2">ภารกิจที่ต้องส่งมอบในบทที่ 6</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-bold text-[#FF0000] bg-red-50/40">สมาชิกคนที่ 1</td>
+                  <td class="font-bold text-[#0F0F0F]">App Creator & Data Lead</td>
+                  <td class="text-xs text-zinc-700">
+                    1. เชื่อมต่อ Google Sheets เข้าสู่ AppSheet Studio<br>
+                    2. ตรวจสอบความถูกต้องของ <strong>Key [✓]</strong> และ <strong>Label [✓]</strong><br>
+                    3. กำหนด Data Types (Price ฿, Image, Enum, Number) ให้สมบูรณ์
+                  </td>
+                </tr>
+                <tr>
+                  <td class="font-bold text-[#065FD4] bg-blue-50/40">สมาชิกคนที่ 2</td>
+                  <td class="font-bold text-[#0F0F0F]">UX Designer & View Specialist</td>
+                  <td class="text-xs text-zinc-700">
+                    1. สร้างมุมมอง Card View และ Gallery View สำหรับแคตตาล็อก<br>
+                    2. ผูกรูปภาพ หัวข้อ ราคา และคำอธิบายลงในการ์ด<br>
+                    3. จัดกลุ่มหมวดหมู่ (Group by) และเรียงลำดับราคา (Sort by)
+                  </td>
+                </tr>
+                <tr>
+                  <td class="font-bold text-[#2BA640] bg-green-50/40">สมาชิกคนที่ 3</td>
+                  <td class="font-bold text-[#0F0F0F]">Tester & QA Lead</td>
+                  <td class="text-xs text-zinc-700">
+                    1. ติดตั้ง AppSheet บนสมาร์ตโฟนจริงและล็อกอินบัญชี Google<br>
+                    2. ดำเนินการทดสอบระบบ Live Sync แก้ไขข้อมูลชีตเทียบกับมือถือ<br>
+                    3. แชร์สิทธิ์ผู้ใช้งาน (Share app) และคัดลอกลิงก์ส่งงาน
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 13: FAQS ACCORDION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="faqs-section" class="space-y-6">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 13: TROUBLESHOOTING & FAQS
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              13. ปัญหาที่พบบ่อยและวิธีแก้ไข (Troubleshooting & FAQs)
+            </h2>
+          </div>
+
+          <!-- FAQ Accordion Items -->
+          <div class="space-y-3">
+            <!-- Q1 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(1)" class="w-full p-4 text-left font-bold text-xs sm:text-sm text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>Q1: ทำไมรูปภาพสินค้าในแอปไม่ยอมแสดง กลายเป็นรูปสามเหลี่ยมสีเทาตกใจ?</span>
+                <span id="faqIcon1" class="text-lg text-zinc-400 font-bold ml-2">+</span>
+              </button>
+              <div id="faqAns1" class="p-4 border-t border-[#E5E5E5] bg-[#F8F8F8] text-xs text-zinc-700 leading-relaxed hidden space-y-2">
+                <p><strong>สาเหตุหลัก 2 ประการ:</strong></p>
+                <ul class="list-disc list-inside space-y-1">
+                  <li><strong>สาเหตุที่ 1:</strong> สิทธิ์ในโฟลเดอร์ Google Drive ยังเป็นแบบ Private (ล็อกไว้) -> <em>วิธีแก้:</em> ไปที่ Drive คลิกแชร์โฟลเดอร์ เปลี่ยนเป็น "ทุกคนที่มีลิงก์มีสิทธิ์ดู (Anyone with the link)"</li>
+                  <li><strong>สาเหตุที่ 2:</strong> รูปแบบลิงก์ไม่ใช่ Direct Link -> <em>วิธีแก้:</em> แปลงลิงก์ให้อยู่ในฟอร์แมต <code>https://drive.google.com/uc?export=view&id=FILE_ID</code> ตามสูตรในบทที่ 5</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(2)" class="w-full p-4 text-left font-bold text-xs sm:text-sm text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>Q2: AppSheet ขึ้นแถบสีแดงเตือนว่า: "Table Products has no Key"?</span>
+                <span id="faqIcon2" class="text-lg text-zinc-400 font-bold ml-2">+</span>
+              </button>
+              <div id="faqAns2" class="p-4 border-t border-[#E5E5E5] bg-[#F8F8F8] text-xs text-zinc-700 leading-relaxed hidden space-y-2">
+                <p><strong>สาเหตุ:</strong> ลืมติ๊กเลือกคอลัมน์ที่เป็น Key ในเมนู Data -> Columns</p>
+                <p><strong>วิธีแก้:</strong> เข้าไปที่ Data -> Columns -> ตาราง Products -> ติ๊กเครื่องหมายถูกในช่อง <strong>Key [✓]</strong> ที่คอลัมน์ <code>Product_ID</code> จากนั้นคลิกปุ่ม 💾 Save ที่มุมบนขวา</p>
+              </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(3)" class="w-full p-4 text-left font-bold text-xs sm:text-sm text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>Q3: ราคาในแอปแสดงสัญลักษณ์ดอลลาร์ ($) แทนที่จะเป็นบาท (฿)?</span>
+                <span id="faqIcon3" class="text-lg text-zinc-400 font-bold ml-2">+</span>
+              </button>
+              <div id="faqAns3" class="p-4 border-t border-[#E5E5E5] bg-[#F8F8F8] text-xs text-zinc-700 leading-relaxed hidden space-y-2">
+                <p><strong>วิธีแก้:</strong> ไปที่ Data -> Columns -> คลิกรูปดินสอ [✎] หน้าคอลัมน์ <code>Unit_Price</code> -> เลื่อนลงมาที่หัวข้อ Type Details -> ช่อง Currency symbol ให้พิมพ์ <code>฿</code> หรือ <code>THB</code> แล้วกด Done -> Save</p>
+              </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(4)" class="w-full p-4 text-left font-bold text-xs sm:text-sm text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>Q4: แก้ไขข้อมูลในชีตแล้ว ทำไมบนมือถือยังเป็นข้อมูลเดิม?</span>
+                <span id="faqIcon4" class="text-lg text-zinc-400 font-bold ml-2">+</span>
+              </button>
+              <div id="faqAns4" class="p-4 border-t border-[#E5E5E5] bg-[#F8F8F8] text-xs text-zinc-700 leading-relaxed hidden space-y-2">
+                <p><strong>วิธีแก้:</strong> แตะที่ <strong>ไอคอนลูกศรหมุนวน (Sync Button)</strong> ที่มุมขวาบนของหน้าจอมือถือ หรือปัดนิ้วลงเพื่อดึงรีเฟรชหน้าจอ (Pull to refresh) ข้อมูลจะอัปเดตเป็นค่าล่าสุดทันที</p>
+              </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(5)" class="w-full p-4 text-left font-bold text-xs sm:text-sm text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>Q5: ส่งลิงก์แอปให้เพื่อนในกลุ่มแล้ว เพื่อนเปิดไม่ได้ ขึ้น "Unable to access app"?</span>
+                <span id="faqIcon5" class="text-lg text-zinc-400 font-bold ml-2">+</span>
+              </button>
+              <div id="faqAns5" class="p-4 border-t border-[#E5E5E5] bg-[#F8F8F8] text-xs text-zinc-700 leading-relaxed hidden space-y-2">
+                <p><strong>วิธีแก้:</strong> ต้องเพิ่มอีเมล Google ของเพื่อนในเมนู <strong>Share</strong> มุมขวาบนของ AppSheet Studio เสียก่อน หากไม่ได้ใส่อีเมลไว้ ระบบความปลอดภัยจะไม่อนุญาตให้เปิดแอป</p>
+              </div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(6)" class="w-full p-4 text-left font-bold text-xs sm:text-sm text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>Q6: ปรับแต่ง Card View เสร็จแล้ว แต่ทำไมบนจอมือถือไม่เห็นปุ่มเมนูนี้?</span>
+                <span id="faqIcon6" class="text-lg text-zinc-400 font-bold ml-2">+</span>
+              </button>
+              <div id="faqAns6" class="p-4 border-t border-[#E5E5E5] bg-[#F8F8F8] text-xs text-zinc-700 leading-relaxed hidden space-y-2">
+                <p><strong>วิธีแก้:</strong> ตรวจสอบการตั้งค่า <strong>Position</strong> ของ View นั้น หากตั้งเป็น <code>ref</code> หรือ <code>menu</code> จะไม่แสดงบนแถบเมนูด้านล่าง ให้เปลี่ยนค่า Position เป็น <strong><code>primary</code></strong> หรือ <strong><code>first</code></strong></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 14: LAB ASSIGNMENT, SELF-CHECKLIST & RUBRIC -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="checklist-section" class="space-y-8">
+          <div class="border-b border-[#E5E5E5] pb-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+              MODULE 14: QUALITY ASSURANCE & ASSESSMENT
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-[#0F0F0F] mt-1">
+              14. ใบงานปฏิบัติการ, แบบตรวจสอบตนเอง (Checklist) และเกณฑ์การประเมิน (Rubric)
+            </h2>
+          </div>
+
+          <!-- Share App Instructions Card -->
+          <div class="p-5 bg-white rounded-2xl border border-zinc-200 elevation-1 space-y-3">
+            <h3 class="text-sm font-bold text-[#0F0F0F] uppercase flex items-center gap-2">
+              <span>📤</span>
+              <span>ขั้นตอนการแชร์ลิงก์แอปพลิเคชันส่งงาน (How to Share App Link)</span>
+            </h3>
+            <ol class="list-decimal list-inside text-xs text-zinc-700 space-y-1.5 leading-relaxed">
+              <li>ที่มุมบนขวาของหน้าต่าง AppSheet คลิกปุ่ม <strong>"Share"</strong> (รูปคนและเครื่องหมายบวก)</li>
+              <li>ในช่อง <strong>Email address</strong> ให้ใส่อีเมลของครูผู้สอน และอีเมลของสมาชิกในกลุ่มทั้ง 3 คน</li>
+              <li>เลื่อนลงมาที่หัวข้อ <strong>"Copy sharing links"</strong>: คัดลอกที่ช่อง 👉 <strong>"Browser Link"</strong> (สำหรับเปิดตรวจบนคอมพิวเตอร์) หรือ <strong>"Install Link"</strong> (สำหรับเปิดติดตั้งบนมือถือ)</li>
+              <li>นำลิงก์ที่ได้ไปส่งใน Google Classroom พร้อมแนบภาพสกรีนช็อตหน้าจอแอปบนสมาร์ตโฟนจริง</li>
+            </ol>
+          </div>
+
+          <!-- Interactive Self-Checklist (localStorage: curriculum_ch06_checklist) -->
+          <div class="p-6 bg-[#F8F8F8] rounded-2xl border border-[#E5E5E5] space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-[#0F0F0F] uppercase tracking-wide">
+                  🔍 แบบตรวจสอบตนเองก่อนส่งงาน (Self-Checklist)
+                </h3>
+                <div class="text-xs text-zinc-500">บันทึกสถานะลงเครื่องอัตโนมัติ (LocalStorage Key: curriculum_ch06_checklist)</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span id="checklistPercentage" class="text-xs font-bold text-[#FF0000]">0% (0/6 ข้อ)</span>
+                <button onclick="resetChecklist()" class="text-[11px] px-2.5 py-1 rounded bg-white border border-zinc-200 hover:text-red-600 transition">
+                  รีเซ็ต
+                </button>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2 bg-zinc-200 rounded-full overflow-hidden">
+              <div id="checklistProgressBar" class="h-full bg-[#FF0000] w-0 transition-all duration-300"></div>
+            </div>
+
+            <!-- Checkbox List -->
+            <div class="space-y-2.5 pt-2 text-xs sm:text-sm">
+              <label class="flex items-start gap-3 p-3 bg-white rounded-xl border border-zinc-200 cursor-pointer hover:border-zinc-400 transition">
+                <input type="checkbox" class="check-item w-4 h-4 rounded text-[#FF0000] focus:ring-red-500 mt-0.5" onchange="updateChecklist()">
+                <span class="text-zinc-800">1. แอปพลิเคชันเชื่อมต่อกับ Google Sheets สำเร็จ และไม่มีแถบสีแดงแจ้งเตือน Error</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 bg-white rounded-xl border border-zinc-200 cursor-pointer hover:border-zinc-400 transition">
+                <input type="checkbox" class="check-item w-4 h-4 rounded text-[#FF0000] focus:ring-red-500 mt-0.5" onchange="updateChecklist()">
+                <span class="text-zinc-800">2. คอลัมน์รหัส (ID) ถูกตั้งเป็น Key [✓] และคอลัมน์ชื่อถูกตั้งเป็น Label [✓] ถูกต้องแม่นยำ</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 bg-white rounded-xl border border-zinc-200 cursor-pointer hover:border-zinc-400 transition">
+                <input type="checkbox" class="check-item w-4 h-4 rounded text-[#FF0000] focus:ring-red-500 mt-0.5" onchange="updateChecklist()">
+                <span class="text-zinc-800">3. ราคาแสดงผลเป็นสกุลเงินบาท ฿ และคอลัมน์ตัวเลขกำหนดประเภทได้ถูกต้อง</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 bg-white rounded-xl border border-zinc-200 cursor-pointer hover:border-zinc-400 transition">
+                <input type="checkbox" class="check-item w-4 h-4 rounded text-[#FF0000] focus:ring-red-500 mt-0.5" onchange="updateChecklist()">
+                <span class="text-zinc-800">4. รูปภาพสินค้าแสดงผลคมชัดครบทุกรูป ไม่ปรากฏไอคอนสามเหลี่ยมรูปภาพเสีย</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 bg-white rounded-xl border border-zinc-200 cursor-pointer hover:border-zinc-400 transition">
+                <input type="checkbox" class="check-item w-4 h-4 rounded text-[#FF0000] focus:ring-red-500 mt-0.5" onchange="updateChecklist()">
+                <span class="text-zinc-800">5. หน้าจอแคตตาล็อกมีการจัดกลุ่มหมวดหมู่ (Group by) และเรียงลำดับราคา (Sort by) ชัดเจน</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 bg-white rounded-xl border border-zinc-200 cursor-pointer hover:border-zinc-400 transition">
+                <input type="checkbox" class="check-item w-4 h-4 rounded text-[#FF0000] focus:ring-red-500 mt-0.5" onchange="updateChecklist()">
+                <span class="text-zinc-800">6. สมาชิกในกลุ่มเปิดทดสอบบนสมาร์ตโฟนจริง และสาธิตการทำงานของ Live Sync ผ่านสำเร็จ 100%</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Interactive Rubric Calculator (5 Criteria x 3 Tiers = 10 Pts) -->
+          <div id="rubric-section" class="p-6 bg-white rounded-2xl border-2 border-red-100 elevation-1 space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E5E5] pb-4">
+              <div>
+                <h3 class="text-base font-bold text-[#0F0F0F]">📊 เครื่องคำนวณเกณฑ์การประเมินชิ้นงาน (Rubric Calculator)</h3>
+                <div class="text-xs text-zinc-500">คลิกระดับผลงานของกลุ่มเพื่อประเมินคะแนนรวม (เต็ม 10 คะแนน)</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="text-right">
+                  <div class="text-[10px] text-zinc-400 uppercase font-mono">คะแนนรวม</div>
+                  <div class="text-2xl font-bold text-[#FF0000]"><span id="rubricTotalScore">10</span> / 10</div>
+                </div>
+                <div id="rubricGradeBadge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-[#2BA640] text-white">
+                  ระดับดีเยี่ยม (Mastery)
+                </div>
+              </div>
+            </div>
+
+            <!-- Rubric Criteria Items -->
+            <div class="space-y-4 text-xs">
+              
+              <!-- Criteria 1 (3 pts) -->
+              <div class="space-y-1.5">
+                <div class="font-bold text-[#0F0F0F]">เกณฑ์ที่ 1: การเชื่อมต่อและการตั้งค่าโครงสร้างข้อมูล (3 คะแนน)</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button onclick="setRubricScore(1, 3, this)" class="rubric-btn-1 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <strong class="block text-zinc-900">ดีมาก (3 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">เชื่อมต่อสำเร็จ ไม่ติด Error ตั้งค่า Key/Label ถูกต้อง Data Types แม่นยำทุกคอลัมน์</span>
+                  </button>
+                  <button onclick="setRubricScore(1, 2, this)" class="rubric-btn-1 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">พอใช้ (2 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">เชื่อมต่อได้ แต่บางคอลัมน์ตั้ง Type ผิด เช่น ราคายังเป็น Text</span>
+                  </button>
+                  <button onclick="setRubricScore(1, 1, this)" class="rubric-btn-1 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">ปรับปรุง (1 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">ติด Error เรื่อง Key หรือโหลดชีตไม่สำเร็จ</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Criteria 2 (3 pts) -->
+              <div class="space-y-1.5">
+                <div class="font-bold text-[#0F0F0F]">เกณฑ์ที่ 2: ความสวยงามของมุมมองแคตตาล็อก UX (3 คะแนน)</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button onclick="setRubricScore(2, 3, this)" class="rubric-btn-2 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <strong class="block text-zinc-900">ดีมาก (3 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">ใช้ Card/Gallery View สวยงาม ผูกภาพ หัวข้อ ราคาถูกต้อง จัดกลุ่ม Group by สบายตา</span>
+                  </button>
+                  <button onclick="setRubricScore(2, 2, this)" class="rubric-btn-2 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">พอใช้ (2 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">จัดหน้าจอได้ แต่ภาพยังไม่ขึ้นบางรูป หรือยังไม่ได้จัดกลุ่มหมวดหมู่</span>
+                  </button>
+                  <button onclick="setRubricScore(2, 1, this)" class="rubric-btn-2 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">ปรับปรุง (1 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">แสดงผลเป็นเพียงตารางดิบ (Table) ไม่มีการปรับแต่ง UX</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Criteria 3 (2 pts) -->
+              <div class="space-y-1.5">
+                <div class="font-bold text-[#0F0F0F]">เกณฑ์ที่ 3: ประสบการณ์บนสมาร์ตโฟนจริงและ Live Sync (2 คะแนน)</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button onclick="setRubricScore(3, 2, this)" class="rubric-btn-3 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <strong class="block text-zinc-900">ดีมาก (2 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">ติดตั้งบนมือถือจริงสำเร็จ และสาธิต Live Sync แก้ไขข้อมูลอัปเดตแบบเรียลไทม์</span>
+                  </button>
+                  <button onclick="setRubricScore(3, 1, this)" class="rubric-btn-3 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">พอใช้ (1 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">เปิดบนมือถือได้ แต่การซิงก์ข้อมูลติดขัด หรือภาพโหลดช้ามาก</span>
+                  </button>
+                  <button onclick="setRubricScore(3, 0, this)" class="rubric-btn-3 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">ปรับปรุง (0 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">ไม่ได้ทดสอบบนมือถือจริง ดูเฉพาะบนคอมพิวเตอร์</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Criteria 4 (1 pt) -->
+              <div class="space-y-1.5">
+                <div class="font-bold text-[#0F0F0F]">เกณฑ์ที่ 4: การตั้งค่า Show_If หรือฟังก์ชันขั้นสูง (1 คะแนน)</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button onclick="setRubricScore(4, 1, this)" class="rubric-btn-4 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <strong class="block text-zinc-900">ดีมาก (1 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">มีการประยุกต์ใช้สูตร Show_If ควบคุมการแสดงผลฟิลด์หรือปุ่มได้อย่างเหมาะสม</span>
+                  </button>
+                  <button onclick="setRubricScore(4, 0.5, this)" class="rubric-btn-4 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">พอใช้ (0.5 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">เขียนสูตร Show_If ได้แต่ยังมีจุดผิดพลาดเล็กน้อย</span>
+                  </button>
+                  <button onclick="setRubricScore(4, 0, this)" class="rubric-btn-4 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">ปรับปรุง (0 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">ไม่มีการใช้สูตรเงื่อนไขใดๆ</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Criteria 5 (1 pt) -->
+              <div class="space-y-1.5">
+                <div class="font-bold text-[#0F0F0F]">เกณฑ์ที่ 5: การแชร์สิทธิ์และการส่งงานตามกำหนด (1 คะแนน)</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button onclick="setRubricScore(5, 1, this)" class="rubric-btn-5 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <strong class="block text-zinc-900">ดีมาก (1 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">แชร์สิทธิ์ผู้ใช้งาน (Share app) ถูกต้อง ครูเปิดทดสอบแอปได้ทันที</span>
+                  </button>
+                  <button onclick="setRubricScore(5, 0.5, this)" class="rubric-btn-5 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">พอใช้ (0.5 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">แชร์ลิงก์ถูกต้องแต่ยังไม่ได้เพิ่มอีเมลครูผู้สอน หรือส่งช้ากว่ากำหนด</span>
+                  </button>
+                  <button onclick="setRubricScore(5, 0, this)" class="rubric-btn-5 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <strong class="block text-zinc-900">ปรับปรุง (0 คะแนน)</strong>
+                    <span class="text-zinc-600 text-[11px]">ไม่ได้ส่งลิงก์แอป หรือส่งเฉพาะลิงก์ชีต</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Rubric Status Banner -->
+            <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200 text-xs text-zinc-600 flex items-center justify-between">
+              <span id="rubricStatusText">คะแนนระดับยอดเยี่ยม โครงสร้างฐานข้อมูลและการแสดงผลบนมือถือพร้อมใช้งานจริง 100%</span>
+              <span class="text-[11px] text-[#065FD4] font-bold">เกณฑ์ประเมิน Red Broadcast v4.5</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SOCIAL ACTIONS & COMMENTS SIMULATION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section class="space-y-4 pt-6 border-t border-[#E5E5E5]">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-[#0F0F0F] uppercase">ความคิดเห็นและการแลกเปลี่ยนในชั้นเรียน</h3>
+            <span class="text-xs text-zinc-500">3 ความคิดเห็น</span>
+          </div>
+
+          <!-- Comment Input Box -->
+          <div class="p-4 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5] space-y-3">
+            <textarea id="commentInput" rows="2" placeholder="แลกเปลี่ยนความคิดเห็น หรือสอบถามข้อสงสัยในบทที่ 6..." class="w-full p-3 bg-white border border-[#E5E5E5] rounded-lg text-xs text-[#0F0F0F] focus:outline-none focus:border-[#065FD4] resize-none"></textarea>
+            <div class="flex justify-end gap-2">
+              <button onclick="clearComment()" class="px-3 py-1.5 rounded-lg text-xs text-zinc-600 hover:bg-zinc-200 transition">ยกเลิก</button>
+              <button onclick="postComment()" class="px-4 py-1.5 rounded-lg bg-[#0F0F0F] hover:bg-black text-white text-xs font-bold transition">ส่งข้อความ</button>
+            </div>
+          </div>
+
+          <!-- Existing Comments List -->
+          <div id="commentList" class="space-y-3 pt-2">
+            <div class="flex items-start gap-3 text-xs">
+              <div class="w-8 h-8 rounded-full bg-red-100 text-[#FF0000] flex items-center justify-center font-bold text-xs shrink-0">กข</div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-zinc-900">กิตติพงษ์ (กลุ่ม 3 Fresh Brew)</span>
+                  <span class="text-[10px] text-zinc-400">2 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-zinc-700">ทดสอบ Live Sync แล้วครับ แก้ราคา 55 เป็น 99 ในคอม บนมือถือกด Sync ปุ๊บ ราคาเปลี่ยนทันที เท่มากเลยครับ!</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 text-xs">
+              <div class="w-8 h-8 rounded-full bg-blue-100 text-[#065FD4] flex items-center justify-center font-bold text-xs shrink-0">วน</div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-zinc-900">วนิดา (กลุ่ม 5 Happy Paws)</span>
+                  <span class="text-[10px] text-zinc-400">3 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-zinc-700">ตอนแรกรูปขึ้นสามเหลี่ยมสีเทา พอไปแก้สิทธิ์โฟลเดอร์ Google Drive ให้เป็น Anyone with link รูปมาครบเลยค่ะ ขอบคุณเคล็ดลับใน FAQs ค่ะ</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- COURSE NAVIGATION (BOTTOM BAR) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <div class="pt-8 border-t border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <a href="ch05-google-sheets-database.html" class="flex items-center gap-2 px-5 py-3 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#0F0F0F] text-[#0F0F0F] text-xs sm:text-sm font-semibold transition">
+            <span>← บทก่อนหน้า: บทที่ 5 ฐานข้อมูล Google Sheets</span>
+          </a>
+
+          <a href="index.html" class="px-5 py-3 rounded-xl bg-[#F2F2F2] hover:bg-[#E5E5E5] text-[#0F0F0F] text-xs sm:text-sm font-bold transition">
+            🏠 สารบัญหลักสูตร (Hub)
+          </a>
+
+          <a href="ch07-appsheet-forms-validation.html" class="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs sm:text-sm font-bold transition shadow-md">
+            <span>บทถัดไป: บทที่ 7 แบบฟอร์ม & Validation ด้วย AppSheet →</span>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="mt-16 bg-[#F8F8F8] border-t border-[#E5E5E5] py-8 px-4 text-center text-xs text-[#606060]">
+        <div class="max-w-4xl mx-auto space-y-2">
+          <div class="font-bold text-[#0F0F0F]">ห้องเรียนครูแม็ค • สาขาวิชาธุรกิจดิจิทัล วิทยาลัยพณิชยการบึงพระพิษณุโลก</div>
+          <div>หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) พุทธศักราช 2563 • รหัสวิชา 31910-2022</div>
+          <div class="text-[11px] text-zinc-400 mt-2">สงวนลิขสิทธิ์ตาม พ.ร.บ. ลิขสิทธิ์ • ออกแบบตามมาตรฐาน Red Broadcast Design System v4.5</div>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 7. INLINE JAVASCRIPT (Complete Functionality) -->
+  <!-- ========================================================================= -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. Reading Scroll Progress Bar
+    // -------------------------------------------------------------
+    window.addEventListener('scroll', updateScrollProgress);
+    const mainViewport = document.querySelector('main');
+    if (mainViewport) {
+      mainViewport.addEventListener('scroll', updateScrollProgress);
+    }
+
+    function updateScrollProgress() {
+      const scrollEl = mainViewport || document.documentElement;
+      const scrollTop = mainViewport ? mainViewport.scrollTop : (window.pageYOffset || document.documentElement.scrollTop);
+      const scrollHeight = (mainViewport ? mainViewport.scrollHeight : document.documentElement.scrollHeight) - (mainViewport ? mainViewport.clientHeight : window.innerHeight);
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      document.getElementById('scrollProgressBar').style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    }
+
+    // -------------------------------------------------------------
+    // 2. Sidebar Toggle
+    // -------------------------------------------------------------
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleSidebarBtn && sidebar) {
+      toggleSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 3. Chip Filter Smooth Scroll
+    // -------------------------------------------------------------
+    function filterChip(targetId, btn) {
+      document.querySelectorAll('.chip-btn').forEach(b => {
+        b.className = 'chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0';
+      });
+      btn.className = 'chip-btn active h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white transition shrink-0';
+
+      if (targetId === 'all') {
+        if (mainViewport) mainViewport.scrollTo({ top: 0, behavior: 'smooth' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const target = document.getElementById(targetId);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 4. Copy Toast Functionality
+    // -------------------------------------------------------------
+    function showCopyToast(msg) {
+      const toast = document.getElementById('copyToast');
+      if (msg) toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    function copyToClipboard(text, msg) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopyToast(msg || '📋 คัดลอกเรียบร้อยแล้ว!');
+      });
+    }
+
+    function copyFormula(formula) {
+      navigator.clipboard.writeText(formula).then(() => {
+        showCopyToast('⚡ คัดลอกสูตร Show_If เรียบร้อยแล้ว!');
+      });
+    }
+
+    function copyArchetypeSpec(arch) {
+      let spec = '';
+      if (arch === 'fb') {
+        spec = 'View Name: Drink_Menu\nFor this data: Products\nView Type: card\nLayout: Large\nTitle: [Product_Name]\nSubtitle: [Unit_Price]\nMain Image: [Image_URL]\nGroup by: [Category_Name]\nSort by: [Unit_Price] Ascending';
+      } else if (arch === 'hp') {
+        spec = 'View Name: Service_List\nFor this data: Services\nView Type: card\nLayout: List\nTitle: [Service_Name]\nSubtitle: [Price]\nDescription: [Duration_Mins]\nMain Image: [Image_URL]\nGroup by: [Category]';
+      } else if (arch === 'sb') {
+        spec = 'View Name: Equipment_Inventory\nFor this data: Assets\nView Type: card\nLayout: Photo\nTitle: [Asset_Name]\nSubtitle: [Asset_ID]\nDescription: [Storage_Box]\nBadge: [Current_Status]\nGroup by: [Current_Status]';
+      }
+      navigator.clipboard.writeText(spec).then(() => {
+        showCopyToast('📋 คัดลอกสเปกการตั้งค่าเรียบร้อยแล้ว!');
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 5. Tri-Archetype Switcher
+    // -------------------------------------------------------------
+    function switchArchetype(arch) {
+      const archs = ['freshbrew', 'happypaws', 'smartborrow'];
+      archs.forEach(a => {
+        const btn = document.getElementById(`archTab-${a}`);
+        const content = document.getElementById(`archContent-${a}`);
+        if (a === arch) {
+          btn.className = 'flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-1.5';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5';
+          content.classList.add('hidden');
+        }
+      });
+
+      // Synchronize with simulator
+      if (arch === 'freshbrew') setSimArchetype('fb');
+      else if (arch === 'happypaws') setSimArchetype('hp');
+      else if (arch === 'smartborrow') setSimArchetype('sb');
+    }
+
+    // -------------------------------------------------------------
+    // 6. Interactive Phone Simulator Logic
+    // -------------------------------------------------------------
+    let currentSimArch = 'fb';
+    let currentSimView = 'card';
+    let cartCount = 0;
+
+    function setSimArchetype(arch) {
+      currentSimArch = arch;
+      const archs = ['fb', 'hp', 'sb'];
+      archs.forEach(a => {
+        const btn = document.getElementById(`simArchBtn-${a}`);
+        if (a === arch) {
+          btn.className = 'py-2 px-2 rounded-lg text-xs font-bold bg-[#0F0F0F] text-white transition';
+        } else {
+          btn.className = 'py-2 px-2 rounded-lg text-xs font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition';
+        }
+      });
+
+      // Elements inside Phone
+      const appIcon = document.getElementById('phoneAppIcon');
+      const appTitle = document.getElementById('phoneAppTitle');
+      const catName = document.getElementById('phoneCategoryName');
+
+      const img1 = document.getElementById('simImg1');
+      const tag1 = document.getElementById('simTag1');
+      const title1 = document.getElementById('simTitle1');
+      const desc1 = document.getElementById('simDesc1');
+      const price1 = document.getElementById('simPrice1');
+
+      const img2 = document.getElementById('simImg2');
+      const tag2 = document.getElementById('simTag2');
+      const title2 = document.getElementById('simTitle2');
+      const desc2 = document.getElementById('simDesc2');
+      const price2 = document.getElementById('simPrice2');
+
+      const deckImg1 = document.getElementById('deckImg1');
+      const deckTitle1 = document.getElementById('deckTitle1');
+      const deckSub1 = document.getElementById('deckSub1');
+      const deckPrice1 = document.getElementById('deckPrice1');
+
+      const deckImg2 = document.getElementById('deckImg2');
+      const deckTitle2 = document.getElementById('deckTitle2');
+      const deckSub2 = document.getElementById('deckSub2');
+      const deckPrice2 = document.getElementById('deckPrice2');
+
+      const tblId1 = document.getElementById('tblId1');
+      const tblTitle1 = document.getElementById('tblTitle1');
+      const tblPrice1 = document.getElementById('tblPrice1');
+
+      const tblId2 = document.getElementById('tblId2');
+      const tblTitle2 = document.getElementById('tblTitle2');
+      const tblPrice2 = document.getElementById('tblPrice2');
+
+      if (arch === 'fb') {
+        appIcon.innerText = '☕';
+        appTitle.innerText = 'Fresh Brew Delivery';
+        catName.innerText = 'หมวด: ชานมและชาผลไม้';
+
+        img1.src = 'https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500';
+        tag1.innerText = 'P-001';
+        title1.innerText = 'ชานมไต้หวันบราวชูการ์';
+        desc1.innerText = 'ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับเคี่ยวสด';
+        price1.innerText = '฿55.00';
+
+        img2.src = 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500';
+        tag2.innerText = 'P-002';
+        title2.innerText = 'ชาเขียวมัทฉะลาเต้เย็น';
+        desc2.innerText = 'มัทฉะอุจิแท้ 100% นมสดพรีเมียม หอมนุ่มละมุน';
+        price2.innerText = '฿65.00';
+
+        deckImg1.src = img1.src;
+        deckTitle1.innerText = title1.innerText;
+        deckSub1.innerText = 'รหัส P-001 • คงเหลือ 120 แก้ว';
+        deckPrice1.innerText = '฿55.00';
+
+        deckImg2.src = img2.src;
+        deckTitle2.innerText = title2.innerText;
+        deckSub2.innerText = 'รหัส P-002 • คงเหลือ 85 แก้ว';
+        deckPrice2.innerText = '฿65.00';
+
+        tblId1.innerText = 'P-001'; tblTitle1.innerText = 'ชานมไต้หวัน'; tblPrice1.innerText = '฿55.00';
+        tblId2.innerText = 'P-002'; tblTitle2.innerText = 'ชาเขียวมัทฉะ'; tblPrice2.innerText = '฿65.00';
+      } else if (arch === 'hp') {
+        appIcon.innerText = '🐾';
+        appTitle.innerText = 'Happy Paws Care';
+        catName.innerText = 'หมวด: บริการกรูมมิ่ง & สปา';
+
+        img1.src = 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=500';
+        tag1.innerText = 'SRV-01';
+        title1.innerText = 'อาบน้ำตัดขนกรูมมิ่ง พันธุ์เล็ก';
+        desc1.innerText = 'แชมพูออร์แกนิก ตัดขน ไถขนอุ้งเท้า ตัดเล็บ';
+        price1.innerText = '฿350.00';
+
+        img2.src = 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500';
+        tag2.innerText = 'SRV-02';
+        title2.innerText = 'สปาอาบน้ำตัดขน พันธุ์กลาง';
+        desc2.innerText = 'สปาแช่น้ำแร่ บำรุงขนให้นุ่มฟู ตัดแต่งทรงสวย';
+        price2.innerText = '฿500.00';
+
+        deckImg1.src = img1.src;
+        deckTitle1.innerText = title1.innerText;
+        deckSub1.innerText = 'ระยะเวลา 60 นาที • คิวว่าง';
+        deckPrice1.innerText = '฿350.00';
+
+        deckImg2.src = img2.src;
+        deckTitle2.innerText = title2.innerText;
+        deckSub2.innerText = 'ระยะเวลา 90 นาที • คิวว่าง';
+        deckPrice2.innerText = '฿500.00';
+
+        tblId1.innerText = 'SRV-01'; tblTitle1.innerText = 'กรูมมิ่งเล็ก'; tblPrice1.innerText = '฿350.00';
+        tblId2.innerText = 'SRV-02'; tblTitle2.innerText = 'สปากรูมมิ่ง'; tblPrice2.innerText = '฿500.00';
+      } else if (arch === 'sb') {
+        appIcon.innerText = '📦';
+        appTitle.innerText = 'Smart Equipment';
+        catName.innerText = 'หมวด: โสตทัศนูปกรณ์ & กล้อง';
+
+        img1.src = 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500';
+        tag1.innerText = 'CAM-01';
+        title1.innerText = 'SONY Alpha A7 IV (Body)';
+        desc1.innerText = 'กล้องฟูลเฟรม 33MP ตู้ B2 ชั้น 3';
+        price1.innerText = 'Available';
+
+        img2.src = 'https://images.unsplash.com/photo-1589872766857-2110abb95a08?w=500';
+        tag2.innerText = 'GIM-04';
+        title2.innerText = 'DJI RS 3 Pro Gimbal';
+        desc2.innerText = 'กิมบอลกันสั่น 3 แกน ตู้ A1 ชั้น 2';
+        price2.innerText = 'Available';
+
+        deckImg1.src = img1.src;
+        deckTitle1.innerText = title1.innerText;
+        deckSub1.innerText = 'รหัสครุภัณฑ์ CAM-01 • ตู้ B2';
+        deckPrice1.innerText = 'ว่าง (Available)';
+
+        deckImg2.src = img2.src;
+        deckTitle2.innerText = title2.innerText;
+        deckSub2.innerText = 'รหัสครุภัณฑ์ GIM-04 • ตู้ A1';
+        deckPrice2.innerText = 'ว่าง (Available)';
+
+        tblId1.innerText = 'CAM-01'; tblTitle1.innerText = 'SONY A7 IV'; tblPrice1.innerText = 'Available';
+        tblId2.innerText = 'GIM-04'; tblTitle2.innerText = 'DJI RS 3'; tblPrice2.innerText = 'Available';
+      }
+    }
+
+    function setSimView(view) {
+      currentSimView = view;
+      const views = ['card', 'deck', 'table'];
+      views.forEach(v => {
+        const btn = document.getElementById(`simViewBtn-${v}`);
+        const screen = document.getElementById(`simScreen-${v}`);
+        if (v === view) {
+          btn.className = 'py-2 px-2 rounded-lg text-xs font-bold bg-[#FF0000] text-white transition';
+          screen.classList.remove('hidden');
+        } else {
+          btn.className = 'py-2 px-2 rounded-lg text-xs font-medium bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition';
+          screen.classList.add('hidden');
+        }
+      });
+
+      // Hide detail view when switching
+      document.getElementById('simScreen-detail').classList.add('hidden');
+
+      // Update Explanation
+      const expText = document.getElementById('simExplanationText');
+      if (view === 'card') {
+        expText.innerHTML = '<strong>Card View:</strong> ภาพปกขนาดใหญ่ ป้ายราคาตัวเลขสีแดงเด่นชัด เหมาะกับผู้บริโภคที่ต้องการเห็นสินค้าและแตะกดสั่งซื้อได้ทันที';
+      } else if (view === 'deck') {
+        expText.innerHTML = '<strong>Deck View:</strong> รายการแถวแนวนอน ภาพขนาดกะทัดรัด พร้อมสรุปสถานะสต็อกและป้ายราคา เหมาะกับรายการบริการหรือคลังสินค้า';
+      } else if (view === 'table') {
+        expText.innerHTML = '<strong>Table View:</strong> มุมมองตารางสเปรดชีตความหนาแน่นสูง ตรวจสอบรายการและตัวเลขสต็อกได้อย่างรวดเร็วในหน้าจอเดียว';
+      }
+    }
+
+    function openSimDetail(itemNum) {
+      const detailScreen = document.getElementById('simScreen-detail');
+      const views = ['card', 'deck', 'table'];
+      views.forEach(v => document.getElementById(`simScreen-${v}`).classList.add('hidden'));
+      detailScreen.classList.remove('hidden');
+
+      const img = document.getElementById('detailImg');
+      const tag = document.getElementById('detailTag');
+      const cat = document.getElementById('detailCat');
+      const title = document.getElementById('detailTitle');
+      const price = document.getElementById('detailPrice');
+      const desc = document.getElementById('detailDesc');
+
+      if (currentSimArch === 'fb') {
+        if (itemNum === 1) {
+          img.src = 'https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500';
+          tag.innerText = 'P-001'; cat.innerText = 'ชานมแท้';
+          title.innerText = 'ชานมไต้หวันบราวชูการ์'; price.innerText = '฿55.00';
+          desc.innerText = 'ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับเคี่ยวสดใหม่ หอมกลิ่นน้ำตาลทรายแดงแท้จากไต้หวัน เลือกระดับความหวานได้ 0-100%';
+        } else {
+          img.src = 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500';
+          tag.innerText = 'P-002'; cat.innerText = 'ชาเขียว';
+          title.innerText = 'ชาเขียวมัทฉะลาเต้เย็น'; price.innerText = '฿65.00';
+          desc.innerText = 'มัทฉะอุจิแท้ 100% ชงกับนมสดแท้สูตรพิเศษของร้าน รสชาตินุ่มละมุน หอมกลิ่นชาเขียวแท้จากญี่ปุ่น';
+        }
+      } else if (currentSimArch === 'hp') {
+        if (itemNum === 1) {
+          img.src = 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=500';
+          tag.innerText = 'SRV-01'; cat.innerText = 'กรูมมิ่ง';
+          title.innerText = 'อาบน้ำตัดขนกรูมมิ่ง พันธุ์เล็ก'; price.innerText = '฿350.00';
+          desc.innerText = 'บริการอาบน้ำด้วยแชมพูสูตรออร์แกนิก ตัดแต่งทรงขน เช็ดหู ไถขนใต้อุ้งเท้า ตัดเล็บ ใช้เวลาประมาณ 60 นาที';
+        } else {
+          img.src = 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500';
+          tag.innerText = 'SRV-02'; cat.innerText = 'สปา';
+          title.innerText = 'สปาอาบน้ำตัดขน พันธุ์กลาง'; price.innerText = '฿500.00';
+          desc.innerText = 'สปาแช่น้ำแร่ บำรุงขนให้นุ่มฟู ลดกลิ่นสาบ ตัดแต่งทรงสวยงามโดยช่างผู้เชี่ยวชาญ ใช้เวลาประมาณ 90 นาที';
+        }
+      } else if (currentSimArch === 'sb') {
+        if (itemNum === 1) {
+          img.src = 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500';
+          tag.innerText = 'CAM-01'; cat.innerText = 'กล้องดิจิทัล';
+          title.innerText = 'SONY Alpha A7 IV (Body)'; price.innerText = 'สถานะ: ว่าง (Available)';
+          desc.innerText = 'รหัสครุภัณฑ์ CAM-SONY-01 จัดเก็บที่ตู้ B2 ชั้น 3 อุปกรณ์พร้อมแบตเตอรี่แท้ 2 ก้อน แท่นชาร์จ และสายคล้องคอ';
+        } else {
+          img.src = 'https://images.unsplash.com/photo-1589872766857-2110abb95a08?w=500';
+          tag.innerText = 'GIM-04'; cat.innerText = 'อุปกรณ์กันสั่น';
+          title.innerText = 'DJI RS 3 Pro Gimbal'; price.innerText = 'สถานะ: ว่าง (Available)';
+          desc.innerText = 'กิมบอลกันสั่น 3 แกนสำหรับกล้องถ่ายภาพยนตร์ จัดเก็บที่ตู้ A1 ชั้น 2 พร้อมกล่องเคสและเพลทยึดกล้อง';
+        }
+      }
+    }
+
+    function closeSimDetail() {
+      document.getElementById('simScreen-detail').classList.add('hidden');
+      document.getElementById(`simScreen-${currentSimView}`).classList.remove('hidden');
+    }
+
+    function incrementCart() {
+      cartCount++;
+      document.getElementById('phoneCartBadge').innerText = cartCount;
+      showCopyToast('🛒 บันทึกรายการลงในแอปจำลองเรียบร้อยแล้ว!');
+    }
+
+    function triggerPhoneSync() {
+      const syncBtn = document.getElementById('phoneSyncBtn');
+      const notice = document.getElementById('phoneSyncNotice');
+      syncBtn.classList.add('animate-spin');
+      
+      setTimeout(() => {
+        syncBtn.classList.remove('animate-spin');
+        notice.classList.remove('hidden');
+        showCopyToast('🔄 Live Sync สำเร็จ: ซิงก์ข้อมูลไป-กลับกับ Google Sheets สำเร็จ 100%!');
+        setTimeout(() => {
+          notice.classList.add('hidden');
+        }, 3000);
+      }, 1000);
+    }
+
+    function phoneSearchToggle() {
+      const box = document.getElementById('phoneSearchBox');
+      box.classList.toggle('hidden');
+    }
+
+    function filterPhoneItems() {
+      const val = document.getElementById('phoneFilterInput').value.toLowerCase().trim();
+      const title1 = document.getElementById('simTitle1').innerText.toLowerCase();
+      const title2 = document.getElementById('simTitle2').innerText.toLowerCase();
+      const card1 = document.getElementById('simImg1').closest('.cursor-pointer');
+      const card2 = document.getElementById('simImg2').closest('.cursor-pointer');
+
+      if (card1 && card2) {
+        card1.style.display = title1.includes(val) ? 'block' : 'none';
+        card2.style.display = title2.includes(val) ? 'block' : 'none';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 7. FAQ Accordion Toggle
+    // -------------------------------------------------------------
+    function toggleFaq(num) {
+      const ans = document.getElementById(`faqAns${num}`);
+      const icon = document.getElementById(`faqIcon${num}`);
+      if (ans.classList.contains('hidden')) {
+        ans.classList.remove('hidden');
+        icon.innerText = '−';
+      } else {
+        ans.classList.add('hidden');
+        icon.innerText = '+';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 8. Interactive Self-Checklist (localStorage: curriculum_ch06_checklist)
+    // -------------------------------------------------------------
+    const CHECKLIST_KEY = 'curriculum_ch06_checklist';
+
+    function loadChecklist() {
+      const saved = localStorage.getItem(CHECKLIST_KEY);
+      const checkboxes = document.querySelectorAll('.check-item');
+      if (saved) {
+        try {
+          const state = JSON.parse(saved);
+          checkboxes.forEach((cb, idx) => {
+            cb.checked = !!state[idx];
+          });
+        } catch (e) {}
+      }
+      updateChecklistView();
+    }
+
+    function updateChecklist() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const state = Array.from(checkboxes).map(cb => cb.checked);
+      localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+      updateChecklistView();
+    }
+
+    function updateChecklistView() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+      const total = checkboxes.length;
+      const percentage = Math.round((checkedCount / total) * 100);
+
+      document.getElementById('checklistPercentage').innerText = `${percentage}% (${checkedCount}/${total} ข้อ)`;
+      document.getElementById('checklistProgressBar').style.width = `${percentage}%`;
+
+      if (percentage === 100) {
+        document.getElementById('checklistProgressBar').classList.add('bg-[#2BA640]');
+        document.getElementById('checklistProgressBar').classList.remove('bg-[#FF0000]');
+      } else {
+        document.getElementById('checklistProgressBar').classList.add('bg-[#FF0000]');
+        document.getElementById('checklistProgressBar').classList.remove('bg-[#2BA640]');
+      }
+    }
+
+    function resetChecklist() {
+      if (confirm('คุณต้องการรีเซ็ตสถานะการตรวจทานทั้งหมดหรือไม่?')) {
+        localStorage.removeItem(CHECKLIST_KEY);
+        document.querySelectorAll('.check-item').forEach(cb => cb.checked = false);
+        updateChecklistView();
+        showCopyToast('🔄 รีเซ็ตรายการเช็กเรียบร้อยแล้ว');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 9. Interactive Rubric Calculator (5 Criteria x 10 Points)
+    // -------------------------------------------------------------
+    let rubricScores = [3, 3, 2, 1, 1]; // Default to full 10
+
+    function setRubricScore(criteriaNum, score, btn) {
+      rubricScores[criteriaNum - 1] = score;
+
+      document.querySelectorAll(`.rubric-btn-${criteriaNum}`).forEach(b => {
+        b.className = `rubric-btn-${criteriaNum} p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition`;
+      });
+      btn.className = `rubric-btn-${criteriaNum} active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition`;
+
+      calculateRubric();
+    }
+
+    function calculateRubric() {
+      const total = rubricScores.reduce((acc, curr) => acc + curr, 0);
+      document.getElementById('rubricTotalScore').innerText = total;
+
+      const badge = document.getElementById('rubricGradeBadge');
+      const statusText = document.getElementById('rubricStatusText');
+
+      if (total >= 9) {
+        badge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-[#2BA640] text-white';
+        badge.innerText = 'ระดับดีเยี่ยม (Mastery)';
+        statusText.innerText = 'คะแนนระดับยอดเยี่ยม โครงสร้างฐานข้อมูลและการแสดงผลบนมือถือพร้อมใช้งานจริง 100%';
+      } else if (total >= 7) {
+        badge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-[#065FD4] text-white';
+        badge.innerText = 'ระดับดี (Proficient)';
+        statusText.innerText = 'ผ่านเกณฑ์มาตรฐาน พร้อมพัฒนาต่อยอดในบทที่ 7 (การสร้างแบบฟอร์ม)';
+      } else if (total >= 5) {
+        badge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-[#FB8C00] text-white';
+        badge.innerText = 'ระดับพอใช้ (Developing)';
+        statusText.innerText = 'ควรปรับแต่งการจัดกลุ่มหมวดหมู่ หรือตรวจสอบ Data Types คอลัมน์ราคา';
+      } else {
+        badge.className = 'px-3 py-1.5 rounded-full text-xs font-bold bg-red-600 text-white';
+        badge.innerText = 'ต้องปรับปรุง (Needs Work)';
+        statusText.innerText = 'แอปยังติด Error เรื่อง Key หรือยังไม่ได้เชื่อมต่อระบบ Live Sync บนมือถือจริง';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 10. Social Interactions (Like, Share, Comment)
+    // -------------------------------------------------------------
+    let isLiked = false;
+    function toggleLike() {
+      const countEl = document.getElementById('likeCount');
+      const iconEl = document.getElementById('likeIcon');
+      let count = parseInt(countEl.innerText);
+      if (!isLiked) {
+        countEl.innerText = count + 1;
+        iconEl.classList.remove('text-[#606060]');
+        iconEl.classList.add('text-[#FF0000]', 'fill-current');
+        isLiked = true;
+        showCopyToast('❤️ ขอบคุณสำหรับกำลังใจ!');
+      } else {
+        countEl.innerText = count - 1;
+        iconEl.classList.add('text-[#606060]');
+        iconEl.classList.remove('text-[#FF0000]', 'fill-current');
+        isLiked = false;
+      }
+    }
+
+    function shareLesson() {
+      if (navigator.share) {
+        navigator.share({
+          title: 'บทที่ 6: การสร้างแอปแรกและดึงข้อมูลขึ้นหน้าจอมือถือด้วย AppSheet',
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        showCopyToast('🔗 คัดลอกลิงก์บทเรียนเข้าคลิปบอร์ดแล้ว!');
+      }
+    }
+
+    function postComment() {
+      const input = document.getElementById('commentInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const list = document.getElementById('commentList');
+      const newComment = document.createElement('div');
+      newComment.className = 'flex items-start gap-3 text-xs';
+      newComment.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">ME</div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-zinc-900">นักศึกษา (คุณ)</span>
+            <span class="text-[10px] text-zinc-400">เมื่อสักครู่</span>
+          </div>
+          <p class="text-zinc-700 leading-relaxed">${escapeHtml(val)}</p>
+        </div>
+      `;
+      list.prepend(newComment);
+      input.value = '';
+      showCopyToast('💬 โพสต์ความคิดเห็นเรียบร้อยแล้ว');
+    }
+
+    function clearComment() {
+      document.getElementById('commentInput').value = '';
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // -------------------------------------------------------------
+    // 11. Search Box Logic
+    // -------------------------------------------------------------
+    function searchTopic() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!query) return;
+      if (window.find) {
+        const found = window.find(query);
+        if (!found) {
+          showCopyToast(`🔍 ไม่พบคำค้นหา: "${query}"`);
+        }
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        searchTopic();
+      }
+    });
+
+    // -------------------------------------------------------------
+    // Initial Load
+    // -------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      loadChecklist();
+      calculateRubric();
+      updateScrollProgress();
+    });
+  </script>
+</body>
+</html>
