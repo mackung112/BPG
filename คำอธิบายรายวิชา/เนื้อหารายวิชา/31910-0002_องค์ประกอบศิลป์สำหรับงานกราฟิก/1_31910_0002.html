@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 1: งานวิเคราะห์และจำแนกธาตุทางทัศนศิลป์ | 31910-0002 องค์ประกอบศิลป์สำหรับงานกราฟิก</title>
+  
+  <!-- Google Fonts: Prompt, Sarabun & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vivid: {
+              pink: '#FF006E',
+              magenta: '#D9048E',
+              purple: '#8338EC',
+              indigo: '#3A86FF',
+              cyan: '#00F5D4',
+              yellow: '#FFBE0B',
+              lime: '#AACC00',
+              orange: '#FB5607',
+              ink: '#110B1E',
+              surface: '#FFFDF9'
+            }
+          },
+          fontFamily: {
+            display: ['Prompt', 'sans-serif'],
+            sans: ['Sarabun', 'Prompt', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --accent-primary: #FF006E;
+      --accent-secondary: #8338EC;
+      --accent-tertiary: #FFBE0B;
+      --accent-cyan: #00BBF9;
+      --accent-orange: #FB5607;
+      --ink-dark: #110B1E;
+    }
+
+    body {
+      font-family: 'Sarabun', 'Prompt', sans-serif;
+      color: #110B1E;
+      background-color: #FFFDF7;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(255, 0, 110, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(0, 245, 212, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(255, 190, 11, 0.10) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(131, 56, 236, 0.08) 0px, transparent 50%);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Prompt', sans-serif;
+    }
+
+    /* ซ่อน Scrollbar ของชิปบาร์ */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Neo-Vivid Pop Shadow & Borders */
+    .pop-card {
+      background: #FFFFFF;
+      border: 2px solid #110B1E;
+      box-shadow: 5px 5px 0px #110B1E;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .pop-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px #FF006E;
+    }
+
+    .pop-card-static {
+      background: #FFFFFF;
+      border: 2px solid #110B1E;
+      box-shadow: 5px 5px 0px #110B1E;
+    }
+
+    .pop-btn {
+      border: 2px solid #110B1E;
+      box-shadow: 3px 3px 0px #110B1E;
+      transition: all 0.15s ease;
+    }
+    .pop-btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px #110B1E;
+    }
+    .pop-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px #110B1E;
+    }
+
+    /* Gradient Text & Vivid Banners */
+    .vivid-gradient-bg {
+      background: linear-gradient(135deg, #FF006E 0%, #8338EC 45%, #3A86FF 100%);
+    }
+    .vivid-sunset-bg {
+      background: linear-gradient(135deg, #FF006E 0%, #FB5607 55%, #FFBE0B 100%);
+    }
+    .vivid-cyber-bg {
+      background: linear-gradient(135deg, #8338EC 0%, #3A86FF 50%, #00F5D4 100%);
+    }
+
+    .dot-pattern {
+      background-image: radial-gradient(#110B1E 1.2px, transparent 1.2px);
+      background-size: 18px 18px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .pop-card, .pop-card-static {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#FF006E] selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- SCROLL PROGRESS BAR (Top Vivid Rainbow Bar) -->
+  <!-- ========================================================================= -->
+  <div class="fixed top-0 left-0 right-0 h-1.5 z-[60] bg-zinc-200 no-print">
+    <div id="scrollProgressBar" class="h-full bg-gradient-to-r from-[#FF006E] via-[#FFBE0B] to-[#00F5D4] w-0 transition-all duration-100"></div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TOAST NOTIFICATION (Replaces browser alert for sandbox compatibility) -->
+  <!-- ========================================================================= -->
+  <div id="toastBox" class="fixed bottom-6 right-6 z-[70] hidden items-center gap-3 px-5 py-3.5 rounded-2xl bg-[#110B1E] text-white border-2 border-[#FFBE0B] shadow-2xl transition-all duration-300">
+    <span id="toastIcon" class="w-7 h-7 rounded-full bg-[#FF006E] flex items-center justify-center text-sm font-bold">✦</span>
+    <span id="toastMsg" class="text-sm font-heading font-medium">ดำเนินการสำเร็จ!</span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TOP NAVIGATION BAR (Vivid Studio Broadcast Header) -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-1.5 z-50 h-16 bg-white/95 backdrop-blur-md border-b-2 border-[#110B1E] px-4 flex items-center justify-between no-print">
+    <!-- ฝั่งซ้าย: ปุ่มเมนู + โลโก้แบรนด์ -->
+    <div class="flex items-center gap-3">
+      <button id="toggleSidebarBtn" class="w-10 h-10 rounded-xl border-2 border-[#110B1E] bg-[#FFBE0B] hover:bg-[#FF006E] hover:text-white flex items-center justify-center transition text-[#110B1E] font-bold" title="สลับแถบสารบัญ">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      
+      <a href="index.html" class="flex items-center gap-2.5 group" title="กลับสู่หน้าหลักสูตร 31910-0002">
+        <div class="w-10 h-10 vivid-gradient-bg rounded-xl border-2 border-[#110B1E] flex items-center justify-center text-white font-bold text-base shadow-[2px_2px_0px_#110B1E] group-hover:rotate-6 transition-transform">
+          🎨
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5">
+            <span class="font-heading font-extrabold text-base sm:text-lg tracking-tight text-[#110B1E]">ห้องเรียนครูแม็ค</span>
+            <span class="text-[10px] font-heading font-extrabold uppercase tracking-wider text-white bg-[#FF006E] px-2 py-0.5 rounded-full border border-[#110B1E]">ART & GRAPHIC STUDIO</span>
+          </div>
+          <span class="text-[11px] text-zinc-600 font-medium hidden sm:inline">31910-0002 องค์ประกอบศิลป์สำหรับงานกราฟิก • วิทยาลัยการอาชีพบ้านโป่ง</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- ส่วนกลาง: ช่องค้นหาเนื้อหาในบทเรียน -->
+    <div class="hidden md:flex items-center flex-1 max-w-[500px] mx-6">
+      <div class="flex w-full items-center">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="ค้นหาในบทที่ 1 (เช่น จุด, เส้น, RGB, CMYK, รูปร่าง, พื้นผิว)..." 
+            class="w-full h-10 pl-4 pr-3 bg-[#FFFDF7] border-2 border-[#110B1E] rounded-l-full text-sm text-[#110B1E] placeholder-zinc-500 focus:outline-none focus:bg-yellow-50"
+          />
+        </div>
+        <button 
+          id="searchBtn"
+          onclick="runLessonSearch()"
+          class="h-10 px-5 bg-[#8338EC] hover:bg-[#FF006E] border-2 border-l-0 border-[#110B1E] rounded-r-full text-white font-heading text-xs font-bold flex items-center gap-1.5 transition" 
+          title="ค้นหา">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <span>ค้นหา</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: สลับโหมดความจัดจ้าน + พิมพ์เอกสาร + โปรไฟล์ -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Quick Chapter Switcher Dropdown -->
+      <div class="relative">
+        <button id="chapterMenuBtn" onclick="toggleChapterMenu()" class="pop-btn h-9 px-3 rounded-full bg-[#FFBE0B] hover:bg-[#FFD166] text-[#110B1E] text-xs font-heading font-bold flex items-center gap-1.5 transition" title="สลับบทเรียน 1-7">
+          <span>📑</span>
+          <span class="hidden md:inline">สลับบทเรียน</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div id="chapterMenuDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white border-2 border-[#110B1E] rounded-2xl shadow-[6px_6px_0px_#110B1E] p-2.5 space-y-1 z-50">
+          <div class="text-[11px] font-heading font-extrabold text-[#110B1E] px-2 py-1 uppercase tracking-wider border-b border-zinc-200 flex justify-between items-center">
+            <span>สารบัญทั้ง 7 บท</span>
+            <a href="index.html" class="text-[#FF006E] hover:underline">หน้าหลัก Hub ➔</a>
+          </div>
+          <a href="1_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-pink-50 bg-[#FF006E] text-white">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">1</span>
+            <span class="truncate">บทที่ 1: ธาตุทางทัศนศิลป์</span>
+          </a>
+          <a href="2_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-purple-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">2</span>
+            <span class="truncate">บทที่ 2: กฎเกณฑ์องค์ประกอบศิลป์</span>
+          </a>
+          <a href="3_space_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-blue-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">3</span>
+            <span class="truncate">บทที่ 3: พื้นที่ในงานกราฟิก (Space)</span>
+          </a>
+          <a href="4_focal_point_emphasis_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-orange-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">4</span>
+            <span class="truncate">บทที่ 4: จุดสนใจและการเน้นวัตถุ</span>
+          </a>
+          <a href="5_placement_grouping_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-lime-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">5</span>
+            <span class="truncate">บทที่ 5: ตำแหน่งและจัดกลุ่มวัตถุ</span>
+          </a>
+          <a href="6_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-pink-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">6</span>
+            <span class="truncate">บทที่ 6: เครื่องมือโปรแกรมสำเร็จรูป</span>
+          </a>
+          <a href="7_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-cyan-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">7</span>
+            <span class="truncate">บทที่ 7: ออกแบบ แก้ไข และตกแต่ง</span>
+          </a>
+        </div>
+      </div>
+      <button onclick="cyclePaletteMood()" class="pop-btn h-9 px-3.5 rounded-full bg-[#00F5D4] text-[#110B1E] text-xs font-heading font-bold flex items-center gap-1.5" title="สลับโทนสีฉูดฉาด">
+        <span>🌈</span>
+        <span id="moodLabel" class="hidden sm:inline">โหมดสี: Cyber Pop</span>
+      </button>
+
+      <button onclick="window.print()" class="hidden lg:flex items-center gap-1.5 h-9 px-3.5 rounded-full pop-btn bg-white text-xs font-heading font-bold text-[#110B1E] hover:bg-[#FFBE0B]">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        <span>พิมพ์ใบความรู้</span>
+      </button>
+
+      <!-- รูปโปรไฟล์ครูผู้สอน -->
+      <div class="flex items-center gap-2 pl-1">
+        <div class="w-9 h-9 rounded-full bg-[#FF006E] text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-extrabold text-xs shadow-[2px_2px_0px_#110B1E]" title="นายธิติวุฒิ จันทร์โสม (ครูแม็ค)">
+          MK
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN LAYOUT WRAPPER (SIDEBAR + MAIN CONTENT AREA) -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- LEFT SIDEBAR (270px Collapsible, Vivid Studio Navigation) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="w-72 bg-white border-r-2 border-[#110B1E] shrink-0 hidden lg:flex flex-col justify-between overflow-y-auto no-print">
+      <div class="p-4 space-y-1.5">
+        <!-- ป้ายหน่วยการเรียนรู้ -->
+        <div class="p-3.5 rounded-2xl vivid-gradient-bg text-white border-2 border-[#110B1E] shadow-[3px_3px_0px_#110B1E] mb-4">
+          <div class="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-yellow-300 font-bold">
+            <span>UNIT 01 • WEEK 1</span>
+            <span>4 ชม. (ท2/ป2)</span>
+          </div>
+          <div class="font-heading font-bold text-sm mt-1 leading-snug">
+            งานวิเคราะห์และจำแนกธาตุทางทัศนศิลป์
+          </div>
+          <div class="mt-2 flex items-center gap-1.5 text-[11px] bg-black/25 px-2.5 py-1 rounded-lg">
+            <span>🏆 คะแนนประจำหน่วย:</span>
+            <span class="font-bold text-[#00F5D4]">6 คะแนน</span>
+          </div>
+        </div>
+
+        <div class="text-xs font-heading font-extrabold text-[#110B1E] px-2 py-1 uppercase tracking-wider flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FF006E] inline-block"></span>
+          <span>สารบัญเนื้อหาบทที่ 1</span>
+        </div>
+
+        <a href="#intro" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition bg-[#FFBE0B]/30 border-2 border-[#110B1E] text-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#FF006E] text-white flex items-center justify-center font-bold">0</span>
+          <span class="truncate">บทนำ: พลังองค์ประกอบศิลป์</span>
+        </a>
+
+        <a href="#task-1-1" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#8338EC] text-white flex items-center justify-center font-bold">1.1</span>
+          <span class="truncate">วิเคราะห์จุด (Point) และเส้น (Line)</span>
+        </a>
+
+        <a href="#task-1-2" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#FB5607] text-white flex items-center justify-center font-bold">1.2</span>
+          <span class="truncate">จำแนกสี (Color) และรูปร่าง (Shape)</span>
+        </a>
+
+        <a href="#color-psychology" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#FF006E] text-white flex items-center justify-center font-bold">🎨</span>
+          <span class="truncate">ความหมาย & จิตวิทยาสีเชิงลึก</span>
+        </a>
+
+        <a href="#task-1-3" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#3A86FF] text-white flex items-center justify-center font-bold">1.3</span>
+          <span class="truncate">จำแนกรูปทรง (Form) & พื้นผิว</span>
+        </a>
+
+        <a href="#skill-deconstruct" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#00BBF9] text-[#110B1E] flex items-center justify-center font-bold">🔍</span>
+          <span class="truncate">ทักษะแยกแยะภาพต้นแบบ</span>
+        </a>
+
+        <a href="#skill-sketching" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#00F5D4] text-[#110B1E] flex items-center justify-center font-bold">✏️</span>
+          <span class="truncate">ทักษะร่างโครงสร้าง & ใบงาน</span>
+        </a>
+
+        <a href="#questions" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#FFBE0B] text-[#110B1E] flex items-center justify-center font-bold">?</span>
+          <span class="truncate">คำถามทบทวน & แบบทดสอบ</span>
+        </a>
+
+        <div class="border-t-2 border-dashed border-zinc-300 my-3"></div>
+
+        <!-- กล่องข้อมูลหลักสูตรตามใบโครงการสอน -->
+        <div class="p-3.5 bg-[#FFFDF7] rounded-2xl border-2 border-[#110B1E] space-y-2">
+          <div class="inline-block px-2 py-0.5 rounded bg-[#FF006E] text-white text-[10px] font-heading font-bold uppercase">
+            ข้อมูลโครงการสอน (ปวส. 2567)
+          </div>
+          <div class="text-xs font-heading font-bold text-[#110B1E]">รหัสวิชา 31910-0002</div>
+          <div class="text-xs text-zinc-700 font-medium">วิชา องค์ประกอบศิลป์สำหรับงานกราฟิก</div>
+          <div class="text-[11px] text-zinc-600 leading-relaxed">
+            • <strong>ประเภทวิชา:</strong> อุตสาหกรรมดิจิทัลและเทคโนโลยีสารสนเทศ<br>
+            • <strong>กลุ่มอาชีพ:</strong> ธุรกิจดิจิทัลและพาณิชย์อิเล็กทรอนิกส์<br>
+            • <strong>สาขาวิชา:</strong> เทคโนโลยีธุรกิจดิจิทัล<br>
+            • <strong>ผู้สอน:</strong> นายธิติวุฒิ จันทร์โสม
+          </div>
+        </div>
+      </div>
+
+      <!-- ส่วนล่างสุดของ Sidebar -->
+      <div class="p-4 border-t-2 border-[#110B1E] bg-[#110B1E] text-white text-xs">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#00F5D4] animate-ping"></span>
+          <span class="font-heading font-bold text-[#FFBE0B]">วิทยาลัยการอาชีพบ้านโป่ง</span>
+        </div>
+        <div class="mt-1 text-[11px] text-zinc-300">สำนักงานคณะกรรมการการอาชีวศึกษา</div>
+      </div>
+    </aside>
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- MAIN CONTENT VIEWPORT (Scrollable) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <main class="flex-1 overflow-y-auto flex flex-col">
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- HORIZONTAL CHIP FILTER BAR (Vivid Pill Navigation) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-[#110B1E] py-3 px-4 sm:px-8 no-print">
+        <div class="flex items-center gap-2.5 overflow-x-auto no-scrollbar">
+          <button onclick="filterChip('all', this)" class="chip-btn active h-8 px-4 rounded-full text-xs font-heading font-bold bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] transition shrink-0">🌟 ทั้งหมด (ครบทุกหัวข้อ)</button>
+          <button onclick="filterChip('intro', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">0. บทนำ & โครงการสอน</button>
+          <button onclick="filterChip('task-1-1', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">1.1 จุดและเส้น (Point & Line)</button>
+          <button onclick="filterChip('task-1-2', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">1.2 สีและรูปร่าง (Color & Shape)</button>
+          <button onclick="filterChip('color-psychology', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">🎨 จิตวิทยาสี & ทดลองสีสด</button>
+          <button onclick="filterChip('task-1-3', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">1.3 รูปทรง & พื้นผิว (Form & Texture)</button>
+          <button onclick="filterChip('skill-deconstruct', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">🔍 แยกแยะภาพต้นแบบ</button>
+          <button onclick="filterChip('skill-sketching', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">✏️ ร่างโครงสร้าง & ใบงาน</button>
+          <button onclick="filterChip('questions', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">❓ คำถามทบทวน</button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- LESSON HERO / VIVID BROADCAST STAGE -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <section id="hero-stage" class="max-w-6xl mx-auto w-full px-4 sm:px-8 pt-6 pb-4">
+        
+        <!-- Vivid Broadcast Stage Frame -->
+        <div id="heroBannerCard" class="w-full vivid-gradient-bg text-white rounded-3xl overflow-hidden relative border-4 border-[#110B1E] shadow-[8px_8px_0px_#110B1E]">
+          <!-- Decorative Geometric Shapes in Background -->
+          <div class="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-[#FFBE0B]/30 blur-xl pointer-events-none"></div>
+          <div class="absolute bottom-4 right-10 w-36 h-36 rounded-full border-8 border-[#00F5D4]/40 pointer-events-none hidden sm:block"></div>
+          
+          <div class="p-6 sm:p-10 flex flex-col justify-between min-h-[340px] relative z-10">
+            <!-- Badges แถวบน -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-heading font-extrabold uppercase tracking-wider bg-[#FFBE0B] text-[#110B1E] border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E]">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#FF006E] animate-ping"></span>
+                  UNIT 1 MASTERCLASS
+                </span>
+                <span class="px-3 py-1 rounded-full text-xs font-heading font-bold bg-black/40 text-[#00F5D4] border border-white/30">
+                  หลักสูตร ปวส. 2567 • ทฤษฎี 2 ชม. / ปฏิบัติ 2 ชม.
+                </span>
+                <span class="px-3 py-1 rounded-full text-xs font-heading font-bold bg-white/20 text-white border border-white/30">
+                  สัปดาห์ที่ 1 (คะแนนเต็ม 6 คะแนน)
+                </span>
+              </div>
+              <span class="font-mono text-xs bg-[#110B1E] text-[#FFBE0B] px-3 py-1 rounded-lg border border-white/20">
+                COURSE ID: 31910-0002
+              </span>
+            </div>
+
+            <!-- ข้อความชื่อบทเรียนขนาดใหญ่ (Display Heading) -->
+            <div class="my-6">
+              <div class="inline-block px-3 py-1 rounded-lg bg-black/30 text-[#00F5D4] text-xs font-mono font-bold uppercase tracking-widest mb-3 border border-[#00F5D4]/40">
+                CHAPTER 01 • VISUAL ELEMENTS OF GRAPHIC DESIGN
+              </div>
+              <h1 class="text-2xl sm:text-5xl font-heading font-extrabold tracking-tight text-white leading-tight drop-shadow-[0_3px_0_rgba(17,11,30,0.8)]">
+                บทที่ 1: งานวิเคราะห์และจำแนกธาตุทางทัศนศิลป์
+              </h1>
+              <p class="text-sm sm:text-lg text-white/95 mt-4 max-w-4xl leading-relaxed font-medium bg-black/25 p-4 rounded-2xl border border-white/20">
+                เจาะลึกรากฐานสำคัญที่สุดของนักออกแบบกราฟิกยุคดิจิทัล: เรียนรู้ทฤษฎีทัศนธาตุทั้ง 6 มิติ <strong>(จุด เส้น สี รูปร่าง รูปทรง พื้นผิว)</strong> ความหมายและอิทธิพลทางจิตวิทยาของสี ฝึกทักษะการถอดรหัสองค์ประกอบศิลป์จากภาพต้นแบบ และการร่างโครงสร้างเส้นพื้นฐานเพื่อสร้างชิ้นงานกราฟิกสำหรับธุรกิจดิจิทัลด้วยความละเอียด รอบคอบ
+              </p>
+            </div>
+
+            <!-- แถบสรุปงานย่อย (Tasks 1.1 - 1.3) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <a href="#task-1-1" class="p-3 rounded-xl bg-black/40 hover:bg-black/60 border border-white/30 flex items-center gap-3 transition">
+                <span class="w-8 h-8 rounded-lg bg-[#FFBE0B] text-[#110B1E] font-heading font-extrabold text-xs flex items-center justify-center shrink-0">1.1</span>
+                <div class="text-xs">
+                  <div class="font-heading font-bold text-[#FFBE0B]">งานย่อยที่ 1.1</div>
+                  <div class="text-white/90">วิเคราะห์องค์ประกอบของจุดและเส้น</div>
+                </div>
+              </a>
+              <a href="#task-1-2" class="p-3 rounded-xl bg-black/40 hover:bg-black/60 border border-white/30 flex items-center gap-3 transition">
+                <span class="w-8 h-8 rounded-lg bg-[#00F5D4] text-[#110B1E] font-heading font-extrabold text-xs flex items-center justify-center shrink-0">1.2</span>
+                <div class="text-xs">
+                  <div class="font-heading font-bold text-[#00F5D4]">งานย่อยที่ 1.2</div>
+                  <div class="text-white/90">จำแนกการใช้งานสีและรูปร่าง</div>
+                </div>
+              </a>
+              <a href="#task-1-3" class="p-3 rounded-xl bg-black/40 hover:bg-black/60 border border-white/30 flex items-center gap-3 transition">
+                <span class="w-8 h-8 rounded-lg bg-[#FF006E] text-white font-heading font-extrabold text-xs flex items-center justify-center shrink-0">1.3</span>
+                <div class="text-xs">
+                  <div class="font-heading font-bold text-pink-200">งานย่อยที่ 1.3</div>
+                  <div class="text-white/90">จำแนกรูปทรงและพื้นผิว</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instructor Stack & Metadata Bar -->
+        <div class="mt-5 p-4 rounded-2xl pop-card-static flex flex-wrap items-center justify-between gap-4 bg-white">
+          <!-- ผู้สอน / Channel Profile -->
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl vivid-sunset-bg text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-extrabold text-base shadow-[3px_3px_0px_#110B1E]">
+              MK
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-heading font-extrabold text-base text-[#110B1E]">นายธิติวุฒิ จันทร์โสม (ครูแม็ค)</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-heading font-bold bg-[#00F5D4] text-[#110B1E] border border-[#110B1E]">
+                  ✓ ผู้สอนประจำวิชา
+                </span>
+              </div>
+              <div class="text-xs text-zinc-600 mt-0.5">
+                สาขาวิชาเทคโนโลยีธุรกิจดิจิทัล • วิทยาลัยการอาชีพบ้านโป่ง จังหวัดราชบุรี (สอศ.)
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2.5 no-print">
+            <button onclick="toggleBookmark()" id="bookmarkBtn" class="pop-btn h-10 px-4 bg-[#FFBE0B] text-[#110B1E] text-xs font-heading font-bold rounded-full flex items-center gap-1.5">
+              <span>⭐</span>
+              <span id="bookmarkText">บันทึกบทเรียนนี้</span>
+            </button>
+
+            <button id="likeBtn" onclick="toggleLike()" class="pop-btn h-10 px-4 bg-white hover:bg-pink-50 text-[#110B1E] text-xs font-heading font-bold rounded-full flex items-center gap-1.5">
+              <span id="likeEmoji">💖</span>
+              <span>ถูกใจเนื้อหา</span>
+              <span id="likeCount" class="px-2 py-0.5 rounded-full bg-[#FF006E] text-white text-[11px]">284</span>
+            </button>
+
+            <button onclick="shareLesson()" class="pop-btn h-10 px-4 bg-[#8338EC] text-white text-xs font-heading font-bold rounded-full flex items-center gap-1.5">
+              <span>🔗</span>
+              <span>แชร์บทเรียน</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- MAIN BODY TEXTBOOK CONTENT (Comprehensive, Rich, Vivid) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="max-w-6xl mx-auto w-full px-4 sm:px-8 py-6 space-y-16">
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 0: บทนำ & โครงสร้างมาตรฐานรายวิชาจากใบโครงการสอน -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="intro" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+            <span>🌟 บทนำและภาพรวมหน่วยการเรียนรู้ที่ 1</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            ทำไม "ธาตุทางทัศนศิลป์" จึงเป็นหัวใจของงานกราฟิกธุรกิจดิจิทัล?
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-5 bg-white">
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              ในยุคที่ธุรกิจดิจิทัลและพาณิชย์อิเล็กทรอนิกส์ (E-Commerce) แข่งขันกันบนหน้าจอสมาร์ตโฟนทุกวินาที ผู้บริโภคใช้เวลาเพียง <strong>0.05 ถึง 1.5 วินาที</strong> ในการตัดสินใจว่าจะหยุดดูสื่อกราฟิกของร้านค้าหรือเลื่อนนิ้วผ่านไป ผู้คนจำนวนมากเข้าใจผิดว่าการทำกราฟิกคือการเปิดโปรแกรมสำเร็จรูปแล้วนำภาพมาวางเรียงกัน แต่ในความเป็นจริง <strong>"โปรแกรมกราฟิกเป็นเพียงเครื่องมือ ส่วนองค์ประกอบศิลป์ (Composition of Art) คือสมองและจิตวิญญาณของชิ้นงาน"</strong>
+            </p>
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              เปรียบเทียบให้เห็นภาพชัดเจน: หากการทำอาหารต้องคัดสรรวัตถุดิบชั้นดี เช่น เนื้อสัตว์ เครื่องเทศ และผักสด การออกแบบกราฟิกก็มีวัตถุดิบตั้งต้นที่เรียกว่า <strong>"ทัศนธาตุ" หรือ "ธาตุทางทัศนศิลป์ (Visual Elements)"</strong> ซึ่งประกอบด้วยส่วนประกอบพื้นฐาน 6 ชนิด ได้แก่ <strong>จุด (Point), เส้น (Line), สี (Color), รูปร่าง (Shape), รูปทรง (Form) และพื้นผิว (Texture)</strong> หากนักออกแบบเข้าใจธรรมชาติ ความหมาย และอิทธิพลทางสายตาของธาตุทั้ง 6 ชนิดอย่างถ่องแท้ ก็จะสามารถประกอบสร้างชิ้นงานกราฟิกที่ดึงดูดสายตา สื่อสารตรงกลุ่มเป้าหมาย และสร้างมูลค่าเพิ่มให้แก่สินค้าดิจิทัลได้อย่างมหาศาล
+            </p>
+
+            <!-- กล่องสรุปมาตรฐานรายวิชาและเกณฑ์คะแนนจากใบโครงการสอน -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
+              <div class="p-5 rounded-2xl bg-[#FFF0F6] border-2 border-[#110B1E]">
+                <div class="text-xs font-heading font-extrabold uppercase text-[#FF006E] mb-1">🎯 ผลลัพธ์การเรียนรู้ระดับรายวิชา</div>
+                <p class="text-sm font-semibold text-[#110B1E] leading-relaxed">
+                  "สร้างงานกราฟิกโดยใช้โปรแกรมสำเร็จรูป ตามหลักการและกฎเกณฑ์ขององค์ประกอบศิลป์ ด้วยความละเอียด รอบคอบ"
+                </p>
+                <div class="mt-3 pt-3 border-t border-pink-200 text-xs text-zinc-700 space-y-1">
+                  <div><strong>สมรรถนะประจำหน่วย:</strong> แสดงความรู้เกี่ยวกับองค์ประกอบศิลป์สำหรับงานกราฟิกตามหลักการ</div>
+                </div>
+              </div>
+
+              <div class="p-5 rounded-2xl bg-[#F3E8FF] border-2 border-[#110B1E]">
+                <div class="text-xs font-heading font-extrabold uppercase text-[#8338EC] mb-1">📚 ความรู้และทักษะในการปฏิบัติงาน</div>
+                <ul class="text-xs text-[#110B1E] space-y-1.5 font-medium">
+                  <li>✅ <strong>ความรู้ 1:</strong> ทฤษฎีทัศนธาตุ (จุด เส้น สี รูปร่าง รูปทรง พื้นผิว)</li>
+                  <li>✅ <strong>ความรู้ 2:</strong> ความหมายและอิทธิพลของสีต่อผู้รับสาร</li>
+                  <li>🛠️ <strong>ทักษะ 1:</strong> การแยกแยะองค์ประกอบศิลป์จากภาพต้นแบบ</li>
+                  <li>🛠️ <strong>ทักษะ 2:</strong> การร่างโครงสร้างเส้นและรูปทรงพื้นฐาน</li>
+                </ul>
+              </div>
+
+              <div class="p-5 rounded-2xl bg-[#FFFBEB] border-2 border-[#110B1E]">
+                <div class="text-xs font-heading font-extrabold uppercase text-[#FB5607] mb-1">📊 ตารางวิเคราะห์พฤติกรรม (6 คะแนน)</div>
+                <div class="grid grid-cols-3 gap-1.5 text-center mt-2">
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">ความรู้</div>
+                    <div class="font-heading font-extrabold text-sm text-[#FF006E]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">ความเข้าใจ</div>
+                    <div class="font-heading font-extrabold text-sm text-[#8338EC]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">นำไปใช้</div>
+                    <div class="font-heading font-extrabold text-sm text-[#3A86FF]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">วิเคราะห์</div>
+                    <div class="font-heading font-extrabold text-sm text-[#FB5607]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">ทักษะพิสัย</div>
+                    <div class="font-heading font-extrabold text-sm text-[#00A896]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">จิตพิสัย</div>
+                    <div class="font-heading font-extrabold text-sm text-[#110B1E]">1</div>
+                  </div>
+                </div>
+                <div class="text-[11px] text-zinc-600 mt-2 text-center">
+                  เวลาเรียนสัปดาห์ที่ 1: รวม 4 ชั่วโมง (ทฤษฎี 2 / ปฏิบัติ 2)
+                </div>
+              </div>
+            </div>
+
+            <!-- แผนผังภาพรวมทัศนธาตุ 6 ชนิด -->
+            <div class="pt-4">
+              <div class="text-xs font-heading font-bold uppercase tracking-wider text-zinc-500 mb-3">
+                แผนผังสรุปธาตุทางทัศนศิลป์ทั้ง 6 ชนิด (The 6 Visual Elements of Graphic Design)
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="p-4 rounded-2xl bg-[#FF006E] text-white border-2 border-[#110B1E] text-center shadow-[3px_3px_0px_#110B1E]">
+                  <div class="text-2xl mb-1">⚫</div>
+                  <div class="font-heading font-extrabold text-sm">1. จุด (Point)</div>
+                  <div class="text-[11px] text-pink-100 mt-0.5">ต้นกำเนิด & จุดดึงสายตา</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-[#8338EC] text-white border-2 border-[#110B1E] text-center shadow-[3px_3px_0px_#110B1E]">
+                  <div class="text-2xl mb-1">〰️</div>
+                  <div class="font-heading font-extrabold text-sm">2. เส้น (Line)</div>
+                  <div class="text-[11px] text-purple-100 mt-0.5">ทิศทาง โครงสร้าง & อารมณ์</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-[#FB5607] text-white border-2 border-[#110B1E] text-center shadow-[3px_3px_0px_#110B1E]">
+                  <div class="text-2xl mb-1">🎨</div>
+                  <div class="font-heading font-extrabold text-sm">3. สี (Color)</div>
+                  <div class="text-[11px] text-orange-100 mt-0.5">จิตวิทยา & ตัวตนแบรนด์</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-[#FFBE0B] text-[#110B1E] border-2 border-[#110B1E] text-center shadow-[3px_3px_0px_#110B1E]">
+                  <div class="text-2xl mb-1">🔺</div>
+                  <div class="font-heading font-extrabold text-sm">4. รูปร่าง (Shape)</div>
+                  <div class="text-[11px] text-zinc-800 mt-0.5">ขอบเขต 2 มิติ (กว้าง×ยาว)</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-[#3A86FF] text-white border-2 border-[#110B1E] text-center shadow-[3px_3px_0px_#110B1E]">
+                  <div class="text-2xl mb-1">🧊</div>
+                  <div class="font-heading font-extrabold text-sm">5. รูปทรง (Form)</div>
+                  <div class="text-[11px] text-blue-100 mt-0.5">ปริมาตร 3 มิติ (ลึก/แสงเงา)</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] text-center shadow-[3px_3px_0px_#110B1E]">
+                  <div class="text-2xl mb-1">🧱</div>
+                  <div class="font-heading font-extrabold text-sm">6. พื้นผิว (Texture)</div>
+                  <div class="text-[11px] text-zinc-800 mt-0.5">สัมผัสทางสายตา & ลวดลาย</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 1 (งานย่อย 1.1): วิเคราะห์องค์ประกอบของจุดและเส้น -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="task-1-1" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#8338EC] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+              งานย่อยที่ 1.1 (Task 1.1)
+            </span>
+            <span class="text-xs font-heading font-bold text-[#FF006E]">ทฤษฎีทัศนธาตุ: จุด (Point) และ เส้น (Line)</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            1.1 การวิเคราะห์องค์ประกอบของจุด (Point) และเส้น (Line)
+          </h2>
+
+          <!-- ส่วนที่ 1.1.1: จุด (Point / Dot) -->
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#110B1E] pb-4">
+              <div>
+                <span class="text-xs font-mono font-bold uppercase text-[#FF006E]">ELEMENT 01 • POINT / DOT / PIXEL</span>
+                <h3 class="text-xl sm:text-2xl font-heading font-extrabold text-[#110B1E]">
+                  1) "จุด" (Point / Dot) — ต้นกำเนิดแห่งทัศนธาตุและพิกเซล
+                </h3>
+              </div>
+              <span class="px-3 py-1 rounded-xl bg-[#FFBE0B] text-[#110B1E] border-2 border-[#110B1E] text-xs font-heading font-bold">
+                ขนาดเล็กที่สุด • ไม่มีทิศทาง
+              </span>
+            </div>
+
+            <div class="text-base text-[#110B1E] leading-relaxed space-y-3">
+              <p>
+                <strong>ความหมายตามทฤษฎีศิลปะ:</strong> <strong>"จุด (Point)"</strong> คือ ทัศนธาตุที่มีขนาดเล็กที่สุด เป็นหน่วยเริ่มต้นของการมองเห็น มีปรากฏการณ์บอกตำแหน่งในพื้นที่ว่าง (Position in Space) แต่ไม่มีความกว้าง ความยาว หรือทิศทางในตัวเอง ในโลกของคอมพิวเตอร์กราฟิก จุดเปรียบได้กับ <strong>"พิกเซล (Pixel)"</strong> บนหน้าจอดิจิทัล หรือ <strong>"เม็ดสกรีน (Halftone Dot / DPI)"</strong> ในระบบสิ่งพิมพ์ออฟเซ็ตและอิงก์เจ็ต
+              </p>
+              <p>
+                <strong>บทบาทและการวิเคราะห์องค์ประกอบของจุดในงานกราฟิก:</strong> แม้จุดเพียงจุดเดียวจะดูเล็กน้อย แต่การจัดวางจุดในรูปแบบที่ต่างกันจะสร้างพลังทางสายตาที่แตกต่างกันอย่างสิ้นเชิง ดังนี้:
+              </p>
+            </div>
+
+            <!-- การ์ด 4 พฤติกรรมของจุด พร้อมภาพ SVG ประกอบชัดเจน -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- จุดเดี่ยว -->
+              <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#FFFDF7] flex flex-col justify-between">
+                <div>
+                  <div class="h-32 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center mb-3 relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 200 120">
+                      <circle cx="100" cy="60" r="10" fill="#FF006E"/>
+                      <circle cx="100" cy="60" r="22" fill="none" stroke="#FFBE0B" stroke-width="1.5" stroke-dasharray="4 3"/>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#00F5D4]">Single Focal Point</span>
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">1. จุดเดี่ยวในพื้นที่ว่าง</h4>
+                  <p class="text-xs text-zinc-700 mt-1 leading-relaxed">
+                    ทำหน้าที่เป็น <strong>จุดดึงดูดสายตา (Focal Point)</strong> ทันที เช่น การวางโลโก้หรือปุ่มกดกลางพื้นที่โล่ง (White Space) บังคับให้สายตาผู้ชมพุ่งตรงไปยังจุดนั้นเป็นอันดับแรก
+                  </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-zinc-200 text-[11px] font-heading font-bold text-[#FF006E]">
+                  การนำไปใช้: จุดพักสายตา, Bullet หัวข้อ, ปุ่มไอคอน
+                </div>
+              </div>
+
+              <!-- จุดเรียงตัว -->
+              <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#FFFDF7] flex flex-col justify-between">
+                <div>
+                  <div class="h-32 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center mb-3 relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 200 120">
+                      <circle cx="25" cy="90" r="5" fill="#00F5D4"/>
+                      <circle cx="55" cy="70" r="6" fill="#00F5D4"/>
+                      <circle cx="85" cy="55" r="7" fill="#FFBE0B"/>
+                      <circle cx="115" cy="48" r="8" fill="#FFBE0B"/>
+                      <circle cx="145" cy="38" r="9" fill="#FF006E"/>
+                      <circle cx="175" cy="25" r="11" fill="#FF006E"/>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#00F5D4]">Implied Line</span>
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">2. จุดเรียงตัวต่อเนื่อง</h4>
+                  <p class="text-xs text-zinc-700 mt-1 leading-relaxed">
+                    เมื่อนำจุดหลายจุดมาวางเรียงต่อกัน สมองมนุษย์จะเชื่อมโยงจุดเหล่านั้นให้กลายเป็น <strong>"เส้นสมมติ (Implied Line)"</strong> เพื่อชี้นำทิศทางสายตาไปยังข้อความสำคัญหรือราคาสินค้า
+                  </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-zinc-200 text-[11px] font-heading font-bold text-[#8338EC]">
+                  การนำไปใช้: เส้นนำสายตา, Step Indicator, แผนผังเส้นทาง
+                </div>
+              </div>
+
+              <!-- จุดรวมกลุ่มสร้างน้ำหนัก -->
+              <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#FFFDF7] flex flex-col justify-between">
+                <div>
+                  <div class="h-32 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center mb-3 relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 200 120">
+                      <!-- Dense cluster left, sparse right (Stippling/Halftone) -->
+                      <circle cx="55" cy="60" r="9" fill="#FF006E"/>
+                      <circle cx="72" cy="48" r="8" fill="#FF006E"/>
+                      <circle cx="72" cy="72" r="8" fill="#FF006E"/>
+                      <circle cx="90" cy="38" r="6" fill="#FB5607"/>
+                      <circle cx="90" cy="60" r="6" fill="#FB5607"/>
+                      <circle cx="90" cy="82" r="6" fill="#FB5607"/>
+                      <circle cx="112" cy="45" r="4.5" fill="#FFBE0B"/>
+                      <circle cx="112" cy="65" r="4.5" fill="#FFBE0B"/>
+                      <circle cx="135" cy="52" r="3" fill="#00F5D4"/>
+                      <circle cx="135" cy="70" r="3" fill="#00F5D4"/>
+                      <circle cx="160" cy="60" r="2" fill="#FFFFFF"/>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#00F5D4]">Halftone & Value</span>
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">3. จุดรวมกลุ่มสร้างแสงเงา</h4>
+                  <p class="text-xs text-zinc-700 mt-1 leading-relaxed">
+                    การวางจุดถี่ๆ ซ้อนกันจะเกิดน้ำหนักมืด-ทึบ ส่วนการวางจุดห่างกันจะเกิดน้ำหนักสว่าง เกิดเป็นเทคนิค <strong>Stippling</strong> และ <strong>เม็ดสกรีน Halftone สไตล์ Pop-Art</strong>
+                  </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-zinc-200 text-[11px] font-heading font-bold text-[#FB5607]">
+                  การนำไปใช้: ลวดลายพื้นหลัง Pop-Art, เงาเม็ดสกรีน, ภาพพิมพ์
+                </div>
+              </div>
+
+              <!-- จุดในระบบดิจิทัล (Pixel Grid) -->
+              <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#FFFDF7] flex flex-col justify-between">
+                <div>
+                  <div class="h-32 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center mb-3 relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 200 120">
+                      <g transform="translate(65, 22)">
+                        <rect x="15" y="0" width="15" height="15" fill="#FF006E"/>
+                        <rect x="45" y="0" width="15" height="15" fill="#FF006E"/>
+                        <rect x="0" y="15" width="75" height="15" fill="#FF006E"/>
+                        <rect x="0" y="30" width="75" height="15" fill="#FB5607"/>
+                        <rect x="15" y="45" width="45" height="15" fill="#FFBE0B"/>
+                        <rect x="30" y="60" width="15" height="15" fill="#00F5D4"/>
+                      </g>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#00F5D4]">Pixel / Raster Grid</span>
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">4. จุดพิกเซลในภาพดิจิทัล</h4>
+                  <p class="text-xs text-zinc-700 mt-1 leading-relaxed">
+                    ภาพถ่ายดิจิทัลแบบ <strong>Bitmap / Raster (เช่น JPEG, PNG)</strong> เกิดจากจุดสี่เหลี่ยมสีเล็กๆ เรียกว่า <strong>Pixel</strong> มาเรียงต่อกัน ยิ่งมีจำนวนจุดต่อตารางนิ้วมาก (PPI/DPI สูง) ภาพยิ่งคมชัด
+                  </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-zinc-200 text-[11px] font-heading font-bold text-[#3A86FF]">
+                  การนำไปใช้: กำหนดความละเอียด 72 PPI (จอ) / 300 DPI (พิมพ์)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ส่วนที่ 1.1.2: เส้น (Line) + Interactive Line Explorer -->
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#110B1E] pb-4">
+              <div>
+                <span class="text-xs font-mono font-bold uppercase text-[#8338EC]">ELEMENT 02 • LINE & DIRECTIONAL ENERGY</span>
+                <h3 class="text-xl sm:text-2xl font-heading font-extrabold text-[#110B1E]">
+                  2) "เส้น" (Line) — โครงสร้าง ทิศทาง และอารมณ์ความรู้สึกของภาพ
+                </h3>
+              </div>
+              <span class="px-3 py-1 rounded-xl bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] text-xs font-heading font-bold">
+                มีผลต่ออารมณ์ผู้ชมโดยตรง
+              </span>
+            </div>
+
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              <strong>ความหมายตามทฤษฎีศิลปะ:</strong> <strong>"เส้น (Line)"</strong> เกิดจากจุดหลายๆ จุดเรียงต่อกันในทางยาว หรือเกิดจากการลากจุดเคลื่อนที่ไปในทิศทางใดทิศทางหนึ่งด้วยแรงผลักดัน เส้นมีมิติเดียวคือ <strong>"ความยาว (Length)"</strong> (แม้ในทางปฏิบัติจะมีขนาดความหนาหรือน้ำหนักเส้น Stroke Weight เข้ามาเกี่ยวข้อง) เส้นทำหน้าที่เป็นโครงกระดูกของงานกราฟิก ใช้แบ่งพื้นที่ (Divider) ล้อมกรอบให้เกิดรูปร่าง ชี้นำสายตาผู้รับสาร และที่สำคัญที่สุดคือ <strong>"เส้นแต่ละชนิดสื่ออารมณ์ความรู้สึกทางจิตวิทยาที่แตกต่างกัน"</strong>
+            </p>
+
+            <!-- INTERACTIVE LINE EXPLORER (8 ชนิดเส้น) -->
+            <div class="border-2 border-[#110B1E] rounded-2xl overflow-hidden bg-[#FFFDF7]">
+              <div class="bg-[#110B1E] text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-[#FF006E]"></span>
+                  <span class="w-3 h-3 rounded-full bg-[#FFBE0B]"></span>
+                  <span class="w-3 h-3 rounded-full bg-[#00F5D4]"></span>
+                  <span class="font-heading font-bold text-xs sm:text-sm ml-1 text-[#FFBE0B]">
+                    ห้องทดลองอินเทอร์แอคทีฟ: คลิกเลือกชนิดของ "เส้น" ทั้ง 8 แบบเพื่อดูการวิเคราะห์เชิงกราฟิก
+                  </span>
+                </div>
+                <span class="text-[11px] font-mono text-[#00F5D4]">INTERACTIVE LINE INSPECTOR</span>
+              </div>
+
+              <!-- ปุ่มเลือกเส้น 8 ชนิด -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 border-b-2 border-[#110B1E] bg-white">
+                <button onclick="selectLineType(1)" id="lineTab1" class="line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] bg-[#FF006E] text-white transition">1. เส้นตั้ง</button>
+                <button onclick="selectLineType(2)" id="lineTab2" class="line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] text-[#110B1E] hover:bg-yellow-100 transition">2. เส้นนอน</button>
+                <button onclick="selectLineType(3)" id="lineTab3" class="line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] text-[#110B1E] hover:bg-yellow-100 transition">3. เส้นเฉียง</button>
+                <button onclick="selectLineType(4)" id="lineTab4" class="line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] text-[#110B1E] hover:bg-yellow-100 transition">4. เส้นโค้ง</button>
+                <button onclick="selectLineType(5)" id="lineTab5" class="line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] text-[#110B1E] hover:bg-yellow-100 transition">5. เส้นหยัก</button>
+                <button onclick="selectLineType(6)" id="lineTab6" class="line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] text-[#110B1E] hover:bg-yellow-100 transition">6. เส้นก้นหอย</button>
+                <button onclick="selectLineType(7)" id="lineTab7" class="line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] text-[#110B1E] hover:bg-yellow-100 transition">7. เส้นประ</button>
+                <button onclick="selectLineType(8)" id="lineTab8" class="line-tab py-3 px-2 text-xs font-heading font-bold border-b border-[#110B1E] text-[#110B1E] hover:bg-yellow-100 transition">8. เส้นอิสระ</button>
+              </div>
+
+              <!-- พื้นที่แสดงผลรายละเอียดเส้นที่เลือก -->
+              <div id="lineInspectorBody" class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                <div id="lineSvgBox" class="h-44 rounded-2xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center p-4">
+                  <!-- Default SVG: Vertical Lines -->
+                  <svg class="w-full h-full" viewBox="0 0 240 140">
+                    <line x1="40" y1="15" x2="40" y2="125" stroke="#FF006E" stroke-width="6" stroke-linecap="round"/>
+                    <line x1="80" y1="15" x2="80" y2="125" stroke="#FFBE0B" stroke-width="8" stroke-linecap="round"/>
+                    <line x1="120" y1="10" x2="120" y2="130" stroke="#00F5D4" stroke-width="10" stroke-linecap="round"/>
+                    <line x1="160" y1="15" x2="160" y2="125" stroke="#FFBE0B" stroke-width="8" stroke-linecap="round"/>
+                    <line x1="200" y1="15" x2="200" y2="125" stroke="#FF006E" stroke-width="6" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="md:col-span-2 space-y-3">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span id="lineBadge" class="px-3 py-1 rounded-full bg-[#FF006E] text-white text-xs font-heading font-bold">ชนิดที่ 1: เส้นตรงแนวตั้ง (Vertical Line)</span>
+                    <span id="lineEmotionTag" class="px-3 py-1 rounded-full bg-[#FFBE0B] text-[#110B1E] border border-[#110B1E] text-xs font-heading font-bold">ความรู้สึก: มั่นคง แข็งแรง สูงสง่า น่าเชื่อถือ</span>
+                  </div>
+                  <h4 id="lineTitle" class="text-xl font-heading font-extrabold text-[#110B1E]">เส้นตรงแนวตั้ง (Vertical Line) — สัญลักษณ์แห่งความมั่นคงและศักดิ์ศรี</h4>
+                  <p id="lineDesc" class="text-sm text-zinc-700 leading-relaxed">
+                    เส้นตรงที่ตั้งฉากกับพื้นโลก ให้ความรู้สึกเหมือนเสาวิหาร ตึกสูงระฟ้า หรือต้นไม้ใหญ่ที่ยืนหยัดอย่างแข็งแรง สื่อถึงความมั่นคง ความเที่ยงตรง ความเจริญงอกงามพุ่งขึ้นสู่เบื้องบน และความเป็นทางการ
+                  </p>
+                  <div class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] text-xs">
+                    <strong class="text-[#8338EC]">💡 การประยุกต์ใช้ในงานกราฟิกธุรกิจดิจิทัล:</strong>
+                    <span id="lineUsage" class="text-[#110B1E] ml-1">นิยมใช้ในกราฟิกของสถาบันการเงิน ธนาคาร โครงการคอนโดมิเนียมหรู โลโก้องค์กรภาครัฐ หรือการจัด Layout แบ่งคอลัมน์แนวตั้งเพื่อให้ข้อมูลดูเป็นระเบียบและน่าเชื่อถือ</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ตารางสรุปเปรียบเทียบเส้นทั้ง 8 ชนิดแบบครบถ้วน -->
+            <div class="overflow-x-auto border-2 border-[#110B1E] rounded-2xl">
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead class="bg-[#110B1E] text-white font-heading">
+                  <tr>
+                    <th class="py-3 px-4">ชนิดของเส้น (Line Type)</th>
+                    <th class="py-3 px-4">อารมณ์และความรู้สึกทางจิตวิทยา</th>
+                    <th class="py-3 px-4">ตัวอย่างธรรมชาติ/สิ่งแวดล้อม</th>
+                    <th class="py-3 px-4">การประยุกต์ใช้ในงานกราฟิกธุรกิจดิจิทัล</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200 bg-white">
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#FF006E]">1. เส้นตั้ง (Vertical Line)</td>
+                    <td class="py-3 px-4">มั่นคง แข็งแรง สูงสง่า ศักดิ์ศรี เที่ยงตรง</td>
+                    <td class="py-3 px-4 text-zinc-600">เสาอาคาร, ตึกสูง, ต้นสน</td>
+                    <td class="py-3 px-4">โลโก้ธนาคาร, แบนเนอร์อสังหาริมทรัพย์, กรอบตารางเปรียบเทียบสินค้า</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#8338EC]">2. เส้นนอน (Horizontal Line)</td>
+                    <td class="py-3 px-4">สงบนิ่ง ผ่อนคลาย กว้างขวาง ราบเรียบ ปลอดภัย</td>
+                    <td class="py-3 px-4 text-zinc-600">เส้นขอบฟ้า, ผิวน้ำทะเลนิ่ง, ที่นอน</td>
+                    <td class="py-3 px-4">ธุรกิจรีสอร์ต สปา โรงแรม, เส้นคั่นหัวข้อ (Section Divider), ฟุตเตอร์เว็บไซต์</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#FB5607]">3. เส้นเฉียง/ทแยง (Diagonal Line)</td>
+                    <td class="py-3 px-4">เคลื่อนไหว รวดเร็ว ตื่นเต้น เร้าใจ ทะยานไปข้างหน้า</td>
+                    <td class="py-3 px-4 text-zinc-600">นักวิ่งกำลังพุ่งตัว, สายฝนสาด, จรวด</td>
+                    <td class="py-3 px-4">แบนเนอร์รองเท้ากีฬา, โปรโมชัน Flash Sale ด่วน, โปสเตอร์การแข่งขัน Esports</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#3A86FF]">4. เส้นโค้ง (Curved Line)</td>
+                    <td class="py-3 px-4">อ่อนโยน นุ่มนวล ลื่นไหล เป็นมิตร สุภาพ ผ่อนคลาย</td>
+                    <td class="py-3 px-4 text-zinc-600">เกลียวคลื่นน้ำ, เนินเขา, กลีบดอกไม้</td>
+                    <td class="py-3 px-4">แบรนด์เครื่องสำอาง ผลิตภัณฑ์แม่และเด็ก, เครื่องดื่มสุขภาพ, ขอบการ์ด UI มน</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#D9048E]">5. เส้นหยัก/ฟันปลา (Zigzag Line)</td>
+                    <td class="py-3 px-4">รุนแรง กระแทก อันตราย ตื่นตัว ไฟฟ้าสถิต ขัดแย้ง</td>
+                    <td class="py-3 px-4 text-zinc-600">สายฟ้าฟาด, คลื่นหัวใจ, คมเลื่อย, รอยแตก</td>
+                    <td class="py-3 px-4">ป้ายคำเตือนความปลอดภัย, สติกเกอร์ลดราคาสายฟ้าแลบ (Shock Price), เครื่องดื่มชูกำลัง</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#00A896]">6. เส้นก้นหอย (Spiral Line)</td>
+                    <td class="py-3 px-4">ดึงดูดเข้าสู่ศูนย์กลาง หมุนวน ลึกลับ ไม่สิ้นสุด</td>
+                    <td class="py-3 px-4 text-zinc-600">เปลือกหอยโข่ง, พายุหมุน, กาแล็กซี</td>
+                    <td class="py-3 px-4">กราฟิกดึงสายตาเข้าสู่สินค้าตรงกลาง, สัดส่วนทองคำ (Golden Ratio Spiral)</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#110B1E]">7. เส้นประ (Dashed / Dotted Line)</td>
+                    <td class="py-3 px-4">ไม่ต่อเนื่อง ชั่วคราว รอการเติมเต็ม เชิญชวนให้ตัด/คลิก</td>
+                    <td class="py-3 px-4 text-zinc-600">รอยเท้าบนผืนทราย, เส้นแบ่งเลนถนน</td>
+                    <td class="py-3 px-4">กรอบคูปองส่วนลด (Coupon Code), พื้นที่อัปโหลดไฟล์ (Dropzone), เส้นทางจัดส่งพัสดุ</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#FF006E]">8. เส้นอิสระ (Freehand / Gesture)</td>
+                    <td class="py-3 px-4">สร้างสรรค์ เป็นกันเอง มีชีวิตชีวา เอกลักษณ์เฉพาะตัว</td>
+                    <td class="py-3 px-4 text-zinc-600">เถาวัลย์ไม้เลื้อย, ลายเซ็นพู่กัน</td>
+                    <td class="py-3 px-4">งานคาเฟ่คราฟต์, แบรนด์แฟชั่นสตรีท, ภาพประกอบ Hand-drawn บนโซเชียลมีเดีย</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 2 (งานย่อย 1.2): จำแนกการใช้งานสีและรูปร่าง -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="task-1-2" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#FB5607] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+              งานย่อยที่ 1.2 (Task 1.2)
+            </span>
+            <span class="text-xs font-heading font-bold text-[#8338EC]">ทฤษฎีทัศนธาตุ: รูปร่าง (Shape) และ สี (Color)</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            1.2 การจำแนกการใช้งานสี (Color) และรูปร่าง (Shape)
+          </h2>
+
+          <!-- ส่วนที่ 1.2.1: รูปร่าง (Shape - 2 มิติ) -->
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#110B1E] pb-4">
+              <div>
+                <span class="text-xs font-mono font-bold uppercase text-[#FB5607]">ELEMENT 03 • 2D SHAPE CLASSIFICATION</span>
+                <h3 class="text-xl sm:text-2xl font-heading font-extrabold text-[#110B1E]">
+                  1) การจำแนก "รูปร่าง (Shape)" — พื้นที่ 2 มิติและบุคลิกของโลโก้
+                </h3>
+              </div>
+              <span class="px-3 py-1 rounded-xl bg-[#FF006E] text-white border-2 border-[#110B1E] text-xs font-heading font-bold">
+                2 มิติ (ความกว้าง × ความยาว)
+              </span>
+            </div>
+
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              <strong>ความหมายของรูปร่าง (Shape):</strong> รูปร่าง คือ เส้นรอบนอก (Outline / Contour) ที่ลากมาบรรจบกันเป็นพื้นที่ปิด หรือพื้นที่ของสีที่ตัดกับพื้นหลัง มีลักษณะเป็น <strong>2 มิติ (Two-Dimensional)</strong> คือมีเฉพาะ <strong>"ความกว้าง"</strong> และ <strong>"ความยาว"</strong> ไม่มีความหนาหรือความลึก ในงานออกแบบกราฟิก เราจำแนกรูปร่างออกเป็น <strong>3 ประเภทหลัก</strong> ซึ่งแต่ละประเภทสื่อสารบุคลิกของแบรนด์ที่แตกต่างกันชัดเจน:
+            </p>
+
+            <!-- การ์ด 3 ประเภทของรูปร่าง พร้อมภาพ SVG สีฉูดฉาด -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <!-- 1. รูปร่างเรขาคณิต -->
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#FFF0F6] flex flex-col justify-between">
+                <div>
+                  <div class="h-36 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center mb-4">
+                    <svg class="w-48 h-28" viewBox="0 0 200 110">
+                      <rect x="18" y="25" width="52" height="52" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="105" cy="51" r="28" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+                      <polygon points="165,22 192,78 138,78" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <span class="px-2.5 py-0.5 rounded bg-[#FF006E] text-white text-[11px] font-heading font-bold">ประเภทที่ 1</span>
+                  <h4 class="font-heading font-extrabold text-lg text-[#110B1E] mt-1">รูปร่างเรขาคณิต (Geometric Shape)</h4>
+                  <p class="text-xs text-zinc-700 mt-2 leading-relaxed">
+                    มีโครงสร้างแน่นอน วัดขนาดและคำนวณได้ด้วยกฎคณิตศาสตร์ เช่น สี่เหลี่ยม วงกลม สามเหลี่ยม หกเหลี่ยม ให้ความรู้สึกเป็นระเบียบ มั่นคง ทันสมัย และชัดเจน
+                  </p>
+                  <ul class="text-xs text-[#110B1E] mt-3 space-y-1 bg-white p-3 rounded-xl border border-[#110B1E]">
+                    <li>⬛ <strong>สี่เหลี่ยม:</strong> ซื่อสัตย์ ปลอดภัย เป็นทางการ (กรอบ UI, โลโก้ไอที)</li>
+                    <li>⚪ <strong>วงกลม:</strong> มิตรภาพ สามัคคี อ่อนโยน เข้าถึงง่าย (ปุ่มโปรไฟล์, ตราชุมชน)</li>
+                    <li>🔺 <strong>สามเหลี่ยม:</strong> พลังงาน ทิศทาง ก้าวหน้า นวัตกรรม (โลโก้สปอร์ต/เทคโนโลยี)</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- 2. รูปร่างธรรมชาติ -->
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#F0FDF4] flex flex-col justify-between">
+                <div>
+                  <div class="h-36 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center mb-4">
+                    <svg class="w-48 h-28" viewBox="0 0 200 110">
+                      <!-- Leaf & Flower Silhouette -->
+                      <path d="M40,85 C40,35 95,20 95,20 C95,20 90,75 40,85 Z" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+                      <path d="M40,85 L75,42" stroke="#110B1E" stroke-width="2.5"/>
+                      <circle cx="145" cy="55" r="12" fill="#FFBE0B"/>
+                      <circle cx="145" cy="33" r="11" fill="#FF006E" opacity="0.9"/>
+                      <circle cx="145" cy="77" r="11" fill="#FF006E" opacity="0.9"/>
+                      <circle cx="123" cy="55" r="11" fill="#FF006E" opacity="0.9"/>
+                      <circle cx="167" cy="55" r="11" fill="#FF006E" opacity="0.9"/>
+                    </svg>
+                  </div>
+                  <span class="px-2.5 py-0.5 rounded bg-[#00A896] text-white text-[11px] font-heading font-bold">ประเภทที่ 2</span>
+                  <h4 class="font-heading font-extrabold text-lg text-[#110B1E] mt-1">รูปร่างธรรมชาติ (Organic / Natural Shape)</h4>
+                  <p class="text-xs text-zinc-700 mt-2 leading-relaxed">
+                    ถอดแบบมาจากสิ่งมีชีวิตในธรรมชาติ เช่น ใบไม้ ดอกไม้ หยดน้ำ นก มนุษย์ มีเส้นรอบนอกโค้งมนเป็นจังหวะตามธรรมชาติ ให้ความรู้สึกสดชื่น อ่อนโยน มีชีวิตชีวา และปลอดภัย
+                  </p>
+                  <div class="text-xs text-[#110B1E] mt-3 bg-white p-3 rounded-xl border border-[#110B1E]">
+                    <strong>💡 งานกราฟิกที่เหมาะสม:</strong><br>
+                    แบรนด์สินค้าเกษตรอินทรีย์ (Organic), อาหารคลีน, เครื่องสำอางสารสกัดธรรมชาติ, โรงพยาบาล, สินค้า OTOP รักษ์โลก และธุรกิจท่องเที่ยวเชิงนิเวศ
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. รูปร่างอิสระ -->
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#F3E8FF] flex flex-col justify-between">
+                <div>
+                  <div class="h-36 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center mb-4">
+                    <svg class="w-48 h-28" viewBox="0 0 200 110">
+                      <path d="M55,25 C85,10 110,35 135,22 C165,10 178,55 152,78 C126,101 92,75 62,88 C32,101 25,40 55,25 Z" fill="url(#blobGrad)" stroke="#FFFFFF" stroke-width="2"/>
+                      <defs>
+                        <linearGradient id="blobGrad" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stop-color="#FF006E"/>
+                          <stop offset="50%" stop-color="#8338EC"/>
+                          <stop offset="100%" stop-color="#FFBE0B"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                  <span class="px-2.5 py-0.5 rounded bg-[#8338EC] text-white text-[11px] font-heading font-bold">ประเภทที่ 3</span>
+                  <h4 class="font-heading font-extrabold text-lg text-[#110B1E] mt-1">รูปร่างอิสระ (Freeform / Abstract Shape)</h4>
+                  <p class="text-xs text-zinc-700 mt-2 leading-relaxed">
+                    ไม่มีโครงสร้างตายตัว ไม่ใช่เรขาคณิตและไม่ได้เลียนแบบสิ่งมีชีวิตตรงๆ เช่น หยดสีสาดกระจาย ก้อนเมฆนามธรรม (Fluid Blob) ให้ความรู้สึกสร้างสรรค์ แปลกใหม่ ทันสมัย และไร้กรอบ
+                  </p>
+                  <div class="text-xs text-[#110B1E] mt-3 bg-white p-3 rounded-xl border border-[#110B1E]">
+                    <strong>💡 งานกราฟิกที่เหมาะสม:</strong><br>
+                    พื้นหลังแบนเนอร์แฟชั่นวัยรุ่น, เทศกาลดนตรี, สตูดิโอครีเอทีฟ, การวาง Blob Shape ซ้อนหลังภาพสินค้าเพื่อให้ตัวสินค้าดูโดดเด่นมีสไตล์
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 2B: ทฤษฎีสี ความหมาย และอิทธิพลของสี (Color Theory & Psychology) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="color-psychology" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+              หัวใจสำคัญของงานกราฟิก
+            </span>
+            <span class="text-xs font-heading font-bold text-[#FB5607]">ทฤษฎีสี • ระบบสี RGB/CMYK • ความหมายและอิทธิพลของสี</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            2) ทฤษฎีสี ความหมาย และอิทธิพลของสีต่อธุรกิจดิจิทัล
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              <strong>"สี (Color)"</strong> คือ ทัศนธาตุที่ทรงอิทธิพลที่สุดต่ออารมณ์ความรู้สึกและการจดจำแบรนด์ งานวิจัยด้านการตลาดดิจิทัลระบุว่า <strong>มากกว่า 85% ของผู้บริโภคตัดสินใจคลิกดูหรือซื้อสินค้าออนไลน์โดยมี "สี" เป็นปัจจัยกระตุ้นอันดับแรก</strong> และการใช้ชุดสีประจำแบรนด์ (Brand Color Palette) อย่างสม่ำเสมอช่วยเพิ่มการจดจำแบรนด์ได้ถึง 80%
+            </p>
+
+            <!-- คุณลักษณะ 3 มิติของสี + ระบบสี RGB vs CMYK -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- คุณลักษณะ 3 ประการของสี -->
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#FFFDF7] space-y-3">
+                <div class="inline-block px-2.5 py-0.5 rounded bg-[#8338EC] text-white text-xs font-heading font-bold">
+                  1. คุณลักษณะ 3 มิติของสี (HSB / HSL Properties)
+                </div>
+                <div class="space-y-2.5 text-xs sm:text-sm">
+                  <div class="p-3 rounded-xl bg-white border border-[#110B1E]">
+                    <strong class="text-[#FF006E]">1.1 สีแท้ (Hue - H):</strong> ชื่อเรียกของสีตามวงจรสี เช่น สีแดง สีเหลือง สีน้ำเงิน สีม่วง เป็นตัวกำหนดอารมณ์หลักของภาพ
+                  </div>
+                  <div class="p-3 rounded-xl bg-white border border-[#110B1E]">
+                    <strong class="text-[#8338EC]">1.2 น้ำหนักของสี (Value / Brightness - B):</strong> ความอ่อน-แก่ หรือความมืด-สว่างของสี เกิดจากการผสมสีขาว (เรียกว่า <strong>Tint</strong> ได้สีพาสเทล) หรือผสมสีดำ (เรียกว่า <strong>Shade</strong> ได้สีเข้มขรึม)
+                  </div>
+                  <div class="p-3 rounded-xl bg-white border border-[#110B1E]">
+                    <strong class="text-[#FB5607]">1.3 ความสดของสี (Intensity / Saturation - S):</strong> ความจัดจ้านหรือความหม่นของสี สีที่มี Saturation 100% จะฉูดฉาดสะดุดตา ส่วนสีที่ผสมสีเทา (เรียกว่า <strong>Tone</strong>) จะดูสุภาพและนุ่มนวลลง
+                  </div>
+                </div>
+              </div>
+
+              <!-- ระบบสีดิจิทัล RGB vs CMYK -->
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#FFFDF7] space-y-3">
+                <div class="inline-block px-2.5 py-0.5 rounded bg-[#FF006E] text-white text-xs font-heading font-bold">
+                  2. ระบบสีที่นักกราฟิกต้องแยกให้ออก: RGB vs CMYK
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div class="p-3.5 rounded-xl bg-[#110B1E] text-white border-2 border-[#00F5D4]">
+                    <div class="font-heading font-extrabold text-sm text-[#00F5D4] mb-1">💻 โหมดสี RGB (แม่สีแสง)</div>
+                    <div class="text-pink-300 font-mono text-[11px] mb-2">Red + Green + Blue = สีขาว</div>
+                    <p class="text-zinc-200 leading-relaxed">
+                      ใช้สำหรับงานที่แสดงผลบน <strong>หน้าจอดิจิทัลทุกชนิด</strong> เช่น โพสต์ Facebook, IG, TikTok, เว็บไซต์, แบนเนอร์ Shopee/Lazada ให้สีสดใสสะท้อนแสง (รวมถึงรหัสสี <strong>HEX เช่น #FF006E</strong>)
+                    </p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-white text-[#110B1E] border-2 border-[#110B1E]">
+                    <div class="font-heading font-extrabold text-sm text-[#FF006E] mb-1">🖨️ โหมดสี CMYK (แม่สีหมึกพิมพ์)</div>
+                    <div class="text-purple-700 font-mono text-[11px] mb-2">Cyan + Magenta + Yellow + Key(Black)</div>
+                    <p class="text-zinc-700 leading-relaxed">
+                      ใช้สำหรับงานที่ต้องส่งเข้า <strong>โรงพิมพ์หรือพิมพ์ลงวัสดุจริง</strong> เช่น นามบัตร ไวนิล โปสเตอร์ กล่องบรรจุภัณฑ์ (หากตั้งค่าเป็น RGB แล้วส่งพิมพ์ สีจะเพี้ยนและคล้ำลงทันที!)
+                    </p>
+                  </div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-[#FFBE0B]/30 border border-[#110B1E] text-xs font-medium text-[#110B1E]">
+                  ⚠️ <strong>กฎเหล็ก:</strong> ออกแบบลงโซเชียลใช้ <strong>RGB (72-150 PPI)</strong> • ออกแบบส่งโรงพิมพ์ใช้ <strong>CMYK (300 DPI)</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- วรรณะสี & กฎสัดส่วนการใช้สี 60-30-10 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-gradient-to-br from-rose-500 via-orange-500 to-amber-400 text-white">
+                <div class="font-heading font-extrabold text-base">🔥 วรรณะสีร้อน (Warm Colors)</div>
+                <p class="text-xs text-white/95 mt-1 leading-relaxed">
+                  <strong>ได้แก่:</strong> แดง, ส้ม, เหลือง, ชมพูบานเย็น<br>
+                  <strong>อิทธิพล:</strong> กระตุ้นความตื่นเต้น เร่งเร้าให้ตัดสินใจด่วน กระตุ้นความหิว พลังงานสูง พุ่งเข้าหาสายตาผู้ชม
+                </p>
+              </div>
+              <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-gradient-to-br from-indigo-600 via-blue-500 to-emerald-400 text-white">
+                <div class="font-heading font-extrabold text-base">❄️ วรรณะสีเย็น (Cool Colors)</div>
+                <p class="text-xs text-white/95 mt-1 leading-relaxed">
+                  <strong>ได้แก่:</strong> น้ำเงิน, ฟ้า, เขียว, เขียวมิ้นต์<br>
+                  <strong>อิทธิพล:</strong> สื่อความน่าเชื่อถือ ปลอดภัย สดชื่น ผ่อนคลาย เป็นมืออาชีพ ถอยลึกไปในระยะสายตา
+                </p>
+              </div>
+              <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#110B1E] text-white">
+                <div class="font-heading font-extrabold text-base text-[#FFBE0B]">📐 กฎทองการใช้สี 60 - 30 - 10</div>
+                <p class="text-xs text-zinc-200 mt-1 leading-relaxed">
+                  • <strong>60% สีหลัก (Dominant):</strong> พื้นหลังคุมโทน<br>
+                  • <strong>30% สีรอง (Secondary):</strong> กรอบข้อมูล/ภาพรอง<br>
+                  • <strong>10% สีเน้น (Accent):</strong> ปุ่มสั่งซื้อ (CTA) / ราคาด่วน!
+                </p>
+              </div>
+            </div>
+
+            <!-- ตารางความหมายและอิทธิพลทางจิตวิทยาของสีทั้ง 8 กลุ่มสีหลัก -->
+            <div class="overflow-x-auto border-2 border-[#110B1E] rounded-2xl">
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead class="bg-[#110B1E] text-white font-heading">
+                  <tr>
+                    <th class="py-3 px-4">สีและค่าสีตัวอย่าง</th>
+                    <th class="py-3 px-4">ความหมายและอิทธิพลทางจิตวิทยา (Color Psychology)</th>
+                    <th class="py-3 px-4">ประเภทธุรกิจดิจิทัลและการประยุกต์ใช้งานกราฟิก</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200 bg-white">
+                  <tr>
+                    <td class="py-3 px-4 font-heading font-bold">
+                      <span class="inline-flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-[#FF0033] border border-black"></span> สีแดง (Red)</span>
+                    </td>
+                    <td class="py-3 px-4">เร่าร้อน มีพลัง ตื่นเต้น เร่งด่วน กระตุ้นอัตราการเต้นของหัวใจและความอยากอาหาร</td>
+                    <td class="py-3 px-4">ป้ายลดราคา Flash Sale, ธุรกิจอาหารฟาสต์ฟู้ด, ปุ่มแจ้งเตือนด่วน, แคมเปญโปรโมชันไฟลุก</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-heading font-bold">
+                      <span class="inline-flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-[#FF006E] border border-black"></span> สีชมพูบานเย็น (Hot Pink)</span>
+                    </td>
+                    <td class="py-3 px-4">สนุกสนาน โดดเด่น ทันสมัย มีเสน่ห์ดึงดูด วัยรุ่น กล้าแสดงออก ไม่จำเจ</td>
+                    <td class="py-3 px-4">แบรนด์แฟชั่น, บิวตี้และเครื่องสำอาง, คาเฟ่ขนมหวาน, สื่อโซเชียลมีเดียเจาะกลุ่ม Gen Z</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-heading font-bold">
+                      <span class="inline-flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-[#FB5607] border border-black"></span> สีส้ม (Orange)</span>
+                    </td>
+                    <td class="py-3 px-4">เป็นมิตร คึกคัก สดใส คุ้มค่าราคา กระตุ้นให้เกิดการตัดสินใจกดสั่งซื้อ (Call to Action)</td>
+                    <td class="py-3 px-4">แพลตฟอร์ม E-Commerce (เช่น Shopee), ปุ่ม "หยิบใส่ตะกร้า", เครื่องดื่มวิตามิน</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-heading font-bold">
+                      <span class="inline-flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-[#FFBE0B] border border-black"></span> สีเหลือง (Yellow)</span>
+                    </td>
+                    <td class="py-3 px-4">เบิกบาน มองโลกในแง่ดี สว่างสดใส ดึงดูดสายตาได้เร็วที่สุดเมื่อตัดกับสีดำ</td>
+                    <td class="py-3 px-4">ป้ายไฮไลต์ข้อความสำคัญ, สินค้าแม่และเด็ก, ขนส่งด่วน, กราฟิกเตือนความสนใจ</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-heading font-bold">
+                      <span class="inline-flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-[#00C853] border border-black"></span> สีเขียว (Green)</span>
+                    </td>
+                    <td class="py-3 px-4">ธรรมชาติ สุขภาพดี ปลอดภัย ผ่อนคลาย การเติบโต และสัญญาณ "อนุญาต/สำเร็จ"</td>
+                    <td class="py-3 px-4">สินค้าออร์แกนิก, คลินิกสุขภาพ, ธนาคารกสิกร, ปุ่มยืนยันการชำระเงินสำเร็จ</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-heading font-bold">
+                      <span class="inline-flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-[#3A86FF] border border-black"></span> สีน้ำเงิน/ฟ้า (Blue)</span>
+                    </td>
+                    <td class="py-3 px-4">น่าเชื่อถือ มั่นคง ฉลาด เป็นมืออาชีพ ปลอดภัยทางไซเบอร์ สะอาด</td>
+                    <td class="py-3 px-4">แอปธนาคาร (Fintech), บริษัทซอฟต์แวร์/คลาวด์, โรงพยาบาล, ประกันภัย, น้ำดื่ม</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-heading font-bold">
+                      <span class="inline-flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-[#8338EC] border border-black"></span> สีม่วง (Purple)</span>
+                    </td>
+                    <td class="py-3 px-4">สร้างสรรค์ จินตนาการ ลึกลับ หรูหรามีระดับ โลกอนาคต (Cyber/Metaverse)</td>
+                    <td class="py-3 px-4">อุปกรณ์เกมมิ่งเกียร์, สื่อบันเทิงสตรีมมิง, แบรนด์น้ำหอมพรีเมียม, งานออกแบบ AI</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-heading font-bold">
+                      <span class="inline-flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-[#110B1E] border border-black"></span> สีดำ & ทอง (Black & Gold)</span>
+                    </td>
+                    <td class="py-3 px-4">ทรงพลัง หรูหราขั้นสุด (Luxury) พรีเมียม ทันสมัย เด็ดขาด ลุ่มลึก</td>
+                    <td class="py-3 px-4">รถยนต์หรู, นาฬิกา, แบรนด์เนม, สินค้า Limited Edition, ตัวอักษรหลักเพื่อให้อ่านคมชัด</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- INTERACTIVE COLOR MOOD & AD SIMULATOR -->
+            <div class="border-2 border-[#110B1E] rounded-2xl overflow-hidden bg-[#FFFDF7]">
+              <div class="bg-[#110B1E] text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-2">
+                <span class="font-heading font-bold text-xs sm:text-sm text-[#00F5D4]">
+                  🎛️ สตูดิโอจำลองอิทธิพลของสี (Interactive Color Harmony & Ad Simulator)
+                </span>
+                <span class="text-[11px] font-mono text-[#FFBE0B]">คลิกสลับชุดสีเพื่อดูการเปลี่ยนอารมณ์แบนเนอร์สินค้าทันที</span>
+              </div>
+
+              <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <!-- ปุ่มเลือกชุดสี 4 โทน -->
+                <div class="lg:col-span-5 space-y-2.5">
+                  <div class="text-xs font-heading font-bold text-[#110B1E] mb-2">เลือกชุดคู่สี (Color Harmony Preset):</div>
+                  
+                  <button onclick="setAdPalette('flash')" id="palBtn_flash" class="w-full p-3 rounded-xl border-2 border-[#110B1E] bg-[#FF006E] text-white text-left flex items-center justify-between transition shadow-[3px_3px_0px_#110B1E]">
+                    <div>
+                      <div class="font-heading font-bold text-xs">1. Flash Sale Pop (ร้อนแรง-กระตุ้นซื้อด่วน)</div>
+                      <div class="text-[11px] opacity-90">คู่สีตัดกัน (Complementary & High Contrast)</div>
+                    </div>
+                    <div class="flex gap-1">
+                      <span class="w-4 h-4 rounded-full bg-[#FF006E] border border-white"></span>
+                      <span class="w-4 h-4 rounded-full bg-[#FFBE0B] border border-white"></span>
+                      <span class="w-4 h-4 rounded-full bg-[#00F5D4] border border-white"></span>
+                    </div>
+                  </button>
+
+                  <button onclick="setAdPalette('cyber')" id="palBtn_cyber" class="w-full p-3 rounded-xl border-2 border-[#110B1E] bg-white text-[#110B1E] hover:bg-purple-50 text-left flex items-center justify-between transition">
+                    <div>
+                      <div class="font-heading font-bold text-xs">2. Cyber Neon Gaming (ล้ำสมัย-เร้าใจวัยรุ่น)</div>
+                      <div class="text-[11px] text-zinc-600">คู่สีสามเหลี่ยม (Triadic Neon Palette)</div>
+                    </div>
+                    <div class="flex gap-1">
+                      <span class="w-4 h-4 rounded-full bg-[#8338EC] border border-black"></span>
+                      <span class="w-4 h-4 rounded-full bg-[#00F5D4] border border-black"></span>
+                      <span class="w-4 h-4 rounded-full bg-[#FF006E] border border-black"></span>
+                    </div>
+                  </button>
+
+                  <button onclick="setAdPalette('organic')" id="palBtn_organic" class="w-full p-3 rounded-xl border-2 border-[#110B1E] bg-white text-[#110B1E] hover:bg-emerald-50 text-left flex items-center justify-between transition">
+                    <div>
+                      <div class="font-heading font-bold text-xs">3. Tropical Fresh Organic (สดชื่น-สุขภาพดี)</div>
+                      <div class="text-[11px] text-zinc-600">คู่สีข้างเคียง (Analogous Nature Tone)</div>
+                    </div>
+                    <div class="flex gap-1">
+                      <span class="w-4 h-4 rounded-full bg-[#00A896] border border-black"></span>
+                      <span class="w-4 h-4 rounded-full bg-[#AACC00] border border-black"></span>
+                      <span class="w-4 h-4 rounded-full bg-[#FFBE0B] border border-black"></span>
+                    </div>
+                  </button>
+
+                  <button onclick="setAdPalette('luxury')" id="palBtn_luxury" class="w-full p-3 rounded-xl border-2 border-[#110B1E] bg-white text-[#110B1E] hover:bg-amber-50 text-left flex items-center justify-between transition">
+                    <div>
+                      <div class="font-heading font-bold text-xs">4. Royal Black & Gold (หรูหรา-พรีเมียม)</div>
+                      <div class="text-[11px] text-zinc-600">คู่สีเน้นน้ำหนัก (High Value Contrast)</div>
+                    </div>
+                    <div class="flex gap-1">
+                      <span class="w-4 h-4 rounded-full bg-[#110B1E] border border-black"></span>
+                      <span class="w-4 h-4 rounded-full bg-[#FFBE0B] border border-black"></span>
+                      <span class="w-4 h-4 rounded-full bg-[#FFFFFF] border border-black"></span>
+                    </div>
+                  </button>
+                </div>
+
+                <!-- แบนเนอร์ตัวอย่างที่เปลี่ยนสีตามปุ่ม -->
+                <div class="lg:col-span-7">
+                  <div id="simBannerCard" class="p-6 rounded-2xl border-4 border-[#110B1E] bg-gradient-to-r from-[#FF006E] via-[#FB5607] to-[#FFBE0B] text-white shadow-[6px_6px_0px_#110B1E] transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                      <span id="simBadge" class="px-3 py-1 rounded-full bg-[#110B1E] text-[#00F5D4] font-heading font-extrabold text-xs uppercase">
+                        ⚡ FLASH SALE 11.11
+                      </span>
+                      <span id="simHarmonyLabel" class="text-xs font-mono bg-black/30 px-2.5 py-1 rounded">
+                        60% Pink • 30% Yellow • 10% Cyan
+                      </span>
+                    </div>
+                    <div class="my-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h4 id="simHeadline" class="text-2xl sm:text-3xl font-heading font-extrabold leading-tight">
+                          หูฟังไร้สาย ซาวด์กระหึ่ม!
+                        </h4>
+                        <p id="simSubtext" class="text-xs sm:text-sm mt-1 opacity-95">
+                          ลดแรงทะลุพิกัดเฉพาะวันนี้ ส่งฟรีทั่วไทยใน 24 ชั่วโมง
+                        </p>
+                      </div>
+                      <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur border-2 border-white flex items-center justify-center text-4xl shrink-0">
+                        🎧
+                      </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/30">
+                      <div id="simPsychNote" class="text-xs font-medium">
+                        🧠 <strong>ผลทางจิตวิทยา:</strong> กระตุ้นความตื่นเต้น เร่งให้กดซื้อทันทีโดยไม่ลังเล
+                      </div>
+                      <button onclick="showToast('คุณลองกดปุ่ม CTA ที่ใช้สีตัดกัน (Accent 10%) ตามหลักจิตวิทยาสี!')" id="simCtaBtn" class="px-4 py-2 rounded-xl bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] font-heading font-extrabold text-xs shadow-[2px_2px_0px_#110B1E]">
+                        สั่งซื้อเลย ฿590 →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 3 (งานย่อย 1.3): จำแนกรูปทรง (Form) และพื้นผิว (Texture) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="task-1-3" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#3A86FF] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+              งานย่อยที่ 1.3 (Task 1.3)
+            </span>
+            <span class="text-xs font-heading font-bold text-[#00A896]">ทฤษฎีทัศนธาตุ: รูปทรง (Form) และ พื้นผิว (Texture)</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            1.3 การจำแนกรูปทรง (Form) และพื้นผิว (Texture)
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <!-- เปรียบเทียบ Shape 2D vs Form 3D -->
+            <div class="border-b-2 border-[#110B1E] pb-4">
+              <span class="text-xs font-mono font-bold uppercase text-[#3A86FF]">ELEMENT 05 • 3D FORM & VOLUME</span>
+              <h3 class="text-xl sm:text-2xl font-heading font-extrabold text-[#110B1E]">
+                1) การจำแนก "รูปทรง (Form)" และความแตกต่างจาก "รูปร่าง (Shape)"
+              </h3>
+            </div>
+
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              ข้อผิดพลาดที่พบบ่อยที่สุดในการสอบและการทำงานจริงคือการสับสนระหว่างคำว่า <strong>"รูปร่าง (Shape)"</strong> กับ <strong>"รูปทรง (Form)"</strong> หลักการจำแนกที่ชัดเจนที่สุดคือ:
+            </p>
+
+            <!-- แผนภาพ SVG เปรียบเทียบ 2D Shape vs 3D Form -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#FFF0F6]">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="font-heading font-extrabold text-base text-[#FF006E]">📐 รูปร่าง (Shape) = 2 มิติ</span>
+                  <span class="px-2.5 py-0.5 rounded bg-[#FF006E] text-white text-xs font-mono">กว้าง × ยาว (แบนราบ)</span>
+                </div>
+                <div class="h-40 rounded-xl bg-[#110B1E] flex items-center justify-around p-4 mb-3">
+                  <svg class="w-full h-full" viewBox="0 0 280 110">
+                    <circle cx="50" cy="55" r="34" fill="#FF006E"/>
+                    <text x="50" y="103" text-anchor="middle" fill="#FFFFFF" font-size="11">วงกลม (Circle)</text>
+                    <rect x="112" y="21" width="66" height="66" fill="#FFBE0B"/>
+                    <text x="145" y="103" text-anchor="middle" fill="#FFFFFF" font-size="11">สี่เหลี่ยม (Square)</text>
+                    <polygon points="235,20 268,87 202,87" fill="#00F5D4"/>
+                    <text x="235" y="103" text-anchor="middle" fill="#FFFFFF" font-size="11">สามเหลี่ยม (Triangle)</text>
+                  </svg>
+                </div>
+                <p class="text-xs text-zinc-700 leading-relaxed">
+                  มองเห็นเฉพาะด้านหน้าแบนๆ ไม่มีมวล ไม่มีปริมาตร และไม่มีแสงเงาตกกระทบ เหมาะกับงาน <strong>Flat Design, ไอคอน UI, โลโก้มินิมอล, ตัวอักษร</strong>
+                </p>
+              </div>
+
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#EEF2FF]">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="font-heading font-extrabold text-base text-[#3A86FF]">🧊 รูปทรง (Form) = 3 มิติ</span>
+                  <span class="px-2.5 py-0.5 rounded bg-[#3A86FF] text-white text-xs font-mono">กว้าง × ยาว × ลึก/หนา</span>
+                </div>
+                <div class="h-40 rounded-xl bg-[#110B1E] flex items-center justify-around p-4 mb-3">
+                  <svg class="w-full h-full" viewBox="0 0 280 110">
+                    <defs>
+                      <radialGradient id="sphereGrad" cx="35%" cy="30%" r="65%">
+                        <stop offset="0%" stop-color="#FF99C8"/>
+                        <stop offset="45%" stop-color="#FF006E"/>
+                        <stop offset="100%" stop-color="#590027"/>
+                      </radialGradient>
+                    </defs>
+                    <!-- 3D Sphere -->
+                    <ellipse cx="55" cy="88" rx="28" ry="6" fill="#000000" opacity="0.6"/>
+                    <circle cx="50" cy="52" r="34" fill="url(#sphereGrad)"/>
+                    <text x="50" y="103" text-anchor="middle" fill="#FFFFFF" font-size="11">ทรงกลม (Sphere)</text>
+
+                    <!-- 3D Isometric Cube -->
+                    <polygon points="145,16 180,34 145,52 110,34" fill="#FFE169"/>
+                    <polygon points="110,34 145,52 145,88 110,70" fill="#FFBE0B"/>
+                    <polygon points="180,34 145,52 145,88 180,70" fill="#FB5607"/>
+                    <text x="145" y="103" text-anchor="middle" fill="#FFFFFF" font-size="11">ลูกบาศก์ (Cube)</text>
+
+                    <!-- 3D Pyramid -->
+                    <polygon points="235,16 202,78 238,88" fill="#00F5D4"/>
+                    <polygon points="235,16 238,88 268,72" fill="#008B74"/>
+                    <text x="235" y="103" text-anchor="middle" fill="#FFFFFF" font-size="11">พีระมิด (Pyramid)</text>
+                  </svg>
+                </div>
+                <p class="text-xs text-zinc-700 leading-relaxed">
+                  มีความลึก ความหนา มวลและปริมาตร เกิดจากการไล่น้ำหนัก <strong>แสงและเงา 5 ระดับ (Highlight, Light, Halftone, Core Shadow, Cast Shadow)</strong> เหมาะกับงาน <strong>Mockup บรรจุภัณฑ์, โฆษณาสินค้าสมจริง</strong>
+                </p>
+              </div>
+            </div>
+
+            <!-- ส่วนที่ 1.3.2: พื้นผิว (Texture) -->
+            <div class="border-t-2 border-dashed border-zinc-300 pt-6">
+              <span class="text-xs font-mono font-bold uppercase text-[#00A896]">ELEMENT 06 • VISUAL & TACTILE TEXTURE</span>
+              <h3 class="text-xl sm:text-2xl font-heading font-extrabold text-[#110B1E] mt-1">
+                2) การจำแนก "พื้นผิว (Texture)" — สัมผัสทางสายตาที่สร้างอารมณ์สมจริง
+              </h3>
+              <p class="text-base text-[#110B1E] leading-relaxed mt-2">
+                <strong>พื้นผิว (Texture)</strong> คือ ลักษณะของบริเวณผิวหน้าของวัตถุที่เรามองเห็นและรับรู้ได้ถึงความหยาบ ความละเอียด ความขรุขระ ความมันวาว หรือความด้าน ในงานกราฟิกแบ่งพื้นผิวออกเป็น 2 ประเภท คือ <strong>1) พื้นผิวจริงที่สัมผัสได้ด้วยมือ (Tactile Texture)</strong> เช่น กระดาษการ์ดอาร์ตปั๊มนูน เคลือบสปอตยูวี และ <strong>2) พื้นผิวลวงตาทางสายตาบนหน้าจอดิจิทัล (Visual Digital Texture)</strong> ซึ่งจำแนกเป็น 6 รูปแบบยอดนิยมดังนี้:
+              </p>
+
+              <!-- การ์ดตัวอย่างพื้นผิวดิจิทัล 6 รูปแบบ -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white">
+                  <div class="h-20 rounded-xl border-2 border-[#110B1E] mb-3 flex items-center justify-center font-heading font-bold text-white text-sm" style="background: linear-gradient(135deg, #110B1E 0%, #434343 45%, #FFFFFF 50%, #2c2c2c 55%, #110B1E 100%);">
+                    ✨ GLOSSY & METALLIC
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">1. พื้นผิวมันวาวและโลหะ (Glossy / Metallic)</h4>
+                  <p class="text-xs text-zinc-600 mt-1">มีไฮไลต์สะท้อนแสงคมชัด สื่อถึงความหรูหรา ไฮเทค ยานยนต์ อุปกรณ์ไอที และเครื่องประดับ</p>
+                </div>
+
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white">
+                  <div class="h-20 rounded-xl border-2 border-[#110B1E] mb-3 flex items-center justify-center font-heading font-bold text-[#110B1E] text-sm" style="background-color: #E8DCC4; background-image: radial-gradient(#8C7A5B 0.75px, transparent 0.75px); background-size: 6px 6px;">
+                    📜 CRAFT PAPER & GRAIN
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">2. พื้นผิวกระดาษคราฟต์และเม็ดทราย (Paper / Grain)</h4>
+                  <p class="text-xs text-zinc-600 mt-1">ให้ความรู้สึกอบอุ่น โฮมเมด รักษ์โลก วินเทจ นิยมใช้ในงานแพ็กเกจจิงกาแฟและเบเกอรี</p>
+                </div>
+
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white">
+                  <div class="h-20 rounded-xl border-2 border-[#110B1E] mb-3 flex items-center justify-center font-heading font-bold text-[#110B1E] text-sm dot-pattern bg-[#FFBE0B]">
+                    ⚡ POP-ART HALFTONE
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">3. พื้นผิวเม็ดสกรีนป๊อปอาร์ต (Halftone Pattern)</h4>
+                  <p class="text-xs text-zinc-600 mt-1">เกิดจากจุดเรียงตัวเป็นจังหวะ ให้ความรู้สึกสนุกสนาน สไตล์คอมิกส์ สตรีทแฟชั่น และป้ายโปรโมชัน</p>
+                </div>
+
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white">
+                  <div class="h-20 rounded-xl border-2 border-[#110B1E] mb-3 flex items-center justify-center font-heading font-bold text-white text-sm vivid-gradient-bg relative overflow-hidden">
+                    <div class="px-4 py-2 rounded-lg bg-white/25 backdrop-blur-md border border-white/50">🧊 GLASSMORPHISM</div>
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">4. พื้นผิวกระจกฝ้าโปร่งแสง (Frosted Glass)</h4>
+                  <p class="text-xs text-zinc-600 mt-1">สร้างมิติความลึกแบบโปร่งแสง นิยมอย่างมากใน UI แอปพลิเคชันยุคใหม่และบัตรเครดิตดิจิทัล</p>
+                </div>
+
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white">
+                  <div class="h-20 rounded-xl border-2 border-[#110B1E] mb-3 flex items-center justify-center font-heading font-bold text-white text-sm" style="background: repeating-linear-gradient(45deg, #8338EC, #8338EC 8px, #6923C2 8px, #6923C2 16px);">
+                    🧶 FABRIC & GEOMETRIC WEAVE
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">5. พื้นผิวลายทอและเส้นขนาน (Pattern Weave)</h4>
+                  <p class="text-xs text-zinc-600 mt-1">สร้างความรู้สึกมีระเบียบ ประณีต นิยมใช้ในกราฟิกเสื้อผ้า สิ่งทอ และพื้นหลังนามบัตรธุรกิจ</p>
+                </div>
+
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white">
+                  <div class="h-20 rounded-xl border-2 border-[#110B1E] mb-3 flex items-center justify-center font-heading font-bold text-white text-sm bg-[#FF006E]">
+                    🎨 SMOOTH MATTE SURFACE
+                  </div>
+                  <h4 class="font-heading font-bold text-sm text-[#110B1E]">6. พื้นผิวเรียบด้าน (Smooth Matte)</h4>
+                  <p class="text-xs text-zinc-600 mt-1">ไร้แสงสะท้อนรบกวน ทำให้อ่านตัวอักษรได้ชัดเจนที่สุด เหมาะเป็นพื้นที่วางข้อความสำคัญ</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 4 (ทักษะปฏิบัติ 1): การแยกแยะองค์ประกอบศิลป์จากภาพต้นแบบ -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="skill-deconstruct" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-extrabold uppercase">
+              ทักษะในการปฏิบัติงานที่ 1
+            </span>
+            <span class="text-xs font-heading font-bold text-[#FF006E]">การแยกแยะองค์ประกอบศิลป์จากภาพต้นแบบ (Visual Deconstruction)</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            กรณีศึกษา: การถอดรหัสและแยกแยะองค์ประกอบศิลป์จากภาพต้นแบบจริง
+          </h2>
+          <p class="text-base text-zinc-700">
+            นักออกแบบมืออาชีพจะไม่มองภาพกราฟิกเพียงแค่ว่า "สวยหรือไม่สวย" แต่จะใช้สายตาเอกซเรย์แยกแยะออกมาได้ว่า ภาพต้นแบบนั้นประกอบด้วย <strong>จุด เส้น สี รูปร่าง รูปทรง และพื้นผิว</strong> อะไรบ้าง และแต่ละส่วนทำงานร่วมกันอย่างไร คลิกเลือกกรณีศึกษาด้านล่างเพื่อฝึกวิเคราะห์:
+          </p>
+
+          <!-- ปุ่มสลับกรณีศึกษา 3 ชิ้นงาน -->
+          <div class="flex flex-wrap gap-2">
+            <button onclick="switchCaseStudy(1)" id="caseBtn1" class="pop-btn px-5 py-2.5 rounded-xl font-heading font-bold text-xs sm:text-sm bg-[#FF006E] text-white">
+              🛍️ กรณีศึกษาที่ 1: โปสเตอร์แคมเปญ 11.11 Mega Sale
+            </button>
+            <button onclick="switchCaseStudy(2)" id="caseBtn2" class="pop-btn px-5 py-2.5 rounded-xl font-heading font-bold text-xs sm:text-sm bg-white text-[#110B1E] hover:bg-[#FFBE0B]">
+              🍊 กรณีศึกษาที่ 2: แพ็กเกจจิงน้ำส้มสกัดเย็นออร์แกนิกบ้านโป่ง
+            </button>
+            <button onclick="switchCaseStudy(3)" id="caseBtn3" class="pop-btn px-5 py-2.5 rounded-xl font-heading font-bold text-xs sm:text-sm bg-white text-[#110B1E] hover:bg-[#FFBE0B]">
+              🎮 กรณีศึกษาที่ 3: แบนเนอร์เปิดตัวคีย์บอร์ดเกมมิ่ง RGB
+            </button>
+          </div>
+
+          <!-- CASE STUDY 1 -->
+          <div id="casePanel1" class="case-panel pop-card-static p-6 sm:p-8 rounded-3xl bg-white space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              <!-- จำลองภาพต้นแบบด้วย SVG กราฟิกสีฉูดฉาด -->
+              <div class="lg:col-span-5">
+                <div class="rounded-2xl border-4 border-[#110B1E] overflow-hidden shadow-[6px_6px_0px_#110B1E] bg-[#110B1E]">
+                  <svg class="w-full h-auto" viewBox="0 0 360 320">
+                    <defs>
+                      <linearGradient id="poster1Bg" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#FF006E"/>
+                        <stop offset="55%" stop-color="#8338EC"/>
+                        <stop offset="100%" stop-color="#3A86FF"/>
+                      </linearGradient>
+                    </defs>
+                    <!-- Background + Halftone Dots -->
+                    <rect width="360" height="320" fill="url(#poster1Bg)"/>
+                    <!-- Diagonal Energy Lines -->
+                    <line x1="-20" y1="90" x2="140" y2="-20" stroke="#FFBE0B" stroke-width="5"/>
+                    <line x1="240" y1="340" x2="380" y2="210" stroke="#00F5D4" stroke-width="6"/>
+                    <polyline points="20,260 45,245 35,230 65,215" fill="none" stroke="#FFBE0B" stroke-width="4"/>
+                    <!-- Central Geometric Circle & Starburst Shape -->
+                    <circle cx="180" cy="155" r="88" fill="#FFBE0B" stroke="#110B1E" stroke-width="4"/>
+                    <circle cx="180" cy="155" r="76" fill="none" stroke="#110B1E" stroke-width="2" stroke-dasharray="6 4"/>
+                    <!-- 3D Box Form -->
+                    <polygon points="180,95 230,120 180,145 130,120" fill="#00F5D4" stroke="#110B1E" stroke-width="3"/>
+                    <polygon points="130,120 180,145 180,198 130,173" fill="#00BBF9" stroke="#110B1E" stroke-width="3"/>
+                    <polygon points="230,120 180,145 180,198 230,173" fill="#3A86FF" stroke="#110B1E" stroke-width="3"/>
+                    <!-- Focal Point Badge -->
+                    <circle cx="255" cy="90" r="32" fill="#FF006E" stroke="#110B1E" stroke-width="3"/>
+                    <text x="255" y="88" text-anchor="middle" fill="#FFFFFF" font-weight="bold" font-size="13">-70%</text>
+                    <text x="255" y="104" text-anchor="middle" fill="#FFBE0B" font-weight="bold" font-size="10">HOT!</text>
+                    <!-- Typography & CTA Button -->
+                    <rect x="85" y="258" width="190" height="40" rx="20" fill="#00F5D4" stroke="#110B1E" stroke-width="3"/>
+                    <text x="180" y="283" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="15">ช้อปด่วน 11.11 คลิ๊ก!</text>
+                  </svg>
+                </div>
+                <div class="text-center text-xs text-zinc-500 mt-2 font-mono">ภาพต้นแบบที่ 1: โปสเตอร์โปรโมชัน E-Commerce 11.11</div>
+              </div>
+
+              <!-- ตารางแยกแยะทัศนธาตุทั้ง 6 ชนิดจากภาพต้นแบบที่ 1 -->
+              <div class="lg:col-span-7 space-y-3">
+                <div class="inline-block px-3 py-1 rounded-lg bg-[#FF006E] text-white text-xs font-heading font-bold">
+                  ผลการวิเคราะห์แยกแยะธาตุทางทัศนศิลป์ทั้ง 6 มิติ
+                </div>
+                <h3 class="text-xl font-heading font-extrabold text-[#110B1E]">
+                  โปสเตอร์แคมเปญ "11.11 Mega Flash Sale"
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div class="p-3.5 rounded-xl bg-[#FFF0F6] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#FF006E]">1. จุด (Point):</div>
+                    <p class="text-zinc-700 mt-1">ป้ายวงกลมสีแดงอมชมพู <strong>"-70% HOT!"</strong> ทำหน้าที่เป็นจุดดึงสายตา (Focal Point) บริเวณมุมขวาบนของสินค้า</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-[#F3E8FF] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#8338EC]">2. เส้น (Line):</div>
+                    <p class="text-zinc-700 mt-1">ใช้ <strong>เส้นทแยงมุม (Diagonal)</strong> และ <strong>เส้นหยักสายฟ้า</strong> พุ่งเข้าหากลางภาพ สร้างความเร่งด่วน พร้อม <strong>เส้นประวงกลม</strong> ล้อมกรอบคูปอง</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-[#FFFBEB] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#FB5607]">3. สี (Color):</div>
+                    <p class="text-zinc-700 mt-1">โหมดสี <strong>RGB ฉูดฉาด</strong> ใช้สีชมพูบานเย็น-ม่วงเป็นพื้นหลัง (60%) วงกลมสีเหลืองสด (30%) และปุ่มกดสีเขียวมิ้นต์นีออน (10%)</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-[#F0FDF4] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#00A896]">4. รูปร่าง (Shape):</div>
+                    <p class="text-zinc-700 mt-1">ใช้ <strong>รูปร่างเรขาคณิตวงกลม</strong> สีเหลืองขนาดใหญ่เป็นฉากหลังรองรับตัวสินค้า และรูปร่างแคปซูลมนสำหรับปุ่มกดสั่งซื้อ</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-[#EEF2FF] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#3A86FF]">5. รูปทรง (Form):</div>
+                    <p class="text-zinc-700 mt-1">กล่องพัสดุตรงกลางวาดเป็น <strong>รูปทรง 3 มิติ (Isometric Cube)</strong> แยกน้ำหนักแสง 3 ด้าน (ด้านบนสว่างสุด ด้านข้างเข้มขึ้น)</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-[#FFFDF7] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#110B1E]">6. พื้นผิว (Texture):</div>
+                    <p class="text-zinc-700 mt-1">พื้นหลังใช้การไล่ระดับสีแบบเรียบเนียน (Smooth Gradient) ตัดกับขอบเส้นสีดำคมชัดสไตล์ Pop-Art</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CASE STUDY 2 -->
+          <div id="casePanel2" class="case-panel hidden pop-card-static p-6 sm:p-8 rounded-3xl bg-white space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              <div class="lg:col-span-5">
+                <div class="rounded-2xl border-4 border-[#110B1E] overflow-hidden shadow-[6px_6px_0px_#110B1E] bg-[#FFFBEB] p-6 flex items-center justify-center">
+                  <svg class="w-full h-auto" viewBox="0 0 320 280">
+                    <rect width="320" height="280" rx="20" fill="#FFF3B0"/>
+                    <!-- Organic Leaf & Wave Shapes -->
+                    <path d="M0,210 Q80,180 160,210 T320,200 L320,280 L0,280 Z" fill="#AACC00"/>
+                    <circle cx="160" cy="135" r="72" fill="#FB5607" stroke="#110B1E" stroke-width="3"/>
+                    <circle cx="142" cy="115" r="18" fill="#FFBE0B" opacity="0.6"/>
+                    <path d="M160,60 C185,35 220,45 205,72 C190,90 160,60 160,60 Z" fill="#00A896" stroke="#110B1E" stroke-width="3"/>
+                    <text x="160" y="142" text-anchor="middle" fill="#FFFFFF" font-weight="bold" font-size="18">100% ORGANIC</text>
+                    <text x="160" y="252" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="15">น้ำส้มสกัดเย็น บ้านโป่งเฟรช</text>
+                  </svg>
+                </div>
+              </div>
+              <div class="lg:col-span-7 space-y-3">
+                <div class="inline-block px-3 py-1 rounded-lg bg-[#00A896] text-white text-xs font-heading font-bold">
+                  ผลการวิเคราะห์แยกแยะธาตุทางทัศนศิลป์ทั้ง 6 มิติ
+                </div>
+                <h3 class="text-xl font-heading font-extrabold text-[#110B1E]">
+                  ฉลากและโปสเตอร์ "น้ำส้มสกัดเย็นออร์แกนิก ชุมชนบ้านโป่ง"
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div class="p-3.5 rounded-xl bg-[#FFFBEB] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#FB5607]">1. จุด & 2. เส้น:</div>
+                    <p class="text-zinc-700 mt-1">ใช้จุดไฮไลต์สีเหลืองบนผลส้มสร้างความฉ่ำน้ำ และใช้ <strong>เส้นโค้งคลื่น (Curved Wave Line)</strong> ด้านล่างเพื่อสื่อถึงของเหลวและความสดชื่น</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-[#F0FDF4] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#00A896]">3. สี & 4. รูปร่าง:</div>
+                    <p class="text-zinc-700 mt-1">ใช้คู่สีข้างเคียง (Analogous: ส้ม-เหลือง-เขียวมะนาว) ร่วมกับ <strong>รูปร่างธรรมชาติ (Organic Shape)</strong> ของใบไม้และผลส้ม</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-[#EEF2FF] border-2 border-[#110B1E] sm:col-span-2">
+                    <div class="font-heading font-bold text-[#3A86FF]">5. รูปทรง & 6. พื้นผิว:</div>
+                    <p class="text-zinc-700 mt-1">ผลส้มมีแสงเงาโค้งนูนเป็น <strong>ทรงกลม 3 มิติ</strong> วางบนฉากหลัง <strong>พื้นผิวกระดาษคราฟต์สีครีม</strong> เพื่อตอกย้ำภาพลักษณ์สินค้าเกษตรอินทรีย์ปลอดสารพิษ (ส่งโรงพิมพ์ในโหมด CMYK 300 DPI)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CASE STUDY 3 -->
+          <div id="casePanel3" class="case-panel hidden pop-card-static p-6 sm:p-8 rounded-3xl bg-white space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              <div class="lg:col-span-5">
+                <div class="rounded-2xl border-4 border-[#110B1E] overflow-hidden shadow-[6px_6px_0px_#110B1E] bg-[#110B1E] p-6 flex items-center justify-center">
+                  <svg class="w-full h-auto" viewBox="0 0 320 280">
+                    <rect width="320" height="280" rx="20" fill="#110B1E"/>
+                    <!-- Cyber Grid Lines -->
+                    <line x1="0" y1="220" x2="320" y2="220" stroke="#8338EC" stroke-width="2"/>
+                    <line x1="0" y1="250" x2="320" y2="250" stroke="#FF006E" stroke-width="2"/>
+                    <line x1="60" y1="200" x2="20" y2="280" stroke="#00F5D4" stroke-width="2"/>
+                    <line x1="160" y1="200" x2="160" y2="280" stroke="#00F5D4" stroke-width="2"/>
+                    <line x1="260" y1="200" x2="300" y2="280" stroke="#00F5D4" stroke-width="2"/>
+                    <!-- Isometric Mechanical Keyboards -->
+                    <rect x="55" y="85" width="210" height="90" rx="12" fill="#24163D" stroke="#00F5D4" stroke-width="4"/>
+                    <rect x="70" y="102" width="32" height="24" rx="4" fill="#FF006E"/>
+                    <rect x="110" y="102" width="32" height="24" rx="4" fill="#8338EC"/>
+                    <rect x="150" y="102" width="32" height="24" rx="4" fill="#3A86FF"/>
+                    <rect x="190" y="102" width="55" height="24" rx="4" fill="#FFBE0B"/>
+                    <rect x="70" y="135" width="175" height="22" rx="4" fill="#00F5D4"/>
+                    <text x="160" y="52" text-anchor="middle" fill="#00F5D4" font-weight="bold" font-size="17">CYBER PRO RGB MECHANICAL</text>
+                  </svg>
+                </div>
+              </div>
+              <div class="lg:col-span-7 space-y-3">
+                <div class="inline-block px-3 py-1 rounded-lg bg-[#8338EC] text-white text-xs font-heading font-bold">
+                  ผลการวิเคราะห์แยกแยะธาตุทางทัศนศิลป์ทั้ง 6 มิติ
+                </div>
+                <h3 class="text-xl font-heading font-extrabold text-[#110B1E]">
+                  แบนเนอร์เปิดตัว "คีย์บอร์ดเกมมิ่ง CYBER PRO RGB"
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div class="p-3.5 rounded-xl bg-[#F3E8FF] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#8338EC]">1. เส้นตารางทัศนียภาพ (Perspective Grid):</div>
+                    <p class="text-zinc-700 mt-1">ใช้เส้นตรงแนวนอนตัดกับเส้นเฉียงด้านล่าง สร้างมิติพื้นที่ไซเบอร์ที่ดูพุ่งทะยานและล้ำยุค</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-[#FFF0F6] border-2 border-[#110B1E]">
+                    <div class="font-heading font-bold text-[#FF006E]">2. รูปร่างเรขาคณิต & สี Neon RGB:</div>
+                    <p class="text-zinc-700 mt-1">ปุ่มคีย์แคปใช้รูปร่างสี่เหลี่ยมเรียงตัวเป็นระเบียบ ตัดด้วยสีนีออนสด (ชมพู, ม่วง, ฟ้า, เหลือง, เขียวมิ้นต์) บนพื้นสีดำสนิท</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 5 (ทักษะปฏิบัติ 2 & ใบงาน): การร่างโครงสร้างเส้นและรูปทรงพื้นฐาน -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="skill-sketching" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#FFBE0B] text-[#110B1E] border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-extrabold uppercase">
+              ทักษะในการปฏิบัติงานที่ 2 & ใบงานประจำหน่วย
+            </span>
+            <span class="text-xs font-heading font-bold text-[#8338EC]">การร่างโครงสร้างเส้นและรูปทรงพื้นฐาน (Structural Sketching)</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            ขั้นตอนการร่างโครงสร้างเส้นและรูปทรงพื้นฐาน + ใบงานปฏิบัติการที่ 1
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              ก่อนที่นักออกแบบกราฟิกจะเริ่มวาดชิ้นงานจริงด้วยเครื่องมือ Pen Tool หรือ Shape Builder ในโปรแกรมสำเร็จรูป (เช่น Adobe Illustrator, Photoshop หรือ Canva/Figma) นักออกแบบจะต้องฝึกทักษะ <strong>"การลดทอนวัตถุซับซ้อนให้กลายเป็นโครงสร้างเส้นแกนและรูปทรงเรขาคณิตพื้นฐาน (Primitive Construction)"</strong> เพื่อให้ได้สัดส่วนที่แม่นยำ ไม่เบี้ยว และแก้ไขง่ายตามหลักการทำงานด้วยความละเอียด รอบคอบ
+            </p>
+
+            <!-- INTERACTIVE 4-STEP STRUCTURAL SKETCHING SIMULATOR -->
+            <div class="border-2 border-[#110B1E] rounded-2xl overflow-hidden bg-[#FFFDF7]">
+              <div class="bg-[#110B1E] text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-2">
+                <span class="font-heading font-bold text-xs sm:text-sm text-[#FFBE0B]">
+                  ✏️ กระดานจำลองการร่างโครงสร้าง 4 ขั้นตอน (Interactive Structural Sketching Stepper)
+                </span>
+                <span class="text-[11px] font-mono text-[#00F5D4]">คลิกดูลำดับการขึ้นโครงสร้างแก้วเครื่องดื่มคาเฟ่</span>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 border-b-2 border-[#110B1E] bg-white">
+                <button onclick="setSketchStep(1)" id="sketchBtn1" class="py-3 px-3 text-xs font-heading font-bold bg-[#FF006E] text-white border-r border-[#110B1E] transition">ขั้นที่ 1: เส้นแกนกลาง (Axis)</button>
+                <button onclick="setSketchStep(2)" id="sketchBtn2" class="py-3 px-3 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition">ขั้นที่ 2: รูปร่างเรขาคณิต 2D</button>
+                <button onclick="setSketchStep(3)" id="sketchBtn3" class="py-3 px-3 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition">ขั้นที่ 3: ขึ้นรูปทรง 3D</button>
+                <button onclick="setSketchStep(4)" id="sketchBtn4" class="py-3 px-3 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 transition">ขั้นที่ 4: ลงสี แสงเงา & พื้นผิว</button>
+              </div>
+
+              <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                <div class="md:col-span-5 flex justify-center">
+                  <div class="w-64 h-64 rounded-2xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center p-4">
+                    <svg id="sketchSvgCanvas" class="w-full h-full" viewBox="0 0 200 220">
+                      <!-- Step 1: Axis & Grid Lines (Always visible) -->
+                      <g id="sketchLayer1">
+                        <line x1="100" y1="15" x2="100" y2="205" stroke="#FF006E" stroke-width="2" stroke-dasharray="5 4"/>
+                        <line x1="40" y1="80" x2="160" y2="80" stroke="#00F5D4" stroke-width="2" stroke-dasharray="4 4"/>
+                        <line x1="55" y1="190" x2="145" y2="190" stroke="#00F5D4" stroke-width="2" stroke-dasharray="4 4"/>
+                        <circle cx="100" cy="80" r="4" fill="#FFBE0B"/>
+                        <circle cx="100" cy="190" r="4" fill="#FFBE0B"/>
+                      </g>
+                      <!-- Step 2: 2D Geometric Shapes (Hidden initially) -->
+                      <g id="sketchLayer2" class="hidden">
+                        <polygon points="52,80 148,80 132,190 68,190" fill="none" stroke="#FFBE0B" stroke-width="3"/>
+                        <path d="M52,80 A48,45 0 0,1 148,80" fill="none" stroke="#00F5D4" stroke-width="3"/>
+                        <line x1="115" y1="25" x2="95" y2="160" stroke="#FF006E" stroke-width="4"/>
+                      </g>
+                      <!-- Step 3: 3D Ellipses & Volume -->
+                      <g id="sketchLayer3" class="hidden">
+                        <ellipse cx="100" cy="80" rx="48" ry="12" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+                        <ellipse cx="100" cy="135" rx="40" ry="10" fill="none" stroke="#00F5D4" stroke-width="2" stroke-dasharray="3 3"/>
+                        <ellipse cx="100" cy="190" rx="32" ry="8" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+                      </g>
+                      <!-- Step 4: Final Color, Shading & Texture -->
+                      <g id="sketchLayer4" class="hidden">
+                        <polygon points="52,80 148,80 132,190 68,190" fill="#FF006E"/>
+                        <polygon points="100,80 148,80 132,190 100,190" fill="#D9048E"/>
+                        <path d="M52,80 A48,45 0 0,1 148,80 Z" fill="#FFBE0B"/>
+                        <ellipse cx="100" cy="135" rx="36" ry="22" fill="#00F5D4" stroke="#110B1E" stroke-width="2"/>
+                        <line x1="122" y1="22" x2="105" y2="80" stroke="#00F5D4" stroke-width="7" stroke-linecap="round"/>
+                        <circle cx="80" cy="105" r="5" fill="#FFFFFF" opacity="0.7"/>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+                <div class="md:col-span-7 space-y-3">
+                  <span id="sketchBadge" class="px-3 py-1 rounded-full bg-[#FF006E] text-white text-xs font-heading font-bold">
+                    ขั้นตอนที่ 1 จาก 4
+                  </span>
+                  <h4 id="sketchTitle" class="text-xl font-heading font-extrabold text-[#110B1E]">
+                    ขั้นที่ 1: กำหนดจุดพิกัดและลากเส้นแกนสมมาตร (Center Axis & Guide Lines)
+                  </h4>
+                  <p id="sketchDesc" class="text-sm text-zinc-700 leading-relaxed">
+                    เริ่มจากการวาง <strong>"จุด (Point)"</strong> กำหนดความสูงบน-ล่าง แล้วลาก <strong>"เส้นตรงแนวตั้ง (Vertical Center Line)"</strong> ผ่ากึ่งกลางเพื่อคุมสมดุลซ้าย-ขวาให้เท่ากัน พร้อมลากเส้นแนวนอนกำหนดขอบปากแก้วและก้นแก้ว
+                  </p>
+                  <div class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] text-xs">
+                    <strong>🎯 ทักษะและกิจนิสัยที่ฝึก:</strong> การกะสัดส่วนอย่างมีหลักเกณฑ์ ความละเอียด รอบคอบ ไม่วาดเบี้ยวเอียงก่อนลงเส้นจริง
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ใบงานปฏิบัติการที่ 1 (Mission Card + Interactive Self-Check) -->
+            <div class="p-6 rounded-3xl border-4 border-[#110B1E] bg-gradient-to-br from-[#FFF0F6] via-white to-[#E0F2FE] space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="px-3 py-1 rounded-xl bg-[#110B1E] text-[#FFBE0B] font-heading font-extrabold text-xs">
+                    📋 ใบงานปฏิบัติการที่ 1 (WEEK 1 LAB MISSION)
+                  </span>
+                  <span class="text-xs font-heading font-bold text-[#FF006E]">เวลาปฏิบัติ 2 ชั่วโมง • คะแนนเต็ม 6 คะแนน</span>
+                </div>
+                <span id="checklistProgress" class="px-3 py-1 rounded-full bg-[#00F5D4] text-[#110B1E] border border-[#110B1E] font-heading font-bold text-xs">
+                  ความคืบหน้าใบงาน: 0 / 4 ข้อ
+                </span>
+              </div>
+
+              <h3 class="text-xl font-heading font-extrabold text-[#110B1E]">
+                ภารกิจ: "วิเคราะห์ภาพต้นแบบและร่างโครงสร้างธาตุทางทัศนศิลป์สำหรับสินค้าธุรกิจดิจิทัล"
+              </h3>
+              <p class="text-xs sm:text-sm text-zinc-700 leading-relaxed">
+                ให้นักศึกษาเลือกสื่อกราฟิกโฆษณาสินค้าออนไลน์ที่สนใจมา 1 ชิ้นงาน แล้วปฏิบัติภารกิจทั้ง 2 ตอนด้านล่าง พร้อมติ๊กตรวจสอบรายการ (Checklist) ก่อนส่งงานท้ายชั่วโมง:
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm">
+                <label class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] flex items-start gap-3 cursor-pointer hover:bg-yellow-50 transition">
+                  <input type="checkbox" onchange="updateChecklist()" class="lab-check mt-1 w-4 h-4 accent-[#FF006E]">
+                  <span><strong>ภารกิจ 1.1:</strong> วิเคราะห์และชี้ตำแหน่ง <strong>จุด (Point)</strong> และ <strong>เส้น (Line)</strong> ที่ใช้สร้างแนวสายตาในภาพต้นแบบ พร้อมระบุอารมณ์ของเส้น</span>
+                </label>
+                <label class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] flex items-start gap-3 cursor-pointer hover:bg-yellow-50 transition">
+                  <input type="checkbox" onchange="updateChecklist()" class="lab-check mt-1 w-4 h-4 accent-[#FF006E]">
+                  <span><strong>ภารกิจ 1.2:</strong> จำแนก <strong>ชุดสี (Color Palette 60-30-10)</strong> โหมดสี (RGB/CMYK) และ <strong>รูปร่าง 2 มิติ (Shape)</strong> ที่ปรากฏในภาพ</span>
+                </label>
+                <label class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] flex items-start gap-3 cursor-pointer hover:bg-yellow-50 transition">
+                  <input type="checkbox" onchange="updateChecklist()" class="lab-check mt-1 w-4 h-4 accent-[#FF006E]">
+                  <span><strong>ภารกิจ 1.3:</strong> จำแนก <strong>รูปทรง 3 มิติ (Form)</strong> ทิศทางแสงเงา และชนิดของ <strong>พื้นผิว (Texture)</strong> ในชิ้นงาน</span>
+                </label>
+                <label class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] flex items-start gap-3 cursor-pointer hover:bg-yellow-50 transition">
+                  <input type="checkbox" onchange="updateChecklist()" class="lab-check mt-1 w-4 h-4 accent-[#FF006E]">
+                  <span><strong>ภารกิจปฏิบัติการร่างแบบ:</strong> ร่างโครงสร้างเส้นแกน (Axis) และรูปทรงพื้นฐานของสินค้าต้นแบบ 1 ชิ้น ด้วยความละเอียด รอบคอบ สะอาดเรียบร้อย</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 6: คำถามทบทวนประจำบท (Review Questions) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="questions" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+              แบบฝึกหัดทบทวนความรู้
+            </span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            คำถามทบทวนประจำบทที่ 1 (คลิกเพื่อดูแนวคำตอบ)
+          </h2>
+
+          <div class="space-y-3">
+            <!-- ข้อ 1 -->
+            <div class="pop-card-static rounded-2xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(1)" class="w-full p-5 text-left flex items-center justify-between hover:bg-pink-50 transition">
+                <span class="font-heading font-bold text-sm sm:text-base text-[#110B1E]">1. "ธาตุทางทัศนศิลป์ (Visual Elements)" มีทั้งหมดกี่ชนิด ได้แก่อะไรบ้าง และมีความสำคัญอย่างไรต่องานกราฟิก?</span>
+                <span id="faqIcon1" class="w-7 h-7 rounded-full bg-[#FF006E] text-white flex items-center justify-center font-bold text-base shrink-0">+</span>
+              </button>
+              <div id="faqAns1" class="hidden p-5 pt-3 text-xs sm:text-sm text-zinc-700 leading-relaxed border-t-2 border-[#110B1E] bg-[#FFFDF7]">
+                <strong class="text-[#FF006E]">แนวคำตอบ:</strong> ธาตุทางทัศนศิลป์มีทั้งหมด <strong>6 ชนิด</strong> ได้แก่ <strong>1) จุด (Point), 2) เส้น (Line), 3) สี (Color), 4) รูปร่าง (Shape), 5) รูปทรง (Form) และ 6) พื้นผิว (Texture)</strong> มีความสำคัญเปรียบเสมือนวัตถุดิบตั้งต้นหรืออะตอมของงานศิลปะทุกแขนง หากนำมาจัดวางอย่างเข้าใจธรรมชาติและจิตวิทยาการรับรู้ จะช่วยให้ชิ้นงานกราฟิกสื่อสารได้รวดเร็ว ดึงดูดสายตาลูกค้า และสร้างเอกลักษณ์ให้แก่ธุรกิจดิจิทัล
+              </div>
+            </div>
+
+            <!-- ข้อ 2 -->
+            <div class="pop-card-static rounded-2xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(2)" class="w-full p-5 text-left flex items-center justify-between hover:bg-pink-50 transition">
+                <span class="font-heading font-bold text-sm sm:text-base text-[#110B1E]">2. หากต้องการออกแบบแบนเนอร์โปรโมชัน "ลดราคาด่วนสายฟ้าแลบ (Flash Sale)" ควรเลือกใช้ "เส้น" และ "สี" ชนิดใด เพราะเหตุใด?</span>
+                <span id="faqIcon2" class="w-7 h-7 rounded-full bg-[#8338EC] text-white flex items-center justify-center font-bold text-base shrink-0">+</span>
+              </button>
+              <div id="faqAns2" class="hidden p-5 pt-3 text-xs sm:text-sm text-zinc-700 leading-relaxed border-t-2 border-[#110B1E] bg-[#FFFDF7]">
+                <strong class="text-[#8338EC]">แนวคำตอบ:</strong> ควรเลือกใช้ <strong>เส้นเฉียง/ทแยง (Diagonal Line)</strong> และ <strong>เส้นหยักฟันปลา (Zigzag Line)</strong> เพราะให้ความรู้สึกเคลื่อนไหวรวดเร็ว ตื่นเต้น เร้าใจ เหมือนพลังงานสายฟ้า ร่วมกับ <strong>สีวรรณะร้อนที่มีความสดสูง (High Saturation Warm Colors)</strong> เช่น สีแดงสด สีชมพูบานเย็น สีส้ม และสีเหลืองตัดกับสีดำหรือสีเขียวมิ้นต์นีออน เพื่อกระตุ้นอัตราการเต้นของหัวใจและเร่งให้ผู้ชมตัดสินใจกดสั่งซื้อทันที
+              </div>
+            </div>
+
+            <!-- ข้อ 3 -->
+            <div class="pop-card-static rounded-2xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(3)" class="w-full p-5 text-left flex items-center justify-between hover:bg-pink-50 transition">
+                <span class="font-heading font-bold text-sm sm:text-base text-[#110B1E]">3. "รูปร่าง (Shape)" กับ "รูปทรง (Form)" แตกต่างกันอย่างไร จงยกตัวอย่างการนำไปใช้ในงานกราฟิก?</span>
+                <span id="faqIcon3" class="w-7 h-7 rounded-full bg-[#FB5607] text-white flex items-center justify-center font-bold text-base shrink-0">+</span>
+              </button>
+              <div id="faqAns3" class="hidden p-5 pt-3 text-xs sm:text-sm text-zinc-700 leading-relaxed border-t-2 border-[#110B1E] bg-[#FFFDF7]">
+                <strong class="text-[#FB5607]">แนวคำตอบ:</strong> <strong>รูปร่าง (Shape) มี 2 มิติ</strong> คือมีความกว้างและความยาว แบนราบไม่มีความลึก เช่น วงกลม สี่เหลี่ยม นิยมใช้ทำไอคอน UI, โลโก้แบบ Flat Design และกรอบปุ่มกด ส่วน <strong>รูปทรง (Form) มี 3 มิติ</strong> คือมีความกว้าง ความยาว และความลึก/ความหนา มีมวลและปริมาตรจากการไล่น้ำหนักแสงเงา เช่น ทรงกลม ลูกบาศก์ ทรงกระบอก นิยมใช้ทำภาพจำลองบรรจุภัณฑ์สินค้า (3D Product Mockup)
+              </div>
+            </div>
+
+            <!-- ข้อ 4 -->
+            <div class="pop-card-static rounded-2xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(4)" class="w-full p-5 text-left flex items-center justify-between hover:bg-pink-50 transition">
+                <span class="font-heading font-bold text-sm sm:text-base text-[#110B1E]">4. เหตุใดนักออกแบบจึงต้องแยกแยะระบบสี RGB และ CMYK ให้ถูกต้องก่อนเริ่มตั้งค่าหน้ากระดาษ?</span>
+                <span id="faqIcon4" class="w-7 h-7 rounded-full bg-[#3A86FF] text-white flex items-center justify-center font-bold text-base shrink-0">+</span>
+              </button>
+              <div id="faqAns4" class="hidden p-5 pt-3 text-xs sm:text-sm text-zinc-700 leading-relaxed border-t-2 border-[#110B1E] bg-[#FFFDF7]">
+                <strong class="text-[#3A86FF]">แนวคำตอบ:</strong> เพราะ <strong>RGB เป็นระบบสีที่เกิดจากการผสมแสง</strong> สำหรับแสดงผลบนหน้าจอดิจิทัล (สมาร์ตโฟน คอมพิวเตอร์ โซเชียลมีเดีย) ซึ่งมีขอบเขตสีที่สว่างและสะท้อนแสงได้กว้างกว่า ในขณะที่ <strong>CMYK เป็นระบบสีของหมึกพิมพ์</strong> สำหรับงานสิ่งพิมพ์ลงวัสดุจริง หากนำไฟล์ที่ออกแบบในโหมดสี RGB ไปส่งโรงพิมพ์โดยตรง สีที่พิมพ์ออกมาจะดรอป หมองคล้ำ และเพี้ยนไปจากที่เห็นบนหน้าจอ
+              </div>
+            </div>
+
+            <!-- ข้อ 5 -->
+            <div class="pop-card-static rounded-2xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(5)" class="w-full p-5 text-left flex items-center justify-between hover:bg-pink-50 transition">
+                <span class="font-heading font-bold text-sm sm:text-base text-[#110B1E]">5. การร่างโครงสร้างเส้นแกน (Axis Lines) และรูปทรงพื้นฐานก่อนวาดจริง มีประโยชน์อย่างไรต่อกระบวนการทำงาน?</span>
+                <span id="faqIcon5" class="w-7 h-7 rounded-full bg-[#00A896] text-white flex items-center justify-center font-bold text-base shrink-0">+</span>
+              </button>
+              <div id="faqAns5" class="hidden p-5 pt-3 text-xs sm:text-sm text-zinc-700 leading-relaxed border-t-2 border-[#110B1E] bg-[#FFFDF7]">
+                <strong class="text-[#00A896]">แนวคำตอบ:</strong> ช่วยให้ควบคุมสัดส่วน (Proportion) ความสมดุลซ้าย-ขวา (Symmetry) และตำแหน่งของวัตถุได้อย่างแม่นยำตั้งแต่ต้น ลดการเสียเวลาแก้ไขงานซ้ำซ้อนเมื่อลงรายละเอียดไปแล้ว และเป็นการปลูกฝังกิจนิสัยการทำงานด้วยความละเอียด รอบคอบตามมาตรฐานวิชาชีพ
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- COMMENT & DISCUSSION SECTION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section class="border-t-2 border-[#110B1E] pt-10 pb-16">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-heading font-extrabold text-xl text-[#110B1E]">💬 กระดานแลกเปลี่ยนเรียนรู้และส่งความเห็นท้ายบท</h3>
+            <span class="px-3 py-1 rounded-full bg-[#FFBE0B] text-[#110B1E] border border-[#110B1E] text-xs font-heading font-bold">เปิดรับความคิดเห็น</span>
+          </div>
+
+          <!-- ช่องกรอกความคิดเห็น -->
+          <div class="pop-card-static p-5 rounded-2xl bg-white flex items-start gap-3.5 mb-8 no-print">
+            <div class="w-10 h-10 rounded-xl bg-[#FF006E] text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-bold text-xs shrink-0">
+              YOU
+            </div>
+            <div class="flex-1">
+              <input 
+                type="text" 
+                id="commentInput"
+                placeholder="ร่วมแชร์ไอเดียวิเคราะห์ทัศนธาตุ หรือสอบถามครูแม็คเกี่ยวกับบทที่ 1..." 
+                class="w-full p-3 bg-[#FFFDF7] border-2 border-[#110B1E] rounded-xl text-sm text-[#110B1E] placeholder-zinc-500 focus:outline-none focus:bg-yellow-50"
+              />
+              <div class="flex justify-end gap-2 mt-3">
+                <button onclick="clearComment()" class="pop-btn h-9 px-4 rounded-full text-xs font-heading font-bold bg-white text-[#110B1E]">ล้างข้อความ</button>
+                <button onclick="postComment()" class="pop-btn h-9 px-5 rounded-full text-xs font-heading font-bold bg-[#FF006E] text-white">ส่งความคิดเห็น</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- รายการความคิดเห็นตัวอย่าง -->
+          <div id="commentList" class="space-y-4">
+            <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-[#8338EC] text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-bold text-xs shrink-0">
+                KP
+              </div>
+              <div class="space-y-1 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-heading font-bold text-xs sm:text-sm text-[#110B1E]">กานต์พิชชา (ปวส.1 เทคโนโลยีธุรกิจดิจิทัล)</span>
+                  <span class="text-[11px] text-zinc-500">1 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-xs sm:text-sm text-zinc-700 leading-relaxed">
+                  พอลองกดเล่นตัวจำลองสีแบนเนอร์แล้วเห็นภาพชัดมากเลยค่ะครูแม็ค แค่เปลี่ยนคู่สีจากโทน Flash Sale เป็นโทน Organic อารมณ์ของสินค้าเปลี่ยนไปคนละเรื่องเลย!
+                </p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center font-heading font-bold text-xs shrink-0">
+                TN
+              </div>
+              <div class="space-y-1 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-heading font-bold text-xs sm:text-sm text-[#110B1E]">ธนกฤต (ปวส.1 เทคโนโลยีธุรกิจดิจิทัล)</span>
+                  <span class="text-[11px] text-zinc-500">3 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-xs sm:text-sm text-zinc-700 leading-relaxed">
+                  เมื่อก่อนผมสับสนระหว่าง รูปร่าง (Shape 2D) กับ รูปทรง (Form 3D) ตลอด พอเห็นภาพเปรียบเทียบวงกลมกับทรงกลมที่มีแสงเงา 5 ระดับในบทนี้ จำแม่นขึ้นเยอะเลยครับ
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    
+        <!-- ================================================================= -->
+        <!-- BOTTOM INTER-CHAPTER NAVIGATION DOCK                              -->
+        <!-- ================================================================= -->
+        <section class="mt-12 pt-8 border-t-2 border-[#110B1E] no-print">
+          <div class="p-6 rounded-3xl bg-white border-2 border-[#110B1E] shadow-[6px_6px_0px_#110B1E] space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-zinc-100 pb-4">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-lg bg-[#FFBE0B] border border-[#110B1E] text-[11px] font-mono font-bold">
+                  UNIT 01 OF 07
+                </span>
+                <span class="text-xs font-heading font-bold text-[#110B1E]">
+                  การนำทางข้ามบทเรียน (Curriculum Navigation)
+                </span>
+              </div>
+              <a href="index.html" class="pop-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-100 hover:bg-[#FFBE0B] text-xs font-heading font-bold text-[#110B1E]">
+                <span>🏠 สารบัญรวมรายวิชา 31910-0002</span>
+              </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              <a href="index.html" class="pop-card p-4 rounded-2xl flex items-center gap-3.5 group bg-zinc-50 hover:bg-yellow-50">
+                <div class="w-10 h-10 rounded-xl bg-white border-2 border-[#110B1E] flex items-center justify-center text-base font-bold shrink-0 shadow-[2px_2px_0px_#110B1E]">
+                  🏠
+                </div>
+                <div class="overflow-hidden">
+                  <div class="text-[10px] font-heading font-extrabold text-zinc-500 uppercase">ศูนย์รวมหลักสูตร</div>
+                  <div class="text-xs font-heading font-bold text-[#110B1E] truncate group-hover:text-[#8338EC]">
+                    กลับสู่หน้าสารบัญหลัก (Master Hub)
+                  </div>
+                </div>
+              </a>
+              
+              <a href="2_31910_0002.html" class="pop-card p-4 rounded-2xl flex items-center justify-between gap-3.5 group bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border-[#FF006E]">
+                <div class="overflow-hidden">
+                  <div class="text-[10px] font-heading font-extrabold text-[#FF006E] uppercase">บทถัดไป ➔</div>
+                  <div class="text-xs font-heading font-bold text-[#110B1E] truncate group-hover:text-[#FF006E]">
+                    บทที่ 2: งานประยุกต์ใช้หลักการและกฎเกณฑ์องค์ประกอบศิลป์
+                  </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-[#FF006E] text-white border-2 border-[#110B1E] flex items-center justify-center text-base font-bold shrink-0 shadow-[2px_2px_0px_#110B1E] group-hover:translate-x-1 transition-transform">
+                  ➔
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+</main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC (Interactive & Sandbox Safe) -->
+  <!-- ========================================================================= -->
+  <script>
+    // Toast Notification helper (No browser alert)
+    let toastTimer = null;
+    function showToast(message) {
+      const box = document.getElementById('toastBox');
+      const msg = document.getElementById('toastMsg');
+      msg.innerText = message;
+      box.classList.remove('hidden');
+      box.classList.add('flex');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+        box.classList.remove('flex');
+      }, 3200);
+    }
+
+    // สลับแถบ Sidebar (ซ่อน/แสดง)
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    toggleSidebarBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden');
+      sidebar.classList.toggle('flex');
+    });
+
+    // อัปเดตแถบ Scroll Progress Bar
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+      const bar = document.getElementById('scrollProgressBar');
+      if (bar) bar.style.width = scrolled + '%';
+    });
+
+    // สลับโหมดความจัดจ้านของ Hero Banner
+    let currentMood = 0;
+    const moods = [
+      { name: 'Cyber Pop', cls: 'vivid-gradient-bg' },
+      { name: 'Sunset Acid', cls: 'vivid-sunset-bg' },
+      { name: 'Electric Neon', cls: 'vivid-cyber-bg' }
+    ];
+    function cyclePaletteMood() {
+      const card = document.getElementById('heroBannerCard');
+      const label = document.getElementById('moodLabel');
+      card.classList.remove(moods[currentMood].cls);
+      currentMood = (currentMood + 1) % moods.length;
+      card.classList.add(moods[currentMood].cls);
+      label.innerText = 'โหมดสี: ' + moods[currentMood].name;
+      showToast('สลับโทนสีสตูดิโอเป็น "' + moods[currentMood].name + '" เรียบร้อย!');
+    }
+
+    // ข้อมูล Interactive Line Explorer 8 ชนิด
+    const lineData = {
+      1: {
+        badge: 'ชนิดที่ 1: เส้นตรงแนวตั้ง (Vertical Line)',
+        emotion: 'ความรู้สึก: มั่นคง แข็งแรง สูงสง่า น่าเชื่อถือ',
+        title: 'เส้นตรงแนวตั้ง (Vertical Line) — สัญลักษณ์แห่งความมั่นคงและศักดิ์ศรี',
+        desc: 'เส้นตรงที่ตั้งฉากกับพื้นโลก ให้ความรู้สึกเหมือนเสาวิหาร ตึกสูงระฟ้า หรือต้นไม้ใหญ่ที่ยืนหยัดอย่างแข็งแรง สื่อถึงความมั่นคง ความเที่ยงตรง ความเจริญงอกงามพุ่งขึ้นสู่เบื้องบน และความเป็นทางการ',
+        usage: 'นิยมใช้ในกราฟิกของสถาบันการเงิน ธนาคาร โครงการคอนโดมิเนียมหรู โลโก้องค์กรภาครัฐ หรือการจัด Layout แบ่งคอลัมน์แนวตั้ง',
+        svg: `<svg class="w-full h-full" viewBox="0 0 240 140">
+                <line x1="40" y1="15" x2="40" y2="125" stroke="#FF006E" stroke-width="6" stroke-linecap="round"/>
+                <line x1="80" y1="15" x2="80" y2="125" stroke="#FFBE0B" stroke-width="8" stroke-linecap="round"/>
+                <line x1="120" y1="10" x2="120" y2="130" stroke="#00F5D4" stroke-width="10" stroke-linecap="round"/>
+                <line x1="160" y1="15" x2="160" y2="125" stroke="#FFBE0B" stroke-width="8" stroke-linecap="round"/>
+                <line x1="200" y1="15" x2="200" y2="125" stroke="#FF006E" stroke-width="6" stroke-linecap="round"/>
+              </svg>`
+      },
+      2: {
+        badge: 'ชนิดที่ 2: เส้นตรงแนวนอน (Horizontal Line)',
+        emotion: 'ความรู้สึก: สงบนิ่ง ผ่อนคลาย กว้างขวาง ปลอดภัย',
+        title: 'เส้นตรงแนวนอน (Horizontal Line) — ความสงบนิ่งและสมดุลที่ผ่อนคลาย',
+        desc: 'เส้นที่ขนานไปกับพื้นโลกและเส้นขอบฟ้า ไม่แสดงแรงต้านแรงโน้มถ่วง จึงให้ความรู้สึกพักผ่อน สงบนิ่ง เงียบสงบ กว้างขวาง และช่วยให้สายตาผู้ชมกวาดอ่านข้อความจากซ้ายไปขวาได้อย่างสบายตา',
+        usage: 'นิยมใช้ในสื่อโฆษณาธุรกิจที่พัก รีสอร์ต สปา เส้นคั่นแบ่งหมวดหมู่เนื้อหา (Divider) และส่วนท้ายเว็บไซต์',
+        svg: `<svg class="w-full h-full" viewBox="0 0 240 140">
+                <line x1="20" y1="35" x2="220" y2="35" stroke="#00F5D4" stroke-width="6" stroke-linecap="round"/>
+                <line x1="35" y1="70" x2="205" y2="70" stroke="#FFBE0B" stroke-width="9" stroke-linecap="round"/>
+                <line x1="20" y1="105" x2="220" y2="105" stroke="#FF006E" stroke-width="6" stroke-linecap="round"/>
+              </svg>`
+      },
+      3: {
+        badge: 'ชนิดที่ 3: เส้นเฉียง/ทแยง (Diagonal Line)',
+        emotion: 'ความรู้สึก: รวดเร็ว เคลื่อนไหว ตื่นเต้น เร้าใจ',
+        title: 'เส้นเฉียง/ทแยง (Diagonal Line) — พลังแห่งความเร็วและการพุ่งทะยาน',
+        desc: 'เส้นที่เอียงทำมุมกับพื้น ไม่ตั้งฉากและไม่ขนาน จึงให้ความรู้สึกเหมือนวัตถุที่กำลังพุ่งทะยานไปข้างหน้า มีความเร็วสูง มีพลังไดนามิก (Dynamic) ไม่หยุดนิ่ง และกระตุ้นความตื่นเต้นทันทีที่มองเห็น',
+        usage: 'นิยมใช้ในแบนเนอร์รองเท้ากีฬา อุปกรณ์ฟิตเนส รถแข่ง โปสเตอร์การแข่งขัน Esports และแคมเปญลดราคาด่วน',
+        svg: `<svg class="w-full h-full" viewBox="0 0 240 140">
+                <line x1="25" y1="120" x2="115" y2="20" stroke="#FF006E" stroke-width="7" stroke-linecap="round"/>
+                <line x1="75" y1="125" x2="165" y2="15" stroke="#FFBE0B" stroke-width="9" stroke-linecap="round"/>
+                <line x1="125" y1="120" x2="215" y2="20" stroke="#00F5D4" stroke-width="7" stroke-linecap="round"/>
+              </svg>`
+      },
+      4: {
+        badge: 'ชนิดที่ 4: เส้นโค้ง (Curved Line)',
+        emotion: 'ความรู้สึก: อ่อนโยน นุ่มนวล ลื่นไหล เป็นมิตร',
+        title: 'เส้นโค้ง (Curved Line) — ความอ่อนช้อยและจังหวะที่นุ่มนวล',
+        desc: 'เส้นที่ค่อยๆ เปลี่ยนทิศทางอย่างต่อเนื่องเหมือนเกลียวคลื่นหรือกลีบดอกไม้ ไม่มีมุมแหลมคม จึงให้ความรู้สึกสุภาพ อ่อนหวาน เป็นมิตร ผ่อนคลาย และเชิญชวนให้สายตาไหลตามอย่างเพลิดเพลิน',
+        usage: 'นิยมใช้ในแบรนด์สกินแคร์ เครื่องสำอาง ผลิตภัณฑ์แม่และเด็ก เครื่องดื่มเพื่อสุขภาพ และการทำขอบการ์ด UI โค้งมน',
+        svg: `<svg class="w-full h-full" viewBox="0 0 240 140">
+                <path d="M15,75 Q70,15 125,75 T225,75" fill="none" stroke="#00F5D4" stroke-width="8" stroke-linecap="round"/>
+                <path d="M15,105 Q70,45 125,105 T225,105" fill="none" stroke="#FF006E" stroke-width="6" stroke-linecap="round"/>
+              </svg>`
+      },
+      5: {
+        badge: 'ชนิดที่ 5: เส้นหยัก/ฟันปลา (Zigzag Line)',
+        emotion: 'ความรู้สึก: รุนแรง กระแทก สายฟ้า ตื่นตัว',
+        title: 'เส้นหยัก/ฟันปลา (Zigzag Line) — พลังกระแทกและการเตือนภัยสายฟ้าแลบ',
+        desc: 'เกิดจากเส้นตรงเฉียงหักมุมกลับไปมาอย่างฉับพลัน ให้ความรู้สึกเหมือนสายฟ้าฟาด คลื่นกระแสไฟฟ้า หรือการปะทะกันอย่างรุนแรง สร้างความตื่นตัวและดึงสายตาได้อย่างฉับไวที่สุด',
+        usage: 'นิยมใช้ในป้าย Flash Sale ลดฟ้าผ่า, เครื่องดื่มชูกำลัง, สื่อโฆษณาคอนเสิร์ตร็อก และสัญลักษณ์แจ้งเตือนอันตราย',
+        svg: `<svg class="w-full h-full" viewBox="0 0 240 140">
+                <polyline points="20,95 60,30 100,95 140,30 180,95 220,30" fill="none" stroke="#FFBE0B" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+              </svg>`
+      },
+      6: {
+        badge: 'ชนิดที่ 6: เส้นก้นหอย (Spiral Line)',
+        emotion: 'ความรู้สึก: ดึงดูดเข้าสู่ศูนย์กลาง หมุนวน ลึกลับ',
+        title: 'เส้นก้นหอย (Spiral Line) — แรงดึงดูดสายตาเข้าสู่จุดโฟกัส',
+        desc: 'เส้นโค้งที่หมุนวนรอบจุดศูนย์กลางจากวงกว้างเข้าสู่วงแคบ (หรือขยายออก) ให้ความรู้สึกเคลื่อนไหวหมุนวนไม่สิ้นสุด สะกดสายตาให้พุ่งเข้าสู่จุดกึ่งกลาง และเชื่อมโยงกับสัดส่วนทองคำ (Golden Ratio)',
+        usage: 'นิยมใช้ในการจัดวางองค์ประกอบตามแนว Golden Spiral เพื่อบังคับสายตาผู้ชมให้ไปหยุดที่ตัวสินค้าหลัก',
+        svg: `<svg class="w-full h-full" viewBox="0 0 240 140">
+                <path d="M120,70 m0,0 a8,8 0 1,0 16,0 a18,18 0 1,0 -36,0 a30,30 0 1,0 60,0 a44,44 0 1,0 -88,0" fill="none" stroke="#00F5D4" stroke-width="6" stroke-linecap="round"/>
+              </svg>`
+      },
+      7: {
+        badge: 'ชนิดที่ 7: เส้นประ (Dashed Line)',
+        emotion: 'ความรู้สึก: ไม่ต่อเนื่อง รอการเติมเต็ม เชิญชวนให้ตัด/คลิก',
+        title: 'เส้นประ (Dashed Line) — เส้นนำทางและกรอบคูปองส่วนลด',
+        desc: 'เส้นที่มีการเว้นระยะขาดเป็นช่วงๆ สม่ำเสมอ สายตาของผู้ชมจะเชื่อมต่อช่องว่างเหล่านั้นเข้าด้วยกันเอง ให้ความรู้สึกโปร่งเบา ไม่ทึบตัน และสื่อถึงแนวพับหรือแนวตัดกระดาษ',
+        usage: 'นิยมใช้ทำกรอบคูปองโค้ดส่วนลด (Voucher), เส้นทางวิ่งของรถส่งพัสดุบนแผนที่ และกรอบอัปโหลดรูปภาพ',
+        svg: `<svg class="w-full h-full" viewBox="0 0 240 140">
+                <rect x="30" y="25" width="180" height="90" rx="14" fill="none" stroke="#FF006E" stroke-width="6" stroke-dasharray="14 10"/>
+                <text x="120" y="76" text-anchor="middle" fill="#FFBE0B" font-weight="bold" font-size="16">COUPON 50%</text>
+              </svg>`
+      },
+      8: {
+        badge: 'ชนิดที่ 8: เส้นอิสระ (Freehand Line)',
+        emotion: 'ความรู้สึก: สร้างสรรค์ เป็นกันเอง มีเอกลักษณ์เฉพาะตัว',
+        title: 'เส้นอิสระ (Freehand / Gesture Line) — ลายเส้นมนุษย์ที่มีชีวิตชีวา',
+        desc: 'เส้นที่ลากด้วยมืออย่างอิสระโดยไม่ใช้ไม้บรรทัดหรือรูปทรงเรขาคณิต มีความหนา-บางตามแรงกดปากกาหรือพู่กัน สื่อถึงงานฝีมือ ความอบอุ่น ความคิดสร้างสรรค์ และความเป็นกันเอง',
+        usage: 'นิยมใช้ในงานออกแบบโลโก้คาเฟ่โฮมเมด, ภาพประกอบสติกเกอร์ LINE, แบรนด์งานคราฟต์ และกราฟิกแนว Street Art',
+        svg: `<svg class="w-full h-full" viewBox="0 0 240 140">
+                <path d="M25,95 C55,20 85,120 120,50 C150,-5 170,115 215,45" fill="none" stroke="#FFBE0B" stroke-width="7" stroke-linecap="round"/>
+              </svg>`
+      }
+    };
+
+    function selectLineType(num) {
+      for (let i = 1; i <= 8; i++) {
+        const tab = document.getElementById('lineTab' + i);
+        if (i === num) {
+          tab.className = 'line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] bg-[#FF006E] text-white transition';
+        } else {
+          tab.className = 'line-tab py-3 px-2 text-xs font-heading font-bold border-r border-b border-[#110B1E] text-[#110B1E] hover:bg-yellow-100 transition';
+        }
+      }
+      const d = lineData[num];
+      document.getElementById('lineBadge').innerText = d.badge;
+      document.getElementById('lineEmotionTag').innerText = d.emotion;
+      document.getElementById('lineTitle').innerText = d.title;
+      document.getElementById('lineDesc').innerText = d.desc;
+      document.getElementById('lineUsage').innerText = d.usage;
+      document.getElementById('lineSvgBox').innerHTML = d.svg;
+    }
+
+    // สตูดิโอจำลองสีแบนเนอร์ (Interactive Color Harmony & Ad Simulator)
+    const adPalettes = {
+      flash: {
+        cardCls: 'p-6 rounded-2xl border-4 border-[#110B1E] bg-gradient-to-r from-[#FF006E] via-[#FB5607] to-[#FFBE0B] text-white shadow-[6px_6px_0px_#110B1E] transition-all duration-300',
+        badge: '⚡ FLASH SALE 11.11',
+        harmony: '60% Pink • 30% Yellow • 10% Cyan',
+        headline: 'หูฟังไร้สาย ซาวด์กระหึ่ม!',
+        subtext: 'ลดแรงทะลุพิกัดเฉพาะวันนี้ ส่งฟรีทั่วไทยใน 24 ชั่วโมง',
+        psych: '🧠 ผลทางจิตวิทยา: สีวรรณะร้อนตัดกับปุ่มสีเขียวมิ้นต์ กระตุ้นความตื่นเต้นและเร่งให้กดซื้อทันที',
+        ctaCls: 'px-4 py-2 rounded-xl bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] font-heading font-extrabold text-xs shadow-[2px_2px_0px_#110B1E]'
+      },
+      cyber: {
+        cardCls: 'p-6 rounded-2xl border-4 border-[#110B1E] bg-gradient-to-r from-[#110B1E] via-[#8338EC] to-[#3A86FF] text-white shadow-[6px_6px_0px_#110B1E] transition-all duration-300',
+        badge: '🎮 CYBER PRO EDITION',
+        harmony: '60% Violet • 30% Neon Blue • 10% Hot Pink',
+        headline: 'หูฟังเกมมิ่ง 7.1 Surround!',
+        subtext: 'แยกเสียงฝีเท้าแม่นยำ ดีไซน์ไฟ RGB ล้ำอนาคตสำหรับสาย Esports',
+        psych: '🧠 ผลทางจิตวิทยา: สีม่วง-ฟ้านีออนสื่อถึงเทคโนโลยีโลกอนาคต จินตนาการ และความเร้าใจวัยรุ่น',
+        ctaCls: 'px-4 py-2 rounded-xl bg-[#FF006E] text-white border-2 border-white font-heading font-extrabold text-xs shadow-[2px_2px_0px_#110B1E]'
+      },
+      organic: {
+        cardCls: 'p-6 rounded-2xl border-4 border-[#110B1E] bg-gradient-to-r from-[#00A896] via-[#02C39A] to-[#AACC00] text-white shadow-[6px_6px_0px_#110B1E] transition-all duration-300',
+        badge: '🌿 ECO ACOUSTIC WOOD',
+        harmony: '60% Emerald • 30% Lime • 10% Warm Yellow',
+        headline: 'หูฟังวัสดุธรรมชาติ ถนอมหู!',
+        subtext: 'ผลิตจากวัสดุรีไซเคิลรักษ์โลก นุ่มสบายฟังเพลงผ่อนคลายได้ทั้งวัน',
+        psych: '🧠 ผลทางจิตวิทยา: คู่สีเขียว-เหลืองข้างเคียงให้ความรู้สึกปลอดภัย ผ่อนคลาย และเป็นมิตรต่อสิ่งแวดล้อม',
+        ctaCls: 'px-4 py-2 rounded-xl bg-[#FFBE0B] text-[#110B1E] border-2 border-[#110B1E] font-heading font-extrabold text-xs shadow-[2px_2px_0px_#110B1E]'
+      },
+      luxury: {
+        cardCls: 'p-6 rounded-2xl border-4 border-[#FFBE0B] bg-[#110B1E] text-white shadow-[6px_6px_0px_#110B1E] transition-all duration-300',
+        badge: '👑 MASTER SIGNATURE GOLD',
+        harmony: '60% Obsidian Black • 30% Charcoal • 10% Gold',
+        headline: 'หูฟังสตูดิโอ Hi-Res ระดับโลก',
+        subtext: 'ตัวเรือนไทเทเนียมชุบทองคำแท้ 24K คัดสรรเพื่อนักฟังระดับพรีเมียม',
+        psych: '🧠 ผลทางจิตวิทยา: สีดำตัดสีทองสร้างมูลค่าเพิ่มสูงสุด ให้ความรู้สึกหรูหรา ทรงพลัง และคุ้มค่าราคาสูง',
+        ctaCls: 'px-4 py-2 rounded-xl bg-[#FFBE0B] text-[#110B1E] border-2 border-white font-heading font-extrabold text-xs shadow-[2px_2px_0px_#FF006E]'
+      }
+    };
+
+    function setAdPalette(key) {
+      ['flash', 'cyber', 'organic', 'luxury'].forEach(k => {
+        const b = document.getElementById('palBtn_' + k);
+        if (k === key) {
+          b.className = 'w-full p-3 rounded-xl border-2 border-[#110B1E] bg-[#FF006E] text-white text-left flex items-center justify-between transition shadow-[3px_3px_0px_#110B1E]';
+        } else {
+          b.className = 'w-full p-3 rounded-xl border-2 border-[#110B1E] bg-white text-[#110B1E] hover:bg-pink-50 text-left flex items-center justify-between transition';
+        }
+      });
+      const p = adPalettes[key];
+      document.getElementById('simBannerCard').className = p.cardCls;
+      document.getElementById('simBadge').innerText = p.badge;
+      document.getElementById('simHarmonyLabel').innerText = p.harmony;
+      document.getElementById('simHeadline').innerText = p.headline;
+      document.getElementById('simSubtext').innerText = p.subtext;
+      document.getElementById('simPsychNote').innerHTML = p.psych;
+      document.getElementById('simCtaBtn').className = p.ctaCls;
+    }
+
+    // สลับกรณีศึกษาการแยกแยะภาพต้นแบบ (Case Studies 1-3)
+    function switchCaseStudy(num) {
+      for (let i = 1; i <= 3; i++) {
+        const btn = document.getElementById('caseBtn' + i);
+        const panel = document.getElementById('casePanel' + i);
+        if (i === num) {
+          btn.className = 'pop-btn px-5 py-2.5 rounded-xl font-heading font-bold text-xs sm:text-sm bg-[#FF006E] text-white';
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = 'pop-btn px-5 py-2.5 rounded-xl font-heading font-bold text-xs sm:text-sm bg-white text-[#110B1E] hover:bg-[#FFBE0B]';
+          panel.classList.add('hidden');
+        }
+      }
+    }
+
+    // สลับขั้นตอนการร่างโครงสร้าง 4 ขั้นตอน
+    const sketchStepsInfo = {
+      1: {
+        badge: 'ขั้นตอนที่ 1 จาก 4',
+        title: 'ขั้นที่ 1: กำหนดจุดพิกัดและลากเส้นแกนสมมาตร (Center Axis & Guide Lines)',
+        desc: 'เริ่มจากการวาง "จุด (Point)" กำหนดความสูงบน-ล่าง แล้วลาก "เส้นตรงแนวตั้ง (Vertical Center Line)" ผ่ากึ่งกลางเพื่อคุมสมดุลซ้าย-ขวาให้เท่ากัน พร้อมลากเส้นแนวนอนกำหนดขอบปากแก้วและก้นแก้ว'
+      },
+      2: {
+        badge: 'ขั้นตอนที่ 2 จาก 4',
+        title: 'ขั้นที่ 2: ขึ้นโครงรูปร่างเรขาคณิต 2 มิติ (2D Geometric Blocking)',
+        desc: 'ใช้เส้นตรงเชื่อมเป็นรูปร่างสี่เหลี่ยมคางหมู (Trapezoid) เป็นตัวแก้ว วาดเส้นโค้งครึ่งวงกลมด้านบนเป็นฝาโดม และลากเส้นตรงเฉียงเป็นหลอดดูดน้ำ'
+      },
+      3: {
+        badge: 'ขั้นตอนที่ 3 จาก 4',
+        title: 'ขั้นที่ 3: เปลี่ยนรูปร่างแบนราบเป็นรูปทรง 3 มิติ (3D Cylindrical Volume)',
+        desc: 'เติมวงรี (Ellipse) ที่ปากแก้ว ขอบฉลากกลางแก้ว และก้นแก้ว เพื่อสร้างมิติความโค้งนูนของทรงกระบอก (Cylinder Form) ทำให้ภาพดูมีปริมาตรความลึกทันที'
+      },
+      4: {
+        badge: 'ขั้นตอนที่ 4 จาก 4',
+        title: 'ขั้นที่ 4: ลงสี ไล่น้ำหนักแสงเงา และใส่พื้นผิวไฮไลต์ (Color, Shading & Texture)',
+        desc: 'เทสีสดตามหลัก 60-30-10 แยกด้านรับแสง (สว่าง) กับด้านเงามืด (เข้มกว่า) พร้อมเติมจุดและเส้นขาวสะท้อนแสง (Glossy Texture) ได้ชิ้นงานกราฟิกที่สมบูรณ์!'
+      }
+    };
+
+    function setSketchStep(step) {
+      for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById('sketchBtn' + i);
+        const layer = document.getElementById('sketchLayer' + i);
+        if (i === step) {
+          btn.className = 'py-3 px-3 text-xs font-heading font-bold bg-[#FF006E] text-white border-r border-[#110B1E] transition';
+        } else {
+          btn.className = 'py-3 px-3 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition';
+        }
+        if (i <= step) {
+          layer.classList.remove('hidden');
+        } else {
+          layer.classList.add('hidden');
+        }
+      }
+      const info = sketchStepsInfo[step];
+      document.getElementById('sketchBadge').innerText = info.badge;
+      document.getElementById('sketchTitle').innerText = info.title;
+      document.getElementById('sketchDesc').innerText = info.desc;
+    }
+
+    // อัปเดตความคืบหน้าใบงาน Checklist
+    function updateChecklist() {
+      const checks = document.querySelectorAll('.lab-check');
+      let done = 0;
+      checks.forEach(c => { if (c.checked) done++; });
+      const badge = document.getElementById('checklistProgress');
+      badge.innerText = `ความคืบหน้าใบงาน: ${done} / ${checks.length} ข้อ`;
+      if (done === checks.length) {
+        showToast('🎉 ยอดเยี่ยมมาก! คุณทำภารกิจใบงานบทที่ 1 ครบทั้ง 4 ข้อแล้ว');
+      }
+    }
+
+    // ฟังก์ชันเปิด/ปิดคำถามทบทวน FAQ
+    function toggleFaq(num) {
+      const ans = document.getElementById('faqAns' + num);
+      const icon = document.getElementById('faqIcon' + num);
+      if (ans.classList.contains('hidden')) {
+        ans.classList.remove('hidden');
+        icon.innerText = '−';
+      } else {
+        ans.classList.add('hidden');
+        icon.innerText = '+';
+      }
+    }
+
+    // การเลื่อนไปยังส่วนต่างๆ ด้วยปุ่มชิป (Chip Filters)
+    function filterChip(targetId, btn) {
+      document.querySelectorAll('.chip-btn').forEach(b => {
+        b.className = 'chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0';
+      });
+      btn.className = 'chip-btn active h-8 px-4 rounded-full text-xs font-heading font-bold bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] transition shrink-0';
+
+      if (targetId === 'all') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }
+
+    // ปุ่มบันทึกบทเรียน
+    let bookmarked = false;
+    function toggleBookmark() {
+      bookmarked = !bookmarked;
+      const txt = document.getElementById('bookmarkText');
+      txt.innerText = bookmarked ? 'บันทึกแล้ว ✓' : 'บันทึกบทเรียนนี้';
+      showToast(bookmarked ? '⭐ บันทึกบทที่ 1 ไว้ในรายการโปรดแล้ว' : 'ยกเลิกการบันทึกบทเรียนแล้ว');
+    }
+
+    // ปุ่มถูกใจ Like
+    let liked = false;
+    function toggleLike() {
+      const countEl = document.getElementById('likeCount');
+      let current = parseInt(countEl.innerText, 10);
+      if (!liked) {
+        countEl.innerText = current + 1;
+        liked = true;
+        showToast('💖 ขอบคุณที่กดถูกใจบทเรียนวิชาองค์ประกอบศิลป์!');
+      } else {
+        countEl.innerText = current - 1;
+        liked = false;
+      }
+    }
+
+    // ปุ่มแชร์ (Sandbox Safe)
+    function shareLesson() {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(window.location.href);
+        }
+      } catch (e) {}
+      showToast('🔗 คัดลอกลิงก์บทเรียนบทที่ 1 สำหรับแชร์ให้เพื่อนเรียบร้อยแล้ว!');
+    }
+
+    // ฟังก์ชันค้นหาในบทเรียน
+    function runLessonSearch() {
+      const input = document.getElementById('searchInput');
+      const query = input.value.trim();
+      if (!query) {
+        showToast('กรุณาพิมพ์คำค้นหา เช่น จุด, เส้น, RGB, CMYK, รูปร่าง, พื้นผิว');
+        return;
+      }
+      if (window.find && window.find(query)) {
+        showToast('🔍 พบคำว่า "' + query + '" ในเนื้อหาบทเรียน');
+      } else {
+        showToast('ค้นหา "' + query + '" — ลองเลื่อนดูตามหมวดหมู่ในแถบชิปด้านบน');
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        runLessonSearch();
+      }
+    });
+
+    // ฟังก์ชันคอมเมนต์
+    function postComment() {
+      const input = document.getElementById('commentInput');
+      const val = input.value.trim();
+      if (!val) {
+        showToast('กรุณาพิมพ์ข้อความก่อนกดส่งความคิดเห็น');
+        return;
+      }
+
+      const list = document.getElementById('commentList');
+      const newComment = document.createElement('div');
+      newComment.className = 'p-4 rounded-2xl border-2 border-[#110B1E] bg-[#FFF0F6] flex items-start gap-3.5';
+      newComment.innerHTML = `
+        <div class="w-10 h-10 rounded-xl bg-[#FF006E] text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-bold text-xs shrink-0">YOU</div>
+        <div class="space-y-1 flex-1">
+          <div class="flex items-center justify-between">
+            <span class="font-heading font-bold text-xs sm:text-sm text-[#110B1E]">นักศึกษา (คุณ)</span>
+            <span class="text-[11px] text-[#FF006E] font-bold">เมื่อสักครู่</span>
+          </div>
+          <p class="text-xs sm:text-sm text-[#110B1E] leading-relaxed">${escapeHtml(val)}</p>
+        </div>
+      `;
+      list.prepend(newComment);
+      input.value = '';
+      showToast('💬 ส่งความคิดเห็นเข้าสู่กระดานบทเรียนเรียบร้อยแล้ว!');
+    }
+
+    function clearComment() {
+      document.getElementById('commentInput').value = '';
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+  </script>
+
+  <!-- Unified Navigation & Progress State Sync -->
+  <script>
+    function toggleChapterMenu() {
+      const menu = document.getElementById('chapterMenuDropdown');
+      if (menu) menu.classList.toggle('hidden');
+    }
+    document.addEventListener('click', function(e) {
+      const menu = document.getElementById('chapterMenuDropdown');
+      const btn = document.getElementById('chapterMenuBtn');
+      if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    (function recordCourseProgress() {
+      try {
+        const key = 'bpg_course_31910_0002_state';
+        const currentFile = '1_31910_0002.html';
+        const raw = localStorage.getItem(key);
+        const data = raw ? JSON.parse(raw) : { lastChapter: currentFile, visitedChapters: [] };
+        data.lastChapter = currentFile;
+        if (!data.visitedChapters) data.visitedChapters = [];
+        if (!data.visitedChapters.includes(currentFile)) {
+          data.visitedChapters.push(currentFile);
+        }
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (e) {
+        console.warn('Progress sync warning', e);
+      }
+    })();
+  </script>
+</body>
+</html>

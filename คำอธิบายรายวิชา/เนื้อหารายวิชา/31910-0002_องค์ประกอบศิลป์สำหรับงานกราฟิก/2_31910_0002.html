@@ -1,0 +1,2747 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 2: งานประยุกต์ใช้หลักการและกฎเกณฑ์องค์ประกอบศิลป์ | 31910-0002 องค์ประกอบศิลป์สำหรับงานกราฟิก</title>
+  
+  <!-- Google Fonts: Prompt, Sarabun & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vivid: {
+              pink: '#FF006E',
+              magenta: '#D9048E',
+              purple: '#8338EC',
+              indigo: '#3A86FF',
+              cyan: '#00F5D4',
+              yellow: '#FFBE0B',
+              lime: '#AACC00',
+              orange: '#FB5607',
+              ink: '#110B1E',
+              surface: '#FFFDF9'
+            }
+          },
+          fontFamily: {
+            display: ['Prompt', 'sans-serif'],
+            sans: ['Sarabun', 'Prompt', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --accent-primary: #FF006E;
+      --accent-secondary: #8338EC;
+      --accent-tertiary: #FFBE0B;
+      --accent-cyan: #00F5D4;
+      --accent-orange: #FB5607;
+      --ink-dark: #110B1E;
+    }
+
+    body {
+      font-family: 'Sarabun', 'Prompt', sans-serif;
+      color: #110B1E;
+      background-color: #FFFDF7;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(255, 0, 110, 0.09) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(0, 245, 212, 0.14) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(255, 190, 11, 0.12) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(131, 56, 236, 0.09) 0px, transparent 50%);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Prompt', sans-serif;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Neo-Vivid Pop Shadow & Borders */
+    .pop-card {
+      background: #FFFFFF;
+      border: 2px solid #110B1E;
+      box-shadow: 5px 5px 0px #110B1E;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .pop-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px #FF006E;
+    }
+
+    .pop-card-static {
+      background: #FFFFFF;
+      border: 2px solid #110B1E;
+      box-shadow: 5px 5px 0px #110B1E;
+    }
+
+    .pop-btn {
+      border: 2px solid #110B1E;
+      box-shadow: 3px 3px 0px #110B1E;
+      transition: all 0.15s ease;
+    }
+    .pop-btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px #110B1E;
+    }
+    .pop-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px #110B1E;
+    }
+
+    /* Vivid Banner Gradients */
+    .vivid-gradient-bg {
+      background: linear-gradient(135deg, #FF006E 0%, #8338EC 48%, #3A86FF 100%);
+    }
+    .vivid-sunset-bg {
+      background: linear-gradient(135deg, #FF006E 0%, #FB5607 55%, #FFBE0B 100%);
+    }
+    .vivid-cyber-bg {
+      background: linear-gradient(135deg, #8338EC 0%, #3A86FF 50%, #00F5D4 100%);
+    }
+
+    .dot-pattern {
+      background-image: radial-gradient(#110B1E 1.2px, transparent 1.2px);
+      background-size: 18px 18px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .pop-card, .pop-card-static {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#FF006E] selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- SCROLL PROGRESS BAR (Top Vivid Rainbow Bar) -->
+  <!-- ========================================================================= -->
+  <div class="fixed top-0 left-0 right-0 h-1.5 z-[60] bg-zinc-200 no-print">
+    <div id="scrollProgressBar" class="h-full bg-gradient-to-r from-[#00F5D4] via-[#FFBE0B] to-[#FF006E] w-0 transition-all duration-100"></div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TOAST NOTIFICATION (Sandbox-safe feedback) -->
+  <!-- ========================================================================= -->
+  <div id="toastBox" class="fixed bottom-6 right-6 z-[70] hidden items-center gap-3 px-5 py-3.5 rounded-2xl bg-[#110B1E] text-white border-2 border-[#00F5D4] shadow-2xl transition-all duration-300">
+    <span id="toastIcon" class="w-7 h-7 rounded-full bg-[#FF006E] flex items-center justify-center text-sm font-bold">✦</span>
+    <span id="toastMsg" class="text-sm font-heading font-medium">ดำเนินการสำเร็จ!</span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TOP NAVIGATION BAR (Vivid Studio Broadcast Header) -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-1.5 z-50 h-16 bg-white/95 backdrop-blur-md border-b-2 border-[#110B1E] px-4 flex items-center justify-between no-print">
+    <!-- ฝั่งซ้าย: ปุ่มเมนู + โลโก้แบรนด์ -->
+    <div class="flex items-center gap-3">
+      <button id="toggleSidebarBtn" class="w-10 h-10 rounded-xl border-2 border-[#110B1E] bg-[#FFBE0B] hover:bg-[#FF006E] hover:text-white flex items-center justify-center transition text-[#110B1E] font-bold" title="สลับแถบสารบัญ">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      
+      <a href="index.html" class="flex items-center gap-2.5 group" title="กลับสู่หน้าหลักสูตร 31910-0002">
+        <div class="w-10 h-10 vivid-sunset-bg rounded-xl border-2 border-[#110B1E] flex items-center justify-center text-white font-bold text-base shadow-[2px_2px_0px_#110B1E] group-hover:rotate-6 transition-transform">
+          ⚖️
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5">
+            <span class="font-heading font-extrabold text-base sm:text-lg tracking-tight text-[#110B1E]">ห้องเรียนครูแม็ค</span>
+            <span class="text-[10px] font-heading font-extrabold uppercase tracking-wider text-[#110B1E] bg-[#00F5D4] px-2 py-0.5 rounded-full border border-[#110B1E]">UNIT 02 • THEORY + LAB</span>
+          </div>
+          <span class="text-[11px] text-zinc-600 font-medium hidden sm:inline">31910-0002 องค์ประกอบศิลป์สำหรับงานกราฟิก • วิทยาลัยการอาชีพบ้านโป่ง</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- ส่วนกลาง: ช่องค้นหาเนื้อหาในบทที่ 2 -->
+    <div class="hidden md:flex items-center flex-1 max-w-[500px] mx-6">
+      <div class="flex w-full items-center">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="ค้นหาในบทที่ 2 (เช่น สมมาตร, อสมมาตร, สัดส่วนทองคำ, กฎ 3 ส่วน, จังหวะ)..." 
+            class="w-full h-10 pl-4 pr-3 bg-[#FFFDF7] border-2 border-[#110B1E] rounded-l-full text-sm text-[#110B1E] placeholder-zinc-500 focus:outline-none focus:bg-yellow-50"
+          />
+        </div>
+        <button 
+          id="searchBtn"
+          onclick="runLessonSearch()"
+          class="h-10 px-5 bg-[#FF006E] hover:bg-[#8338EC] border-2 border-l-0 border-[#110B1E] rounded-r-full text-white font-heading text-xs font-bold flex items-center gap-1.5 transition" 
+          title="ค้นหา">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <span>ค้นหา</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: สลับโหมดสี + พิมพ์เอกสาร + โปรไฟล์ -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Quick Chapter Switcher Dropdown -->
+      <div class="relative">
+        <button id="chapterMenuBtn" onclick="toggleChapterMenu()" class="pop-btn h-9 px-3 rounded-full bg-[#FFBE0B] hover:bg-[#FFD166] text-[#110B1E] text-xs font-heading font-bold flex items-center gap-1.5 transition" title="สลับบทเรียน 1-7">
+          <span>📑</span>
+          <span class="hidden md:inline">สลับบทเรียน</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div id="chapterMenuDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white border-2 border-[#110B1E] rounded-2xl shadow-[6px_6px_0px_#110B1E] p-2.5 space-y-1 z-50">
+          <div class="text-[11px] font-heading font-extrabold text-[#110B1E] px-2 py-1 uppercase tracking-wider border-b border-zinc-200 flex justify-between items-center">
+            <span>สารบัญทั้ง 7 บท</span>
+            <a href="index.html" class="text-[#FF006E] hover:underline">หน้าหลัก Hub ➔</a>
+          </div>
+          <a href="1_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-pink-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">1</span>
+            <span class="truncate">บทที่ 1: ธาตุทางทัศนศิลป์</span>
+          </a>
+          <a href="2_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-purple-50 bg-[#8338EC] text-white">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">2</span>
+            <span class="truncate">บทที่ 2: กฎเกณฑ์องค์ประกอบศิลป์</span>
+          </a>
+          <a href="3_space_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-blue-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">3</span>
+            <span class="truncate">บทที่ 3: พื้นที่ในงานกราฟิก (Space)</span>
+          </a>
+          <a href="4_focal_point_emphasis_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-orange-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">4</span>
+            <span class="truncate">บทที่ 4: จุดสนใจและการเน้นวัตถุ</span>
+          </a>
+          <a href="5_placement_grouping_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-lime-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">5</span>
+            <span class="truncate">บทที่ 5: ตำแหน่งและจัดกลุ่มวัตถุ</span>
+          </a>
+          <a href="6_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-pink-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">6</span>
+            <span class="truncate">บทที่ 6: เครื่องมือโปรแกรมสำเร็จรูป</span>
+          </a>
+          <a href="7_31910_0002.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-heading font-semibold hover:bg-cyan-50 text-[#110B1E]">
+            <span class="w-5 h-5 rounded bg-black/20 flex items-center justify-center font-bold text-[10px]">7</span>
+            <span class="truncate">บทที่ 7: ออกแบบ แก้ไข และตกแต่ง</span>
+          </a>
+        </div>
+      </div>
+      <button onclick="cyclePaletteMood()" class="pop-btn h-9 px-3.5 rounded-full bg-[#FFBE0B] text-[#110B1E] text-xs font-heading font-bold flex items-center gap-1.5" title="สลับโทนสีฉูดฉาด">
+        <span>🌈</span>
+        <span id="moodLabel" class="hidden sm:inline">โหมดสี: Sunset Acid</span>
+      </button>
+
+      <button onclick="window.print()" class="hidden lg:flex items-center gap-1.5 h-9 px-3.5 rounded-full pop-btn bg-white text-xs font-heading font-bold text-[#110B1E] hover:bg-[#00F5D4]">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        <span>พิมพ์ใบความรู้/ใบงาน</span>
+      </button>
+
+      <div class="flex items-center gap-2 pl-1">
+        <div class="w-9 h-9 rounded-full bg-[#8338EC] text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-extrabold text-xs shadow-[2px_2px_0px_#110B1E]" title="นายธิติวุฒิ จันทร์โสม (ครูแม็ค)">
+          MK
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN LAYOUT WRAPPER (SIDEBAR + MAIN CONTENT AREA) -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- LEFT SIDEBAR (280px Collapsible, Theory + Practical Navigation) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="w-72 bg-white border-r-2 border-[#110B1E] shrink-0 hidden lg:flex flex-col justify-between overflow-y-auto no-print">
+      <div class="p-4 space-y-1.5">
+        <!-- ป้ายหน่วยการเรียนรู้ที่ 2 -->
+        <div class="p-3.5 rounded-2xl vivid-sunset-bg text-white border-2 border-[#110B1E] shadow-[3px_3px_0px_#110B1E] mb-4">
+          <div class="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-yellow-100 font-bold">
+            <span>UNIT 02 • WEEK 2</span>
+            <span>4 ชม. (ท2/ป2)</span>
+          </div>
+          <div class="font-heading font-bold text-sm mt-1 leading-snug drop-shadow">
+            งานประยุกต์ใช้หลักการและกฎเกณฑ์องค์ประกอบศิลป์
+          </div>
+          <div class="mt-2 flex items-center justify-between text-[11px] bg-black/30 px-2.5 py-1 rounded-lg">
+            <span>🏆 คะแนนหน่วยที่ 2:</span>
+            <span class="font-bold text-[#00F5D4]">6 คะแนน</span>
+          </div>
+        </div>
+
+        <!-- หมวดที่ 1: ทฤษฎีเข้มข้น -->
+        <div class="text-[11px] font-heading font-extrabold text-[#FF006E] px-2 py-1 uppercase tracking-wider flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FF006E] inline-block"></span>
+          <span>ภาคทฤษฎีเจาะลึก (2 ชม.)</span>
+        </div>
+
+        <a href="#intro" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition bg-[#FFBE0B]/30 border-2 border-[#110B1E] text-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#FF006E] text-white flex items-center justify-center font-bold shrink-0">0</span>
+          <span class="truncate">บทนำ & กรอบหลักการศิลปะ</span>
+        </a>
+
+        <a href="#theory-balance" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#8338EC] text-white flex items-center justify-center font-bold shrink-0">2.1</span>
+          <span class="truncate">ทฤษฎีความสมดุล (Balance 4 แบบ)</span>
+        </a>
+
+        <a href="#theory-weight" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#FB5607] text-white flex items-center justify-center font-bold shrink-0">⚖️</span>
+          <span class="truncate">6 ปัจจัยกำหนดน้ำหนักสายตา</span>
+        </a>
+
+        <a href="#theory-proportion" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-pink-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#3A86FF] text-white flex items-center justify-center font-bold shrink-0">📐</span>
+          <span class="truncate">กฎสัดส่วน & จังหวะของภาพ</span>
+        </a>
+
+        <!-- หมวดที่ 2: ภาคปฏิบัติจัดเต็ม -->
+        <div class="text-[11px] font-heading font-extrabold text-[#8338EC] px-2 pt-3 pb-1 uppercase tracking-wider flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#00F5D4] border border-black inline-block"></span>
+          <span>ภาคปฏิบัติเข้มข้น (2 ชม.)</span>
+        </div>
+
+        <a href="#lab-1-scale" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-cyan-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#00F5D4] text-[#110B1E] border border-[#110B1E] flex items-center justify-center font-bold shrink-0">L1</span>
+          <span class="truncate">Lab 1: เครื่องชั่งน้ำหนักสายตา</span>
+        </a>
+
+        <a href="#lab-2-layout" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-cyan-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#FFBE0B] text-[#110B1E] border border-[#110B1E] flex items-center justify-center font-bold shrink-0">L2</span>
+          <span class="truncate">Lab 2: สตูดิโอจัดสัดส่วน & กริด</span>
+        </a>
+
+        <a href="#lab-3-sketch" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-cyan-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#FF006E] text-white flex items-center justify-center font-bold shrink-0">L3</span>
+          <span class="truncate">Lab 3: ฝึกร่างแบบ Sketch 5 ขั้น</span>
+        </a>
+
+        <a href="#lab-4-clinic" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-cyan-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#8338EC] text-white flex items-center justify-center font-bold shrink-0">L4</span>
+          <span class="truncate">Lab 4: คลินิกแก้ชิ้นงานพังเป็นปัง</span>
+        </a>
+
+        <a href="#worksheet-2" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition text-[#110B1E] hover:bg-cyan-50 border-2 border-transparent hover:border-[#110B1E]">
+          <span class="w-6 h-6 rounded-lg bg-[#110B1E] text-[#00F5D4] flex items-center justify-center font-bold shrink-0">📋</span>
+          <span class="truncate">ใบงานที่ 2 & คำถามทบทวน</span>
+        </a>
+      </div>
+
+      <!-- ส่วนล่างสุดของ Sidebar -->
+      <div class="p-4 border-t-2 border-[#110B1E] bg-[#110B1E] text-white text-xs">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FFBE0B] animate-ping"></span>
+          <span class="font-heading font-bold text-[#00F5D4]">วิทยาลัยการอาชีพบ้านโป่ง</span>
+        </div>
+        <div class="mt-1 text-[11px] text-zinc-300">ผู้สอน: นายธิติวุฒิ จันทร์โสม</div>
+      </div>
+    </aside>
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- MAIN CONTENT VIEWPORT (Scrollable) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <main class="flex-1 overflow-y-auto flex flex-col">
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- HORIZONTAL CHIP FILTER BAR (Quick Jump to Theory & 4 Labs) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-[#110B1E] py-3 px-4 sm:px-8 no-print">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <button onclick="filterChip('all', this)" class="chip-btn active h-8 px-4 rounded-full text-xs font-heading font-bold bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] transition shrink-0">🌟 ทั้งหมด</button>
+          <button onclick="filterChip('intro', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">0. บทนำ</button>
+          <button onclick="filterChip('theory-balance', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">📚 2.1 ทฤษฎีสมดุล 4 แบบ</button>
+          <button onclick="filterChip('theory-weight', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">⚖️ น้ำหนักสายตา 6 ปัจจัย</button>
+          <button onclick="filterChip('theory-proportion', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">📐 สัดส่วน & จังหวะภาพ</button>
+          <button onclick="filterChip('lab-1-scale', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">🛠️ ปฏิบัติ 1: ชั่งน้ำหนักภาพ</button>
+          <button onclick="filterChip('lab-2-layout', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">🛠️ ปฏิบัติ 2: จัดกริดแบนเนอร์</button>
+          <button onclick="filterChip('lab-3-sketch', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">✏️ ปฏิบัติ 3: ร่างแบบ Sketch</button>
+          <button onclick="filterChip('lab-4-clinic', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0">🔧 ปฏิบัติ 4: คลินิกแก้งานจริง</button>
+          <button onclick="filterChip('worksheet-2', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFBE0B] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FF006E] hover:text-white transition shrink-0">📋 ใบงานที่ 2 & คำถาม</button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- LESSON HERO / VIVID BROADCAST STAGE -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <section id="hero-stage" class="max-w-6xl mx-auto w-full px-4 sm:px-8 pt-6 pb-4">
+        
+        <div id="heroBannerCard" class="w-full vivid-sunset-bg text-white rounded-3xl overflow-hidden relative border-4 border-[#110B1E] shadow-[8px_8px_0px_#110B1E]">
+          <!-- Decorative Shapes -->
+          <div class="absolute -top-12 -right-12 w-60 h-60 rounded-full bg-[#8338EC]/35 blur-xl pointer-events-none"></div>
+          <div class="absolute bottom-6 right-8 w-32 h-32 rounded-2xl rotate-12 border-8 border-[#00F5D4]/50 pointer-events-none hidden sm:block"></div>
+          
+          <div class="p-6 sm:p-10 flex flex-col justify-between min-h-[350px] relative z-10">
+            <!-- Top Badges -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-heading font-extrabold uppercase tracking-wider bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E]">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#FF006E] animate-ping"></span>
+                  UNIT 2 • THEORY + 4 HANDS-ON LABS
+                </span>
+                <span class="px-3 py-1 rounded-full text-xs font-heading font-bold bg-black/45 text-[#FFBE0B] border border-white/30">
+                  หลักสูตร ปวส. 2567 • ทฤษฎี 2 ชม. / ปฏิบัติ 2 ชม.
+                </span>
+                <span class="px-3 py-1 rounded-full text-xs font-heading font-bold bg-white/20 text-white border border-white/30">
+                  สัปดาห์ที่ 2 (คะแนนเต็ม 6 คะแนน)
+                </span>
+              </div>
+              <span class="font-mono text-xs bg-[#110B1E] text-[#00F5D4] px-3 py-1 rounded-lg border border-white/20">
+                COURSE ID: 31910-0002
+              </span>
+            </div>
+
+            <!-- Main Heading -->
+            <div class="my-6">
+              <div class="inline-block px-3 py-1 rounded-lg bg-[#110B1E]/80 text-[#FFBE0B] text-xs font-mono font-bold uppercase tracking-widest mb-3 border border-[#FFBE0B]/50">
+                CHAPTER 02 • PRINCIPLES OF COMPOSITION: BALANCE, PROPORTION & RHYTHM
+              </div>
+              <h1 class="text-2xl sm:text-5xl font-heading font-extrabold tracking-tight text-white leading-tight drop-shadow-[0_3px_0_rgba(17,11,30,0.85)]">
+                บทที่ 2: งานประยุกต์ใช้หลักการและกฎเกณฑ์องค์ประกอบศิลป์
+              </h1>
+              <p class="text-sm sm:text-lg text-white/95 mt-4 max-w-4xl leading-relaxed font-medium bg-[#110B1E]/45 p-4 rounded-2xl border border-white/30">
+                ยกระดับจากการรู้จัก "ทัศนธาตุ" สู่การคุม "กฎเหล็กแห่งการจัดวาง": เจาะลึกทฤษฎี <strong>ความสมดุล (สมมาตร & อสมมาตร)</strong>, <strong>กฎเกณฑ์สัดส่วน (Golden Ratio & Rule of Thirds)</strong> และ <strong>จังหวะลีลาของภาพ (Visual Rhythm)</strong> พร้อม <strong>4 ห้องปฏิบัติการอินเทอร์แอคทีฟ</strong> ให้ฝึกชั่งน้ำหนักภาพ ฝึกร่างแบบ (Sketch) และแก้ชิ้นงานจริงด้วยตนเอง!
+              </p>
+            </div>
+
+            <!-- Quick Summary Cards of Duty 2 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+              <a href="#theory-balance" class="p-3 rounded-xl bg-[#110B1E]/65 hover:bg-[#110B1E]/85 border border-white/30 flex items-center gap-3 transition">
+                <span class="w-8 h-8 rounded-lg bg-[#FFBE0B] text-[#110B1E] font-heading font-extrabold text-xs flex items-center justify-center shrink-0">2.1</span>
+                <div class="text-xs">
+                  <div class="font-heading font-bold text-[#FFBE0B]">งานย่อย 2.1</div>
+                  <div class="text-white/90">วิเคราะห์กฎเกณฑ์ความสมดุล</div>
+                </div>
+              </a>
+              <a href="#theory-proportion" class="p-3 rounded-xl bg-[#110B1E]/65 hover:bg-[#110B1E]/85 border border-white/30 flex items-center gap-3 transition">
+                <span class="w-8 h-8 rounded-lg bg-[#00F5D4] text-[#110B1E] font-heading font-extrabold text-xs flex items-center justify-center shrink-0">📐</span>
+                <div class="text-xs">
+                  <div class="font-heading font-bold text-[#00F5D4]">ความรู้ในการปฏิบัติ</div>
+                  <div class="text-white/90">สัดส่วน (Proportion) & จังหวะ</div>
+                </div>
+              </a>
+              <a href="#lab-3-sketch" class="p-3 rounded-xl bg-[#110B1E]/65 hover:bg-[#110B1E]/85 border border-white/30 flex items-center gap-3 transition">
+                <span class="w-8 h-8 rounded-lg bg-[#FF006E] text-white font-heading font-extrabold text-xs flex items-center justify-center shrink-0">✏️</span>
+                <div class="text-xs">
+                  <div class="font-heading font-bold text-pink-200">ทักษะปฏิบัติที่ 1</div>
+                  <div class="text-white/90">การร่างแบบ (Sketch) ตามกฎศิลปะ</div>
+                </div>
+              </a>
+              <a href="#lab-1-scale" class="p-3 rounded-xl bg-[#110B1E]/65 hover:bg-[#110B1E]/85 border border-white/30 flex items-center gap-3 transition">
+                <span class="w-8 h-8 rounded-lg bg-[#8338EC] text-white font-heading font-extrabold text-xs flex items-center justify-center shrink-0">⚖️</span>
+                <div class="text-xs">
+                  <div class="font-heading font-bold text-purple-200">ทักษะปฏิบัติที่ 2</div>
+                  <div class="text-white/90">เปรียบเทียบสัดส่วน & น้ำหนักภาพ</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instructor Stack & Action Bar -->
+        <div class="mt-5 p-4 rounded-2xl pop-card-static flex flex-wrap items-center justify-between gap-4 bg-white">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl vivid-gradient-bg text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-extrabold text-base shadow-[3px_3px_0px_#110B1E]">
+              MK
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-heading font-extrabold text-base text-[#110B1E]">นายธิติวุฒิ จันทร์โสม (ครูแม็ค)</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-heading font-bold bg-[#FFBE0B] text-[#110B1E] border border-[#110B1E]">
+                  ✓ ผู้สอนประจำวิชา
+                </span>
+              </div>
+              <div class="text-xs text-zinc-600 mt-0.5">
+                สาขาวิชาเทคโนโลยีธุรกิจดิจิทัล • วิทยาลัยการอาชีพบ้านโป่ง จังหวัดราชบุรี (สอศ.)
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5 no-print">
+            <a href="#lab-1-scale" class="pop-btn h-10 px-4 bg-[#00F5D4] text-[#110B1E] text-xs font-heading font-bold rounded-full flex items-center gap-1.5">
+              <span>🛠️</span>
+              <span>ข้ามไปส่วนฝึกปฏิบัติ (4 Labs)</span>
+            </a>
+
+            <button id="likeBtn" onclick="toggleLike()" class="pop-btn h-10 px-4 bg-white hover:bg-pink-50 text-[#110B1E] text-xs font-heading font-bold rounded-full flex items-center gap-1.5">
+              <span>💖</span>
+              <span>ถูกใจบทที่ 2</span>
+              <span id="likeCount" class="px-2 py-0.5 rounded-full bg-[#FF006E] text-white text-[11px]">342</span>
+            </button>
+
+            <button onclick="shareLesson()" class="pop-btn h-10 px-4 bg-[#8338EC] text-white text-xs font-heading font-bold rounded-full flex items-center gap-1.5">
+              <span>🔗</span>
+              <span>แชร์</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- MAIN BODY CONTENT (Rich Theory + 4 Intensive Practical Labs) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="max-w-6xl mx-auto w-full px-4 sm:px-8 py-6 space-y-16">
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 0: บทนำ & โครงสร้างหน่วยการเรียนรู้ที่ 2 -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="intro" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+            <span>🌟 บทนำและภาพรวมหน่วยการเรียนรู้ที่ 2</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            จาก "วัตถุดิบทัศนธาตุ" สู่ "สูตรลับการจัดองค์ประกอบศิลป์"
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-5 bg-white">
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              ใน <strong>บทที่ 1</strong> เราได้เรียนรู้จักกับ <strong>"ธาตุทางทัศนศิลป์ (Visual Elements)"</strong> ทั้ง 6 ชนิด (จุด เส้น สี รูปร่าง รูปทรง พื้นผิว) ซึ่งเปรียบเสมือนการเตรียมวัตถุดิบชั้นเลิศในครัว แต่การมีวัตถุดิบดีไม่ได้แปลว่าอาหารจะอร่อย หากพ่อครัวเททุกอย่างลงหม้อโดยไร้สูตรและสัดส่วน! ในทางกราฟิกก็เช่นเดียวกัน หากเรานำภาพสินค้า ข้อความ เส้น และสี มาวางกระจัดกระจายโดยไม่มีกฎเกณฑ์ งานกราฟิกชิ้นนั้นจะดู <strong>"เอียง หนักข้างเดียว อึดอัด สับสน และไม่น่าเชื่อถือ"</strong>
+            </p>
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              ใน <strong>บทที่ 2: งานประยุกต์ใช้หลักการและกฎเกณฑ์องค์ประกอบศิลป์</strong> นี้ เราจะศึกษา <strong>"หลักการและกฎเกณฑ์ขององค์ประกอบศิลป์ (Principles of Composition)"</strong> ซึ่งเป็นเหมือนสูตรปรุงอาหารและกฎหมายควบคุมโครงสร้างภาพ โดยเน้นหนักไปที่ 3 เสาหลักตามใบโครงการสอน ได้แก่ <strong>1) ความสมดุล (Balance)</strong>, <strong>2) สัดส่วน (Proportion)</strong> และ <strong>3) จังหวะลีลาของภาพ (Rhythm)</strong> เพื่อให้สามารถลงมือ <strong>ร่างแบบ (Sketch)</strong> และ <strong>เปรียบเทียบสัดส่วนน้ำหนักของภาพ</strong> ได้อย่างแม่นยำระดับมืออาชีพ
+            </p>
+
+            <!-- กล่องสรุปมาตรฐานรายวิชาและเกณฑ์คะแนนหน่วยที่ 2 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
+              <div class="p-5 rounded-2xl bg-[#FFF0F6] border-2 border-[#110B1E]">
+                <div class="text-xs font-heading font-extrabold uppercase text-[#FF006E] mb-1">🎯 งานหลักที่ 2 & งานย่อย 2.1</div>
+                <p class="text-sm font-bold text-[#110B1E] leading-relaxed">
+                  งานประยุกต์ใช้หลักการและกฎเกณฑ์องค์ประกอบศิลป์
+                </p>
+                <p class="text-xs text-zinc-700 mt-2 leading-relaxed">
+                  • <strong>งานย่อย 2.1:</strong> วิเคราะห์กฎเกณฑ์ความสมดุล (Balance)<br>
+                  • <strong>ผลลัพธ์ระดับรายวิชา:</strong> สร้างงานกราฟิกโดยใช้โปรแกรมสำเร็จรูป ตามหลักการและกฎเกณฑ์ขององค์ประกอบศิลป์ ด้วยความละเอียด รอบคอบ
+                </p>
+              </div>
+
+              <div class="p-5 rounded-2xl bg-[#F3E8FF] border-2 border-[#110B1E]">
+                <div class="text-xs font-heading font-extrabold uppercase text-[#8338EC] mb-1">📚 ความรู้และทักษะประจำหน่วยที่ 2</div>
+                <ul class="text-xs text-[#110B1E] space-y-1.5 font-medium">
+                  <li>✅ <strong>ความรู้ 1:</strong> หลักการความสมดุล (แบบสมมาตรและอสมมาตร)</li>
+                  <li>✅ <strong>ความรู้ 2:</strong> กฎเกณฑ์เรื่องสัดส่วนและจังหวะของภาพ</li>
+                  <li>🛠️ <strong>ทักษะปฏิบัติ 1:</strong> การร่างแบบ (Sketch) ตามกฎเกณฑ์ศิลปะ</li>
+                  <li>🛠️ <strong>ทักษะปฏิบัติ 2:</strong> การเปรียบเทียบสัดส่วนและน้ำหนักของภาพ</li>
+                </ul>
+              </div>
+
+              <div class="p-5 rounded-2xl bg-[#ECFEFF] border-2 border-[#110B1E]">
+                <div class="text-xs font-heading font-extrabold uppercase text-[#00A896] mb-1">📊 การวัดผลหน่วยที่ 2 (6 คะแนน)</div>
+                <div class="grid grid-cols-3 gap-1.5 text-center mt-2">
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">ความรู้</div>
+                    <div class="font-heading font-extrabold text-sm text-[#FF006E]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">ความเข้าใจ</div>
+                    <div class="font-heading font-extrabold text-sm text-[#8338EC]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">นำไปใช้</div>
+                    <div class="font-heading font-extrabold text-sm text-[#3A86FF]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">วิเคราะห์</div>
+                    <div class="font-heading font-extrabold text-sm text-[#FB5607]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">ทักษะพิสัย</div>
+                    <div class="font-heading font-extrabold text-sm text-[#00A896]">1</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-white border border-[#110B1E]">
+                    <div class="text-[10px] text-zinc-500">จิตพิสัย</div>
+                    <div class="font-heading font-extrabold text-sm text-[#110B1E]">1</div>
+                  </div>
+                </div>
+                <div class="text-[11px] text-zinc-600 mt-2 text-center">
+                  สัปดาห์ที่ 2: รวม 4 ชั่วโมง (ทฤษฎี 2 ชม. / ปฏิบัติ 2 ชม.)
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 1 (ทฤษฎีที่ 1): กฎเกณฑ์ความสมดุล (Balance) 4 รูปแบบ -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="theory-balance" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#8338EC] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+              ภาคทฤษฎีที่ 1 (งานย่อย 2.1)
+            </span>
+            <span class="text-xs font-heading font-bold text-[#FF006E]">หลักการความสมดุล (Visual Balance : Symmetrical, Asymmetrical & Radial)</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            2.1 การวิเคราะห์กฎเกณฑ์ความสมดุล (Balance) ในงานกราฟิก
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <div class="text-base text-[#110B1E] leading-relaxed space-y-3">
+              <p>
+                <strong>ความหมายของความสมดุล (Balance / Equilibrium):</strong> ในทางทัศนศิลป์และการออกแบบกราฟิก <strong>"ความสมดุล"</strong> หมายถึง การจัดวางธาตุทางทัศนศิลป์ (จุด เส้น สี รูปร่าง รูปทรง พื้นผิว และตัวอักษร) ลงในพื้นที่หน้ากระดาษ (Artboard) ให้มี <strong>"น้ำหนักทางสายตา (Visual Weight)"</strong> ที่ถ่วงดุลกันพอดีระหว่างฝั่งซ้ายกับฝั่งขวา หรือด้านบนกับด้านล่าง โดยอาศัยเส้นแกนสมมติตรงกลางภาพที่เรียกว่า <strong>"เส้นแกนศูนย์ถ่วง (Central Axis / Fulcrum)"</strong> เปรียบเสมือนคานกระดกหรือตาชั่งสองแขนที่ไม่เอียงเทไปด้านใดด้านหนึ่งจนผู้ชมรู้สึกอึดอัดหรือกลัวว่าภาพจะล้ม
+              </p>
+              <p>
+                ตามหลักวิชาองค์ประกอบศิลป์สำหรับงานกราฟิก เราจำแนกความสมดุลออกเป็น <strong>4 รูปแบบสำคัญ</strong> (โดยมี 2 รูปแบบหลักที่ระบุในโครงการสอน คือ <strong>แบบสมมาตร</strong> และ <strong>แบบอสมมาตร</strong>):
+              </p>
+            </div>
+
+            <!-- การ์ดวิเคราะห์ความสมดุล 4 รูปแบบ พร้อมแผนภาพ SVG ชัดเจน -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <!-- 1. สมดุลแบบสมมาตร (Symmetrical Balance) -->
+              <div class="p-6 rounded-2xl border-2 border-[#110B1E] bg-[#FFF0F6] flex flex-col justify-between space-y-4">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="px-3 py-1 rounded-full bg-[#FF006E] text-white text-xs font-heading font-bold">รูปแบบหลักที่ 1</span>
+                    <span class="font-mono text-xs font-bold text-[#110B1E]">ซ้าย = ขวา (Mirror Image)</span>
+                  </div>
+                  <div class="h-44 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center p-3 mb-4">
+                    <svg class="w-full h-full" viewBox="0 0 280 140">
+                      <!-- Central Fulcrum Axis -->
+                      <line x1="140" y1="10" x2="140" y2="120" stroke="#00F5D4" stroke-width="2" stroke-dasharray="5 4"/>
+                      <polygon points="140,108 152,130 128,130" fill="#00F5D4"/>
+                      <!-- Balance Beam -->
+                      <line x1="30" y1="108" x2="250" y2="108" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+                      <!-- Left Side Object -->
+                      <rect x="48" y="42" width="56" height="56" rx="10" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="76" cy="70" r="12" fill="#FFBE0B"/>
+                      <!-- Right Side Object (Identical Mirror) -->
+                      <rect x="176" y="42" width="56" height="56" rx="10" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="204" cy="70" r="12" fill="#FFBE0B"/>
+                      <text x="140" y="25" text-anchor="middle" fill="#FFBE0B" font-size="11" font-weight="bold">แกนสมมาตร (Symmetry Axis)</text>
+                    </svg>
+                  </div>
+                  <h3 class="text-xl font-heading font-extrabold text-[#110B1E]">
+                    1. ความสมดุลแบบสมมาตร (Symmetrical / Formal Balance)
+                  </h3>
+                  <p class="text-xs sm:text-sm text-zinc-700 mt-2 leading-relaxed">
+                    คือการจัดวางองค์ประกอบให้ฝั่งซ้ายและฝั่งขวาของแกนกลางมีลักษณะ <strong>"เหมือนกันทุกประการดั่งเงาสะท้อนในกระจก (ซ้าย = ขวา)"</strong> ทั้งขนาด รูปร่าง สี และระยะห่างจากจุดกึ่งกลาง
+                  </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] text-xs space-y-1.5">
+                  <div><strong class="text-[#FF006E]">🧠 อารมณ์ความรู้สึก:</strong> มั่นคง แข็งแรง เป็นระเบียบ สง่างาม เป็นทางการ ซื่อตรง และน่าเชื่อถือสูงมาก (แต่หากใช้ไม่ระวังอาจดูนิ่งและน่าเบื่อ)</div>
+                  <div><strong class="text-[#8338EC]">💼 งานกราฟิกที่เหมาะสม:</strong> ตราสัญลักษณ์องค์กร/วิทยาลัย, โปสเตอร์งานพิธีการ, เกียรติบัตร, แพ็กเกจจิงน้ำหอมหรู, หน้าแรกเว็บไซต์โรงแรม 5 ดาว</div>
+                </div>
+              </div>
+
+              <!-- 2. สมดุลแบบอสมมาตร (Asymmetrical Balance) -->
+              <div class="p-6 rounded-2xl border-2 border-[#110B1E] bg-[#F3E8FF] flex flex-col justify-between space-y-4">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="px-3 py-1 rounded-full bg-[#8338EC] text-white text-xs font-heading font-bold">รูปแบบหลักที่ 2 (นิยมสูงสุดในยุคดิจิทัล)</span>
+                    <span class="font-mono text-xs font-bold text-[#110B1E]">ซ้าย ≠ ขวา (แต่น้ำหนักเท่ากัน)</span>
+                  </div>
+                  <div class="h-44 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center p-3 mb-4">
+                    <svg class="w-full h-full" viewBox="0 0 280 140">
+                      <!-- Central Fulcrum Axis -->
+                      <line x1="140" y1="10" x2="140" y2="120" stroke="#FFBE0B" stroke-width="2" stroke-dasharray="5 4"/>
+                      <polygon points="140,108 152,130 128,130" fill="#FFBE0B"/>
+                      <line x1="30" y1="108" x2="250" y2="108" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+                      <!-- Left Side: 1 Large Vivid Object near center -->
+                      <circle cx="85" cy="64" r="36" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                      <text x="85" y="68" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">100 pt</text>
+                      <!-- Right Side: 3 Smaller Objects balanced by distance & color -->
+                      <rect x="165" y="34" width="28" height="28" rx="6" fill="#00F5D4"/>
+                      <rect x="202" y="34" width="28" height="28" rx="6" fill="#00F5D4"/>
+                      <rect x="165" y="70" width="65" height="24" rx="6" fill="#FFBE0B"/>
+                      <text x="197" y="86" text-anchor="middle" fill="#110B1E" font-size="10" font-weight="bold">35+35+30 pt</text>
+                    </svg>
+                  </div>
+                  <h3 class="text-xl font-heading font-extrabold text-[#110B1E]">
+                    2. ความสมดุลแบบอสมมาตร (Asymmetrical / Informal Balance)
+                  </h3>
+                  <p class="text-xs sm:text-sm text-zinc-700 mt-2 leading-relaxed">
+                    คือการจัดวางที่ฝั่งซ้ายและฝั่งขวา <strong>"มีรูปร่างและจำนวนไม่เหมือนกัน (ซ้าย ≠ ขวา)"</strong> แต่ใช้การชดเชยด้วยขนาด สี พื้นผิว และระยะห่าง จนเกิด <strong>"ความสมดุลทางความรู้สึก"</strong> เช่น วางภาพสินค้าขนาดใหญ่ 1 ชิ้นฝั่งซ้าย ถ่วงดุลด้วยข้อความพาดหัว ราคา และปุ่มกด 3 ก้อนฝั่งขวา
+                  </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] text-xs space-y-1.5">
+                  <div><strong class="text-[#8338EC]">🧠 อารมณ์ความรู้สึก:</strong> ทันสมัย มีชีวิตชีวา เคลื่อนไหว ไม่จำเจ น่าตื่นเต้น และเปิดโอกาสให้จัดลำดับการอ่าน (Visual Flow) ได้อิสระ</div>
+                  <div><strong class="text-[#FF006E]">💼 งานกราฟิกที่เหมาะสม:</strong> แบนเนอร์โฆษณา Facebook/Instagram, โปสเตอร์โปรโมชัน Shopee/Lazada, ปกคลิป YouTube, หน้า Landing Page สินค้าไอที</div>
+                </div>
+              </div>
+
+              <!-- 3. สมดุลแบบรัศมี (Radial Balance) -->
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#FFFBEB] flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="px-2.5 py-0.5 rounded-full bg-[#FB5607] text-white text-xs font-heading font-bold">รูปแบบที่ 3: สมดุลแบบรัศมี (Radial Balance)</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                  <div class="sm:col-span-5 h-32 rounded-xl bg-[#110B1E] flex items-center justify-center">
+                    <svg class="w-28 h-28" viewBox="0 0 120 120">
+                      <line x1="60" y1="5" x2="60" y2="115" stroke="#FFBE0B" stroke-width="2"/>
+                      <line x1="5" y1="60" x2="115" y2="60" stroke="#FFBE0B" stroke-width="2"/>
+                      <line x1="20" y1="20" x2="100" y2="100" stroke="#FF006E" stroke-width="2"/>
+                      <line x1="100" y1="20" x2="20" y2="100" stroke="#FF006E" stroke-width="2"/>
+                      <circle cx="60" cy="60" r="38" fill="none" stroke="#00F5D4" stroke-width="2" stroke-dasharray="4 3"/>
+                      <circle cx="60" cy="60" r="18" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <div class="sm:col-span-7 text-xs space-y-1.5">
+                    <p class="text-zinc-700 leading-relaxed">
+                      องค์ประกอบทุกส่วนแผ่กระจายออกจาก <strong>จุดศูนย์กลางเดียวกัน (Center Point)</strong> ในทุกทิศทางเหมือนซี่ล้อรถ ดอกทานตะวัน หรือรัศมีดวงอาทิตย์
+                    </p>
+                    <p class="text-[#110B1E] font-medium">
+                      <strong>การนำไปใช้:</strong> พื้นหลังแฉกแสงอาทิตย์ (Sunburst) ขับเน้นสินค้าตรงกลางให้พุ่งเข้าตาผู้ชมทันที
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. สมดุลแบบผลึก/กระจายทั่วภาพ (Crystallographic Balance) -->
+              <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#ECFEFF] flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="px-2.5 py-0.5 rounded-full bg-[#00A896] text-white text-xs font-heading font-bold">รูปแบบที่ 4: สมดุลแบบกระจายทั่วภาพ (All-Over / Mosaic)</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                  <div class="sm:col-span-5 h-32 rounded-xl bg-[#110B1E] flex items-center justify-center p-2">
+                    <svg class="w-32 h-24" viewBox="0 0 140 100">
+                      <circle cx="25" cy="25" r="9" fill="#FF006E"/><rect x="58" y="16" width="18" height="18" fill="#FFBE0B"/><polygon points="110,15 122,34 98,34" fill="#00F5D4"/>
+                      <rect x="16" y="42" width="18" height="18" fill="#00F5D4"/><polygon points="67,41 79,60 55,60" fill="#FF006E"/><circle cx="110" cy="51" r="9" fill="#FFBE0B"/>
+                      <polygon points="25,68 37,87 13,87" fill="#FFBE0B"/><circle cx="67" cy="78" r="9" fill="#00F5D4"/><rect x="101" y="69" width="18" height="18" fill="#FF006E"/>
+                    </svg>
+                  </div>
+                  <div class="sm:col-span-7 text-xs space-y-1.5">
+                    <p class="text-zinc-700 leading-relaxed">
+                      การกระจายองค์ประกอบที่มีน้ำหนักเท่าๆ กันเต็มพื้นที่หน้ากระดาษโดยไม่มีจุดเด่นเพียงจุดเดียว แต่ภาพรวมดูสมดุลกลมกลืนกันทั้งผืน
+                    </p>
+                    <p class="text-[#110B1E] font-medium">
+                      <strong>การนำไปใช้:</strong> ลวดลายกระดาษห่อของขวัญแบรนด์, ลายผ้าโมโนแกรม, พื้นหลัง Pattern โซเชียลมีเดีย
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 2 (ทฤษฎีการชั่งน้ำหนักภาพ): 6 ปัจจัยกำหนดน้ำหนักทางสายตา -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="theory-weight" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#FB5607] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+              ทฤษฎีเพื่อการเปรียบเทียบน้ำหนักภาพ
+            </span>
+            <span class="text-xs font-heading font-bold text-[#8338EC]">ทักษะการเปรียบเทียบสัดส่วนและน้ำหนักของภาพ (Visual Weight Comparison)</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            อะไรที่ทำให้วัตถุในภาพ "ดูหนัก" หรือ "ดูเบา"? (6 กฎเหล็กชั่งน้ำหนักสายตา)
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              ในการจัด <strong>ความสมดุลแบบอสมมาตร (Asymmetrical Balance)</strong> นักออกแบบต้องมีทักษะ <strong>"การเปรียบเทียบสัดส่วนและน้ำหนักของภาพ (Visual Weight Comparison)"</strong> เพราะวัตถุในจอคอมพิวเตอร์ไม่มีน้ำหนักเป็นกิโลกรัม แต่มี <strong>"แรงดึงดูดสายตา (Visual Weight)"</strong> ที่ทำให้เรารู้สึกว่าฝั่งหนึ่ง "ดูหนัก" และอีกฝั่งหนึ่ง "ดูเบา" ด้านล่างนี้คือ <strong>การแยกอธิบายทีละปัจจัยครบทั้ง 6 ข้อ พร้อมภาพตัวอย่างเปรียบเทียบ</strong> และ <strong>ห้องทดลองอินเทอร์แอคทีฟ</strong> ให้ลองสลับโหมดดูการถ่วงดุลน้ำหนักจริง:
+            </p>
+
+            <!-- =================================================================== -->
+            <!-- แยกอธิบายทีละอย่าง: 6 การ์ดภาพตัวอย่างเปรียบเทียบน้ำหนักสายตา (SVG Cards) -->
+            <!-- =================================================================== -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pt-2">
+
+              <!-- ปัจจัยที่ 1: ขนาดและสัดส่วน (Size & Scale) -->
+              <div onclick="selectWeightFactor(1)" class="pop-card p-5 rounded-2xl bg-[#FFF0F6] flex flex-col justify-between cursor-pointer group">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="px-3 py-1 rounded-full bg-[#FF006E] text-white text-xs font-heading font-bold">ปัจจัยที่ 1</span>
+                    <span class="font-mono text-[11px] font-bold text-[#FF006E] bg-white px-2 py-0.5 rounded border border-[#110B1E]">SIZE &amp; SCALE</span>
+                  </div>
+                  <!-- ภาพตัวอย่าง SVG เปรียบเทียบขนาด -->
+                  <div class="h-40 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] p-3 mb-3 flex items-center justify-center relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 240 125">
+                      <!-- เส้นแกนแบ่งครึ่ง -->
+                      <line x1="120" y1="8" x2="120" y2="105" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <!-- คานเอียงฝั่งซ้ายหนัก -->
+                      <g transform="rotate(-7, 120, 96)">
+                        <line x1="22" y1="96" x2="218" y2="96" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+                        <!-- ฝั่งซ้าย: วงกลมใหญ่ (ดูหนัก) -->
+                        <circle cx="66" cy="54" r="34" fill="#FF006E" stroke="#FFBE0B" stroke-width="2.5"/>
+                        <text x="66" y="52" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="bold">ขนาดใหญ่</text>
+                        <text x="66" y="65" text-anchor="middle" fill="#FFBE0B" font-size="9" font-weight="bold">(หนัก 85 pt)</text>
+                        <!-- ฝั่งขวา: วงกลมเล็ก (ดูเบา) -->
+                        <circle cx="176" cy="76" r="14" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                        <text x="176" y="54" text-anchor="middle" fill="#00F5D4" font-size="9" font-weight="bold">ขนาดเล็ก (25 pt)</text>
+                      </g>
+                      <polygon points="120,96 130,115 110,115" fill="#FFBE0B"/>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#FFBE0B] group-hover:underline">คลิกทดลองด้านล่าง ↓</span>
+                  </div>
+                  <h3 class="font-heading font-extrabold text-base text-[#110B1E]">
+                    1. ขนาดและสัดส่วน (Size &amp; Scale)
+                  </h3>
+                  <p class="text-xs text-zinc-700 mt-1.5 leading-relaxed">
+                    <strong>คำอธิบาย:</strong> เมื่อสีและรูปร่างเหมือนกัน วัตถุที่มี <strong>"ขนาดพื้นที่ใหญ่กว่า"</strong> จะดึงดูดสายตาแรงกว่าและให้ความรู้สึก <strong>ดูหนักกว่า</strong> วัตถุขนาดเล็กเสมอ
+                  </p>
+                </div>
+                <div class="mt-3 p-3 rounded-xl bg-white border border-[#110B1E] text-[11px] space-y-1">
+                  <div><strong class="text-[#FF006E]">🏋️ ฝั่งดูหนัก:</strong> ภาพสินค้าหลัก (Hero) หรือพาดหัวขนาดใหญ่</div>
+                  <div><strong class="text-[#00A896]">⚖️ วิธีถ่วงดุล:</strong> ใช้กลุ่มวัตถุขนาดเล็ก 3–4 ชิ้นวางเรียงฝั่งตรงข้ามเพื่อรวมน้ำหนักสู้กับวัตถุชิ้นใหญ่</div>
+                </div>
+              </div>
+
+              <!-- ปัจจัยที่ 2: สีและน้ำหนักอ่อน-แก่ (Color & Value) -->
+              <div onclick="selectWeightFactor(2)" class="pop-card p-5 rounded-2xl bg-[#F3E8FF] flex flex-col justify-between cursor-pointer group">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="px-3 py-1 rounded-full bg-[#8338EC] text-white text-xs font-heading font-bold">ปัจจัยที่ 2</span>
+                    <span class="font-mono text-[11px] font-bold text-[#8338EC] bg-white px-2 py-0.5 rounded border border-[#110B1E]">COLOR &amp; VALUE</span>
+                  </div>
+                  <!-- ภาพตัวอย่าง SVG เปรียบเทียบสีสด/เข้ม กับ สีอ่อน -->
+                  <div class="h-40 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] p-3 mb-3 flex items-center justify-center relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 240 125">
+                      <line x1="120" y1="8" x2="120" y2="105" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <g transform="rotate(-6, 120, 96)">
+                        <line x1="22" y1="96" x2="218" y2="96" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+                        <!-- ซ้าย: ขนาดเท่ากันแต่สีแดง-ชมพูสดจัด -->
+                        <rect x="38" y="38" width="52" height="52" rx="10" fill="#FF006E" stroke="#FFBE0B" stroke-width="2.5"/>
+                        <text x="64" y="62" text-anchor="middle" fill="#FFFFFF" font-size="9" font-weight="bold">สีสด/สีเข้ม</text>
+                        <text x="64" y="75" text-anchor="middle" fill="#FFBE0B" font-size="9" font-weight="bold">(หนัก 80 pt)</text>
+                        <!-- ขวา: ขนาดเท่ากันแต่สีพาสเทลจาง -->
+                        <rect x="150" y="38" width="52" height="52" rx="10" fill="#E2E8F0" fill-opacity="0.45" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3 2"/>
+                        <text x="176" y="62" text-anchor="middle" fill="#E2E8F0" font-size="9" font-weight="bold">สีอ่อนจาง</text>
+                        <text x="176" y="75" text-anchor="middle" fill="#00F5D4" font-size="9">(เบา 30 pt)</text>
+                      </g>
+                      <polygon points="120,96 130,115 110,115" fill="#FFBE0B"/>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#FFBE0B] group-hover:underline">คลิกทดลองด้านล่าง ↓</span>
+                  </div>
+                  <h3 class="font-heading font-extrabold text-base text-[#110B1E]">
+                    2. สีและน้ำหนักสี (Color &amp; Value)
+                  </h3>
+                  <p class="text-xs text-zinc-700 mt-1.5 leading-relaxed">
+                    <strong>คำอธิบาย:</strong> แม้มีขนาดเท่ากันเป๊ะ แต่ <strong>"สีวรรณะร้อนจัดจ้าน (แดง/ชมพูสด/เหลืองสด)"</strong> และ <strong>"สีเข้มมืด (Dark Value)"</strong> จะมีมวลสายตาหนักกว่าสีโทนเย็นหรือสีพาสเทลจางๆ
+                  </p>
+                </div>
+                <div class="mt-3 p-3 rounded-xl bg-white border border-[#110B1E] text-[11px] space-y-1">
+                  <div><strong class="text-[#8338EC]">🏋️ ฝั่งดูหนัก:</strong> ปุ่มสีชมพูบานเย็น/แดงสด หรือกล่องสีดำทึบ</div>
+                  <div><strong class="text-[#00A896]">⚖️ วิธีถ่วงดุล:</strong> ปุ่มสีสดขนาดเล็กเพียง 1 ปุ่ม สามารถถ่วงดุลกับพื้นที่สีพาสเทลอ่อนขนาดใหญ่ได้</div>
+                </div>
+              </div>
+
+              <!-- ปัจจัยที่ 3: พื้นผิวและรายละเอียด (Texture & Detail) -->
+              <div onclick="selectWeightFactor(3)" class="pop-card p-5 rounded-2xl bg-[#FFFBEB] flex flex-col justify-between cursor-pointer group">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="px-3 py-1 rounded-full bg-[#FB5607] text-white text-xs font-heading font-bold">ปัจจัยที่ 3</span>
+                    <span class="font-mono text-[11px] font-bold text-[#FB5607] bg-white px-2 py-0.5 rounded border border-[#110B1E]">TEXTURE &amp; DETAIL</span>
+                  </div>
+                  <!-- ภาพตัวอย่าง SVG เปรียบเทียบพื้นผิวซับซ้อน กับ พื้นผิวเรียบ -->
+                  <div class="h-40 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] p-3 mb-3 flex items-center justify-center relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 240 125">
+                      <defs>
+                        <pattern id="heavyTex" width="8" height="8" patternUnits="userSpaceOnUse">
+                          <rect width="8" height="8" fill="#FB5607"/>
+                          <circle cx="4" cy="4" r="2.2" fill="#FFBE0B"/>
+                          <path d="M0,8 L8,0" stroke="#110B1E" stroke-width="1"/>
+                        </pattern>
+                      </defs>
+                      <line x1="120" y1="8" x2="120" y2="105" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <g transform="rotate(-6, 120, 96)">
+                        <line x1="22" y1="96" x2="218" y2="96" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+                        <!-- ซ้าย: มีลวดลายพื้นผิวและแสงเงาซับซ้อน -->
+                        <circle cx="65" cy="58" r="30" fill="url(#heavyTex)" stroke="#FFBE0B" stroke-width="3"/>
+                        <circle cx="65" cy="58" r="18" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="3 2"/>
+                        <text x="65" y="20" text-anchor="middle" fill="#FFBE0B" font-size="9" font-weight="bold">ลวดลายแน่น (หนัก)</text>
+                        <!-- ขวา: พื้นผิวเรียบแบน Flat -->
+                        <circle cx="175" cy="58" r="30" fill="#3A86FF" fill-opacity="0.5" stroke="#FFFFFF" stroke-width="1.5"/>
+                        <text x="175" y="61" text-anchor="middle" fill="#FFFFFF" font-size="9" font-weight="bold">สีเรียบ Flat (เบา)</text>
+                      </g>
+                      <polygon points="120,96 130,115 110,115" fill="#FFBE0B"/>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#FFBE0B] group-hover:underline">คลิกทดลองด้านล่าง ↓</span>
+                  </div>
+                  <h3 class="font-heading font-extrabold text-base text-[#110B1E]">
+                    3. พื้นผิวและรายละเอียด (Texture &amp; Detail)
+                  </h3>
+                  <p class="text-xs text-zinc-700 mt-1.5 leading-relaxed">
+                    <strong>คำอธิบาย:</strong> วัตถุที่มี <strong>"ลวดลายซับซ้อน แสงเงา 3 มิติ หรือพื้นผิวขรุขระ"</strong> จะตรึงสายตาผู้ชมไว้ได้นานกว่า จึงดูหนักกว่าพื้นที่สีเรียบแบน (Flat Solid)
+                  </p>
+                </div>
+                <div class="mt-3 p-3 rounded-xl bg-white border border-[#110B1E] text-[11px] space-y-1">
+                  <div><strong class="text-[#FB5607]">🏋️ ฝั่งดูหนัก:</strong> ภาพถ่ายอาหาร/สินค้าที่มีดีเทลคมชัดสูง</div>
+                  <div><strong class="text-[#00A896]">⚖️ วิธีถ่วงดุล:</strong> ต้องเว้นพื้นที่สีเรียบ (Flat Area) ที่กว้างกว่าอีกฝั่งเพื่อพักสายตาไม่ให้ภาพอึดอัด</div>
+                </div>
+              </div>
+
+              <!-- ปัจจัยที่ 4: ระยะห่างจากจุดกึ่งกลาง (Distance & Leverage) -->
+              <div onclick="selectWeightFactor(4)" class="pop-card p-5 rounded-2xl bg-[#ECFEFF] flex flex-col justify-between cursor-pointer group">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="px-3 py-1 rounded-full bg-[#3A86FF] text-white text-xs font-heading font-bold">ปัจจัยที่ 4</span>
+                    <span class="font-mono text-[11px] font-bold text-[#3A86FF] bg-white px-2 py-0.5 rounded border border-[#110B1E]">LEVERAGE DISTANCE</span>
+                  </div>
+                  <!-- ภาพตัวอย่าง SVG กฎคานงัด (ใกล้แกน vs ไกลแกนชิดขอบ) -->
+                  <div class="h-40 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] p-3 mb-3 flex items-center justify-center relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 240 125">
+                      <line x1="120" y1="8" x2="120" y2="105" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <g transform="rotate(6, 120, 96)">
+                        <line x1="15" y1="96" x2="225" y2="96" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+                        <!-- ซ้าย: อยู่ใกล้แกนกลาง (แรงงัดน้อย) -->
+                        <circle cx="95" cy="70" r="20" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+                        <text x="72" y="38" text-anchor="middle" fill="#00F5D4" font-size="9">ใกล้แกน (เบา)</text>
+                        <!-- ขวา: ขนาดเท่ากันแต่อยู่ชิดขอบขวาสุด (แรงคานงัดสูงมาก!) -->
+                        <circle cx="204" cy="70" r="20" fill="#FF006E" stroke="#FFBE0B" stroke-width="2.5"/>
+                        <path d="M122,84 L196,84" stroke="#FFBE0B" stroke-width="1.5" stroke-dasharray="2 2"/>
+                        <text x="172" y="38" text-anchor="middle" fill="#FFBE0B" font-size="9" font-weight="bold">ชิดขอบ = แรงงัดสูง!</text>
+                      </g>
+                      <polygon points="120,96 130,115 110,115" fill="#FFBE0B"/>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#FFBE0B] group-hover:underline">คลิกทดลองด้านล่าง ↓</span>
+                  </div>
+                  <h3 class="font-heading font-extrabold text-base text-[#110B1E]">
+                    4. ระยะห่างจากแกนกลาง (Leverage)
+                  </h3>
+                  <p class="text-xs text-zinc-700 mt-1.5 leading-relaxed">
+                    <strong>คำอธิบาย:</strong> ตามกฎคานดีดคานงัด (ม้ากระดก) วัตถุที่วาง <strong>"ห่างจากจุดกึ่งกลางออกไปใกล้ขอบภาพ"</strong> จะเกิดแรงถ่วงสายตาเพิ่มขึ้นเป็นทวีคูณ
+                  </p>
+                </div>
+                <div class="mt-3 p-3 rounded-xl bg-white border border-[#110B1E] text-[11px] space-y-1">
+                  <div><strong class="text-[#3A86FF]">🏋️ ฝั่งดูหนัก:</strong> วัตถุที่วางชิดขอบหน้ากระดาษ (Edge Tension)</div>
+                  <div><strong class="text-[#00A896]">⚖️ วิธีถ่วงดุล:</strong> วางภาพสินค้าใหญ่ไว้ใกล้แกนกลาง แล้ววางปุ่มหรือโลโก้ขนาดเล็กออกไปทางขอบอีกฝั่ง</div>
+                </div>
+              </div>
+
+              <!-- ปัจจัยที่ 5: รูปร่างและทิศทางการวาง (Shape & Orientation) -->
+              <div onclick="selectWeightFactor(5)" class="pop-card p-5 rounded-2xl bg-[#F0FDF4] flex flex-col justify-between cursor-pointer group">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="px-3 py-1 rounded-full bg-[#00A896] text-white text-xs font-heading font-bold">ปัจจัยที่ 5</span>
+                    <span class="font-mono text-[11px] font-bold text-[#00A896] bg-white px-2 py-0.5 rounded border border-[#110B1E]">SHAPE &amp; ANGLE</span>
+                  </div>
+                  <!-- ภาพตัวอย่าง SVG เปรียบเทียบรูปร่างเฉียง/แฉก กับ สี่เหลี่ยมตั้งตรง -->
+                  <div class="h-40 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] p-3 mb-3 flex items-center justify-center relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 240 125">
+                      <line x1="120" y1="8" x2="120" y2="105" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <g transform="rotate(-6, 120, 96)">
+                        <line x1="22" y1="96" x2="218" y2="96" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+                        <!-- ซ้าย: ดาวแฉกวางเอียงทแยง (ดึงสายตาแรง = หนัก) -->
+                        <polygon points="65,24 75,46 98,46 80,60 87,82 65,69 43,82 50,60 32,46 55,46" fill="#FFBE0B" stroke="#FF006E" stroke-width="2.5" transform="rotate(-15, 65, 55)"/>
+                        <text x="65" y="18" text-anchor="middle" fill="#FFBE0B" font-size="9" font-weight="bold">แฉก/วางเฉียง (หนัก)</text>
+                        <!-- ขวา: สี่เหลี่ยมวางตรงปกติ (นิ่ง = เบากว่า) -->
+                        <rect x="152" y="42" width="44" height="44" rx="4" fill="#00F5D4" stroke="#FFFFFF" stroke-width="1.5"/>
+                        <text x="174" y="34" text-anchor="middle" fill="#00F5D4" font-size="9">เรขาคณิตตรง (เบา)</text>
+                      </g>
+                      <polygon points="120,96 130,115 110,115" fill="#FFBE0B"/>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#FFBE0B] group-hover:underline">คลิกทดลองด้านล่าง ↓</span>
+                  </div>
+                  <h3 class="font-heading font-extrabold text-base text-[#110B1E]">
+                    5. รูปร่างและทิศทาง (Shape &amp; Angle)
+                  </h3>
+                  <p class="text-xs text-zinc-700 mt-1.5 leading-relaxed">
+                    <strong>คำอธิบาย:</strong> รูปร่างแปลกตา รูปร่างแฉกสายฟ้า หรือวัตถุที่ <strong>"จัดวางในแนวเฉียงทแยงมุม (Diagonal)"</strong> จะสร้างแรงเหวี่ยงทางสายตาและดูหนักกว่ารูปทรงเรขาคณิตที่วางตั้งตรง
+                  </p>
+                </div>
+                <div class="mt-3 p-3 rounded-xl bg-white border border-[#110B1E] text-[11px] space-y-1">
+                  <div><strong class="text-[#00A896]">🏋️ ฝั่งดูหนัก:</strong> ป้ายลดราคาทรงดาวแฉก หรือรองเท้าที่วางเอียงพุ่งตัว</div>
+                  <div><strong class="text-[#8338EC]">⚖️ วิธีถ่วงดุล:</strong> ใช้ป้าย Badge ทรงแฉกเอียงเฉียงช่วยดึงน้ำหนักสายตาในฝั่งที่มีพื้นที่น้อยกว่า</div>
+                </div>
+              </div>
+
+              <!-- ปัจจัยที่ 6: ตำแหน่งบน-ล่าง & พื้นที่ว่างรอบวัตถุ (Vertical Gravity & Isolation) -->
+              <div onclick="selectWeightFactor(6)" class="pop-card p-5 rounded-2xl bg-[#EEF2FF] flex flex-col justify-between cursor-pointer group">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="px-3 py-1 rounded-full bg-[#110B1E] text-[#00F5D4] text-xs font-heading font-bold">ปัจจัยที่ 6</span>
+                    <span class="font-mono text-[11px] font-bold text-[#110B1E] bg-white px-2 py-0.5 rounded border border-[#110B1E]">GRAVITY &amp; SPACE</span>
+                  </div>
+                  <!-- ภาพตัวอย่าง SVG แรงโน้มถ่วงบน-ล่าง และการล้อมด้วยพื้นที่ว่าง -->
+                  <div class="h-40 rounded-xl bg-[#110B1E] border-2 border-[#110B1E] p-3 mb-3 flex items-center justify-center relative overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 240 125">
+                      <line x1="120" y1="8" x2="120" y2="115" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <line x1="15" y1="62" x2="225" y2="62" stroke="#FFBE0B" stroke-opacity="0.4" stroke-width="1" stroke-dasharray="3 3"/>
+                      <!-- ฝั่งซ้าย: วางลอยอยู่ด้านบนสุด (ดูหนัก เหมือนพร้อมหล่น) -->
+                      <circle cx="62" cy="32" r="22" fill="#FF006E" stroke="#FFBE0B" stroke-width="2.5"/>
+                      <path d="M62,58 L62,95" stroke="#FF006E" stroke-width="2" stroke-dasharray="3 2"/>
+                      <polygon points="62,100 57,90 67,90" fill="#FF006E"/>
+                      <text x="62" y="114" text-anchor="middle" fill="#FF006E" font-size="9" font-weight="bold">อยู่ด้านบน = ดูหนัก/จะหล่น</text>
+                      <!-- ฝั่งขวา: วางติดฐานด้านล่าง (มั่นคง เบาสบายตา) -->
+                      <rect x="142" y="72" width="68" height="28" rx="6" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+                      <text x="176" y="90" text-anchor="middle" fill="#110B1E" font-size="9" font-weight="bold">ฐานล่างมั่นคง</text>
+                      <text x="176" y="114" text-anchor="middle" fill="#00F5D4" font-size="9">อยู่ด้านล่าง = มั่นคง</text>
+                    </svg>
+                    <span class="absolute bottom-1.5 right-2 text-[10px] font-mono text-[#FFBE0B] group-hover:underline">คลิกทดลองด้านล่าง ↓</span>
+                  </div>
+                  <h3 class="font-heading font-extrabold text-base text-[#110B1E]">
+                    6. ตำแหน่งบน-ล่าง &amp; พื้นที่ว่าง (Gravity)
+                  </h3>
+                  <p class="text-xs text-zinc-700 mt-1.5 leading-relaxed">
+                    <strong>คำอธิบาย:</strong> ตามจิตวิทยาแรงโน้มถ่วง วัตถุที่ลอยอยู่ <strong>"ครึ่งบนของภาพ"</strong> จะดูมีพลังงานสะสมและหนักกว่าวัตถุที่วางอยู่ฐานด้านล่าง และวัตถุที่อยู่โดดเดี่ยวกลาง <strong>พื้นที่ว่าง (Isolation)</strong> จะเด่นและหนักขึ้นทันที
+                  </p>
+                </div>
+                <div class="mt-3 p-3 rounded-xl bg-white border border-[#110B1E] text-[11px] space-y-1">
+                  <div><strong class="text-[#110B1E]">🏋️ ฝั่งดูหนัก:</strong> วัตถุก้อนทึบที่วางค้างไว้ด้านบนสุด (Top-Heavy)</div>
+                  <div><strong class="text-[#00A896]">⚖️ วิธีถ่วงดุล:</strong> สร้างฐานด้านล่างให้กว้างหรือสีเข้มกว่าด้านบนเพื่อให้ภาพตั้งอยู่อย่างมั่นคง</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- =================================================================== -->
+            <!-- ลูกเล่นอินเทอร์แอคทีฟ: ห้องทดลองเปรียบเทียบและแก้สมดุล 6 ปัจจัยทีละข้อ -->
+            <!-- =================================================================== -->
+            <div class="border-4 border-[#110B1E] rounded-3xl overflow-hidden bg-[#FFFDF7] shadow-[6px_6px_0px_#110B1E] mt-6">
+              <div class="bg-[#110B1E] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                  <span class="px-3 py-1 rounded-full bg-[#FF006E] text-white font-heading font-extrabold text-xs uppercase border border-white/30">
+                    ⚡ INTERACTIVE WEIGHT EXPLORER
+                  </span>
+                  <span class="font-heading font-bold text-sm sm:text-base text-[#FFBE0B]">
+                    ลูกเล่นทดลองเปรียบเทียบ 6 ปัจจัย: สลับดู "เมื่อน้ำหนักไม่เท่ากัน" VS "เมื่อจัดสมดุลอสมมาตรสำเร็จ"
+                  </span>
+                </div>
+                <span class="text-xs font-mono text-[#00F5D4]">คลิกเลือกปัจจัยที่ 1–6 แล้วกดสลับโหมดด้านขวา!</span>
+              </div>
+
+              <!-- ปุ่มแท็บเลือกปัจจัยทั้ง 6 ข้อ -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 border-b-2 border-[#110B1E] bg-white">
+                <button onclick="selectWeightFactor(1)" id="wfTab1" class="py-3 px-2 text-xs font-heading font-bold bg-[#FF006E] text-white border-r border-b border-[#110B1E] transition">1. ขนาด (Size)</button>
+                <button onclick="selectWeightFactor(2)" id="wfTab2" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-b border-[#110B1E] transition">2. สี (Color)</button>
+                <button onclick="selectWeightFactor(3)" id="wfTab3" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-b border-[#110B1E] transition">3. พื้นผิว (Texture)</button>
+                <button onclick="selectWeightFactor(4)" id="wfTab4" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-b border-[#110B1E] transition">4. ระยะห่าง (Leverage)</button>
+                <button onclick="selectWeightFactor(5)" id="wfTab5" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-b border-[#110B1E] transition">5. รูปร่าง/มุมเอียง</button>
+                <button onclick="selectWeightFactor(6)" id="wfTab6" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-b border-[#110B1E] transition">6. บน-ล่าง &amp; ที่ว่าง</button>
+              </div>
+
+              <!-- พื้นที่แสดงผลภาพจำลอง SVG และคำอธิบายเชิงลึก -->
+              <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <!-- จอภาพ SVG ด้านซ้าย -->
+                <div class="lg:col-span-6 space-y-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span id="wfModeStatus" class="px-3 py-1 rounded-full bg-[#FF006E] text-white text-xs font-heading font-bold">
+                      ⚠️ โหมดที่ 1: เปรียบเทียบตัวต่อตัว (น้ำหนักเอียงข้างเดียว)
+                    </span>
+                    <div class="flex gap-1.5">
+                      <button onclick="setWeightFactorMode('clash')" id="wfModeBtnClash" class="pop-btn px-3 py-1 rounded-lg bg-[#FFBE0B] text-[#110B1E] text-xs font-heading font-bold">
+                        1. ดูความต่างน้ำหนัก
+                      </button>
+                      <button onclick="setWeightFactorMode('balanced')" id="wfModeBtnBalanced" class="pop-btn px-3 py-1 rounded-lg bg-white text-[#110B1E] text-xs font-heading font-bold">
+                        2. ดูวิธีแก้ให้สมดุล ✨
+                      </button>
+                    </div>
+                  </div>
+
+                  <div id="wfSvgStage" class="h-60 rounded-2xl bg-[#110B1E] border-4 border-[#110B1E] flex items-center justify-center p-4 relative overflow-hidden">
+                    <!-- Populated dynamically by selectWeightFactor() -->
+                  </div>
+
+                  <!-- แถบวัดน้ำหนักสายตา ซ้าย vs ขวา -->
+                  <div class="p-3 rounded-xl bg-white border-2 border-[#110B1E] space-y-1.5">
+                    <div class="flex justify-between text-xs font-heading font-bold">
+                      <span id="wfLeftMeterLabel" class="text-[#FF006E]">น้ำหนักฝั่งซ้าย: 85% (หนักมาก)</span>
+                      <span id="wfRightMeterLabel" class="text-[#00A896]">น้ำหนักฝั่งขวา: 15% (เบาหวิว)</span>
+                    </div>
+                    <div class="w-full h-3.5 rounded-full bg-zinc-200 overflow-hidden flex border border-[#110B1E]">
+                      <div id="wfLeftBar" class="h-full bg-[#FF006E] transition-all duration-300" style="width: 85%"></div>
+                      <div id="wfRightBar" class="h-full bg-[#00F5D4] transition-all duration-300" style="width: 15%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- คำอธิบายเจาะลึกด้านขวา -->
+                <div class="lg:col-span-6 space-y-4">
+                  <div class="inline-flex items-center gap-2">
+                    <span id="wfBadge" class="px-3 py-1 rounded-full bg-[#8338EC] text-white text-xs font-heading font-bold">
+                      เจาะลึกปัจจัยที่ 1 / 6
+                    </span>
+                    <span id="wfRuleTag" class="px-3 py-1 rounded-full bg-[#FFBE0B] text-[#110B1E] border border-[#110B1E] text-xs font-heading font-bold">
+                      กฎ: ใหญ่ 1 ชิ้น = เล็กหลายชิ้นรวมกัน
+                    </span>
+                  </div>
+
+                  <h3 id="wfTitle" class="text-xl sm:text-2xl font-heading font-extrabold text-[#110B1E]">
+                    ปัจจัยที่ 1: ขนาดและสัดส่วน (Size &amp; Scale)
+                  </h3>
+
+                  <p id="wfTheoryDesc" class="text-sm text-zinc-700 leading-relaxed">
+                    เมื่อวางวัตถุขนาดใหญ่ไว้ฝั่งซ้ายและวางวัตถุขนาดเล็กไว้ฝั่งขวา สายตาของผู้ชมจะถูกดึงไปกองอยู่ที่วัตถุขนาดใหญ่ทันที ทำให้รู้สึกว่าภาพเอียงและฝั่งขวาโล่งเกินไป
+                  </p>
+
+                  <div class="p-4 rounded-2xl bg-[#FFF0F6] border-2 border-[#110B1E] space-y-2 text-xs sm:text-sm">
+                    <div class="font-heading font-extrabold text-[#FF006E]">🛠️ เทคนิคการนำไปจัดสมดุลอสมมาตร (Asymmetrical Tip):</div>
+                    <p id="wfSolutionDesc" class="text-[#110B1E] leading-relaxed">
+                      หากฝั่งซ้ายมีภาพสินค้าขนาดใหญ่ 1 ชิ้น (เช่น รองเท้าวิ่งคู่ใหญ่) ให้ถ่วงดุลฝั่งขวาด้วยการวาง "กลุ่มก้อนข้อมูลย่อย 3–4 ชิ้น" (พาดหัว + ป้ายราคา + จุดเด่น 3 ข้อ + ปุ่มสั่งซื้อ) เพื่อให้ผลรวมน้ำหนักสายตาซ้าย-ขวาเท่ากันพอดี (50% : 50%)
+                    </p>
+                  </div>
+
+                  <div class="flex flex-wrap gap-2 pt-1">
+                    <button onclick="toggleWeightFactorMode()" class="pop-btn px-4 py-2 rounded-xl bg-[#00F5D4] text-[#110B1E] text-xs font-heading font-extrabold flex items-center gap-1.5">
+                      <span>🔄</span>
+                      <span>คลิกสลับเปรียบเทียบ: ภาพเอียง ↔ ภาพสมดุล</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-4">
+              <div class="text-xs font-heading font-extrabold uppercase tracking-wider text-zinc-500 mb-2">
+                📊 ตารางสรุปเปรียบเทียบทั้ง 6 ปัจจัยกำหนดน้ำหนักทางสายตา (Quick Reference Table)
+              </div>
+            </div>
+
+            <div class="overflow-x-auto border-2 border-[#110B1E] rounded-2xl">
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead class="bg-[#110B1E] text-white font-heading">
+                  <tr>
+                    <th class="py-3 px-4">ปัจจัยทางทัศนศิลป์</th>
+                    <th class="py-3 px-4 text-[#FFBE0B]">ฝั่งที่มีน้ำหนักสายตา "มากกว่า (ดูหนัก)" 🏋️</th>
+                    <th class="py-3 px-4 text-[#00F5D4]">ฝั่งที่มีน้ำหนักสายตา "น้อยกว่า (ดูเบา)" 🪶</th>
+                    <th class="py-3 px-4">วิธีจัดสมดุลอสมมาตรในงานกราฟิกจริง</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200 bg-white">
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#FF006E]">1. ขนาด (Size & Scale)</td>
+                    <td class="py-3 px-4 font-semibold">วัตถุที่มีขนาดใหญ่ (Large)</td>
+                    <td class="py-3 px-4 text-zinc-600">วัตถุที่มีขนาดเล็ก (Small)</td>
+                    <td class="py-3 px-4">ใช้ภาพสินค้าขนาดใหญ่ 1 ชิ้น ถ่วงดุลกับปุ่มไอคอนหรือข้อความขนาดเล็ก 3-4 ชิ้น</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#8338EC]">2. สีและน้ำหนักสี (Color & Value)</td>
+                    <td class="py-3 px-4 font-semibold">สีมืดเข้ม (Dark) หรือสีสดวรรณะร้อน (แดง/บานเย็น/เหลืองสด)</td>
+                    <td class="py-3 px-4 text-zinc-600">สีสว่างพาสเทล (Tint) หรือสีหม่นวรรณะเย็น</td>
+                    <td class="py-3 px-4">ปุ่มสีชมพูสดขนาดเล็กเพียงปุ่มเดียว สามารถถ่วงดุลกับกล่องสีเทาอ่อนขนาดใหญ่ได้</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#FB5607]">3. พื้นผิวและรายละเอียด (Texture)</td>
+                    <td class="py-3 px-4 font-semibold">พื้นผิวซับซ้อน มีลวดลายหรือแสงเงา 3 มิติแน่น</td>
+                    <td class="py-3 px-4 text-zinc-600">พื้นผิวเรียบแบน (Flat Solid Color)</td>
+                    <td class="py-3 px-4">ภาพถ่ายอาหารที่มีรายละเอียดสูง 1 จาน ต้องถ่วงด้วยพื้นที่สีพื้นเรียบๆ ที่กว้างกว่า</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#3A86FF]">4. ระยะห่างจากจุดกึ่งกลาง (Leverage)</td>
+                    <td class="py-3 px-4 font-semibold">วัตถุที่วางอยู่ "ห่างจากแกนกลาง" (ชิดขอบภาพ)</td>
+                    <td class="py-3 px-4 text-zinc-600">วัตถุที่วางอยู่ "ใกล้แกนกลางภาพ"</td>
+                    <td class="py-3 px-4">เหมือนเล่นไม้กระดก: วัตถุใหญ่ให้วางใกล้กึ่งกลาง ส่วนวัตถุเล็กให้ขยับออกไปใกล้ขอบภาพ</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#00A896]">5. รูปร่างและทิศทาง (Shape & Orientation)</td>
+                    <td class="py-3 px-4 font-semibold">รูปร่างอิสระแปลกตา หรือวางในแนวเฉียงทแยงมุม</td>
+                    <td class="py-3 px-4 text-zinc-600">รูปร่างเรขาคณิตพื้นฐานที่วางแนวตั้ง/แนวนอนปกติ</td>
+                    <td class="py-3 px-4">ป้ายราคารูปดาวเอียงเฉียงจะดึงสายตาแรงกว่ากรอบสี่เหลี่ยมขนาดเท่ากัน</td>
+                  </tr>
+                  <tr class="hover:bg-pink-50/50">
+                    <td class="py-3 px-4 font-heading font-bold text-[#110B1E]">6. ตำแหน่งบน-ล่าง (Vertical Gravity)</td>
+                    <td class="py-3 px-4 font-semibold">วัตถุที่อยู่ "ด้านบนของภาพ" จะดูหนักและพร้อมตกลงมา</td>
+                    <td class="py-3 px-4 text-zinc-600">วัตถุที่อยู่ "ฐานด้านล่างของภาพ" จะดูมั่นคงกว่า</td>
+                    <td class="py-3 px-4">ควรวางฐานสีเข้มหรือองค์ประกอบที่มั่นคงไว้ส่วนล่าง เพื่อไม่ให้ภาพดู "หัวทิ่ม (Top-Heavy)"</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 3 (ทฤษฎีที่ 2): กฎเกณฑ์สัดส่วน (Proportion) & จังหวะ (Rhythm) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="theory-proportion" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#3A86FF] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-bold uppercase">
+              ภาคทฤษฎีที่ 2
+            </span>
+            <span class="text-xs font-heading font-bold text-[#FF006E]">กฎเกณฑ์เรื่องสัดส่วน (Proportion) และ จังหวะของภาพ (Visual Rhythm)</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            กฎเกณฑ์เรื่องสัดส่วน (Proportion) และจังหวะของภาพ (Rhythm)
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-8 bg-white">
+            <!-- ส่วนที่ 3.1: สัดส่วน (Proportion) -->
+            <div class="space-y-4">
+              <div class="border-b-2 border-[#110B1E] pb-3 flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-xl sm:text-2xl font-heading font-extrabold text-[#110B1E]">
+                  1) กฎเกณฑ์เรื่องสัดส่วน (Proportion) — ความสัมพันธ์ของขนาดที่ลงตัว
+                </h3>
+                <span class="px-3 py-1 rounded-xl bg-[#FFBE0B] text-[#110B1E] border-2 border-[#110B1E] text-xs font-heading font-bold">
+                  1 : 1.618 • กฎสามส่วน • ลำดับขนาด
+                </span>
+              </div>
+              <p class="text-base text-[#110B1E] leading-relaxed">
+                <strong>สัดส่วน (Proportion)</strong> คือ ความสัมพันธ์กันอย่างเหมาะสมระหว่างขนาดความกว้าง ความยาว หรือพื้นที่ขององค์ประกอบย่อยเมื่อเทียบกับพื้นที่ทั้งหมดของชิ้นงาน หากทุกอย่างในภาพมีสัดส่วนเท่ากันหมด (เช่น รูปสินค้า 50% ข้อความ 50% แบ่งครึ่งเท่ากันเป๊ะ) ภาพจะเกิดการแย่งกันเด่น ในงานกราฟิกจึงมี <strong>กฎเกณฑ์สัดส่วนมาตรฐาน 3 ระบบ</strong> ที่ใช้ทั่วโลก:
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- สัดส่วนทองคำ -->
+                <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#FFFBEB] space-y-3">
+                  <div class="h-36 rounded-xl bg-[#110B1E] flex items-center justify-center p-3">
+                    <svg class="w-full h-full" viewBox="0 0 210 130">
+                      <!-- Golden Rectangle 1:1.618 -->
+                      <rect x="10" y="10" width="120" height="110" fill="#FF006E" opacity="0.85" stroke="#FFFFFF" stroke-width="2"/>
+                      <rect x="130" y="10" width="70" height="68" fill="#FFBE0B" opacity="0.9" stroke="#FFFFFF" stroke-width="2"/>
+                      <rect x="156" y="78" width="44" height="42" fill="#00F5D4" opacity="0.9" stroke="#FFFFFF" stroke-width="2"/>
+                      <rect x="130" y="94" width="26" height="26" fill="#8338EC" stroke="#FFFFFF" stroke-width="2"/>
+                      <!-- Fibonacci Spiral -->
+                      <path d="M10,120 A110,110 0 0,1 130,10 A68,68 0 0,1 200,78 A42,42 0 0,1 156,120 A26,26 0 0,1 130,94" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+                      <text x="68" y="68" text-anchor="middle" fill="#FFFFFF" font-weight="bold" font-size="13">1.618 (62%)</text>
+                      <text x="165" y="48" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="11">1 (38%)</text>
+                    </svg>
+                  </div>
+                  <h4 class="font-heading font-extrabold text-base text-[#110B1E]">1.1 สัดส่วนทองคำ (Golden Ratio 1 : 1.618)</h4>
+                  <p class="text-xs text-zinc-700 leading-relaxed">
+                    อัตราส่วนมหัศจรรย์จากธรรมชาติ (ประมาณ <strong>62% ต่อ 38%</strong>) ใช้แบ่งพื้นที่หลักกับพื้นที่รอง หรือกำหนดขนาดฟอนต์พาดหัว (เช่น ถ้าเนื้อหาขนาด 16px พาดหัวควรเป็น 16 × 1.618 ≈ <strong>26px</strong> หรือ <strong>42px</strong>)
+                  </p>
+                </div>
+
+                <!-- กฎสามส่วน -->
+                <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#F3E8FF] space-y-3">
+                  <div class="h-36 rounded-xl bg-[#110B1E] flex items-center justify-center p-3">
+                    <svg class="w-full h-full" viewBox="0 0 210 130">
+                      <rect x="15" y="10" width="180" height="110" fill="#24163D" stroke="#FFFFFF" stroke-width="2"/>
+                      <!-- Grid 3x3 -->
+                      <line x1="75" y1="10" x2="75" y2="120" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <line x1="135" y1="10" x2="135" y2="120" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <line x1="15" y1="47" x2="195" y2="47" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <line x1="15" y1="83" x2="195" y2="83" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <!-- 4 Power Points -->
+                      <circle cx="75" cy="47" r="7" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="135" cy="47" r="7" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="75" cy="83" r="7" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="135" cy="83" r="7" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <h4 class="font-heading font-extrabold text-base text-[#110B1E]">1.2 กฎสามส่วน (Rule of Thirds Grid)</h4>
+                  <p class="text-xs text-zinc-700 leading-relaxed">
+                    แบ่งหน้ากระดาษออกเป็นแนวตั้ง 3 ส่วน และแนวนอน 3 ส่วน (รวม 9 ช่องเท่ากัน) บริเวณ <strong>"จุดตัดทั้ง 4 จุด"</strong> คือตำแหน่งทองคำในการวางจุดเด่นของสินค้าหรือดวงตานางแบบ
+                  </p>
+                </div>
+
+                <!-- สัดส่วนลำดับขั้น -->
+                <div class="p-5 rounded-2xl border-2 border-[#110B1E] bg-[#FFF0F6] space-y-3">
+                  <div class="h-36 rounded-xl bg-[#110B1E] flex items-center justify-center p-3">
+                    <svg class="w-full h-full" viewBox="0 0 210 130">
+                      <rect x="20" y="18" width="170" height="34" rx="6" fill="#FF006E"/>
+                      <text x="105" y="40" text-anchor="middle" fill="#FFFFFF" font-weight="bold" font-size="14">1. พาดหัวใหญ่ (100%)</text>
+                      <rect x="20" y="60" width="120" height="24" rx="5" fill="#FFBE0B"/>
+                      <text x="80" y="76" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="11">2. หัวข้อรอง (60%)</text>
+                      <rect x="20" y="92" width="80" height="18" rx="4" fill="#00F5D4"/>
+                      <text x="60" y="105" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="9">3. รายละเอียด (35%)</text>
+                    </svg>
+                  </div>
+                  <h4 class="font-heading font-extrabold text-base text-[#110B1E]">1.3 สัดส่วนลำดับความสำคัญ (Visual Scale)</h4>
+                  <p class="text-xs text-zinc-700 leading-relaxed">
+                    กำหนดขนาดวัตถุตามความสำคัญทางธุรกิจ: <strong>พระเอกของงาน (Hero Product / พาดหัวโปรโมชัน)</strong> ต้องมีสัดส่วนพื้นที่ใหญ่ที่สุด ตามด้วยข้อมูลรอง และหมายเหตุขนาดเล็กสุด
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ส่วนที่ 3.2: จังหวะของภาพ (Rhythm) พร้อม Interactive Explorer -->
+            <div class="space-y-4 border-t-2 border-dashed border-zinc-300 pt-6">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-xl sm:text-2xl font-heading font-extrabold text-[#110B1E]">
+                  2) กฎเกณฑ์เรื่องจังหวะของภาพ (Visual Rhythm) — ดนตรีทางสายตา
+                </h3>
+                <span class="px-3 py-1 rounded-xl bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] text-xs font-heading font-bold">
+                  4 รูปแบบจังหวะทางทัศนศิลป์
+                </span>
+              </div>
+              <p class="text-base text-[#110B1E] leading-relaxed">
+                <strong>จังหวะ (Rhythm)</strong> ในงานกราฟิก เปรียบเสมือนจังหวะตัวโน้ตในบทเพลง เกิดจากการจัดวางองค์ประกอบซ้ำๆ หรือเว้นระยะช่องไฟ (Interval) อย่างมีระบบ เพื่อให้สายตาของผู้ชม <strong>"ก้าวกระโดดหรือเคลื่อนที่ไปตามจังหวะที่ผู้ออกแบบกำหนด"</strong> ไม่สะดุดกลางคัน คลิกสำรวจจังหวะทั้ง 4 รูปแบบด้านล่าง:
+              </p>
+
+              <!-- Interactive Rhythm Explorer -->
+              <div class="border-2 border-[#110B1E] rounded-2xl overflow-hidden bg-[#FFFDF7]">
+                <div class="grid grid-cols-2 sm:grid-cols-4 border-b-2 border-[#110B1E] bg-white">
+                  <button onclick="selectRhythm(1)" id="rhyTab1" class="py-3 px-3 text-xs font-heading font-bold bg-[#FF006E] text-white border-r border-[#110B1E] transition">1. จังหวะซ้ำสม่ำเสมอ (Regular)</button>
+                  <button onclick="selectRhythm(2)" id="rhyTab2" class="py-3 px-3 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition">2. จังหวะสลับ (Alternating)</button>
+                  <button onclick="selectRhythm(3)" id="rhyTab3" class="py-3 px-3 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition">3. จังหวะลดหลั่น/ก้าวหน้า (Progressive)</button>
+                  <button onclick="selectRhythm(4)" id="rhyTab4" class="py-3 px-3 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 transition">4. จังหวะลื่นไหล (Flowing)</button>
+                </div>
+
+                <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                  <div id="rhythmSvgContainer" class="md:col-span-5 h-36 rounded-2xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center p-4">
+                    <svg class="w-full h-full" viewBox="0 0 260 100">
+                      <rect x="18" y="25" width="38" height="50" rx="8" fill="#FF006E"/>
+                      <rect x="76" y="25" width="38" height="50" rx="8" fill="#FF006E"/>
+                      <rect x="134" y="25" width="38" height="50" rx="8" fill="#FF006E"/>
+                      <rect x="192" y="25" width="38" height="50" rx="8" fill="#FF006E"/>
+                    </svg>
+                  </div>
+                  <div class="md:col-span-7 space-y-2">
+                    <span id="rhythmBadge" class="px-3 py-1 rounded-full bg-[#FF006E] text-white text-xs font-heading font-bold">จังหวะรูปแบบที่ 1: A - A - A - A</span>
+                    <h4 id="rhythmTitle" class="text-lg font-heading font-extrabold text-[#110B1E]">จังหวะแบบซ้ำกันสม่ำเสมอ (Regular / Repetition Rhythm)</h4>
+                    <p id="rhythmDesc" class="text-xs sm:text-sm text-zinc-700 leading-relaxed">
+                      การนำรูปร่าง ขนาด และสีเดียวกัน มาวางซ้ำโดยเว้นระยะช่องไฟ (Margin/Gap) เท่ากันทุกช่อง สร้างความเป็นระเบียบ อ่านง่าย และน่าเชื่อถือ เช่น ตารางแสดงการ์ดสินค้าในหน้าเว็บ E-Commerce
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ═════════════════════════════════════════════════════════════════ -->
+        <!-- INTENSIVE PRACTICAL SECTION HEADER (เน้นปฏิบัติเข้มข้น 4 LABS) -->
+        <!-- ═════════════════════════════════════════════════════════════════ -->
+        <div class="p-6 sm:p-8 rounded-3xl vivid-cyber-bg text-white border-4 border-[#110B1E] shadow-[8px_8px_0px_#110B1E] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="px-3 py-1 rounded-full bg-[#FFBE0B] text-[#110B1E] font-heading font-extrabold text-xs uppercase border border-[#110B1E]">
+              ⚡ HANDS-ON PRACTICAL STUDIO (4 LABS)
+            </span>
+            <h2 class="text-2xl sm:text-4xl font-heading font-extrabold drop-shadow">
+              ส่วนฝึกปฏิบัติการเข้มข้น: ลงมือจัดสมดุล ร่างแบบ และเปรียบเทียบน้ำหนักภาพ
+            </h2>
+            <p class="text-xs sm:text-sm text-white/95">
+              ฝึกทักษะตามใบโครงการสอนทั้ง 2 ด้าน: <strong>1) การเปรียบเทียบสัดส่วนและน้ำหนักของภาพ</strong> และ <strong>2) การร่างแบบ (Sketch) ตามกฎเกณฑ์ศิลปะ</strong>
+            </p>
+          </div>
+          <div class="px-4 py-3 rounded-2xl bg-[#110B1E] text-[#00F5D4] font-mono text-xs border-2 border-white shrink-0">
+            เวลาปฏิบัติ: 2 ชั่วโมงเต็ม<br>
+            ลองปรับค่าและคลิกได้ทุกเครื่องมือ!
+          </div>
+        </div>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- PRACTICAL LAB 1: เครื่องชั่งน้ำหนักทางสายตา (Visual Weight Scale) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="lab-1-scale" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#00F5D4] text-[#110B1E] border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-extrabold uppercase">
+              🛠️ ปฏิบัติการที่ 1 (LAB 1)
+            </span>
+            <span class="text-xs font-heading font-bold text-[#FF006E]">ฝึกทักษะ: การเปรียบเทียบสัดส่วนและน้ำหนักของภาพ (Visual Weight & Balance Simulator)</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            Lab 1: เครื่องชั่งน้ำหนักทางสายตา — ฝึกจัดสมดุลอสมมาตรให้คานสมดุล!
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-[#FFF0F6] p-4 rounded-2xl border-2 border-[#110B1E]">
+              <div class="text-xs sm:text-sm text-[#110B1E]">
+                <strong>🎯 โจทย์ฝึกปฏิบัติ:</strong> ลองปรับ <strong>ขนาด, ความเข้มสี, จำนวนวัตถุ และระยะห่างจากแกนกลาง</strong> ของฝั่งซ้ายและฝั่งขวา เพื่อให้ค่าความต่างน้ำหนักสายตาอยู่ในเกณฑ์สมดุล <strong>(ผลต่างไม่เกิน ±10 คะแนน)</strong>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="loadScaleChallenge()" class="pop-btn px-3.5 py-1.5 rounded-xl bg-[#FF006E] text-white text-xs font-heading font-bold">
+                  🎲 สุ่มโจทย์ภาพเอียง (ฝึกแก้สมดุล)
+                </button>
+                <button onclick="autoBalanceScale()" class="pop-btn px-3.5 py-1.5 rounded-xl bg-[#FFBE0B] text-[#110B1E] text-xs font-heading font-bold">
+                  ✨ จัดสมดุลอัตโนมัติ (ดูตัวอย่าง)
+                </button>
+              </div>
+            </div>
+
+            <!-- พื้นที่แสดงผลคานตาชั่งกราฟิก (SVG Live Seesaw) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              <div class="lg:col-span-7">
+                <div class="rounded-2xl bg-[#110B1E] border-4 border-[#110B1E] p-4 relative overflow-hidden">
+                  <div class="flex items-center justify-between text-xs font-mono mb-2">
+                    <span class="text-[#FF006E] font-bold">น้ำหนักฝั่งซ้าย: <span id="leftScoreText">100</span> pt</span>
+                    <span id="balanceStatusBadge" class="px-3 py-0.5 rounded-full bg-[#00F5D4] text-[#110B1E] font-heading font-extrabold">
+                      ✓ สมดุลสมบูรณ์ (Balanced!)
+                    </span>
+                    <span class="text-[#00F5D4] font-bold">น้ำหนักฝั่งขวา: <span id="rightScoreText">100</span> pt</span>
+                  </div>
+
+                  <svg id="balanceScaleSvg" class="w-full h-64" viewBox="0 0 420 230">
+                    <!-- Center Axis Line -->
+                    <line x1="210" y1="15" x2="210" y2="195" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="5 5"/>
+                    <!-- Fulcrum Triangle -->
+                    <polygon points="210,165 232,210 188,210" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+                    <!-- Tilting Beam Group -->
+                    <g id="tiltingBeamGroup" transform="rotate(0, 210, 165)">
+                      <!-- Beam Bar -->
+                      <rect x="25" y="160" width="370" height="8" rx="4" fill="#FFFFFF"/>
+                      <!-- Left Object Group -->
+                      <g id="leftVisualGroup">
+                        <circle id="leftShapeSvg" cx="110" cy="115" r="40" fill="#FF006E" stroke="#FFFFFF" stroke-width="2.5"/>
+                      </g>
+                      <!-- Right Object Group -->
+                      <g id="rightVisualGroup">
+                        <rect id="rightShape1" x="285" y="95" width="36" height="36" rx="8" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+                        <rect id="rightShape2" x="330" y="95" width="36" height="36" rx="8" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- แผงควบคุมการชั่งน้ำหนักซ้าย-ขวา -->
+              <div class="lg:col-span-5 space-y-4">
+                <!-- ควบคุมฝั่งซ้าย -->
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#FFF0F6] space-y-2.5">
+                  <div class="font-heading font-extrabold text-xs text-[#FF006E] uppercase">🔴 ปรับแต่งวัตถุฝั่งซ้าย (Left Element)</div>
+                  <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-medium">
+                      <span>ขนาดวัตถุซ้าย (Size):</span>
+                      <span id="leftSizeVal" class="font-mono font-bold">50 px</span>
+                    </div>
+                    <input type="range" id="leftSizeSlider" min="20" max="75" value="50" oninput="updateScaleLab()" class="w-full accent-[#FF006E]">
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-medium">
+                      <span>ระยะห่างจากจุดกึ่งกลางซ้าย (Leverage):</span>
+                      <span id="leftDistVal" class="font-mono font-bold">100 px</span>
+                    </div>
+                    <input type="range" id="leftDistSlider" min="50" max="155" value="100" oninput="updateScaleLab()" class="w-full accent-[#FF006E]">
+                  </div>
+                </div>
+
+                <!-- ควบคุมฝั่งขวา -->
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#ECFEFF] space-y-2.5">
+                  <div class="font-heading font-extrabold text-xs text-[#00A896] uppercase">🔵 ปรับแต่งกลุ่มวัตถุฝั่งขวา (Right Elements)</div>
+                  <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-medium">
+                      <span>ขนาดวัตถุขวา (Size):</span>
+                      <span id="rightSizeVal" class="font-mono font-bold">35 px</span>
+                    </div>
+                    <input type="range" id="rightSizeSlider" min="20" max="70" value="35" oninput="updateScaleLab()" class="w-full accent-[#8338EC]">
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-medium">
+                      <span>จำนวนก้อนข้อมูลฝั่งขวา (Count):</span>
+                      <span id="rightCountVal" class="font-mono font-bold">2 ชิ้น</span>
+                    </div>
+                    <input type="range" id="rightCountSlider" min="1" max="3" value="2" oninput="updateScaleLab()" class="w-full accent-[#8338EC]">
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-medium">
+                      <span>ความจัดจ้านของสีฝั่งขวา (Color Weight):</span>
+                      <span id="rightColorVal" class="font-mono font-bold">สีสด (x1.4)</span>
+                    </div>
+                    <select id="rightColorSelect" onchange="updateScaleLab()" class="w-full p-1.5 rounded-lg border border-[#110B1E] text-xs bg-white font-medium">
+                      <option value="1.0">สีพาสเทลอ่อน (น้ำหนักสี x1.0)</option>
+                      <option value="1.4" selected>สีสดเขียวมิ้นต์-เหลือง (น้ำหนักสี x1.4)</option>
+                      <option value="1.8">สีชมพูบานเย็น-ส้มแสบตา (น้ำหนักสี x1.8)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- PRACTICAL LAB 2: สตูดิโอฝึกจัดสัดส่วนและจังหวะแบนเนอร์จริง -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="lab-2-layout" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#FFBE0B] text-[#110B1E] border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-extrabold uppercase">
+              🛠️ ปฏิบัติการที่ 2 (LAB 2)
+            </span>
+            <span class="text-xs font-heading font-bold text-[#8338EC]">ฝึกทักษะ: การจัดวางสมดุล สัดส่วน (Golden Ratio / กฎ 3 ส่วน) และจังหวะบนแบนเนอร์ธุรกิจ</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            Lab 2: สตูดิโอจำลองการจัดองค์ประกอบแบนเนอร์โฆษณา (Live Composition Workbench)
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <p class="text-sm sm:text-base text-zinc-700 leading-relaxed">
+              ในห้องปฏิบัติการนี้ นักศึกษาสามารถทดลองเปลี่ยนโครงสร้างการจัดวาง (Layout Preset) เปิด/ปิดเส้นกริดช่วยร่างแบบ (Grid Overlay) และปรับสัดส่วนขนาดของภาพสินค้าเพื่อดูผลลัพธ์ความสมดุลและจังหวะสายตาได้ทันที:
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <!-- แผงเครื่องมือด้านซ้าย -->
+              <div class="lg:col-span-5 space-y-4">
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#FFFDF7] space-y-2.5">
+                  <div class="text-xs font-heading font-extrabold text-[#110B1E] uppercase">1. เลือกกฎการจัดองค์ประกอบ (Composition Rule):</div>
+                  <button onclick="setWorkbenchPreset('sym')" id="wbBtn_sym" class="w-full p-2.5 rounded-xl border-2 border-[#110B1E] bg-[#FF006E] text-white text-left text-xs font-heading font-bold transition">
+                    ⚖️ แบบที่ 1: สมดุลแบบสมมาตร (Symmetrical Center)
+                  </button>
+                  <button onclick="setWorkbenchPreset('asym')" id="wbBtn_asym" class="w-full p-2.5 rounded-xl border-2 border-[#110B1E] bg-white text-[#110B1E] hover:bg-yellow-50 text-left text-xs font-heading font-bold transition">
+                    ⚡ แบบที่ 2: สมดุลแบบอสมมาตร + กฎ 3 ส่วน (Asymmetrical)
+                  </button>
+                  <button onclick="setWorkbenchPreset('golden')" id="wbBtn_golden" class="w-full p-2.5 rounded-xl border-2 border-[#110B1E] bg-white text-[#110B1E] hover:bg-yellow-50 text-left text-xs font-heading font-bold transition">
+                    🐚 แบบที่ 3: สัดส่วนทองคำ 1:1.618 (Golden Ratio Split)
+                  </button>
+                  <button onclick="setWorkbenchPreset('rhythm')" id="wbBtn_rhythm" class="w-full p-2.5 rounded-xl border-2 border-[#110B1E] bg-white text-[#110B1E] hover:bg-yellow-50 text-left text-xs font-heading font-bold transition">
+                    🎵 แบบที่ 4: จังหวะก้าวหน้าลดหลั่น (Progressive Rhythm)
+                  </button>
+                </div>
+
+                <!-- ปุ่มเปิด/ปิดเส้นช่วยร่างแบบ (Guides) -->
+                <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-[#F3E8FF] space-y-2.5">
+                  <div class="text-xs font-heading font-extrabold text-[#8338EC] uppercase">2. เปิด/ปิดเส้นช่วยร่างแบบ (Sketch Guides):</div>
+                  <div class="flex flex-wrap gap-2">
+                    <button onclick="toggleGuide('axis')" id="guideBtn_axis" class="pop-btn px-3 py-1.5 rounded-lg bg-[#FFBE0B] text-[#110B1E] text-xs font-heading font-bold">
+                      ✓ เส้นแกนสมดุลกลาง
+                    </button>
+                    <button onclick="toggleGuide('thirds')" id="guideBtn_thirds" class="pop-btn px-3 py-1.5 rounded-lg bg-white text-[#110B1E] text-xs font-heading font-bold">
+                      ตารางกฎ 3 ส่วน (3×3)
+                    </button>
+                    <button onclick="toggleGuide('golden')" id="guideBtn_golden" class="pop-btn px-3 py-1.5 rounded-lg bg-white text-[#110B1E] text-xs font-heading font-bold">
+                      สัดส่วนทองคำ 62:38
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- แคนวาสจำลองแบนเนอร์ด้านขวา -->
+              <div class="lg:col-span-7 space-y-3">
+                <div class="rounded-2xl border-4 border-[#110B1E] overflow-hidden shadow-[6px_6px_0px_#110B1E] bg-[#110B1E] relative">
+                  <svg id="workbenchSvg" class="w-full h-auto" viewBox="0 0 420 270">
+                    <defs>
+                      <linearGradient id="wbBg" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#1E1136"/>
+                        <stop offset="100%" stop-color="#3B0D54"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="420" height="270" fill="url(#wbBg)"/>
+
+                    <!-- Content Layer (Dynamic via JS) -->
+                    <g id="wbContentLayer">
+                      <!-- Default Symmetrical Layout -->
+                      <circle cx="210" cy="105" r="56" fill="#FF006E" stroke="#FFBE0B" stroke-width="4"/>
+                      <text x="210" y="114" text-anchor="middle" fill="#FFFFFF" font-size="36">👟</text>
+                      <text x="210" y="190" text-anchor="middle" fill="#FFBE0B" font-weight="bold" font-size="18">STREET RUNNER PRO 2026</text>
+                      <text x="210" y="212" text-anchor="middle" fill="#FFFFFF" font-size="11">ความสมดุลแบบสมมาตร • มั่นคง สง่างาม จุดโฟกัสอยู่กึ่งกลาง</text>
+                      <rect x="145" y="226" width="130" height="28" rx="14" fill="#00F5D4" stroke="#110B1E" stroke-width="2"/>
+                      <text x="210" y="244" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="12">สั่งซื้อทันที ฿2,490</text>
+                    </g>
+
+                    <!-- Guide Layer 1: Center Axis -->
+                    <g id="guideLayer_axis">
+                      <line x1="210" y1="0" x2="210" y2="270" stroke="#FFBE0B" stroke-width="2" stroke-dasharray="6 4"/>
+                      <line x1="0" y1="135" x2="420" y2="135" stroke="#FFBE0B" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
+                    </g>
+
+                    <!-- Guide Layer 2: Rule of Thirds -->
+                    <g id="guideLayer_thirds" class="hidden">
+                      <line x1="140" y1="0" x2="140" y2="270" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                      <line x1="280" y1="0" x2="280" y2="270" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                      <line x1="0" y1="90" x2="420" y2="90" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                      <line x1="0" y1="180" x2="420" y2="180" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                      <circle cx="140" cy="90" r="6" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="280" cy="90" r="6" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="140" cy="180" r="6" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                      <circle cx="280" cy="180" r="6" fill="#FF006E" stroke="#FFFFFF" stroke-width="2"/>
+                    </g>
+
+                    <!-- Guide Layer 3: Golden Ratio 62:38 -->
+                    <g id="guideLayer_golden" class="hidden">
+                      <rect x="0" y="0" width="260" height="270" fill="none" stroke="#FF006E" stroke-width="2.5"/>
+                      <rect x="260" y="0" width="160" height="167" fill="none" stroke="#FFBE0B" stroke-width="2.5"/>
+                      <path d="M0,270 A260,260 0 0,1 260,10 A160,160 0 0,1 420,167" fill="none" stroke="#00F5D4" stroke-width="3"/>
+                      <text x="130" y="24" text-anchor="middle" fill="#FF006E" font-size="11" font-weight="bold">พื้นที่หลัก 62% (1.618)</text>
+                      <text x="340" y="24" text-anchor="middle" fill="#FFBE0B" font-size="11" font-weight="bold">พื้นที่รอง 38% (1.0)</text>
+                    </g>
+                  </svg>
+                </div>
+
+                <div id="wbAnalysisBox" class="p-4 rounded-2xl bg-[#FFFBEB] border-2 border-[#110B1E] text-xs sm:text-sm text-[#110B1E]">
+                  <strong>💡 วิเคราะห์การจัดวางปัจจุบัน:</strong> ใช้ <strong>ความสมดุลแบบสมมาตร (Symmetrical Balance)</strong> วางรองเท้า พาดหัว และปุ่มสั่งซื้อทับบนเส้นแกนกลาง (x=210) ซ้าย-ขวาเท่ากันเป๊ะ เหมาะกับโปสเตอร์เปิดตัวสินค้าเดี่ยวที่ต้องการความสง่างาม
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- PRACTICAL LAB 3: คู่มือปฏิบัติการร่างแบบ (Sketch) 5 ขั้นตอน -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="lab-3-sketch" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-extrabold uppercase">
+              ✏️ ปฏิบัติการที่ 3 (LAB 3)
+            </span>
+            <span class="text-xs font-heading font-bold text-[#8338EC]">ฝึกทักษะ: การร่างแบบ (Sketch) ตามกฎเกณฑ์ศิลปะ 5 ขั้นตอน (Thumbnail & Wireframe Sketching)</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            Lab 3: ขั้นตอนปฏิบัติการร่างแบบ (Sketch) ตามกฎเกณฑ์ศิลปะก่อนลงมือทำจริง
+          </h2>
+
+          <div class="pop-card-static p-6 sm:p-8 rounded-3xl space-y-6 bg-white">
+            <p class="text-base text-[#110B1E] leading-relaxed">
+              ทักษะสำคัญที่ระบุไว้ในใบโครงการสอนหน่วยที่ 2 คือ <strong>"การร่างแบบ (Sketch) ตามกฎเกณฑ์ศิลปะ"</strong> นักออกแบบกราฟิกที่ทำงานอย่างละเอียด รอบคอบ จะไม่วางรูปภาพสะเปะสะปะทันที แต่จะร่างโครงร่างที่เรียกว่า <strong>"Thumbnail Sketch / Layout Wireframe"</strong> ตาม 5 ขั้นตอนปฏิบัติการต่อไปนี้ (คลิกแต่ละขั้นเพื่อดูวิธีปฏิบัติบนกระดาษและในโปรแกรมกราฟิก):
+            </p>
+
+            <!-- 5-Step Sketching Interactive Stepper -->
+            <div class="border-2 border-[#110B1E] rounded-2xl overflow-hidden bg-[#FFFDF7]">
+              <div class="grid grid-cols-2 sm:grid-cols-5 border-b-2 border-[#110B1E] bg-white">
+                <button onclick="setSketchLabStep(1)" id="skLabBtn1" class="py-3 px-2 text-xs font-heading font-bold bg-[#FF006E] text-white border-r border-[#110B1E] transition">ขั้นที่ 1: ตีกรอบ & เส้นแกน</button>
+                <button onclick="setSketchLabStep(2)" id="skLabBtn2" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition">ขั้นที่ 2: ตีเส้นกริดสัดส่วน</button>
+                <button onclick="setSketchLabStep(3)" id="skLabBtn3" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition">ขั้นที่ 3: วางกล่องน้ำหนัก</button>
+                <button onclick="setSketchLabStep(4)" id="skLabBtn4" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition">ขั้นที่ 4: จัดจังหวะ & ลำดับ</button>
+                <button onclick="setSketchLabStep(5)" id="skLabBtn5" class="py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 transition">ขั้นที่ 5: ตรวจ Squint Test</button>
+              </div>
+
+              <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                <div class="md:col-span-5 flex justify-center">
+                  <div class="w-72 h-64 rounded-2xl bg-[#110B1E] border-2 border-[#110B1E] flex items-center justify-center p-4">
+                    <svg class="w-full h-full" viewBox="0 0 240 200">
+                      <!-- Step 1: Artboard Margin & Center Fulcrum -->
+                      <g id="skLayer1">
+                        <rect x="15" y="15" width="210" height="170" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+                        <rect x="27" y="27" width="186" height="146" fill="none" stroke="#FF006E" stroke-width="1" stroke-dasharray="3 3"/>
+                        <line x1="120" y1="10" x2="120" y2="190" stroke="#FFBE0B" stroke-width="1.5" stroke-dasharray="5 4"/>
+                      </g>
+                      <!-- Step 2: Rule of Thirds / Golden Ratio Lines -->
+                      <g id="skLayer2" class="hidden">
+                        <line x1="85" y1="15" x2="85" y2="185" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                        <line x1="155" y1="15" x2="155" y2="185" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                        <line x1="15" y1="72" x2="225" y2="72" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                        <line x1="15" y1="128" x2="225" y2="128" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                      </g>
+                      <!-- Step 3: Blocking Shapes for Visual Weight -->
+                      <g id="skLayer3" class="hidden">
+                        <circle cx="80" cy="100" r="42" fill="#FF006E" fill-opacity="0.75" stroke="#FFFFFF" stroke-width="2"/>
+                        <text x="80" y="104" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="bold">HERO (60%)</text>
+                        <rect x="135" y="42" width="70" height="32" rx="4" fill="#FFBE0B" fill-opacity="0.85"/>
+                        <text x="170" y="62" text-anchor="middle" fill="#110B1E" font-size="9" font-weight="bold">HEADLINE</text>
+                      </g>
+                      <!-- Step 4: Rhythm & Repeating Elements -->
+                      <g id="skLayer4" class="hidden">
+                        <rect x="135" y="84" width="20" height="20" rx="4" fill="#00F5D4"/>
+                        <rect x="160" y="84" width="20" height="20" rx="4" fill="#00F5D4"/>
+                        <rect x="185" y="84" width="20" height="20" rx="4" fill="#00F5D4"/>
+                        <rect x="135" y="116" width="70" height="24" rx="12" fill="#8338EC" stroke="#FFFFFF" stroke-width="1.5"/>
+                        <text x="170" y="131" text-anchor="middle" fill="#FFFFFF" font-size="9" font-weight="bold">CTA BUTTON</text>
+                      </g>
+                      <!-- Step 5: Visual Flow Arrow & Balance Check -->
+                      <g id="skLayer5" class="hidden">
+                        <path d="M80,70 Q125,35 165,55 T170,125" fill="none" stroke="#FFBE0B" stroke-width="3"/>
+                        <polygon points="170,130 164,118 176,118" fill="#FFBE0B"/>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="md:col-span-7 space-y-3">
+                  <span id="skLabBadge" class="px-3 py-1 rounded-full bg-[#FF006E] text-white text-xs font-heading font-bold">
+                    ขั้นตอนปฏิบัติที่ 1 จาก 5
+                  </span>
+                  <h4 id="skLabTitle" class="text-xl font-heading font-extrabold text-[#110B1E]">
+                    ขั้นที่ 1: กำหนดขอบเขตหน้ากระดาษ (Margin) และลากเส้นแกนศูนย์ถ่วง
+                  </h4>
+                  <p id="skLabDesc" class="text-sm text-zinc-700 leading-relaxed">
+                    เริ่มจากวาดกรอบสี่เหลี่ยมตามสัดส่วนงานจริง (เช่น 1:1 หรือ 16:9) เว้นระยะขอบปลอดภัย (Safe Margin) เข้ามาด้านละ 10% แล้วลากเส้นประแนวตั้งผ่ากึ่งกลางเพื่อใช้เป็นจุดอ้างอิงในการชั่งน้ำหนักซ้าย-ขวา
+                  </p>
+                  <div id="skLabShortcut" class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] text-xs font-mono text-[#8338EC]">
+                    ⌨️ <strong>คีย์ลัดในโปรแกรมจริง:</strong> กด <strong>Ctrl + R</strong> (Photoshop/Illustrator) เพื่อเปิดไม้บรรทัด (Rulers) แล้วคลิกลากเส้น Guide ออกมาวางตรงกลางภาพ
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- PRACTICAL LAB 4: คลินิกแก้ชิ้นงานพังให้เป็นปัง (Before vs After Clinic) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="lab-4-clinic" class="lesson-section scroll-mt-24 space-y-6">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3.5 py-1 rounded-full bg-[#8338EC] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] text-xs font-heading font-extrabold uppercase">
+              🔧 ปฏิบัติการที่ 4 (LAB 4)
+            </span>
+            <span class="text-xs font-heading font-bold text-[#FF006E]">กรณีศึกษาเปรียบเทียบ: แก้ไขงานกราฟิกที่ผิดหลักสมดุล สัดส่วน และจังหวะ (Before vs After)</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-heading font-extrabold text-[#110B1E] tracking-tight">
+            Lab 4: คลินิกวิเคราะห์และแก้ไขชิ้นงานจริง (Before & After Makeover)
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- BEFORE: ชิ้นงานที่ผิดหลักสมดุลและสัดส่วน -->
+            <div class="pop-card-static p-6 rounded-3xl bg-[#FFF0F6] space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-[#FF0033] text-white text-xs font-heading font-bold">❌ BEFORE (ก่อนแก้ไข: ผิดหลักสมดุล & สัดส่วน)</span>
+                <span class="text-xs font-mono text-[#FF0033] font-bold">คะแนนสมดุล: 35/100</span>
+              </div>
+              <div class="h-48 rounded-2xl bg-[#110B1E] border-2 border-[#110B1E] p-3 flex items-center">
+                <svg class="w-full h-full" viewBox="0 0 300 150">
+                  <!-- Heavy Everything crammed on the left side! Right side dead void -->
+                  <circle cx="55" cy="55" r="40" fill="#FF006E"/>
+                  <rect x="15" y="102" width="110" height="22" fill="#FFBE0B"/>
+                  <rect x="15" y="128" width="95" height="16" fill="#00F5D4"/>
+                  <text x="55" y="60" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">รูปสินค้า</text>
+                  <text x="70" y="117" text-anchor="middle" fill="#110B1E" font-size="10" font-weight="bold">พาดหัวขนาดเท่ากัน</text>
+                  <line x1="150" y1="5" x2="150" y2="145" stroke="#FF0033" stroke-width="2" stroke-dasharray="4 4"/>
+                  <text x="225" y="78" text-anchor="middle" fill="#71717A" font-size="11">พื้นที่ว่างโล่งทิ้งเปล่า</text>
+                  <text x="225" y="95" text-anchor="middle" fill="#FF0033" font-size="10">(ภาพเอียงหนักซ้าย!)</text>
+                </svg>
+              </div>
+              <ul class="text-xs text-zinc-700 space-y-1.5">
+                <li>⚠️ <strong>ข้อผิดพลาดที่ 1 (เสียสมดุล):</strong> กองรูปภาพ พาดหัว และปุ่มไว้ฝั่งซ้ายทั้งหมด ทำให้ฝั่งขวาโหวงและภาพเอียงกะเท่เร่</li>
+                <li>⚠️ <strong>ข้อผิดพลาดที่ 2 (สัดส่วนเท่ากันหมด):</strong> ขนาดพาดหัวกับข้อความรองแทบไม่ต่างกัน ทำให้ไม่มีลำดับสายตา</li>
+              </ul>
+            </div>
+
+            <!-- AFTER: ชิ้นงานที่แก้ไขตามหลักอสมมาตร สัดส่วนทองคำ และจังหวะ -->
+            <div class="pop-card-static p-6 rounded-3xl bg-[#F0FDF4] space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-[#00A896] text-white text-xs font-heading font-bold">✅ AFTER (หลังแก้ไข: สมดุลอสมมาตร + สัดส่วน 1:1.618)</span>
+                <span class="text-xs font-mono text-[#00A896] font-bold">คะแนนสมดุล: 98/100</span>
+              </div>
+              <div class="h-48 rounded-2xl bg-[#110B1E] border-2 border-[#110B1E] p-3 flex items-center">
+                <svg class="w-full h-full" viewBox="0 0 300 150">
+                  <line x1="150" y1="5" x2="150" y2="145" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+                  <!-- Balanced Left Hero (62% Golden Ratio weight) -->
+                  <circle cx="82" cy="75" r="48" fill="#FF006E" stroke="#FFBE0B" stroke-width="3"/>
+                  <text x="82" y="79" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="bold">สินค้าเด่น (62%)</text>
+                  <!-- Balanced Right Hierarchy & Rhythm (38%) -->
+                  <rect x="158" y="25" width="122" height="28" rx="6" fill="#FFBE0B"/>
+                  <text x="219" y="43" text-anchor="middle" fill="#110B1E" font-size="11" font-weight="bold">พาดหัวใหญ่ชัดเจน</text>
+                  <!-- 3 Rhythm Badges -->
+                  <rect x="158" y="63" width="36" height="22" rx="4" fill="#00F5D4"/>
+                  <rect x="201" y="63" width="36" height="22" rx="4" fill="#00F5D4"/>
+                  <rect x="244" y="63" width="36" height="22" rx="4" fill="#00F5D4"/>
+                  <!-- CTA Button -->
+                  <rect x="158" y="97" width="122" height="28" rx="14" fill="#8338EC" stroke="#FFFFFF" stroke-width="2"/>
+                  <text x="219" y="115" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">สั่งซื้อด่วน ฿990 →</text>
+                </svg>
+              </div>
+              <ul class="text-xs text-zinc-700 space-y-1.5">
+                <li>✅ <strong>การแก้ไขที่ 1 (สมดุลอสมมาตร):</strong> วางสินค้าขนาดใหญ่ฝั่งซ้าย ถ่วงดุลกับกลุ่มข้อความและปุ่มฝั่งขวาได้อย่างลงตัว</li>
+                <li>✅ <strong>การแก้ไขที่ 2 (สัดส่วน & จังหวะ):</strong> แยกสัดส่วนพาดหัวใหญ่ วางไอคอนคุณสมบัติ 3 ช่องเป็นจังหวะซ้ำสม่ำเสมอ (Repetition Rhythm)</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 5: ใบงานปฏิบัติการที่ 2 + มินิควิซตรวจคำตอบทันที + คำถามทบทวน -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="worksheet-2" class="lesson-section scroll-mt-24 space-y-8">
+          <div class="p-6 sm:p-8 rounded-3xl border-4 border-[#110B1E] bg-gradient-to-br from-[#FFFBEB] via-white to-[#FFF0F6] space-y-6 shadow-[6px_6px_0px_#110B1E]">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-3.5 py-1 rounded-xl bg-[#110B1E] text-[#00F5D4] font-heading font-extrabold text-xs">
+                  📋 ใบงานปฏิบัติการที่ 2 (UNIT 2 PRACTICAL WORKSHEET)
+                </span>
+                <span class="text-xs font-heading font-bold text-[#FF006E]">สัปดาห์ที่ 2 • เวลาปฏิบัติ 2 ชั่วโมง • คะแนนเต็ม 6 คะแนน</span>
+              </div>
+              <span id="ws2Progress" class="px-3.5 py-1 rounded-full bg-[#FF006E] text-white border border-[#110B1E] font-heading font-bold text-xs">
+                เช็กลิสต์ส่งงาน: 0 / 4 ภารกิจ
+              </span>
+            </div>
+
+            <h2 class="text-2xl sm:text-3xl font-heading font-extrabold text-[#110B1E]">
+              ภารกิจใบงานที่ 2: "ร่างแบบ (Sketch) และจัดสมดุลแบนเนอร์สินค้าธุรกิจดิจิทัล 2 รูปแบบ"
+            </h2>
+
+            <!-- โจทย์ปฏิบัติ 3 ตอนชัดเจน -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs sm:text-sm">
+              <div class="p-4 rounded-2xl bg-white border-2 border-[#110B1E] space-y-2">
+                <div class="font-heading font-extrabold text-[#FF006E]">ตอนที่ 1: ร่างแบบสมมาตร (Symmetrical Sketch)</div>
+                <p class="text-zinc-700 leading-relaxed">
+                  ตีกรอบขนาด 1080×1080 px ลากเส้นแกนกลาง แล้วร่างโครงสร้าง (Wireframe Sketch) โปสเตอร์สินค้าแบบ <strong>สมมาตร (ซ้าย=ขวา)</strong> พร้อมระบุน้ำหนักองค์ประกอบ
+                </p>
+              </div>
+              <div class="p-4 rounded-2xl bg-white border-2 border-[#110B1E] space-y-2">
+                <div class="font-heading font-extrabold text-[#8338EC]">ตอนที่ 2: ร่างแบบอสมมาตร (Asymmetrical Sketch)</div>
+                <p class="text-zinc-700 leading-relaxed">
+                  นำสินค้าชิ้นเดิมมาร่างแบบใหม่ด้วย <strong>ความสมดุลแบบอสมมาตร</strong> ร่วมกับ <strong>กฎสามส่วน (Rule of Thirds)</strong> หรือ <strong>สัดส่วนทองคำ (62:38)</strong>
+                </p>
+              </div>
+              <div class="p-4 rounded-2xl bg-white border-2 border-[#110B1E] space-y-2">
+                <div class="font-heading font-extrabold text-[#00A896]">ตอนที่ 3: จัดจังหวะ & เปรียบเทียบน้ำหนัก</div>
+                <p class="text-zinc-700 leading-relaxed">
+                  ใส่องค์ประกอบสร้าง <strong>จังหวะ (Rhythm)</strong> อย่างน้อย 1 รูปแบบ (เช่น ไอคอนจุดเด่น 3 ช่องเรียงกัน) และเขียนเปรียบเทียบน้ำหนักสายตาซ้าย-ขวา
+                </p>
+              </div>
+            </div>
+
+            <!-- มินิควิซฝึกวิเคราะห์หน้างาน (Interactive Practice Quiz) -->
+            <div class="p-5 rounded-2xl bg-[#110B1E] text-white space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="font-heading font-bold text-sm text-[#FFBE0B]">⚡ แบบฝึกหัดทดสอบสายตาหน้าห้องแล็บ (คลิกเลือกคำตอบที่ถูกต้อง):</span>
+                <span id="quizScoreBadge" class="text-xs font-mono text-[#00F5D4]">ตอบถูก: 0 / 2 ข้อ</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="p-4 rounded-xl bg-white/10 border border-white/20 space-y-2">
+                  <div class="font-heading font-bold text-white">โจทย์ที่ 1: หากฝั่งซ้ายของแบนเนอร์มี "ภาพสินค้าขนาดใหญ่มาก 1 ชิ้น" เราควรจัดฝั่งขวาอย่างไรให้เกิดความสมดุลแบบอสมมาตร?</div>
+                  <div class="space-y-1.5 pt-1">
+                    <button onclick="checkLabQuiz(1, true, this)" class="w-full p-2 rounded-lg bg-white/10 hover:bg-white/20 text-left transition">ก. วางพาดหัว ข้อความรอง และปุ่มสีสด ขยับออกไปใกล้ขอบขวาเพื่อถ่วงน้ำหนัก</button>
+                    <button onclick="checkLabQuiz(1, false, this)" class="w-full p-2 rounded-lg bg-white/10 hover:bg-white/20 text-left transition">ข. ปล่อยฝั่งขวาให้ว่างเปล่าทั้งหมดโดยไม่ต้องใส่อะไรเลย</button>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-white/10 border border-white/20 space-y-2">
+                  <div class="font-heading font-bold text-white">โจทย์ที่ 2: การเรียงไอคอนรีวิวดาว 5 ดวง หรือการ์ดสินค้าที่มีขนาดและช่องไฟเท่ากันเป๊ะ จัดเป็นจังหวะชนิดใด?</div>
+                  <div class="space-y-1.5 pt-1">
+                    <button onclick="checkLabQuiz(2, false, this)" class="w-full p-2 rounded-lg bg-white/10 hover:bg-white/20 text-left transition">ก. ความสมดุลแบบรัศมี (Radial Balance)</button>
+                    <button onclick="checkLabQuiz(2, true, this)" class="w-full p-2 rounded-lg bg-white/10 hover:bg-white/20 text-left transition">ข. จังหวะแบบซ้ำกันสม่ำเสมอ (Regular / Repetition Rhythm)</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- เช็กลิสต์ตรวจความละเอียดรอบคอบก่อนส่งงาน -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm">
+              <label class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] flex items-start gap-3 cursor-pointer hover:bg-yellow-50 transition">
+                <input type="checkbox" onchange="updateWs2Checklist()" class="ws2-check mt-1 w-4 h-4 accent-[#FF006E]">
+                <span><strong>ตรวจสอบที่ 1:</strong> ลากเส้นแกนศูนย์ถ่วง (Center Axis) และเส้นกริดกฎ 3 ส่วนในแบบร่างครบถ้วน</span>
+              </label>
+              <label class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] flex items-start gap-3 cursor-pointer hover:bg-yellow-50 transition">
+                <input type="checkbox" onchange="updateWs2Checklist()" class="ws2-check mt-1 w-4 h-4 accent-[#FF006E]">
+                <span><strong>ตรวจสอบที่ 2:</strong> ร่างแบบเปรียบเทียบทั้งแบบสมมาตร (Symmetrical) และแบบอสมมาตร (Asymmetrical) ครบ 2 ชิ้น</span>
+              </label>
+              <label class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] flex items-start gap-3 cursor-pointer hover:bg-yellow-50 transition">
+                <input type="checkbox" onchange="updateWs2Checklist()" class="ws2-check mt-1 w-4 h-4 accent-[#FF006E]">
+                <span><strong>ตรวจสอบที่ 3:</strong> กำหนดสัดส่วนขนาด (พาดหัว > หัวข้อรอง > รายละเอียด) และจัดจังหวะช่องไฟสม่ำเสมอ</span>
+              </label>
+              <label class="p-3.5 rounded-xl bg-white border-2 border-[#110B1E] flex items-start gap-3 cursor-pointer hover:bg-yellow-50 transition">
+                <input type="checkbox" onchange="updateWs2Checklist()" class="ws2-check mt-1 w-4 h-4 accent-[#FF006E]">
+                <span><strong>ตรวจสอบที่ 4 (จิตพิสัย):</strong> ปฏิบัติงานด้วยความละเอียด รอบคอบ เส้นร่างสะอาดและระบุค่าการวิเคราะห์ชัดเจน</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- คำถามทบทวนประจำบทที่ 2 (FAQ 5 ข้อ) -->
+          <div class="space-y-3 pt-4">
+            <h3 class="text-2xl font-heading font-extrabold text-[#110B1E]">
+              ❓ คำถามทบทวนประจำบทที่ 2 (คลิกเพื่อดูแนวคำตอบ)
+            </h3>
+
+            <div class="pop-card-static rounded-2xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(1)" class="w-full p-5 text-left flex items-center justify-between hover:bg-pink-50 transition">
+                <span class="font-heading font-bold text-sm sm:text-base text-[#110B1E]">1. ความสมดุลแบบสมมาตร (Symmetrical) กับแบบอสมมาตร (Asymmetrical) แตกต่างกันอย่างไร และเหมาะกับงานแบบใด?</span>
+                <span id="faqIcon1" class="w-7 h-7 rounded-full bg-[#FF006E] text-white flex items-center justify-center font-bold text-base shrink-0">+</span>
+              </button>
+              <div id="faqAns1" class="hidden p-5 pt-3 text-xs sm:text-sm text-zinc-700 leading-relaxed border-t-2 border-[#110B1E] bg-[#FFFDF7]">
+                <strong class="text-[#FF006E]">แนวคำตอบ:</strong> <strong>สมดุลแบบสมมาตร</strong> คือการจัดวางซ้าย-ขวาให้เหมือนกันทุกประการดั่งเงากระจก ให้ความรู้สึกมั่นคง เป็นทางการ น่าเชื่อถือ เหมาะกับตราสัญลักษณ์ เกียรติบัตร หรือแบรนด์หรู ส่วน <strong>สมดุลแบบอสมมาตร</strong> คือซ้าย-ขวามีรูปร่างและจำนวนไม่เหมือนกัน แต่ถ่วงน้ำหนักสายตาให้เท่ากันด้วยขนาด สี และระยะห่าง ให้ความรู้สึกทันสมัย มีชีวิตชีวา เหมาะกับแบนเนอร์โปรโมชันและสื่อโซเชียลมีเดียยุคใหม่
+              </div>
+            </div>
+
+            <div class="pop-card-static rounded-2xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(2)" class="w-full p-5 text-left flex items-center justify-between hover:bg-pink-50 transition">
+                <span class="font-heading font-bold text-sm sm:text-base text-[#110B1E]">2. จงยกตัวอย่างปัจจัยที่มีผลต่อ "น้ำหนักทางสายตา (Visual Weight)" มาอย่างน้อย 4 ปัจจัย?</span>
+                <span id="faqIcon2" class="w-7 h-7 rounded-full bg-[#8338EC] text-white flex items-center justify-center font-bold text-base shrink-0">+</span>
+              </button>
+              <div id="faqAns2" class="hidden p-5 pt-3 text-xs sm:text-sm text-zinc-700 leading-relaxed border-t-2 border-[#110B1E] bg-[#FFFDF7]">
+                <strong class="text-[#8338EC]">แนวคำตอบ:</strong> 1) <strong>ขนาด:</strong> วัตถุใหญ่หนักกว่าวัตถุเล็ก, 2) <strong>สี:</strong> สีสดวรรณะร้อนและสีเข้มมืดหนักกว่าสีอ่อนพาสเทล, 3) <strong>พื้นผิว:</strong> พื้นผิวที่มีลวดลายซับซ้อนหนักกว่าพื้นผิวเรียบ, 4) <strong>ระยะห่างจากจุดกึ่งกลาง:</strong> วัตถุที่อยู่ใกล้ขอบภาพจะมีแรงถ่วงคานงัดมากกว่าวัตถุที่อยู่ชิดแกนกลาง
+              </div>
+            </div>
+
+            <div class="pop-card-static rounded-2xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(3)" class="w-full p-5 text-left flex items-center justify-between hover:bg-pink-50 transition">
+                <span class="font-heading font-bold text-sm sm:text-base text-[#110B1E]">3. "สัดส่วนทองคำ (Golden Ratio 1:1.618)" และ "กฎสามส่วน (Rule of Thirds)" นำมาช่วยในการร่างแบบกราฟิกอย่างไร?</span>
+                <span id="faqIcon3" class="w-7 h-7 rounded-full bg-[#FB5607] text-white flex items-center justify-center font-bold text-base shrink-0">+</span>
+              </button>
+              <div id="faqAns3" class="hidden p-5 pt-3 text-xs sm:text-sm text-zinc-700 leading-relaxed border-t-2 border-[#110B1E] bg-[#FFFDF7]">
+                <strong class="text-[#FB5607]">แนวคำตอบ:</strong> <strong>สัดส่วนทองคำ (1:1.618 หรือ 62%:38%)</strong> ช่วยในการแบ่งสัดส่วนพื้นที่หลักกับพื้นที่รอง รวมถึงการคำนวณขนาดฟอนต์พาดหัวต่อเนื้อหาให้ดูสวยงามเป็นธรรมชาติ ส่วน <strong>กฎสามส่วน (Rule of Thirds)</strong> ใช้ตาราง 9 ช่องเพื่อหา "จุดตัดสายตาทั้ง 4 จุด" สำหรับวางจุดเด่นของสินค้าให้สะดุดตาผู้ชมทันทีโดยไม่ต้องวางไว้ตรงกลางเสมอไป
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- COMMENT & DISCUSSION SECTION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section class="border-t-2 border-[#110B1E] pt-10 pb-16">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-heading font-extrabold text-xl text-[#110B1E]">💬 กระดานส่งผลการทดลองปฏิบัติการบทที่ 2</h3>
+            <span class="px-3 py-1 rounded-full bg-[#00F5D4] text-[#110B1E] border border-[#110B1E] text-xs font-heading font-bold">ออนไลน์</span>
+          </div>
+
+          <div class="pop-card-static p-5 rounded-2xl bg-white flex items-start gap-3.5 mb-8 no-print">
+            <div class="w-10 h-10 rounded-xl bg-[#8338EC] text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-bold text-xs shrink-0">
+              YOU
+            </div>
+            <div class="flex-1">
+              <input 
+                type="text" 
+                id="commentInput"
+                placeholder="บันทึกผลการทดลองชั่งน้ำหนักภาพใน Lab 1 หรือส่งคำถามถึงครูแม็ค..." 
+                class="w-full p-3 bg-[#FFFDF7] border-2 border-[#110B1E] rounded-xl text-sm text-[#110B1E] placeholder-zinc-500 focus:outline-none focus:bg-yellow-50"
+              />
+              <div class="flex justify-end gap-2 mt-3">
+                <button onclick="clearComment()" class="pop-btn h-9 px-4 rounded-full text-xs font-heading font-bold bg-white text-[#110B1E]">ล้างข้อความ</button>
+                <button onclick="postComment()" class="pop-btn h-9 px-5 rounded-full text-xs font-heading font-bold bg-[#FF006E] text-white">ส่งบันทึกปฏิบัติการ</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="commentList" class="space-y-4">
+            <div class="p-4 rounded-2xl border-2 border-[#110B1E] bg-white flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-[#FF006E] text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-bold text-xs shrink-0">
+                PL
+              </div>
+              <div class="space-y-1 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-heading font-bold text-xs sm:text-sm text-[#110B1E]">พลอยชมพู (ปวส.1 เทคโนโลยีธุรกิจดิจิทัล)</span>
+                  <span class="text-[11px] text-zinc-500">25 นาทีที่แล้ว</span>
+                </div>
+                <p class="text-xs sm:text-sm text-zinc-700 leading-relaxed">
+                  ชอบ Lab 1 เครื่องชั่งน้ำหนักสายตามากเลยค่ะ! พอเห็นคานกระดกเอียงตามขนาดและสีแล้วเข้าใจทันทีเลยว่าทำไมเวลาวางรูปใหญ่ฝั่งซ้ายแล้วต้องเอาปุ่มสีสดไปถ่วงฝั่งขวา
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    
+        <!-- ================================================================= -->
+        <!-- BOTTOM INTER-CHAPTER NAVIGATION DOCK                              -->
+        <!-- ================================================================= -->
+        <section class="mt-12 pt-8 border-t-2 border-[#110B1E] no-print">
+          <div class="p-6 rounded-3xl bg-white border-2 border-[#110B1E] shadow-[6px_6px_0px_#110B1E] space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-zinc-100 pb-4">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-lg bg-[#FFBE0B] border border-[#110B1E] text-[11px] font-mono font-bold">
+                  UNIT 02 OF 07
+                </span>
+                <span class="text-xs font-heading font-bold text-[#110B1E]">
+                  การนำทางข้ามบทเรียน (Curriculum Navigation)
+                </span>
+              </div>
+              <a href="index.html" class="pop-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-100 hover:bg-[#FFBE0B] text-xs font-heading font-bold text-[#110B1E]">
+                <span>🏠 สารบัญรวมรายวิชา 31910-0002</span>
+              </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              <a href="1_31910_0002.html" class="pop-card p-4 rounded-2xl flex items-center gap-3.5 group bg-zinc-50 hover:bg-yellow-50">
+                <div class="w-10 h-10 rounded-xl bg-white border-2 border-[#110B1E] flex items-center justify-center text-base font-bold shrink-0 shadow-[2px_2px_0px_#110B1E] group-hover:-translate-x-1 transition-transform">
+                  ⬅️
+                </div>
+                <div class="overflow-hidden">
+                  <div class="text-[10px] font-heading font-extrabold text-zinc-500 uppercase">บทก่อนหน้า</div>
+                  <div class="text-xs font-heading font-bold text-[#110B1E] truncate group-hover:text-[#8338EC]">
+                    บทที่ 1: งานวิเคราะห์และจำแนกธาตุทางทัศนศิลป์
+                  </div>
+                </div>
+              </a>
+              
+              <a href="3_space_31910_0002.html" class="pop-card p-4 rounded-2xl flex items-center justify-between gap-3.5 group bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border-[#FF006E]">
+                <div class="overflow-hidden">
+                  <div class="text-[10px] font-heading font-extrabold text-[#FF006E] uppercase">บทถัดไป ➔</div>
+                  <div class="text-xs font-heading font-bold text-[#110B1E] truncate group-hover:text-[#FF006E]">
+                    บทที่ 3: งานออกแบบและจัดพื้นที่ในงานกราฟิก (Space)
+                  </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-[#FF006E] text-white border-2 border-[#110B1E] flex items-center justify-center text-base font-bold shrink-0 shadow-[2px_2px_0px_#110B1E] group-hover:translate-x-1 transition-transform">
+                  ➔
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+</main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC (Interactive Labs, Simulators & Sandbox Safe) -->
+  <!-- ========================================================================= -->
+  <script>
+    let toastTimer = null;
+    function showToast(message) {
+      const box = document.getElementById('toastBox');
+      const msg = document.getElementById('toastMsg');
+      msg.innerText = message;
+      box.classList.remove('hidden');
+      box.classList.add('flex');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+        box.classList.remove('flex');
+      }, 3200);
+    }
+
+    // Toggle Sidebar
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    toggleSidebarBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden');
+      sidebar.classList.toggle('flex');
+    });
+
+    // Scroll Progress Bar
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+      const bar = document.getElementById('scrollProgressBar');
+      if (bar) bar.style.width = scrolled + '%';
+    });
+
+    // Cycle Hero Palette Mood
+    let currentMood = 1;
+    const moods = [
+      { name: 'Cyber Pop', cls: 'vivid-gradient-bg' },
+      { name: 'Sunset Acid', cls: 'vivid-sunset-bg' },
+      { name: 'Electric Neon', cls: 'vivid-cyber-bg' }
+    ];
+    function cyclePaletteMood() {
+      const card = document.getElementById('heroBannerCard');
+      const label = document.getElementById('moodLabel');
+      card.classList.remove(moods[currentMood].cls);
+      currentMood = (currentMood + 1) % moods.length;
+      card.classList.add(moods[currentMood].cls);
+      label.innerText = 'โหมดสี: ' + moods[currentMood].name;
+      showToast('สลับโทนสีสตูดิโอเป็น "' + moods[currentMood].name + '" เรียบร้อย!');
+    }
+
+    // Rhythm Interactive Explorer (4 Types)
+    const rhythmData = {
+      1: {
+        badge: 'จังหวะรูปแบบที่ 1: A - A - A - A',
+        title: 'จังหวะแบบซ้ำกันสม่ำเสมอ (Regular / Repetition Rhythm)',
+        desc: 'การนำรูปร่าง ขนาด และสีเดียวกัน มาวางซ้ำโดยเว้นระยะช่องไฟ (Margin/Gap) เท่ากันทุกช่อง สร้างความเป็นระเบียบ อ่านง่าย และน่าเชื่อถือ เช่น ตารางแสดงการ์ดสินค้าในหน้าเว็บ E-Commerce',
+        svg: `<svg class="w-full h-full" viewBox="0 0 260 100">
+                <rect x="18" y="25" width="38" height="50" rx="8" fill="#FF006E"/>
+                <rect x="76" y="25" width="38" height="50" rx="8" fill="#FF006E"/>
+                <rect x="134" y="25" width="38" height="50" rx="8" fill="#FF006E"/>
+                <rect x="192" y="25" width="38" height="50" rx="8" fill="#FF006E"/>
+              </svg>`
+      },
+      2: {
+        badge: 'จังหวะรูปแบบที่ 2: A - B - A - B',
+        title: 'จังหวะแบบสลับกัน (Alternating Rhythm)',
+        desc: 'การสลับรูปร่าง สี หรือทิศทางไปมาอย่างมีแบบแผน (เช่น ชมพู-เหลือง-ชมพู-เหลือง หรือ วงกลม-สี่เหลี่ยม) ช่วยแก้ความจำเจ ทำให้กราฟิกดูสนุกสนาน คึกคัก และดึงดูดสายตาวัยรุ่น',
+        svg: `<svg class="w-full h-full" viewBox="0 0 260 100">
+                <circle cx="38" cy="50" r="22" fill="#FF006E"/>
+                <rect x="78" y="28" width="44" height="44" rx="6" fill="#FFBE0B"/>
+                <circle cx="158" cy="50" r="22" fill="#FF006E"/>
+                <rect x="198" y="28" width="44" height="44" rx="6" fill="#FFBE0B"/>
+              </svg>`
+      },
+      3: {
+        badge: 'จังหวะรูปแบบที่ 3: เล็ก → กลาง → ใหญ่',
+        title: 'จังหวะแบบก้าวหน้าหรือลดหลั่น (Progressive / Gradation Rhythm)',
+        desc: 'การเปลี่ยนแปลงขนาด ความสูง หรือความเข้มของสีอย่างเป็นลำดับขั้น (จากเล็กไปใหญ่ หรือจากจางไปเข้ม) สร้างความรู้สึกราวกับวัตถุกำลังพุ่งเข้ามาหาผู้ชม และนำสายตาไปยังจุดสำคัญสุด',
+        svg: `<svg class="w-full h-full" viewBox="0 0 260 100">
+                <circle cx="32" cy="65" r="10" fill="#00F5D4"/>
+                <circle cx="78" cy="58" r="16" fill="#3A86FF"/>
+                <circle cx="138" cy="50" r="24" fill="#8338EC"/>
+                <circle cx="212" cy="42" r="34" fill="#FF006E" stroke="#FFBE0B" stroke-width="3"/>
+              </svg>`
+      },
+      4: {
+        badge: 'จังหวะรูปแบบที่ 4: S-Curve Wave',
+        title: 'จังหวะแบบลื่นไหลต่อเนื่อง (Flowing Rhythm)',
+        desc: 'การเรียงองค์ประกอบไปตามแนวเส้นโค้งคลื่น (Wave) หรือสายน้ำ ทำให้สายตาของผู้ชมลื่นไหลต่อเนื่องจากซ้ายไปขวาอย่างนุ่มนวล นิยมใช้ในกราฟิกเครื่องดื่ม อาหาร และแฟชั่น',
+        svg: `<svg class="w-full h-full" viewBox="0 0 260 100">
+                <path d="M10,65 Q70,10 130,55 T250,35" fill="none" stroke="#FFBE0B" stroke-width="4" stroke-dasharray="6 4"/>
+                <circle cx="35" cy="48" r="10" fill="#FF006E"/>
+                <circle cx="85" cy="36" r="12" fill="#00F5D4"/>
+                <circle cx="140" cy="62" r="14" fill="#FFBE0B"/>
+                <circle cx="205" cy="56" r="16" fill="#FF006E"/>
+              </svg>`
+      }
+    };
+
+    function selectRhythm(num) {
+      for (let i = 1; i <= 4; i++) {
+        const t = document.getElementById('rhyTab' + i);
+        if (i === num) {
+          t.className = 'py-3 px-3 text-xs font-heading font-bold bg-[#FF006E] text-white border-r border-[#110B1E] transition';
+        } else {
+          t.className = 'py-3 px-3 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition';
+        }
+      }
+      const d = rhythmData[num];
+      document.getElementById('rhythmBadge').innerText = d.badge;
+      document.getElementById('rhythmTitle').innerText = d.title;
+      document.getElementById('rhythmDesc').innerText = d.desc;
+      document.getElementById('rhythmSvgContainer').innerHTML = d.svg;
+    }
+
+    // =========================================================================
+    // LAB 1: INTERACTIVE VISUAL WEIGHT SCALE SIMULATOR
+    // =========================================================================
+    function updateScaleLab() {
+      const leftSize = parseInt(document.getElementById('leftSizeSlider').value, 10);
+      const leftDist = parseInt(document.getElementById('leftDistSlider').value, 10);
+      const rightSize = parseInt(document.getElementById('rightSizeSlider').value, 10);
+      const rightCount = parseInt(document.getElementById('rightCountSlider').value, 10);
+      const rightColorMult = parseFloat(document.getElementById('rightColorSelect').value);
+
+      document.getElementById('leftSizeVal').innerText = leftSize + ' px';
+      document.getElementById('leftDistVal').innerText = leftDist + ' px';
+      document.getElementById('rightSizeVal').innerText = rightSize + ' px';
+      document.getElementById('rightCountVal').innerText = rightCount + ' ชิ้น';
+
+      const colorNames = { '1': 'พาสเทล (x1.0)', '1.4': 'สีสด (x1.4)', '1.8': 'สีแสบตา (x1.8)' };
+      document.getElementById('rightColorVal').innerText = colorNames[String(rightColorMult)] || 'สีสด';
+
+      // Calculate Visual Weight Score
+      const leftScore = Math.round((leftSize * 1.15) * (leftDist / 85));
+      const rightScore = Math.round((rightSize * 0.82 * rightCount) * rightColorMult);
+
+      document.getElementById('leftScoreText').innerText = leftScore;
+      document.getElementById('rightScoreText').innerText = rightScore;
+
+      // Update SVG Elements
+      const leftCx = 210 - leftDist;
+      const leftCy = 158 - leftSize * 0.75;
+      const leftCircle = document.getElementById('leftShapeSvg');
+      leftCircle.setAttribute('cx', leftCx);
+      leftCircle.setAttribute('cy', leftCy);
+      leftCircle.setAttribute('r', leftSize * 0.72);
+
+      // Update Right Group
+      const rightGroup = document.getElementById('rightVisualGroup');
+      const fillCol = rightColorMult > 1.5 ? '#FF006E' : (rightColorMult > 1.2 ? '#00F5D4' : '#CBD5E1');
+      let rightHtml = '';
+      for (let i = 0; i < rightCount; i++) {
+        const rx = 250 + i * (rightSize * 0.95 + 8);
+        const ry = 155 - rightSize * 0.85;
+        const rw = rightSize * 0.85;
+        rightHtml += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rw}" rx="6" fill="${fillCol}" stroke="#FFFFFF" stroke-width="2"/>`;
+      }
+      rightGroup.innerHTML = rightHtml;
+
+      // Calculate Tilt Angle (-14 to +14 deg)
+      const diff = rightScore - leftScore;
+      const angle = Math.max(-14, Math.min(14, diff * 0.15));
+      document.getElementById('tiltingBeamGroup').setAttribute('transform', `rotate(${angle.toFixed(1)}, 210, 165)`);
+
+      const badge = document.getElementById('balanceStatusBadge');
+      if (Math.abs(diff) <= 10) {
+        badge.className = 'px-3 py-0.5 rounded-full bg-[#00F5D4] text-[#110B1E] font-heading font-extrabold';
+        badge.innerText = '✓ สมดุลสมบูรณ์! (ผลต่าง ' + Math.abs(diff) + ' pt)';
+      } else if (diff < -10) {
+        badge.className = 'px-3 py-0.5 rounded-full bg-[#FF006E] text-white font-heading font-extrabold';
+        badge.innerText = '⚠️ เอียงหนักซ้าย! (+' + Math.abs(diff) + ' pt)';
+      } else {
+        badge.className = 'px-3 py-0.5 rounded-full bg-[#FB5607] text-white font-heading font-extrabold';
+        badge.innerText = '⚠️ เอียงหนักขวา! (+' + Math.abs(diff) + ' pt)';
+      }
+    }
+
+    function loadScaleChallenge() {
+      document.getElementById('leftSizeSlider').value = 68;
+      document.getElementById('leftDistSlider').value = 130;
+      document.getElementById('rightSizeSlider').value = 26;
+      document.getElementById('rightCountSlider').value = 1;
+      document.getElementById('rightColorSelect').value = '1.0';
+      updateScaleLab();
+      renderWeightFactorExplorer();
+      showToast('🎲 โจทย์ใหม่: ตอนนี้ภาพเอียงหนักซ้ายมาก! ลองเพิ่มจำนวนหรือสีฝั่งขวาให้สมดุลกัน');
+    }
+
+    function autoBalanceScale() {
+      document.getElementById('leftSizeSlider').value = 50;
+      document.getElementById('leftDistSlider').value = 100;
+      document.getElementById('rightSizeSlider').value = 35;
+      document.getElementById('rightCountSlider').value = 2;
+      document.getElementById('rightColorSelect').value = '1.4';
+      updateScaleLab();
+      showToast('✨ จัดสมดุลแบบอสมมาตรเรียบร้อย: วัตถุใหญ่ 1 ชิ้นซ้าย สมดุลกับวัตถุเล็กสีสด 2 ชิ้นขวา!');
+    }
+
+    // =========================================================================
+    // LAB 2: LIVE COMPOSITION WORKBENCH
+    // =========================================================================
+    const workbenchPresets = {
+      sym: {
+        analysis: '💡 วิเคราะห์การจัดวางปัจจุบัน: ใช้ "ความสมดุลแบบสมมาตร (Symmetrical Balance)" วางรองเท้า พาดหัว และปุ่มสั่งซื้อทับบนเส้นแกนกลาง (x=210) ซ้าย-ขวาเท่ากันเป๊ะ เหมาะกับโปสเตอร์เปิดตัวสินค้าเดี่ยวที่ต้องการความสง่างาม',
+        svg: `<circle cx="210" cy="105" r="56" fill="#FF006E" stroke="#FFBE0B" stroke-width="4"/>
+              <text x="210" y="114" text-anchor="middle" fill="#FFFFFF" font-size="36">👟</text>
+              <text x="210" y="190" text-anchor="middle" fill="#FFBE0B" font-weight="bold" font-size="18">STREET RUNNER PRO 2026</text>
+              <text x="210" y="212" text-anchor="middle" fill="#FFFFFF" font-size="11">ความสมดุลแบบสมมาตร • มั่นคง สง่างาม จุดโฟกัสอยู่กึ่งกลาง</text>
+              <rect x="145" y="226" width="130" height="28" rx="14" fill="#00F5D4" stroke="#110B1E" stroke-width="2"/>
+              <text x="210" y="244" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="12">สั่งซื้อทันที ฿2,490</text>`
+      },
+      asym: {
+        analysis: '💡 วิเคราะห์การจัดวางปัจจุบัน: ใช้ "ความสมดุลแบบอสมมาตร (Asymmetrical Balance)" วางวงกลมสินค้าขนาดใหญ่บนจุดตัดกฎ 3 ส่วนฝั่งซ้าย แล้วถ่วงดุลด้วยพาดหัว ป้ายลดราคา และปุ่มกดฝั่งขวา ดูทันสมัยและเร้าใจ!',
+        svg: `<circle cx="125" cy="135" r="72" fill="#FF006E" stroke="#00F5D4" stroke-width="4"/>
+              <text x="125" y="148" text-anchor="middle" fill="#FFFFFF" font-size="46">👟</text>
+              <rect x="225" y="52" width="90" height="24" rx="6" fill="#FFBE0B"/>
+              <text x="270" y="68" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="11">⚡ FLASH SALE</text>
+              <text x="225" y="108" fill="#FFFFFF" font-weight="bold" font-size="20">RUNNER PRO</text>
+              <text x="225" y="132" fill="#00F5D4" font-weight="bold" font-size="14">ลดเหลือ ฿2,490</text>
+              <text x="225" y="156" fill="#E4E4E7" font-size="10">พื้นโฟมคาร์บอนเด้งส่งแรง 2 เท่า</text>
+              <rect x="225" y="178" width="150" height="36" rx="18" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+              <text x="300" y="200" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="13">หยิบใส่ตะกร้า →</text>`
+      },
+      golden: {
+        analysis: '💡 วิเคราะห์การจัดวางปัจจุบัน: ใช้ "สัดส่วนทองคำ 1 : 1.618 (62% ต่อ 38%)" แบ่งพื้นที่ฝั่งซ้าย 62% ให้ภาพสินค้าเต็มตา และใช้พื้นที่ 38% ฝั่งขวาจัดวางกล่องโปรโมชันตามแนวโค้ง Fibonacci Spiral',
+        svg: `<rect x="18" y="22" width="230" height="226" rx="18" fill="#FF006E" stroke="#FFFFFF" stroke-width="3"/>
+              <text x="133" y="135" text-anchor="middle" fill="#FFFFFF" font-size="54">👟</text>
+              <text x="133" y="215" text-anchor="middle" fill="#FFBE0B" font-weight="bold" font-size="14">GOLDEN RATIO HERO (62%)</text>
+              <rect x="268" y="22" width="134" height="135" rx="14" fill="#FFBE0B" stroke="#110B1E" stroke-width="2"/>
+              <text x="335" y="78" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="15">PRO SERIES</text>
+              <text x="335" y="102" text-anchor="middle" fill="#110B1E" font-size="11">สัดส่วนรอง 38%</text>
+              <rect x="268" y="172" width="134" height="76" rx="14" fill="#00F5D4" stroke="#110B1E" stroke-width="2"/>
+              <text x="335" y="215" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="13">ช้อปเลย ฿2,490</text>`
+      },
+      rhythm: {
+        analysis: '💡 วิเคราะห์การจัดวางปัจจุบัน: ใช้ "จังหวะก้าวหน้าลดหลั่น (Progressive Rhythm)" เรียงการ์ดสินค้า 3 ใบจากขนาดเล็ก → กลาง → ใหญ่ พุ่งเข้าหาสายตาผู้ชม พร้อมปุ่มราคาที่จุดสิ้นสุดสายตา',
+        svg: `<rect x="28" y="85" width="75" height="110" rx="12" fill="#3A86FF" stroke="#FFFFFF" stroke-width="2"/>
+              <text x="65" y="145" text-anchor="middle" fill="#FFFFFF" font-size="24">👟</text>
+              <rect x="122" y="60" width="105" height="145" rx="14" fill="#8338EC" stroke="#FFFFFF" stroke-width="2.5"/>
+              <text x="174" y="135" text-anchor="middle" fill="#FFFFFF" font-size="34">👟</text>
+              <rect x="246" y="30" width="145" height="205" rx="16" fill="#FF006E" stroke="#FFBE0B" stroke-width="4"/>
+              <text x="318" y="120" text-anchor="middle" fill="#FFFFFF" font-size="48">👟</text>
+              <text x="318" y="175" text-anchor="middle" fill="#FFBE0B" font-weight="bold" font-size="14">รุ่นท็อปขายดี #1</text>
+              <rect x="268" y="190" width="100" height="28" rx="14" fill="#00F5D4"/>
+              <text x="318" y="208" text-anchor="middle" fill="#110B1E" font-weight="bold" font-size="11">฿2,490</text>`
+      }
+    };
+
+    function setWorkbenchPreset(key) {
+      ['sym', 'asym', 'golden', 'rhythm'].forEach(k => {
+        const b = document.getElementById('wbBtn_' + k);
+        if (k === key) {
+          b.className = 'w-full p-2.5 rounded-xl border-2 border-[#110B1E] bg-[#FF006E] text-white text-left text-xs font-heading font-bold transition';
+        } else {
+          b.className = 'w-full p-2.5 rounded-xl border-2 border-[#110B1E] bg-white text-[#110B1E] hover:bg-yellow-50 text-left text-xs font-heading font-bold transition';
+        }
+      });
+      document.getElementById('wbContentLayer').innerHTML = workbenchPresets[key].svg;
+      document.getElementById('wbAnalysisBox').innerText = workbenchPresets[key].analysis;
+    }
+
+    function toggleGuide(type) {
+      const layer = document.getElementById('guideLayer_' + type);
+      const btn = document.getElementById('guideBtn_' + type);
+      const isHidden = layer.classList.contains('hidden');
+      if (isHidden) {
+        layer.classList.remove('hidden');
+        btn.classList.remove('bg-white');
+        btn.classList.add('bg-[#FFBE0B]');
+      } else {
+        layer.classList.add('hidden');
+        btn.classList.remove('bg-[#FFBE0B]');
+        btn.classList.add('bg-white');
+      }
+    }
+
+    // =========================================================================
+    // LAB 3: 5-STEP SKETCHING STEPPER
+    // =========================================================================
+    const sketchLabData = {
+      1: {
+        badge: 'ขั้นตอนปฏิบัติที่ 1 จาก 5',
+        title: 'ขั้นที่ 1: กำหนดขอบเขตหน้ากระดาษ (Margin) และลากเส้นแกนศูนย์ถ่วง',
+        desc: 'เริ่มจากวาดกรอบสี่เหลี่ยมตามสัดส่วนงานจริง (เช่น 1:1 หรือ 16:9) เว้นระยะขอบปลอดภัย (Safe Margin) เข้ามาด้านละ 10% แล้วลากเส้นประแนวตั้งผ่ากึ่งกลางเพื่อใช้เป็นจุดอ้างอิงในการชั่งน้ำหนักซ้าย-ขวา',
+        shortcut: '⌨️ คีย์ลัดในโปรแกรมจริง: กด Ctrl + R (Photoshop/Illustrator) เพื่อเปิดไม้บรรทัด (Rulers) แล้วคลิกลากเส้น Guide ออกมาวางตรงกลางภาพ'
+      },
+      2: {
+        badge: 'ขั้นตอนปฏิบัติที่ 2 จาก 5',
+        title: 'ขั้นที่ 2: ตีเส้นกริดสัดส่วน (Rule of Thirds / Golden Ratio Grid)',
+        desc: 'แบ่งพื้นที่ด้วยเส้นประแนวตั้ง 3 ส่วน และแนวนอน 3 ส่วน เพื่อให้มองเห็นจุดตัดทองคำทั้ง 4 จุด ช่วยให้เราไม่ต้องเดาตำแหน่งวางสินค้าแบบสุ่ม',
+        shortcut: '⌨️ เทคนิคปฏิบัติ: ใน Canva หรือ Figma สามารถเปิด Layout Grid แบบ 3 Columns และ 3 Rows เพื่อใช้เป็นโครงร่างได้ทันที'
+      },
+      3: {
+        badge: 'ขั้นตอนปฏิบัติที่ 3 จาก 5',
+        title: 'ขั้นที่ 3: วางกล่องรูปร่างแทนน้ำหนักวัตถุหลัก (Blocking Visual Weight)',
+        desc: 'อย่าเพิ่งเสียเวลาไดคัตรูปจริง! ให้วาดวงกลมหรือสี่เหลี่ยมทึบแทน "สินค้าหลัก (60%)" ลงบนจุดตัดซ้าย และวาดกล่องสี่เหลี่ยมแทน "พาดหัวรอง (30%)" ทางฝั่งขวาเพื่อเช็กความสมดุล',
+        shortcut: '⌨️ เทคนิคปฏิบัติ: ใช้เครื่องมือ Rectangle Tool (กด M) วาดกล่องสีเทาหรือสีสดเพื่อจองพื้นที่ (Placeholder) ก่อนใส่ภาพจริง'
+      },
+      4: {
+        badge: 'ขั้นตอนปฏิบัติที่ 4 จาก 5',
+        title: 'ขั้นที่ 4: จัดจังหวะองค์ประกอบย่อย (Rhythm) และปุ่มกระตุ้นซื้อ (CTA)',
+        desc: 'เติมกล่องไอคอนขนาดเท่ากัน 3 ช่องเรียงกันเป็นจังหวะซ้ำสม่ำเสมอ (Repetition Rhythm) ใต้พาดหัว และวางปุ่มแคปซูลสั่งซื้อที่มุมขวาล่างเพื่อถ่วงดุลกับสินค้าฝั่งซ้ายให้สมดุล 100%',
+        shortcut: '⌨️ คีย์ลัดจัดช่องไฟเท่ากัน: เลือกวัตถุทั้ง 3 ชิ้นแล้วกดปุ่ม Horizontal Distribute Center ในพาเนล Align'
+      },
+      5: {
+        badge: 'ขั้นตอนปฏิบัติที่ 5 จาก 5',
+        title: 'ขั้นที่ 5: ตรวจสอบเส้นนำสายตาและทดสอบหรี่ตา (Squint & Thumbnail Test)',
+        desc: 'ย่อขนาดหน้าจอลงเหลือ 25% หรือลองหรี่ตามองแบบร่าง (Squint Test) เพื่อดูว่าภาพเอียงไปด้านใดด้านหนึ่งหรือไม่ และสายตาวิ่งจากสินค้า → พาดหัว → ปุ่มสั่งซื้อ อย่างลื่นไหลหรือยัง',
+        shortcut: '⌨️ คีย์ลัดตรวจสอบ: กด Ctrl + - (Zoom Out) ย่อภาพให้เล็กเหมือนมองบนหน้าจอมือถือจริงก่อนเริ่มลงรายละเอียดกราฟิก'
+      }
+    };
+
+    function setSketchLabStep(step) {
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.getElementById('skLabBtn' + i);
+        const layer = document.getElementById('skLayer' + i);
+        if (i === step) {
+          btn.className = 'py-3 px-2 text-xs font-heading font-bold bg-[#FF006E] text-white border-r border-[#110B1E] transition';
+        } else {
+          btn.className = 'py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-[#110B1E] transition';
+        }
+        if (i <= step) {
+          layer.classList.remove('hidden');
+        } else {
+          layer.classList.add('hidden');
+        }
+      }
+      const d = sketchLabData[step];
+      document.getElementById('skLabBadge').innerText = d.badge;
+      document.getElementById('skLabTitle').innerText = d.title;
+      document.getElementById('skLabDesc').innerText = d.desc;
+      document.getElementById('skLabShortcut').innerHTML = d.shortcut;
+    }
+
+    // Lab Mini-Quiz
+    let quizCorrect = { 1: false, 2: false };
+    function checkLabQuiz(qNum, isRight, btn) {
+      if (isRight) {
+        quizCorrect[qNum] = true;
+        btn.className = 'w-full p-2 rounded-lg bg-[#00F5D4] text-[#110B1E] font-bold text-left transition';
+        showToast('🎉 ถูกต้อง! คุณเข้าใจหลักการชั่งน้ำหนักและจังหวะสายตาอย่างแม่นยำ');
+      } else {
+        btn.className = 'w-full p-2 rounded-lg bg-[#FF006E] text-white font-bold text-left transition';
+        showToast('💡 ลองวิเคราะห์ใหม่อีกครั้งตามกฎความสมดุลและจังหวะ');
+      }
+      const total = (quizCorrect[1] ? 1 : 0) + (quizCorrect[2] ? 1 : 0);
+      document.getElementById('quizScoreBadge').innerText = `ตอบถูก: ${total} / 2 ข้อ`;
+    }
+
+    // Worksheet 2 Checklist
+    function updateWs2Checklist() {
+      const checks = document.querySelectorAll('.ws2-check');
+      let done = 0;
+      checks.forEach(c => { if (c.checked) done++; });
+      document.getElementById('ws2Progress').innerText = `เช็กลิสต์ส่งงาน: ${done} / ${checks.length} ภารกิจ`;
+      if (done === checks.length) {
+        showToast('🏆 ยอดเยี่ยม! คุณตรวจเช็กความละเอียดรอบคอบครบทุกข้อ พร้อมส่งใบงานที่ 2 แล้ว');
+      }
+    }
+
+    // FAQ Accordion
+    function toggleFaq(num) {
+      const ans = document.getElementById('faqAns' + num);
+      const icon = document.getElementById('faqIcon' + num);
+      if (ans.classList.contains('hidden')) {
+        ans.classList.remove('hidden');
+        icon.innerText = '−';
+      } else {
+        ans.classList.add('hidden');
+        icon.innerText = '+';
+      }
+    }
+
+    // Chip Filter Smooth Scroll
+    function filterChip(targetId, btn) {
+      document.querySelectorAll('.chip-btn').forEach(b => {
+        b.className = 'chip-btn h-8 px-3.5 rounded-full text-xs font-heading font-bold bg-[#FFFDF7] text-[#110B1E] border-2 border-[#110B1E] hover:bg-[#FFBE0B] transition shrink-0';
+      });
+      btn.className = 'chip-btn active h-8 px-4 rounded-full text-xs font-heading font-bold bg-[#FF006E] text-white border-2 border-[#110B1E] shadow-[2px_2px_0px_#110B1E] transition shrink-0';
+
+      if (targetId === 'all') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const el = document.getElementById(targetId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Like & Share
+    let liked = false;
+    function toggleLike() {
+      const countEl = document.getElementById('likeCount');
+      let current = parseInt(countEl.innerText, 10);
+      if (!liked) {
+        countEl.innerText = current + 1;
+        liked = true;
+        showToast('💖 ขอบคุณที่กดถูกใจบทที่ 2!');
+      } else {
+        countEl.innerText = current - 1;
+        liked = false;
+      }
+    }
+
+    function shareLesson() {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(window.location.href);
+        }
+      } catch (e) {}
+      showToast('🔗 คัดลอกลิงก์บทเรียนบทที่ 2 เรียบร้อยแล้ว!');
+    }
+
+    // Search
+    function runLessonSearch() {
+      const input = document.getElementById('searchInput');
+      const query = input.value.trim();
+      if (!query) {
+        showToast('กรุณาพิมพ์คำค้นหา เช่น สมมาตร, อสมมาตร, สัดส่วนทองคำ, จังหวะ');
+        return;
+      }
+      if (window.find && window.find(query)) {
+        showToast('🔍 พบคำว่า "' + query + '" ในเนื้อหาบทที่ 2');
+      } else {
+        showToast('ค้นหา "' + query + '" — ลองเลือกหมวดหมู่จากแถบชิปด้านบน');
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') runLessonSearch();
+    });
+
+    // Comments
+    function postComment() {
+      const input = document.getElementById('commentInput');
+      const val = input.value.trim();
+      if (!val) {
+        showToast('กรุณาพิมพ์ข้อความก่อนกดส่งบันทึก');
+        return;
+      }
+      const list = document.getElementById('commentList');
+      const newComment = document.createElement('div');
+      newComment.className = 'p-4 rounded-2xl border-2 border-[#110B1E] bg-[#FFF0F6] flex items-start gap-3.5';
+      newComment.innerHTML = `
+        <div class="w-10 h-10 rounded-xl bg-[#FF006E] text-white border-2 border-[#110B1E] flex items-center justify-center font-heading font-bold text-xs shrink-0">YOU</div>
+        <div class="space-y-1 flex-1">
+          <div class="flex items-center justify-between">
+            <span class="font-heading font-bold text-xs sm:text-sm text-[#110B1E]">นักศึกษา (คุณ)</span>
+            <span class="text-[11px] text-[#FF006E] font-bold">เมื่อสักครู่</span>
+          </div>
+          <p class="text-xs sm:text-sm text-[#110B1E] leading-relaxed">${escapeHtml(val)}</p>
+        </div>
+      `;
+      list.prepend(newComment);
+      input.value = '';
+      showToast('💬 ส่งบันทึกผลการทดลองเข้าสู่กระดานเรียบร้อยแล้ว!');
+    }
+
+    function clearComment() {
+      document.getElementById('commentInput').value = '';
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // =========================================================================
+    // 6-FACTOR VISUAL WEIGHT INTERACTIVE EXPLORER (#theory-weight)
+    // =========================================================================
+    let currentWfNum = 1;
+    let currentWfMode = 'clash'; // 'clash' or 'balanced'
+
+    const weightFactorData = {
+      1: {
+        badge: 'เจาะลึกปัจจัยที่ 1 / 6 • ขนาด (Size & Scale)',
+        rule: 'กฎ: วัตถุใหญ่ 1 ชิ้น = วัตถุเล็กหลายชิ้นรวมกัน',
+        title: 'ปัจจัยที่ 1: ขนาดและสัดส่วน (Size & Scale)',
+        theory: 'สมองมนุษย์ตีความ "ขนาดพื้นที่ (Area)" เป็นมวลน้ำหนักโดยตรง เมื่อวางวงกลมขนาดใหญ่ไว้ฝั่งซ้ายและวงกลมเล็กไว้ฝั่งขวา คานสายตาจะเอียงเทไปทางฝั่งซ้ายทันทีเพราะพื้นที่สีชมพูฝั่งซ้ายกินพื้นที่มากกว่าถึง 4 เท่า',
+        solution: 'วิธีแก้ให้สมดุลแบบอสมมาตร: ไม่จำเป็นต้องขยายวัตถุฝั่งขวาให้ใหญ่เท่าฝั่งซ้าย (เพราะจะกลายเป็นสมมาตรที่น่าเบื่อ) แต่ให้เพิ่ม "จำนวนวัตถุย่อยฝั่งขวาเป็น 3–4 ชิ้น" เช่น วางพาดหัว + ไอคอน 2 ชิ้น + ปุ่มกด เพื่อรวมน้ำหนักสู้กับภาพสินค้าชิ้นใหญ่ฝั่งซ้าย',
+        clashLeft: 82,
+        clashRight: 18,
+        clashSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(-9, 190, 145)">
+            <rect x="30" y="142" width="320" height="7" rx="3.5" fill="#FFFFFF"/>
+            <circle cx="95" cy="84" r="52" fill="#FF006E" stroke="#FFBE0B" stroke-width="3"/>
+            <text x="95" y="82" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="bold">สินค้าขนาดใหญ่</text>
+            <text x="95" y="99" text-anchor="middle" fill="#FFBE0B" font-size="11" font-weight="bold">น้ำหนัก: 82 pt</text>
+            <circle cx="285" cy="118" r="20" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+            <text x="285" y="85" text-anchor="middle" fill="#00F5D4" font-size="11" font-weight="bold">วัตถุเล็ก (18 pt)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`,
+        balancedSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#00F5D4" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(0, 190, 145)">
+            <rect x="30" y="142" width="320" height="7" rx="3.5" fill="#00F5D4"/>
+            <circle cx="95" cy="84" r="52" fill="#FF006E" stroke="#FFBE0B" stroke-width="3"/>
+            <text x="95" y="82" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="bold">สินค้าหลัก 1 ชิ้น</text>
+            <text x="95" y="98" text-anchor="middle" fill="#FFBE0B" font-size="11" font-weight="bold">(50% Weight)</text>
+            <!-- 4 smaller items on right balancing the 1 large item -->
+            <rect x="230" y="42" width="105" height="26" rx="6" fill="#FFBE0B"/>
+            <text x="282" y="59" text-anchor="middle" fill="#110B1E" font-size="10" font-weight="bold">พาดหัวโปรโมชัน</text>
+            <rect x="230" y="76" width="48" height="26" rx="5" fill="#00F5D4"/>
+            <rect x="287" y="76" width="48" height="26" rx="5" fill="#00F5D4"/>
+            <rect x="230" y="110" width="105" height="24" rx="12" fill="#8338EC" stroke="#FFFFFF" stroke-width="1.5"/>
+            <text x="282" y="126" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="bold">ย่อย 4 ชิ้นรวมกัน (50%)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`
+      },
+      2: {
+        badge: 'เจาะลึกปัจจัยที่ 2 / 6 • สีและน้ำหนักสี (Color & Value)',
+        rule: 'กฎ: สีสดร้อน/สีเข้มมืด หนักกว่า สีอ่อนพาสเทล',
+        title: 'ปัจจัยที่ 2: สี ความสด และน้ำหนักอ่อน-แก่ (Color & Value)',
+        theory: 'สีแต่ละสีมีแรงดึงดูดสายตาไม่เท่ากัน! สีวรรณะร้อนที่มีความสดจัด (เช่น แดงสด ชมพูบานเย็น เหลืองสด) และสีที่มีน้ำหนักเข้มทึบ จะพุ่งเข้าหาสายตาผู้ชมก่อนเสมอ ทำให้กล่องขนาดเท่ากัน 2 กล่องดูมีน้ำหนักต่างกันชัดเจน',
+        solution: 'วิธีแก้ให้สมดุลแบบอสมมาตร: หากฝั่งหนึ่งเป็นพื้นที่สีพาสเทลหรือสีเทาอ่อนขนาดใหญ่ เราสามารถถ่วงดุลอีกฝั่งด้วย "ปุ่ม Call-to-Action หรือป้ายราคาสีชมพูสด/ส้มสดขนาดกะทัดรัด" เพียงชิ้นเดียว ความจัดจ้านของสีจะชดเชยขนาดที่เล็กกว่าได้ทันที',
+        clashLeft: 78,
+        clashRight: 22,
+        clashSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(-8, 190, 145)">
+            <rect x="30" y="142" width="320" height="7" rx="3.5" fill="#FFFFFF"/>
+            <rect x="55" y="52" width="82" height="82" rx="14" fill="#FF006E" stroke="#FFBE0B" stroke-width="3"/>
+            <text x="96" y="90" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="bold">สีสดจัดจ้าน</text>
+            <text x="96" y="108" text-anchor="middle" fill="#FFBE0B" font-size="11" font-weight="bold">(หนัก 78 pt)</text>
+            <rect x="243" y="52" width="82" height="82" rx="14" fill="#CBD5E1" fill-opacity="0.35" stroke="#94A3B8" stroke-width="2" stroke-dasharray="4 3"/>
+            <text x="284" y="90" text-anchor="middle" fill="#E2E8F0" font-size="12" font-weight="bold">สีพาสเทลจาง</text>
+            <text x="284" y="108" text-anchor="middle" fill="#00F5D4" font-size="11">(เบา 22 pt)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`,
+        balancedSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#00F5D4" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(0, 190, 145)">
+            <rect x="30" y="142" width="320" height="7" rx="3.5" fill="#00F5D4"/>
+            <!-- Large soft pastel card on left balanced by small vivid hot-pink badge on right -->
+            <rect x="42" y="34" width="125" height="100" rx="14" fill="#E2E8F0" fill-opacity="0.85" stroke="#FFFFFF" stroke-width="2"/>
+            <text x="104" y="80" text-anchor="middle" fill="#110B1E" font-size="12" font-weight="bold">การ์ดสีอ่อนขนาดใหญ่</text>
+            <text x="104" y="98" text-anchor="middle" fill="#475569" font-size="10">(ใหญ่แต่สีซอฟต์ = 50%)</text>
+            <circle cx="285" cy="92" r="42" fill="#FF006E" stroke="#FFBE0B" stroke-width="4"/>
+            <text x="285" y="88" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">สีสดแสบตา!</text>
+            <text x="285" y="104" text-anchor="middle" fill="#FFBE0B" font-size="10" font-weight="bold">(เล็กแต่สีแรง = 50%)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`
+      },
+      3: {
+        badge: 'เจาะลึกปัจจัยที่ 3 / 6 • พื้นผิวและดีเทล (Texture & Complexity)',
+        rule: 'กฎ: ลวดลายแน่น/แสงเงา 3D หนักกว่า พื้นสีเรียบ (Flat)',
+        title: 'ปัจจัยที่ 3: พื้นผิวและความซับซ้อนของรายละเอียด (Texture)',
+        theory: 'พื้นที่ที่มีรายละเอียดซับซ้อน เช่น ภาพถ่ายอาหารที่มีพื้นผิวฉ่ำวาว ลวดลายกราฟิกถี่ๆ หรือรูปทรง 3 มิติที่มีแสงเงาจัด จะบังคับให้สมองใช้เวลาประมวลผลนานกว่า จึงเกิด "แรงดึงดูดสายตาสูง (ดูหนัก)" กว่ากล่องสีพื้นเรียบๆ',
+        solution: 'วิธีแก้ให้สมดุลแบบอสมมาตร: เมื่อวางภาพถ่ายสินค้าที่มีรายละเอียดพื้นผิวสูงไว้ฝั่งซ้าย ต้องถ่วงดุลฝั่งขวาด้วยพื้นที่สีพื้นเรียบ (Flat Color Block) ที่มีขนาดพื้นที่กว้างกว่าและจัดวางตัวอักษรที่อ่านง่ายสะอาดตา',
+        clashLeft: 80,
+        clashRight: 20,
+        clashSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <defs>
+            <pattern id="wfDotPat" width="10" height="10" patternUnits="userSpaceOnUse">
+              <rect width="10" height="10" fill="#FB5607"/>
+              <circle cx="5" cy="5" r="3" fill="#FFBE0B"/>
+            </pattern>
+          </defs>
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(-8, 190, 145)">
+            <rect x="30" y="142" width="320" height="7" rx="3.5" fill="#FFFFFF"/>
+            <rect x="52" y="46" width="88" height="88" rx="14" fill="url(#wfDotPat)" stroke="#FFBE0B" stroke-width="3"/>
+            <rect x="64" y="68" width="64" height="42" rx="6" fill="#110B1E" fill-opacity="0.8"/>
+            <text x="96" y="88" text-anchor="middle" fill="#FFBE0B" font-size="10" font-weight="bold">พื้นผิวซับซ้อน</text>
+            <text x="96" y="102" text-anchor="middle" fill="#FFFFFF" font-size="10">(หนัก 80 pt)</text>
+            <rect x="242" y="46" width="88" height="88" rx="14" fill="#3A86FF" fill-opacity="0.45" stroke="#FFFFFF" stroke-width="1.5"/>
+            <text x="286" y="92" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">สีเรียบแบน (20 pt)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`,
+        balancedSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <defs>
+            <pattern id="wfDotPat2" width="10" height="10" patternUnits="userSpaceOnUse">
+              <rect width="10" height="10" fill="#FB5607"/>
+              <circle cx="5" cy="5" r="3" fill="#FFBE0B"/>
+            </pattern>
+          </defs>
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#00F5D4" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(0, 190, 145)">
+            <rect x="30" y="142" width="320" height="7" rx="3.5" fill="#00F5D4"/>
+            <circle cx="95" cy="88" r="46" fill="url(#wfDotPat2)" stroke="#FFBE0B" stroke-width="3"/>
+            <rect x="55" y="74" width="80" height="28" rx="6" fill="#110B1E" fill-opacity="0.85"/>
+            <text x="95" y="92" text-anchor="middle" fill="#FFBE0B" font-size="10" font-weight="bold">ดีเทลแน่น (50%)</text>
+            <rect x="212" y="36" width="132" height="98" rx="14" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+            <text x="278" y="78" text-anchor="middle" fill="#110B1E" font-size="12" font-weight="bold">กล่องสีเรียบขนาดกว้าง</text>
+            <text x="278" y="98" text-anchor="middle" fill="#110B1E" font-size="10">ใช้ขนาดที่กว้างกว่าชดเชยดีเทล (50%)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`
+      },
+      4: {
+        badge: 'เจาะลึกปัจจัยที่ 4 / 6 • ระยะห่างจากจุดกึ่งกลาง (Leverage)',
+        rule: 'กฎคานงัด: ยิ่งวางไกลจุดกึ่งกลาง (ชิดขอบ) ยิ่งหนักขึ้นทวีคูณ',
+        title: 'ปัจจัยที่ 4: ตำแหน่งและระยะห่างจากแกนกลาง (Leverage)',
+        theory: 'ให้นึกถึงการเล่นไม้กระดกในสนามเด็กเล่น! หากคนตัวเล็กขยับออกไปนั่งที่ปลายสุดของคานกระดก เขาจะสามารถงัดคนตัวใหญ่ที่นั่งชิดจุดหมุนตรงกลางได้ ในงานกราฟิก วัตถุที่วาง "ชิดขอบภาพ" จะดึงสายตาแรงกว่าวัตถุที่อยู่ใกล้เส้นแกนกลาง',
+        solution: 'วิธีแก้ให้สมดุลแบบอสมมาตร: วางภาพสินค้าขนาดใหญ่ไว้ "ค่อนมาใกล้เส้นแกนกลาง" แล้ววางป้ายโลโก้หรือปุ่มราคาขนาดเล็กไว้ "ห่างออกไปทางขอบอีกฝั่ง" ระยะทางที่ไกลกว่าจะคูณน้ำหนักให้สมดุลกันพอดี!',
+        clashLeft: 25,
+        clashRight: 75,
+        clashSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(8, 190, 145)">
+            <rect x="20" y="142" width="340" height="7" rx="3.5" fill="#FFFFFF"/>
+            <!-- Left: Near center -->
+            <circle cx="150" cy="108" r="28" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+            <text x="135" y="65" text-anchor="middle" fill="#00F5D4" font-size="10" font-weight="bold">ใกล้แกนกลาง (25 pt)</text>
+            <!-- Right: Same size but pushed to far edge -->
+            <circle cx="332" cy="108" r="28" fill="#FF006E" stroke="#FFBE0B" stroke-width="3"/>
+            <line x1="190" y1="128" x2="332" y2="128" stroke="#FFBE0B" stroke-width="2" stroke-dasharray="4 3"/>
+            <text x="285" y="65" text-anchor="middle" fill="#FFBE0B" font-size="11" font-weight="bold">ไกลแกน/ชิดขอบ (หนัก 75 pt!)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`,
+        balancedSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#00F5D4" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(0, 190, 145)">
+            <rect x="20" y="142" width="340" height="7" rx="3.5" fill="#00F5D4"/>
+            <!-- Large object close to fulcrum balanced by smaller object far on right -->
+            <circle cx="132" cy="88" r="48" fill="#FF006E" stroke="#FFFFFF" stroke-width="2.5"/>
+            <text x="132" y="86" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">สินค้าใหญ่ใกล้แกน</text>
+            <text x="132" y="102" text-anchor="middle" fill="#FFBE0B" font-size="10">(50% Torque)</text>
+            <circle cx="328" cy="112" r="24" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2.5"/>
+            <line x1="190" y1="130" x2="328" y2="130" stroke="#FFBE0B" stroke-width="2" stroke-dasharray="4 3"/>
+            <text x="285" y="75" text-anchor="middle" fill="#00F5D4" font-size="11" font-weight="bold">ป้ายเล็กแต่ถ่างออกสุดขอบ (50%)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`
+      },
+      5: {
+        badge: 'เจาะลึกปัจจัยที่ 5 / 6 • รูปร่างและทิศทาง (Shape & Angle)',
+        rule: 'กฎ: รูปร่างแฉก/อิสระ หรือวางเอียงทแยง หนักกว่ารูปร่างตั้งตรง',
+        title: 'ปัจจัยที่ 5: รูปร่างและทิศทางการวาง (Shape & Orientation)',
+        theory: 'สายตามนุษย์คุ้นชินกับเส้นแนวตั้งและแนวนอนของกรอบหน้าจอ เมื่อใดที่มีวัตถุ "รูปร่างแฉกแปลกตา" หรือ "วางเอียงทำมุมทแยง (Diagonal Orientation)" มันจะขัดจังหวะความคุ้นชินและดึงสายตาพุ่งเข้าไปหาอย่างรุนแรง',
+        solution: 'วิธีแก้ให้สมดุลแบบอสมมาตร: หากฝั่งซ้ายเป็นกรอบข้อความสี่เหลี่ยมขนาดใหญ่ที่ดูนิ่ง เราสามารถวางภาพสินค้าเอียงเฉียง 15–30 องศา หรือใส่ป้าย Starburst ลดราคาฝั่งขวาเพื่อสร้างแรงดึงดูดถ่วงดุลกัน',
+        clashLeft: 76,
+        clashRight: 24,
+        clashSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(-7, 190, 145)">
+            <rect x="30" y="142" width="320" height="7" rx="3.5" fill="#FFFFFF"/>
+            <polygon points="95,30 110,64 146,64 117,86 128,120 95,98 62,120 73,86 44,64 80,64" fill="#FFBE0B" stroke="#FF006E" stroke-width="3" transform="rotate(-18, 95, 80)"/>
+            <text x="95" y="25" text-anchor="middle" fill="#FFBE0B" font-size="11" font-weight="bold">ทรงแฉกเอียงเฉียง (76 pt)</text>
+            <rect x="255" y="68" width="64" height="64" rx="6" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+            <text x="287" y="54" text-anchor="middle" fill="#00F5D4" font-size="11">สี่เหลี่ยมวางตรง (24 pt)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`,
+        balancedSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="165" stroke="#00F5D4" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="5 4"/>
+          <g transform="rotate(0, 190, 145)">
+            <rect x="30" y="142" width="320" height="7" rx="3.5" fill="#00F5D4"/>
+            <rect x="48" y="42" width="115" height="90" rx="10" fill="#3A86FF" stroke="#FFFFFF" stroke-width="2"/>
+            <text x="105" y="84" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">กรอบสี่เหลี่ยมตั้งตรง</text>
+            <text x="105" y="102" text-anchor="middle" fill="#E0F2FE" font-size="10">(ขนาดใหญ่แต่นิ่ง = 50%)</text>
+            <polygon points="285,38 298,68 330,68 304,88 314,118 285,98 256,118 266,88 240,68 272,68" fill="#FFBE0B" stroke="#FF006E" stroke-width="3" transform="rotate(16, 285, 82)"/>
+            <text x="285" y="30" text-anchor="middle" fill="#FFBE0B" font-size="11" font-weight="bold">ป้ายแฉกเอียงดึงสายตา (50%)</text>
+          </g>
+          <polygon points="190,145 208,180 172,180" fill="#00F5D4" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>`
+      },
+      6: {
+        badge: 'เจาะลึกปัจจัยที่ 6 / 6 • ตำแหน่งบน-ล่าง & พื้นที่ว่าง (Gravity & Space)',
+        rule: 'กฎ: วัตถุด้านบนดูหนักกว่าด้านล่าง & วัตถุล้อมด้วยที่ว่างจะเด่นขึ้น',
+        title: 'ปัจจัยที่ 6: แรงโน้มถ่วงแนวดิ่ง (บน-ล่าง) และพื้นที่ว่างรอบวัตถุ',
+        theory: 'มนุษย์คุ้นเคยกับแรงโน้มถ่วงโลก วัตถุก้อนใหญ่ที่ลอยอยู่ "ครึ่งบนของภาพ (Top-Heavy)" จะให้ความรู้สึกหนักอึ้งเหมือนกำลังจะหล่นทับผู้ชม นอกจากนี้ วัตถุที่วางโดดเดี่ยวท่ามกลาง "พื้นที่ว่าง (White Space Isolation)" จะมีแรงดึงดูดสายตาสูงกว่าวัตถุที่เบียดเสียดกัน',
+        solution: 'วิธีแก้ให้สมดุลแบบอสมมาตร: จัดโครงสร้างภาพให้มี "ฐานด้านล่างที่มั่นคง" (เช่น แถบสีเข้มหรือปุ่มขนาดใหญ่ด้านล่าง) และใช้พื้นที่ว่างล้อมรอบจุดโฟกัสฝั่งที่ต้องการเพิ่มน้ำหนักสายตา',
+        clashLeft: 80,
+        clashRight: 20,
+        clashSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="175" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="5 4"/>
+          <line x1="20" y1="95" x2="360" y2="95" stroke="#FFBE0B" stroke-opacity="0.4" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <!-- Left: Heavy top block -->
+          <rect x="42" y="18" width="115" height="62" rx="12" fill="#FF006E" stroke="#FFBE0B" stroke-width="3"/>
+          <text x="100" y="48" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">ก้อนทึบลอยด้านบน!</text>
+          <text x="100" y="65" text-anchor="middle" fill="#FFBE0B" font-size="10">(ภาพดูหัวทิ่ม / หนักบน 80%)</text>
+          <path d="M100,88 L100,155" stroke="#FF006E" stroke-width="3" stroke-dasharray="4 3"/>
+          <!-- Right: Tiny bottom element -->
+          <rect x="255" y="135" width="65" height="24" rx="6" fill="#3A86FF" opacity="0.6"/>
+          <text x="287" y="125" text-anchor="middle" fill="#94A3B8" font-size="10">ฐานล่างเล็กเกินไป</text>
+        </svg>`,
+        balancedSvg: `<svg class="w-full h-full" viewBox="0 0 380 190">
+          <line x1="190" y1="10" x2="190" y2="175" stroke="#00F5D4" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="5 4"/>
+          <line x1="20" y1="95" x2="360" y2="95" stroke="#00F5D4" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <!-- Top element balanced by strong bottom base + isolated focal badge on right -->
+          <rect x="45" y="28" width="110" height="44" rx="10" fill="#FFBE0B" stroke="#FFFFFF" stroke-width="2"/>
+          <text x="100" y="54" text-anchor="middle" fill="#110B1E" font-size="11" font-weight="bold">พาดหัวด้านบนขนาดพอดี</text>
+          <rect x="45" y="108" width="120" height="54" rx="12" fill="#FF006E" stroke="#FFFFFF" stroke-width="2.5"/>
+          <text x="105" y="138" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="bold">ฐานล่างมั่นคงแข็งแรง</text>
+          <!-- Right side isolated circle with generous whitespace -->
+          <circle cx="285" cy="95" r="36" fill="#00F5D4" stroke="#FFFFFF" stroke-width="3"/>
+          <circle cx="285" cy="95" r="52" fill="none" stroke="#00F5D4" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text x="285" y="92" text-anchor="middle" fill="#110B1E" font-size="10" font-weight="bold">เด่นด้วยที่ว่าง</text>
+          <text x="285" y="106" text-anchor="middle" fill="#110B1E" font-size="9">(Isolation 50%)</text>
+        </svg>`
+      }
+    };
+
+    function renderWeightFactorExplorer() {
+      const d = weightFactorData[currentWfNum];
+      for (let i = 1; i <= 6; i++) {
+        const tab = document.getElementById('wfTab' + i);
+        if (!tab) continue;
+        if (i === currentWfNum) {
+          tab.className = 'py-3 px-2 text-xs font-heading font-bold bg-[#FF006E] text-white border-r border-b border-[#110B1E] transition';
+        } else {
+          tab.className = 'py-3 px-2 text-xs font-heading font-bold text-[#110B1E] hover:bg-yellow-100 border-r border-b border-[#110B1E] transition';
+        }
+      }
+
+      document.getElementById('wfBadge').innerText = d.badge;
+      document.getElementById('wfRuleTag').innerText = d.rule;
+      document.getElementById('wfTitle').innerText = d.title;
+      document.getElementById('wfTheoryDesc').innerText = d.theory;
+      document.getElementById('wfSolutionDesc').innerText = d.solution;
+
+      const statusEl = document.getElementById('wfModeStatus');
+      const btnClash = document.getElementById('wfModeBtnClash');
+      const btnBal = document.getElementById('wfModeBtnBalanced');
+      const stage = document.getElementById('wfSvgStage');
+      const leftLabel = document.getElementById('wfLeftMeterLabel');
+      const rightLabel = document.getElementById('wfRightMeterLabel');
+      const leftBar = document.getElementById('wfLeftBar');
+      const rightBar = document.getElementById('wfRightBar');
+
+      if (currentWfMode === 'clash') {
+        statusEl.className = 'px-3 py-1 rounded-full bg-[#FF006E] text-white text-xs font-heading font-bold';
+        statusEl.innerText = '⚠️ โหมดที่ 1: เปรียบเทียบตัวต่อตัว (น้ำหนักไม่เท่ากัน)';
+        btnClash.className = 'pop-btn px-3 py-1 rounded-lg bg-[#FFBE0B] text-[#110B1E] text-xs font-heading font-bold';
+        btnBal.className = 'pop-btn px-3 py-1 rounded-lg bg-white text-[#110B1E] text-xs font-heading font-bold';
+        stage.innerHTML = d.clashSvg;
+        leftLabel.innerText = `น้ำหนักฝั่งซ้าย: ${d.clashLeft}%`;
+        rightLabel.innerText = `น้ำหนักฝั่งขวา: ${d.clashRight}%`;
+        leftBar.style.width = d.clashLeft + '%';
+        rightBar.style.width = d.clashRight + '%';
+      } else {
+        statusEl.className = 'px-3 py-1 rounded-full bg-[#00F5D4] text-[#110B1E] text-xs font-heading font-bold';
+        statusEl.innerText = '✅ โหมดที่ 2: จัดสมดุลอสมมาตรสำเร็จ (50% : 50%)';
+        btnClash.className = 'pop-btn px-3 py-1 rounded-lg bg-white text-[#110B1E] text-xs font-heading font-bold';
+        btnBal.className = 'pop-btn px-3 py-1 rounded-lg bg-[#00F5D4] text-[#110B1E] text-xs font-heading font-bold';
+        stage.innerHTML = d.balancedSvg;
+        leftLabel.innerText = 'น้ำหนักฝั่งซ้าย: 50% (สมดุล!)';
+        rightLabel.innerText = 'น้ำหนักฝั่งขวา: 50% (สมดุล!)';
+        leftBar.style.width = '50%';
+        rightBar.style.width = '50%';
+      }
+    }
+
+    function selectWeightFactor(num) {
+      currentWfNum = num;
+      renderWeightFactorExplorer();
+      const stage = document.getElementById('wfSvgStage');
+      if (stage) {
+        stage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function setWeightFactorMode(mode) {
+      currentWfMode = mode;
+      renderWeightFactorExplorer();
+      showToast(mode === 'balanced' ? '✨ แสดงวิธีแก้สมดุลแบบอสมมาตรของปัจจัยที่ ' + currentWfNum : '⚖️ แสดงการเปรียบเทียบน้ำหนักสายตาตัวต่อตัว');
+    }
+
+    function toggleWeightFactorMode() {
+      setWeightFactorMode(currentWfMode === 'clash' ? 'balanced' : 'clash');
+    }
+
+
+    // Initialize Lab 1 on load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateScaleLab();
+    });
+  </script>
+
+  <!-- Unified Navigation & Progress State Sync -->
+  <script>
+    function toggleChapterMenu() {
+      const menu = document.getElementById('chapterMenuDropdown');
+      if (menu) menu.classList.toggle('hidden');
+    }
+    document.addEventListener('click', function(e) {
+      const menu = document.getElementById('chapterMenuDropdown');
+      const btn = document.getElementById('chapterMenuBtn');
+      if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    (function recordCourseProgress() {
+      try {
+        const key = 'bpg_course_31910_0002_state';
+        const currentFile = '2_31910_0002.html';
+        const raw = localStorage.getItem(key);
+        const data = raw ? JSON.parse(raw) : { lastChapter: currentFile, visitedChapters: [] };
+        data.lastChapter = currentFile;
+        if (!data.visitedChapters) data.visitedChapters = [];
+        if (!data.visitedChapters.includes(currentFile)) {
+          data.visitedChapters.push(currentFile);
+        }
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (e) {
+        console.warn('Progress sync warning', e);
+      }
+    })();
+  </script>
+</body>
+</html>
