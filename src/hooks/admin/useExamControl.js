@@ -121,7 +121,15 @@ export function useExamControl() {
     try {
       await supabase
         .from('exam_participants')
-        .update({ allow_rejoin: true, rejoin_mode: 'continue', status: 'waiting' })
+        .update({
+          allow_rejoin: true,
+          rejoin_mode: 'continue',
+          status: 'waiting',
+          started_at: null,
+          current_answers: {},
+          strike_count: 0,
+          warnings_count: 0
+        })
         .eq('session_id', sessionId);
     } catch (e) {
       console.error('Error allowing rejoin:', e);

@@ -16,6 +16,10 @@ ALTER TABLE IF EXISTS exam_sessions
   ADD COLUMN IF NOT EXISTS solutions_released BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS exam_mode TEXT DEFAULT 'official'; -- 'official' or 'practice'
 
+-- 2.1 Ensure required columns in questions
+ALTER TABLE IF EXISTS questions
+  ADD COLUMN IF NOT EXISTS image_url TEXT;
+
 -- 3. Create or replace secure server-side grading RPC: submit_exam_result
 CREATE OR REPLACE FUNCTION submit_exam_result(
   p_session_id UUID,

@@ -228,11 +228,14 @@ export default function ExamRoom() {
         setAttemptNumber(currentAttempt);
         setIsRetakeMode(currentAttempt > 1 || Boolean(pData.allow_rejoin));
 
-        const startTimestamp = pData.started_at || new Date().toISOString();
+        // In onsite mode, timer follows session start time; in online mode, follows student start time
+        const startTimestamp = (sData.exam_mode === 'onsite' && sData.started_at)
+          ? sData.started_at
+          : (pData.started_at || new Date().toISOString());
         setExamStartedAt(startTimestamp);
 
-        // Record started_at if null
-        if (!pData.started_at) {
+        // Record started_at if null or if onsite session was started newer
+        if (!pData.started_at || (sData.exam_mode === 'onsite' && sData.started_at && (!pData.started_at || new Date(pData.started_at) < new Date(sData.started_at)))) {
           await updateParticipantStatus(sessionId, studentSession.student_id, {
             status: 'testing',
             started_at: startTimestamp

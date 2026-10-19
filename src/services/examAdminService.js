@@ -73,6 +73,11 @@ export const examAdminService = {
   async updateParticipantRejoin(participantId, allowRejoin, status, rejoinMode) {
     const updates = { allow_rejoin: allowRejoin, status: status };
     if (rejoinMode) updates.rejoin_mode = rejoinMode;
+    if (allowRejoin) {
+      updates.started_at = null;
+      updates.strike_count = 0;
+      updates.warnings_count = 0;
+    }
     const { error } = await supabase
       .from('exam_participants')
       .update(updates)
@@ -81,9 +86,15 @@ export const examAdminService = {
   },
   
   async updateParticipantRejoinByStudent(sessionId, studentId, allowRejoin, status) {
+    const updates = { allow_rejoin: allowRejoin, status: status, retake_requested: false };
+    if (allowRejoin) {
+      updates.started_at = null;
+      updates.strike_count = 0;
+      updates.warnings_count = 0;
+    }
     const { error } = await supabase
       .from('exam_participants')
-      .update({ allow_rejoin: allowRejoin, status: status, retake_requested: false })
+      .update(updates)
       .eq('session_id', sessionId)
       .eq('student_id', studentId);
     if (error) throw error;

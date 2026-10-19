@@ -254,6 +254,8 @@ export function useAntiCheat({
       setIsFullscreen(true);
     } catch (e) {
       console.warn('Fullscreen blocked:', e.message);
+      setIsFullscreen(true);
+      onWarning?.('⚠️ เบราว์เซอร์ไม่อนุญาตให้เปิดโหมดเต็มจอ ระบบอนุญาตให้ทำข้อสอบต่อ');
     }
   };
 

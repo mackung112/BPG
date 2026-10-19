@@ -45,9 +45,10 @@ export const updateParticipantById = async (participantId, payload) => {
  * Explicitly excludes correct_answer_index and solution explanations.
  */
 export const getExamQuestions = async (sessionId) => {
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('exam_session_questions')
     .select(`
+      id,
       points,
       order_index,
       questions (
@@ -59,6 +60,28 @@ export const getExamQuestions = async (sessionId) => {
     `)
     .eq('session_id', sessionId)
     .order('order_index', { ascending: true });
+
+  // Fallback if image_url column doesn't exist on questions table
+  if (error && (error.code === '42703' || error.message?.includes('image_url'))) {
+    const fallbackRes = await supabase
+      .from('exam_session_questions')
+      .select(`
+        id,
+        points,
+        order_index,
+        questions (
+          id,
+          question_text,
+          choices
+        )
+      `)
+      .eq('session_id', sessionId)
+      .order('order_index', { ascending: true });
+
+    if (fallbackRes.error) throw fallbackRes.error;
+    data = fallbackRes.data;
+    error = null;
+  }
 
   if (error) throw error;
 
