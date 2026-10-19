@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>31910-2022 การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา | Curriculum Master Hub</title>
   
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Roboto, Sarabun, Roboto Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;600&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -43,32 +43,66 @@
     body {
       font-family: 'Roboto', 'Sarabun', sans-serif;
       color: #0F0F0F;
-      background-color: #F9F9F9;
+      background-color: #FAFAFA;
       margin: 0;
       padding: 0;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .elevation-1 { box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
-    .elevation-2 { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .elevation-card {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 10px 24px -6px rgba(0, 0, 0, 0.03);
+    }
+    .elevation-card:hover {
+      box-shadow: 0 16px 36px -8px rgba(255, 0, 0, 0.09), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    }
+
     .line-clamp-2 {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
+
+    /* Ambient Glow Animation */
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.25; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.06); }
+    }
+    .ambient-glow {
+      animation: pulseGlow 8s ease-in-out infinite;
+    }
+
+    /* Confetti Canvas */
+    #confettiCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col bg-[#F9F9F9] text-[#0F0F0F]">
+<body class="min-h-screen flex flex-col bg-[#FAFAFA] text-[#0F0F0F] selection:bg-red-500 selection:text-white">
+
+  <!-- Confetti Canvas overlay -->
+  <canvas id="confettiCanvas"></canvas>
 
   <!-- ========================================== -->
-  <!-- TOP HEADER (56px Sticky)                    -->
+  <!-- TOP HEADER (56px Sticky Glassmorphic)       -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-50 h-14 bg-white border-b border-[#E5E5E5] px-4 sm:px-8 flex items-center justify-between elevation-1">
+  <header class="sticky top-0 z-50 h-14 bg-white/85 backdrop-blur-md border-b border-[#E5E5E5] px-4 sm:px-8 flex items-center justify-between shadow-xs">
     <div class="flex items-center gap-3">
       <a href="index.html" class="flex items-center gap-2.5 group">
-        <div class="w-8 h-6 bg-[#FF0000] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+        <div class="w-8 h-6 bg-[#FF0000] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 active:scale-95 transition-all">
           <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
         <div class="flex items-center">
@@ -76,91 +110,129 @@
           <span class="text-[10px] ml-1.5 font-bold uppercase tracking-wider text-[#FF0000] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">BROADCAST</span>
         </div>
       </a>
-      <span class="hidden md:inline-block text-xs text-[#606060] border-l border-[#E5E5E5] pl-3 py-1">
+      <span class="hidden md:inline-block text-xs text-[#606060] border-l border-[#E5E5E5] pl-3 py-1 font-medium">
         รหัสวิชา 31910-2022 • การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา
       </span>
     </div>
 
-    <div class="flex items-center gap-3">
-      <div id="courseProgressBadge" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#F2F2F2] border border-[#E5E5E5] text-xs font-semibold text-[#0F0F0F]">
-        <span class="w-2 h-2 rounded-full bg-[#2BA640]"></span>
-        <span>ความก้าวหน้าหลักสูตร: <strong id="progressPercent" class="text-[#FF0000]">0%</strong> (0/15 บท)</span>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Sound FX Toggle Button -->
+      <button 
+        id="soundToggleBtn" 
+        onclick="EduAudio.toggleSound()" 
+        class="h-9 px-3 rounded-full bg-[#F2F2F2] hover:bg-[#E5E5E5] active:scale-95 transition-all text-xs font-semibold text-[#0F0F0F] flex items-center gap-1.5"
+        title="สลับเปิด/ปิดเสียงเอฟเฟกต์บรรยากาศ">
+        <span id="soundIcon">🔊</span>
+        <span id="soundText" class="hidden sm:inline">เสียงเอฟเฟกต์</span>
+      </button>
+
+      <!-- Overall Course Progress Badge -->
+      <div id="courseProgressBadge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F2F2F2] border border-[#E5E5E5] text-xs font-semibold text-[#0F0F0F]">
+        <span class="w-2 h-2 rounded-full bg-[#2BA640] animate-pulse"></span>
+        <span>ความก้าวหน้า: <strong id="progressPercent" class="text-[#FF0000] tabular-nums">0%</strong> (<span id="completedCountText" class="tabular-nums">0</span>/15 บท)</span>
       </div>
-      <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#FF0000]">
+
+      <!-- Instructor Avatar -->
+      <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#FF0000] shadow-sm" title="อาจารย์ผู้สอน: ครูแม็ค">
         MK
       </div>
     </div>
   </header>
 
   <!-- ========================================== -->
-  <!-- HERO BANNER (Broadcast Theater)            -->
+  <!-- HERO BANNER (Immersive Broadcast Theater)   -->
   <!-- ========================================== -->
-  <section class="bg-[#0F0F0F] text-white py-12 px-4 sm:px-8 relative overflow-hidden border-b border-black">
+  <section class="bg-[#0F0F0F] text-white py-12 md:py-16 px-4 sm:px-8 relative overflow-hidden border-b border-black">
+    <!-- Ambient Background Lighting -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-red-600/25 rounded-full blur-[140px] pointer-events-none ambient-glow"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-red-900/35 rounded-full blur-[140px] pointer-events-none ambient-glow" style="animation-delay: -4s;"></div>
+
     <div class="max-w-6xl mx-auto relative z-10">
       <div class="flex flex-wrap items-center gap-2 mb-3">
-        <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FF0000] text-white">
+        <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FF0000] text-white shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
           CURRICULUM MASTER HUB
         </span>
         <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-zinc-300 border border-white/10">
-          หลักสูตร ปวส. 1 สาขาธุรกิจดิจิทัล (60 ชั่วโมง)
+          หลักสูตร ปวส. 1 สาขาธุรกิจดิจิทัล (60 ชั่วโมง • 3 หน่วยกิต)
         </span>
       </div>
       
-      <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-3">
-        ศูนย์รวมบทเรียนเชิงโต้ตอบ 15 สัปดาห์ (Interactive E-Textbook)
+      <h1 class="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white mb-4 leading-tight">
+        ศูนย์รวมบทเรียนเชิงโต้ตอบ 15 สัปดาห์ <br class="hidden sm:inline"/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-400 to-amber-300">
+          (Interactive Standalone E-Textbook)
+        </span>
       </h1>
-      <p class="text-zinc-300 text-sm sm:text-base max-w-3xl leading-relaxed">
-        พัฒนาทักษะการสร้างโมบายล์แอปพลิเคชันธุรกิจระดับโปรดักชันด้วย Figma, Google Sheets และ Google AppSheet แบบ Step-by-Step พร้อมระบบจำลองหน้าจอมือถือ (Mobile Simulator), สลับโมเดลธุรกิจ (3 Archetypes) และเครื่องคิดเลขประเมินเกณฑ์รูบริก 10 คะแนน
+      
+      <p class="text-zinc-300 text-sm sm:text-base max-w-3xl leading-relaxed mb-6">
+        พัฒนาทักษะการสร้างโมบายล์แอปพลิเคชันธุรกิจระดับโปรดักชันด้วย Figma, Google Sheets และ Google AppSheet แบบ Step-by-Step พร้อมระบบจำลองหน้าจอมือถือ (Mobile Simulator 2.0), สลับโมเดลธุรกิจ (3 Archetypes) และเครื่องคิดเลขประเมินเกณฑ์รูบริก 10 คะแนน พร้อมระบบให้รางวัล Confetti
       </p>
 
-      <!-- Quick Metrics -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-8">
-        <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-          <div class="text-2xl sm:text-3xl font-extrabold text-[#FF0000]">15</div>
-          <div class="text-xs text-zinc-400 mt-1">บทเรียนอินเทอร์แอคทีฟ</div>
+      <!-- Smart "Resume Learning" (เรียนต่อจากครั้งล่าสุด) Card -->
+      <div id="resumeHeroCard" class="hidden mb-8 p-4 rounded-2xl bg-gradient-to-r from-red-950/70 via-black/80 to-zinc-900/80 border border-red-500/40 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-[#FF0000] text-white flex items-center justify-center shrink-0 shadow-md">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-red-300">เรียนต่อจากครั้งล่าสุด • RESUME LEARNING</div>
+            <div id="resumeTitleText" class="text-sm sm:text-base font-bold text-white">กำลังโหลดข้อมูลบทเรียน...</div>
+          </div>
         </div>
-        <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-          <div class="text-2xl sm:text-3xl font-extrabold text-[#FF0000]">60</div>
-          <div class="text-xs text-zinc-400 mt-1">ชั่วโมงปฏิบัติการจริง</div>
+        <a id="resumeBtnLink" href="ch01-sdlc-app-concept-canvas.html" class="h-10 px-5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shrink-0">
+          <span>เข้าสู่บทเรียนทันที</span>
+          <span>→</span>
+        </a>
+      </div>
+
+      <!-- Quick Metrics Grid with Count-up Animation -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div class="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:border-red-500/40 transition-colors">
+          <div class="text-2xl sm:text-4xl font-extrabold text-[#FF0000] tabular-nums count-metric" data-target="15">15</div>
+          <div class="text-xs text-zinc-400 mt-1 font-medium">บทเรียนอินเทอร์แอคทีฟ</div>
         </div>
-        <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-          <div class="text-2xl sm:text-3xl font-extrabold text-[#FF0000]">3</div>
-          <div class="text-xs text-zinc-400 mt-1">โมเดลธุรกิจตัวอย่างจริง</div>
+        <div class="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:border-red-500/40 transition-colors">
+          <div class="text-2xl sm:text-4xl font-extrabold text-[#FF0000] tabular-nums count-metric" data-target="60">60</div>
+          <div class="text-xs text-zinc-400 mt-1 font-medium">ชั่วโมงปฏิบัติการจริง</div>
         </div>
-        <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-          <div class="text-2xl sm:text-3xl font-extrabold text-[#2BA640]">100%</div>
-          <div class="text-xs text-zinc-400 mt-1">Zero-Code Production Ready</div>
+        <div class="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:border-red-500/40 transition-colors">
+          <div class="text-2xl sm:text-4xl font-extrabold text-[#FF0000] tabular-nums count-metric" data-target="3">3</div>
+          <div class="text-xs text-zinc-400 mt-1 font-medium">โมเดลธุรกิจตัวอย่างจริง</div>
+        </div>
+        <div class="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:border-green-500/40 transition-colors">
+          <div class="text-2xl sm:text-4xl font-extrabold text-[#2BA640] tabular-nums count-metric" data-target="100">100%</div>
+          <div class="text-xs text-zinc-400 mt-1 font-medium">Zero-Code Production Ready</div>
         </div>
       </div>
     </div>
-    
-    <div class="absolute inset-0 bg-gradient-to-tr from-black via-zinc-900 to-red-950/30 pointer-events-none"></div>
   </section>
 
   <!-- ========================================== -->
-  <!-- SEARCH & FILTER BAR (Sticky)               -->
+  <!-- SEARCH & FILTER BAR (Sticky Glassmorphic)   -->
   <!-- ========================================== -->
-  <div class="sticky top-14 z-40 bg-white border-b border-[#E5E5E5] py-3 px-4 sm:px-8 elevation-1">
+  <div class="sticky top-14 z-40 bg-white/90 backdrop-blur-md border-b border-[#E5E5E5] py-3.5 px-4 sm:px-8 elevation-1">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-      <!-- Search Input -->
+      <!-- Search Input with Keyboard Shortcut Hint -->
       <div class="relative w-full md:w-80">
         <input 
           type="text" 
           id="searchInput" 
-          placeholder="ค้นหาบทเรียน (Figma, AppSheet, GPS, Barcode, Bots)..." 
-          class="w-full h-9 pl-9 pr-3 bg-[#F2F2F2] border border-[#E5E5E5] rounded-full text-xs text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:bg-white focus:border-[#FF0000] transition"
+          placeholder="ค้นหาบทเรียน (กด / เพื่อพิมพ์ค้นหา)..." 
+          class="w-full h-10 pl-9 pr-9 bg-[#F2F2F2] border border-[#E5E5E5] rounded-full text-xs text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:bg-white focus:border-[#FF0000] focus:ring-2 focus:ring-red-100 transition-all"
           onkeyup="filterChapters()"
         />
-        <svg class="w-4 h-4 text-[#606060] absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <svg class="w-4 h-4 text-[#606060] absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <span class="absolute right-3 top-2.5 px-1.5 py-0.5 rounded text-[10px] font-mono bg-zinc-200 text-zinc-600 hidden sm:inline">/</span>
       </div>
 
       <!-- Phase Filter Chips -->
-      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full md:w-auto">
-        <button onclick="filterPhase('all', this)" class="phase-chip active h-8 px-3.5 rounded-full text-xs font-semibold bg-[#0F0F0F] text-white transition shrink-0">ทั้งหมด (15 บท)</button>
-        <button onclick="filterPhase('p1', this)" class="phase-chip h-8 px-3 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ระยะที่ 1: Figma UI/UX (บท 1-4)</button>
-        <button onclick="filterPhase('p2', this)" class="phase-chip h-8 px-3 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ระยะที่ 2: Database & Core (บท 5-8)</button>
-        <button onclick="filterPhase('p3', this)" class="phase-chip h-8 px-3 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ระยะที่ 3: Hardware & Bots (บท 9-12)</button>
-        <button onclick="filterPhase('p4', this)" class="phase-chip h-8 px-3 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ระยะที่ 4: Capstone Launch (บท 13-15)</button>
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
+        <button onclick="filterPhase('all', this)" class="phase-chip active h-9 px-3.5 rounded-full text-xs font-semibold bg-[#0F0F0F] text-white shadow-xs transition-all shrink-0">ทั้งหมด (15 บท)</button>
+        <button onclick="filterPhase('p1', this)" class="phase-chip h-9 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] active:scale-95 transition-all shrink-0">🎨 ระยะที่ 1: Figma UI (1-4)</button>
+        <button onclick="filterPhase('p2', this)" class="phase-chip h-9 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] active:scale-95 transition-all shrink-0">📊 ระยะที่ 2: Data & Core (5-8)</button>
+        <button onclick="filterPhase('p3', this)" class="phase-chip h-9 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] active:scale-95 transition-all shrink-0">⚡ ระยะที่ 3: Hardware & Bots (9-12)</button>
+        <button onclick="filterPhase('p4', this)" class="phase-chip h-9 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] active:scale-95 transition-all shrink-0">🚀 ระยะที่ 4: Capstone (13-15)</button>
       </div>
     </div>
   </div>
@@ -173,7 +245,7 @@
     <!-- PHASE 1: UI/UX Design with Figma (Weeks 1-4) -->
     <section class="phase-group" data-phase="p1">
       <div class="flex items-center gap-3 pb-3 border-b-2 border-[#FF0000] mb-6">
-        <span class="px-2.5 py-1 rounded bg-[#FF0000] text-white font-bold text-xs uppercase">ระยะที่ 1</span>
+        <span class="px-2.5 py-1 rounded-lg bg-[#FF0000] text-white font-bold text-xs uppercase shadow-sm">ระยะที่ 1</span>
         <div>
           <h2 class="text-xl font-bold text-[#0F0F0F]">UI/UX Design Foundation (การออกแบบแนวคิดและหน้าจอด้วย Figma)</h2>
           <p class="text-xs text-[#606060]">สัปดาห์ที่ 1 - 4 • เรียนรู้ทฤษฎีสี, Wireframing ขาวดำ, Hi-Fi UI Design System และ Mobile Prototype</p>
@@ -182,73 +254,110 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Ch 01 -->
-        <a href="ch01-sdlc-app-concept-canvas.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#FF0000] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch01-sdlc-app-concept-canvas.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#FF0000] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-50 text-[#FF0000] border border-red-200">สัปดาห์ที่ 1 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-[#FF0000] border border-red-200">สัปดาห์ที่ 1 • 4 ชม.</span>
               <span id="badge-ch01" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FF0000] transition">บทที่ 1: วงจรการพัฒนาซอฟต์แวร์และการออกแบบแนวคิดแอปพลิเคชัน</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FF0000] transition-colors leading-snug">บทที่ 1: วงจรการพัฒนาซอฟต์แวร์และการออกแบบแนวคิดแอปพลิเคชัน</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               ทำความเข้าใจวงจร SDLC 6 ขั้นตอน, การแปลง Pain Points สู่ฟีเจอร์แอปพลิเคชัน, และเขียนพิมพ์เขียว App Concept Canvas 9 มิติ สำหรับ 3 รูปแบบธุรกิจ
             </p>
+            <!-- Progress bar container -->
+            <div id="prog-bar-container-ch01" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch01" class="font-bold text-red-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch01" class="h-full bg-red-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#FF0000]">
-            <span class="text-[#606060]">SDLC & App Concept Canvas</span>
+            <span class="text-[#606060] text-[11px] font-mono">SDLC & App Concept Canvas</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 02 -->
-        <a href="ch02-figma-wireframing.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#FF0000] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch02-figma-wireframing.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#FF0000] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-50 text-[#FF0000] border border-red-200">สัปดาห์ที่ 2 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-[#FF0000] border border-red-200">สัปดาห์ที่ 2 • 4 ชม.</span>
               <span id="badge-ch02" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FF0000] transition">บทที่ 2: การออกแบบโครงสร้างหน้าจอ Wireframe ด้วย Figma</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FF0000] transition-colors leading-snug">บทที่ 2: การออกแบบโครงสร้างหน้าจอ Wireframe ด้วย Figma</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               การสร้าง Mobile Frames, Auto Layout, การจัดลำดับสายตา (Visual Hierarchy) และวาด Wireframe โครงร่างขาวดำสำหรับ 3 ธุรกิจ
             </p>
+            <div id="prog-bar-container-ch02" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch02" class="font-bold text-red-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch02" class="h-full bg-red-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#FF0000]">
-            <span class="text-[#606060]">Grayscale Wireframe & Auto Layout</span>
+            <span class="text-[#606060] text-[11px] font-mono">Grayscale Wireframe & Auto Layout</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 03 -->
-        <a href="ch03-figma-hifi-ui.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#FF0000] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch03-figma-hifi-ui.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#FF0000] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-50 text-[#FF0000] border border-red-200">สัปดาห์ที่ 3 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-[#FF0000] border border-red-200">สัปดาห์ที่ 3 • 4 ชม.</span>
               <span id="badge-ch03" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FF0000] transition">บทที่ 3: การลงสีและออกแบบ UI ฉบับสมบูรณ์ ด้วย Figma</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FF0000] transition-colors leading-snug">บทที่ 3: การลงสีและออกแบบ UI ฉบับสมบูรณ์ ด้วย Figma</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               การใช้กฎสี 60-30-10, การจับคู่ฟอนต์ Google Fonts ภาษาไทย-อังกฤษ, Color Styles, Text Styles และสร้างชุด Design Tokens ฉบับสมบูรณ์
             </p>
+            <div id="prog-bar-container-ch03" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch03" class="font-bold text-red-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch03" class="h-full bg-red-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#FF0000]">
-            <span class="text-[#606060]">Hi-Fi UI Design & Design System</span>
+            <span class="text-[#606060] text-[11px] font-mono">Hi-Fi UI Design & Design System</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 04 -->
-        <a href="ch04-figma-prototype.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#FF0000] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch04-figma-prototype.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#FF0000] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-50 text-[#FF0000] border border-red-200">สัปดาห์ที่ 4 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-[#FF0000] border border-red-200">สัปดาห์ที่ 4 • 4 ชม.</span>
               <span id="badge-ch04" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FF0000] transition">บทที่ 4: การทำ Prototype กดเล่นบนมือถือจริง ด้วย Figma</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FF0000] transition-colors leading-snug">บทที่ 4: การทำ Prototype กดเล่นบนมือถือจริง ด้วย Figma</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               การเชื่อมต่อ Trigger (On Tap), Transitions (Smart Animate), ตรึงแถบ Bottom Navigation, และทดสอบแอปผ่านแอปพลิเคชัน Figma บนมือถือจริง
             </p>
+            <div id="prog-bar-container-ch04" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch04" class="font-bold text-red-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch04" class="h-full bg-red-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#FF0000]">
-            <span class="text-[#606060]">Mobile Interactive Prototype</span>
+            <span class="text-[#606060] text-[11px] font-mono">Mobile Interactive Prototype</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
@@ -258,7 +367,7 @@
     <!-- PHASE 2: Database & Core AppSheet Logic (Weeks 5-8) -->
     <section class="phase-group" data-phase="p2">
       <div class="flex items-center gap-3 pb-3 border-b-2 border-[#065FD4] mb-6">
-        <span class="px-2.5 py-1 rounded bg-[#065FD4] text-white font-bold text-xs uppercase">ระยะที่ 2</span>
+        <span class="px-2.5 py-1 rounded-lg bg-[#065FD4] text-white font-bold text-xs uppercase shadow-sm">ระยะที่ 2</span>
         <div>
           <h2 class="text-xl font-bold text-[#0F0F0F]">Database & Core Logic (ฐานข้อมูลและการพัฒนาระบบแกนหลักด้วย AppSheet)</h2>
           <p class="text-xs text-[#606060]">สัปดาห์ที่ 5 - 8 • ออกแบบตารางเชิงสัมพันธ์, เชื่อมต่อ AppSheet, ฟอร์ม CRUD และสูตรคำนวณเงิน</p>
@@ -267,73 +376,109 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Ch 05 -->
-        <a href="ch05-google-sheets-database.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#065FD4] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch05-google-sheets-database.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#065FD4] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-[#065FD4] border border-blue-200">สัปดาห์ที่ 5 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-[#065FD4] border border-blue-200">สัปดาห์ที่ 5 • 4 ชม.</span>
               <span id="badge-ch05" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#065FD4] transition">บทที่ 5: การวางโครงสร้างฐานข้อมูลร้านค้าด้วย Google Sheets</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#065FD4] transition-colors leading-snug">บทที่ 5: การวางโครงสร้างฐานข้อมูลร้านค้าด้วย Google Sheets</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               หลักการฐานข้อมูลเชิงสัมพันธ์, Primary Key, Foreign Key, การตั้งชื่อหัวคอลัมน์, และจัดทำ Mock Data 15 รายการสำหรับ 3 โมเดลธุรกิจ
             </p>
+            <div id="prog-bar-container-ch05" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch05" class="font-bold text-blue-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch05" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#065FD4]">
-            <span class="text-[#606060]">Relational Database on Google Sheets</span>
+            <span class="text-[#606060] text-[11px] font-mono">Relational Database on Google Sheets</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 06 -->
-        <a href="ch06-appsheet-first-app.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#065FD4] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch06-appsheet-first-app.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#065FD4] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-[#065FD4] border border-blue-200">สัปดาห์ที่ 6 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-[#065FD4] border border-blue-200">สัปดาห์ที่ 6 • 4 ชม.</span>
               <span id="badge-ch06" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#065FD4] transition">บทที่ 6: การสร้างแอปแรกและดึงข้อมูลขึ้นหน้าจอมือถือด้วย AppSheet</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#065FD4] transition-colors leading-snug">บทที่ 6: การสร้างแอปแรกและดึงข้อมูลขึ้นหน้าจอมือถือด้วย AppSheet</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               การเชื่อมโยง Google Sheets สู่ AppSheet, ตั้งค่าคอลัมน์ Key และ Label, สร้าง Card View, Deck View, และจัดการ UX Presentation
             </p>
+            <div id="prog-bar-container-ch06" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch06" class="font-bold text-blue-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch06" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#065FD4]">
-            <span class="text-[#606060]">AppSheet Setup & Data Views</span>
+            <span class="text-[#606060] text-[11px] font-mono">AppSheet Setup & Data Views</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 07 -->
-        <a href="ch07-appsheet-forms-validation.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#065FD4] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch07-appsheet-forms-validation.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#065FD4] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-[#065FD4] border border-blue-200">สัปดาห์ที่ 7 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-[#065FD4] border border-blue-200">สัปดาห์ที่ 7 • 4 ชม.</span>
               <span id="badge-ch07" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#065FD4] transition">บทที่ 7: การสร้างฟอร์มเพิ่มลบแก้ไขข้อมูลและการตรวจสอบความถูกต้อง</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#065FD4] transition-colors leading-snug">บทที่ 7: การสร้างฟอร์มเพิ่มลบแก้ไขข้อมูลและการตรวจสอบความถูกต้อง</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               CRUD Forms, Column Types (Enum, Image, DateTime), สูตรตรวจสอบความถูกต้อง Valid_If, เงื่อนไข Show_If, และการตั้งค่า Initial Value
             </p>
+            <div id="prog-bar-container-ch07" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch07" class="font-bold text-blue-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch07" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#065FD4]">
-            <span class="text-[#606060]">Forms & Valid_If Expressions</span>
+            <span class="text-[#606060] text-[11px] font-mono">Forms & Valid_If Expressions</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 08 -->
-        <a href="ch08-relations-formulas.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#065FD4] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch08-relations-formulas.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#065FD4] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-[#065FD4] border border-blue-200">สัปดาห์ที่ 8 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-[#065FD4] border border-blue-200">สัปดาห์ที่ 8 • 4 ชม.</span>
               <span id="badge-ch08" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#065FD4] transition">บทที่ 8: การสร้างระบบสั่งซื้อและคำนวณเงินด้วยความสัมพันธ์และสูตร</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#065FD4] transition-colors leading-snug">บทที่ 8: การสร้างระบบสั่งซื้อและคำนวณเงินด้วยความสัมพันธ์และสูตร</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               ความสัมพันธ์แบบตารางแม่-ลูก (Parent-Child) ด้วยคอลัมน์ Ref + IsPartOf, การดึงข้อมูล Dereference, และคำนวณยอดเงินรวมด้วย SUM() และ SELECT()
             </p>
+            <div id="prog-bar-container-ch08" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch08" class="font-bold text-blue-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch08" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#065FD4]">
-            <span class="text-[#606060]">Relational Ref & Automated Formulas</span>
+            <span class="text-[#606060] text-[11px] font-mono">Relational Ref & Automated Formulas</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
@@ -343,7 +488,7 @@
     <!-- PHASE 3: Hardware Integration & Automation Bots (Weeks 9-12) -->
     <section class="phase-group" data-phase="p3">
       <div class="flex items-center gap-3 pb-3 border-b-2 border-[#2BA640] mb-6">
-        <span class="px-2.5 py-1 rounded bg-[#2BA640] text-white font-bold text-xs uppercase">ระยะที่ 3</span>
+        <span class="px-2.5 py-1 rounded-lg bg-[#2BA640] text-white font-bold text-xs uppercase shadow-sm">ระยะที่ 3</span>
         <div>
           <h2 class="text-xl font-bold text-[#0F0F0F]">Hardware & Automation (ฮาร์ดแวร์ ปุ่มอัจฉริยะ และระบบอัตโนมัติ)</h2>
           <p class="text-xs text-[#606060]">สัปดาห์ที่ 9 - 12 • ปุ่ม Action, สแกนบาร์โค้ด/QR Code, ลายเซ็นดิจิทัล, GPS และบอตออกใบเสร็จ PDF</p>
@@ -352,73 +497,109 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Ch 09 -->
-        <a href="ch09-brand-actions.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#2BA640] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch09-brand-actions.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#2BA640] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-green-50 text-[#2BA640] border border-green-200">สัปดาห์ที่ 9 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-green-50 text-[#2BA640] border border-green-200">สัปดาห์ที่ 9 • 4 ชม.</span>
               <span id="badge-ch09" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#2BA640] transition">บทที่ 9: การปรับแต่งธีมแบรนด์และสร้างปุ่มดำเนินการอัจฉริยะ</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#2BA640] transition-colors leading-snug">บทที่ 9: การปรับแต่งธีมแบรนด์และสร้างปุ่มดำเนินการอัจฉริยะ</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               Brand Theming, ปุ่มโทรหาลูกค้า (Call Phone), ป๊อปอัปยืนยันการทำรายการ, และ State Machine เปลี่ยนสถานะงานออร์เดอร์
             </p>
+            <div id="prog-bar-container-ch09" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch09" class="font-bold text-green-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch09" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#2BA640]">
-            <span class="text-[#606060]">Theme & Smart Action Buttons</span>
+            <span class="text-[#606060] text-[11px] font-mono">Theme & Smart Action Buttons</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 10 -->
-        <a href="ch10-barcode-qr-signature.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#2BA640] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch10-barcode-qr-signature.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#2BA640] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-green-50 text-[#2BA640] border border-green-200">สัปดาห์ที่ 10 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-green-50 text-[#2BA640] border border-green-200">สัปดาห์ที่ 10 • 4 ชม.</span>
               <span id="badge-ch10" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#2BA640] transition">บทที่ 10: การเชื่อมต่อฮาร์ดแวร์สแกน Barcode QR Code และระบบลายเซ็นดิจิทัล</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#2BA640] transition-colors leading-snug">บทที่ 10: การเชื่อมต่อฮาร์ดแวร์สแกน Barcode QR Code และระบบลายเซ็นดิจิทัล</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               Hardware Scanner ผ่านกล้องสมาร์ตโฟน, ค้นหาข้อมูลสินค้าอัตโนมัติจากบาร์โค้ด, และระบบบันทึกลายเซ็นดิจิทัล (Signature) พร้อม Audit Trail
             </p>
+            <div id="prog-bar-container-ch10" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch10" class="font-bold text-green-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch10" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#2BA640]">
-            <span class="text-[#606060]">Barcode/QR Scanning & Signature</span>
+            <span class="text-[#606060] text-[11px] font-mono">Barcode/QR Scanning & Signature</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 11 -->
-        <a href="ch11-gps-maps.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#2BA640] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch11-gps-maps.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#2BA640] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-green-50 text-[#2BA640] border border-green-200">สัปดาห์ที่ 11 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-green-50 text-[#2BA640] border border-green-200">สัปดาห์ที่ 11 • 4 ชม.</span>
               <span id="badge-ch11" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#2BA640] transition">บทที่ 11: การระบุพิกัดดาวเทียม GPS และแผนที่นำทางด้วย Google Maps</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#2BA640] transition-colors leading-snug">บทที่ 11: การระบุพิกัดดาวเทียม GPS และแผนที่นำทางด้วย Google Maps</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               คอลัมน์ชนิด LatLong, สูตร =HERE(), สร้างมุมมอง Map View แสดงหมุดตำแหน่งร้านค้า และปุ่ม Action นำทางผ่าน Google Maps API
             </p>
+            <div id="prog-bar-container-ch11" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch11" class="font-bold text-green-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch11" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#2BA640]">
-            <span class="text-[#606060]">GPS Geolocation & Google Maps</span>
+            <span class="text-[#606060] text-[11px] font-mono">GPS Geolocation & Google Maps</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 12 -->
-        <a href="ch12-automation-bots-pdf.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#2BA640] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch12-automation-bots-pdf.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#2BA640] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-green-50 text-[#2BA640] border border-green-200">สัปดาห์ที่ 12 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-green-50 text-[#2BA640] border border-green-200">สัปดาห์ที่ 12 • 4 ชม.</span>
               <span id="badge-ch12" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#2BA640] transition">บทที่ 12: การสร้างระบบอัตโนมัติด้วย Automation Bots และการออกใบเสร็จ PDF</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#2BA640] transition-colors leading-snug">บทที่ 12: การสร้างระบบอัตโนมัติด้วย Automation Bots และการออกใบเสร็จ PDF</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               สร้าง Serverless Event Bot, ออกแบบเทมเพลตใบเสร็จบน Google Docs วนลูปตารางรายการสินค้า และส่งอีเมลยืนยันคำสั่งซื้ออัตโนมัติ
             </p>
+            <div id="prog-bar-container-ch12" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch12" class="font-bold text-green-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch12" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#2BA640]">
-            <span class="text-[#606060]">Automation Bots & PDF Invoices</span>
+            <span class="text-[#606060] text-[11px] font-mono">Automation Bots & PDF Invoices</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
@@ -428,7 +609,7 @@
     <!-- PHASE 4: Capstone Development & Production Launch (Weeks 13-15) -->
     <section class="phase-group" data-phase="p4">
       <div class="flex items-center gap-3 pb-3 border-b-2 border-[#FB8C00] mb-6">
-        <span class="px-2.5 py-1 rounded bg-[#FB8C00] text-white font-bold text-xs uppercase">ระยะที่ 4</span>
+        <span class="px-2.5 py-1 rounded-lg bg-[#FB8C00] text-white font-bold text-xs uppercase shadow-sm">ระยะที่ 4</span>
         <div>
           <h2 class="text-xl font-bold text-[#0F0F0F]">Capstone & Production Launch (การพัฒนาโครงงานจริง การทดสอบ และวัน Demo Day)</h2>
           <p class="text-xs text-[#606060]">สัปดาห์ที่ 13 - 15 • พัฒนาแอปทีม 3 คน (Agile Sprint), ทดสอบผู้ใช้จริง UAT, แก้บั๊ก และนำเสนอผลงาน</p>
@@ -437,55 +618,82 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Ch 13 -->
-        <a href="ch13-capstone-sprint-1.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#FB8C00] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch13-capstone-sprint-1.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#FB8C00] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-[#FB8C00] border border-amber-200">สัปดาห์ที่ 13 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-[#FB8C00] border border-amber-200">สัปดาห์ที่ 13 • 4 ชม.</span>
               <span id="badge-ch13" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FB8C00] transition">บทที่ 13: การพัฒนาโครงงานแอปพลิเคชันธุรกิจจริง Sprint 1</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FB8C00] transition-colors leading-snug">บทที่ 13: การพัฒนาโครงงานแอปพลิเคชันธุรกิจจริง Sprint 1</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               การบริหารโครงงานด้วย Agile Scrum ในทีม 3 คน, จัดทำ Product Backlog, บริหาร Sprint Board และส่งมอบแอปพลิเคชันเวอร์ชัน Beta 80%
             </p>
+            <div id="prog-bar-container-ch13" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch13" class="font-bold text-amber-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch13" class="h-full bg-amber-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#FB8C00]">
-            <span class="text-[#606060]">Agile Sprint 1 (Beta Release)</span>
+            <span class="text-[#606060] text-[11px] font-mono">Agile Sprint 1 (Beta 80%)</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 14 -->
-        <a href="ch14-uat-polish.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#FB8C00] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch14-uat-polish.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#FB8C00] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-[#FB8C00] border border-amber-200">สัปดาห์ที่ 14 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-[#FB8C00] border border-amber-200">สัปดาห์ที่ 14 • 4 ชม.</span>
               <span id="badge-ch14" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FB8C00] transition">บทที่ 14: การทดสอบระบบโดยผู้ใช้จริง การแก้บั๊ก และการขัดเกลาแอปพลิเคชัน</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FB8C00] transition-colors leading-snug">บทที่ 14: การทดสอบระบบโดยผู้ใช้จริง การแก้บั๊ก และการขัดเกลาแอปพลิเคชัน</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               การทดสอบ UAT ด้วยตาราง Test Cases, การจัดลำดับความสำคัญของบั๊ก P0-P3, การขัดเกลาข้อความแจ้งเตือน และส่งมอบ Release Candidate 100%
             </p>
+            <div id="prog-bar-container-ch14" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch14" class="font-bold text-amber-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch14" class="h-full bg-amber-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#FB8C00]">
-            <span class="text-[#606060]">UAT & Defect Triage (RC 100%)</span>
+            <span class="text-[#606060] text-[11px] font-mono">UAT & Defect Triage (RC 100%)</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
 
         <!-- Ch 15 -->
-        <a href="ch15-demo-day.html" class="chapter-card group p-5 bg-white rounded-xl border border-[#E5E5E5] hover:border-[#FB8C00] hover:shadow-md transition flex flex-col justify-between">
+        <a href="ch15-demo-day.html" class="chapter-card group p-5 bg-white rounded-2xl border border-[#E5E5E5] hover:border-[#FB8C00] elevation-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-[#FB8C00] border border-amber-200">สัปดาห์ที่ 15 • 4 ชม.</span>
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-[#FB8C00] border border-amber-200">สัปดาห์ที่ 15 • 4 ชม.</span>
               <span id="badge-ch15" class="text-[11px] font-semibold text-[#606060]">ยังไม่เริ่ม</span>
             </div>
-            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FB8C00] transition">บทที่ 15: การนำเสนอผลงานในวัน Demo Day การเผยแพร่แอป และการจัดแสดงผลงาน</h3>
+            <h3 class="font-bold text-base text-[#0F0F0F] group-hover:text-[#FB8C00] transition-colors leading-snug">บทที่ 15: การนำเสนอผลงานในวัน Demo Day การเผยแพร่แอป และการจัดแสดงผลงาน</h3>
             <p class="text-xs text-[#606060] mt-1.5 leading-relaxed line-clamp-2">
               การสร้าง QR Code ติดตั้งแอปบนมือถือ, การนำเสนอแบบ Lightning Pitch 5 นาที, สื่อสาธิต Live Demo Flow และการจัดทำ Portfolio ดิจิทัล
             </p>
+            <div id="prog-bar-container-ch15" class="hidden mt-3 pt-2">
+              <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1">
+                <span>ความก้าวหน้าแบบประเมิน</span>
+                <span id="prog-text-ch15" class="font-bold text-amber-600">0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="prog-bar-ch15" class="h-full bg-amber-500 transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
           </div>
           <div class="mt-4 pt-3 border-t border-[#F2F2F2] flex items-center justify-between text-xs font-semibold text-[#FB8C00]">
-            <span class="text-[#606060]">Demo Day & Public Distribution</span>
+            <span class="text-[#606060] text-[11px] font-mono">Demo Day & Distribution</span>
             <span class="flex items-center gap-1 group-hover:translate-x-1 transition-transform">เปิดบทเรียน →</span>
           </div>
         </a>
@@ -497,21 +705,237 @@
   <!-- ========================================== -->
   <!-- FOOTER                                     -->
   <!-- ========================================== -->
-  <footer class="bg-white border-t border-[#E5E5E5] py-8 px-4 text-center text-xs text-[#606060]">
-    <div class="max-w-4xl mx-auto space-y-2">
+  <footer class="bg-white border-t border-[#E5E5E5] py-10 px-4 text-center text-xs text-[#606060]">
+    <div class="max-w-4xl mx-auto space-y-3">
       <div class="flex items-center justify-center gap-2 font-bold text-[#0F0F0F]">
-        <div class="w-5 h-4 bg-[#FF0000] rounded flex items-center justify-center text-white text-[10px]">▶</div>
-        <span>ห้องเรียนครูแม็ค • ระบบห้องเรียนออนไลน์ Red Broadcast v4.0</span>
+        <div class="w-6 h-5 bg-[#FF0000] rounded-md flex items-center justify-center text-white text-[11px] shadow-sm">▶</div>
+        <span class="text-sm">ห้องเรียนครูแม็ค • ระบบห้องเรียนออนไลน์ Red Broadcast Interactive E-Textbook</span>
       </div>
       <p>© 2026 หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) สาขาวิชาธุรกิจดิจิทัล • สำนักงานคณะกรรมการการอาชีวศึกษา (สอศ.)</p>
-      <p class="text-[11px] text-zinc-400">ระบบนี้ถูกออกแบบให้ทำงานได้สมบูรณ์แบบออฟไลน์ (Zero Installation / Standalone Web E-Textbook)</p>
+      <div class="flex flex-wrap items-center justify-center gap-2 text-[11px] text-zinc-500 pt-1">
+        <span class="px-2 py-0.5 rounded-full bg-zinc-100">Zero Installation Standalone</span>
+        <span class="px-2 py-0.5 rounded-full bg-zinc-100">100% Offline Capability</span>
+        <span class="px-2 py-0.5 rounded-full bg-zinc-100">Web Audio API Synth</span>
+        <span class="px-2 py-0.5 rounded-full bg-zinc-100">Tailwind CSS v4 Standard</span>
+      </div>
     </div>
   </footer>
 
   <!-- ========================================== -->
-  <!-- JAVASCRIPT CONTROLLERS                     -->
+  <!-- JAVASCRIPT CONTROLLERS & AUDIO/CONFETTI    -->
   <!-- ========================================== -->
   <script>
+    /**
+     * Standalone Web Audio API Synthesizer (Zero external audio files)
+     */
+    const EduAudio = (function() {
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      try {
+        const saved = localStorage.getItem('edu_audio_sound_enabled');
+        if (saved !== null) {
+          soundEnabled = (saved === 'true');
+        }
+      } catch (e) {}
+
+      function getContext() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+          }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      function updateSoundUI() {
+        const iconEl = document.getElementById('soundIcon');
+        const textEl = document.getElementById('soundText');
+        const btnEl = document.getElementById('soundToggleBtn');
+        if (iconEl) iconEl.innerText = soundEnabled ? '🔊' : '🔇';
+        if (textEl) textEl.innerText = soundEnabled ? 'เสียงเปิด' : 'เสียงปิด';
+        if (btnEl) {
+          if (soundEnabled) {
+            btnEl.classList.remove('opacity-60');
+          } else {
+            btnEl.classList.add('opacity-60');
+          }
+        }
+      }
+
+      return {
+        initUI: function() {
+          updateSoundUI();
+        },
+        toggleSound: function() {
+          soundEnabled = !soundEnabled;
+          try {
+            localStorage.setItem('edu_audio_sound_enabled', soundEnabled.toString());
+          } catch(e) {}
+          updateSoundUI();
+          if (soundEnabled) {
+            this.playClick();
+          }
+        },
+        playClick: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.06);
+          } catch(e) {}
+        },
+        playChime: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            [523.25, 659.25].forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+              gain.gain.setValueAtTime(0.15, now + idx * 0.06);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + idx * 0.06);
+              osc.stop(now + idx * 0.06 + 0.26);
+            });
+          } catch(e) {}
+        },
+        playFanfare: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const notes = [440, 554.37, 659.25, 880]; // A4, C#5, E5, A5
+            notes.forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+              gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + (idx === 3 ? 0.6 : 0.25));
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + idx * 0.08);
+              osc.stop(now + idx * 0.08 + (idx === 3 ? 0.65 : 0.28));
+            });
+          } catch(e) {}
+        }
+      };
+    })();
+
+    /**
+     * Standalone Pure JS Canvas Confetti Engine
+     */
+    const EduConfetti = (function() {
+      let canvas, ctx;
+      let particles = [];
+      let animationId = null;
+
+      function resize() {
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function init() {
+        canvas = document.getElementById('confettiCanvas');
+        if (!canvas) return;
+        ctx = canvas.getContext('2d');
+        window.addEventListener('resize', resize);
+        resize();
+      }
+
+      function createParticle(x, y) {
+        const colors = ['#FF0000', '#FF4D4D', '#2BA640', '#065FD4', '#FB8C00', '#FFD700', '#9C27B0'];
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 4;
+        return {
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3,
+          radius: Math.random() * 4 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotationSpeed: (Math.random() - 0.5) * 12,
+          alpha: 1,
+          decay: Math.random() * 0.015 + 0.012
+        };
+      }
+
+      function update() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.18; // gravity
+          p.rotation += p.rotationSpeed;
+          p.alpha -= p.decay;
+
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.radius, -p.radius, p.radius * 2, p.radius * 1.5);
+          ctx.restore();
+        }
+
+        if (particles.length > 0) {
+          animationId = requestAnimationFrame(update);
+        } else {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+      }
+
+      return {
+        fire: function(originX, originY, count = 75) {
+          if (!canvas) init();
+          const x = originX !== undefined ? originX : window.innerWidth / 2;
+          const y = originY !== undefined ? originY : window.innerHeight / 3;
+          for (let i = 0; i < count; i++) {
+            particles.push(createParticle(x, y));
+          }
+          if (!animationId) {
+            update();
+          }
+        }
+      };
+    })();
+
+    // Make available globally
+    window.EduAudio = EduAudio;
+    window.EduConfetti = EduConfetti;
+
     // การค้นหาบทเรียน
     function filterChapters() {
       const query = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -529,10 +953,11 @@
 
     // การฟิลเตอร์ตามระยะการเรียนรู้ (Phase Filter)
     function filterPhase(phase, btn) {
+      EduAudio.playClick();
       document.querySelectorAll('.phase-chip').forEach(b => {
-        b.className = 'phase-chip h-8 px-3 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0';
+        b.className = 'phase-chip h-9 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] active:scale-95 transition-all shrink-0';
       });
-      btn.className = 'phase-chip active h-8 px-3.5 rounded-full text-xs font-semibold bg-[#0F0F0F] text-white transition shrink-0';
+      btn.className = 'phase-chip active h-9 px-3.5 rounded-full text-xs font-semibold bg-[#0F0F0F] text-white shadow-xs transition-all shrink-0';
 
       const groups = document.querySelectorAll('.phase-group');
       if (phase === 'all') {
@@ -548,43 +973,148 @@
       }
     }
 
-    // ตรวจสอบความคืบหน้ารวมจาก localStorage
+    // แอนิเมชันนับตัวเลขสถิติ Hero
+    function animateCountMetrics() {
+      const metrics = document.querySelectorAll('.count-metric');
+      metrics.forEach(el => {
+        const target = parseInt(el.getAttribute('data-target'), 10);
+        const suffix = el.innerText.includes('%') ? '%' : '';
+        let start = 0;
+        const duration = 1200;
+        const stepTime = 30;
+        const totalSteps = duration / stepTime;
+        const increment = target / totalSteps;
+
+        const timer = setInterval(() => {
+          start += increment;
+          if (start >= target) {
+            el.innerText = `${target}${suffix}`;
+            clearInterval(timer);
+          } else {
+            el.innerText = `${Math.floor(start)}${suffix}`;
+          }
+        }, stepTime);
+      });
+    }
+
+    // ตรวจสอบความคืบหน้ารวมจาก localStorage และตั้งค่า Resume Learning
     function updateCourseProgress() {
       let completedCount = 0;
-      for (let i = 1; i <= 15; i++) {
-        const chNum = i.toString().padStart(2, '0');
-        const key = `curriculum_ch${chNum}_checklist`;
-        const badge = document.getElementById(`badge-ch${chNum}`);
+      let firstUncompletedChapter = null;
+
+      const chapterMeta = [
+        { num: '01', title: 'บทที่ 1: วงจรการพัฒนาซอฟต์แวร์และการออกแบบแนวคิดแอปพลิเคชัน', url: 'ch01-sdlc-app-concept-canvas.html' },
+        { num: '02', title: 'บทที่ 2: การออกแบบโครงสร้างหน้าจอ Wireframe ด้วย Figma', url: 'ch02-figma-wireframing.html' },
+        { num: '03', title: 'บทที่ 3: การลงสีและออกแบบ UI ฉบับสมบูรณ์ ด้วย Figma', url: 'ch03-figma-hifi-ui.html' },
+        { num: '04', title: 'บทที่ 4: การทำ Prototype กดเล่นบนมือถือจริง ด้วย Figma', url: 'ch04-figma-prototype.html' },
+        { num: '05', title: 'บทที่ 5: การวางโครงสร้างฐานข้อมูลร้านค้าด้วย Google Sheets', url: 'ch05-google-sheets-database.html' },
+        { num: '06', title: 'บทที่ 6: การสร้างแอปแรกและดึงข้อมูลขึ้นหน้าจอมือถือด้วย AppSheet', url: 'ch06-appsheet-first-app.html' },
+        { num: '07', title: 'บทที่ 7: การสร้างฟอร์มเพิ่มลบแก้ไขข้อมูลและการตรวจสอบความถูกต้อง', url: 'ch07-appsheet-forms-validation.html' },
+        { num: '08', title: 'บทที่ 8: การสร้างระบบสั่งซื้อและคำนวณเงินด้วยความสัมพันธ์และสูตร', url: 'ch08-relations-formulas.html' },
+        { num: '09', title: 'บทที่ 9: การปรับแต่งธีมแบรนด์และสร้างปุ่มดำเนินการอัจฉริยะ', url: 'ch09-brand-actions.html' },
+        { num: '10', title: 'บทที่ 10: การเชื่อมต่อฮาร์ดแวร์สแกน Barcode QR Code และระบบลายเซ็นดิจิทัล', url: 'ch10-barcode-qr-signature.html' },
+        { num: '11', title: 'บทที่ 11: การระบุพิกัดดาวเทียม GPS และแผนที่นำทางด้วย Google Maps', url: 'ch11-gps-maps.html' },
+        { num: '12', title: 'บทที่ 12: การสร้างระบบอัตโนมัติด้วย Automation Bots และการออกใบเสร็จ PDF', url: 'ch12-automation-bots-pdf.html' },
+        { num: '13', title: 'บทที่ 13: การพัฒนาโครงงานแอปพลิเคชันธุรกิจจริง Sprint 1', url: 'ch13-capstone-sprint-1.html' },
+        { num: '14', title: 'บทที่ 14: การทดสอบระบบโดยผู้ใช้จริง การแก้บั๊ก และการขัดเกลาแอปพลิเคชัน', url: 'ch14-uat-polish.html' },
+        { num: '15', title: 'บทที่ 15: การนำเสนอผลงานในวัน Demo Day การเผยแพร่แอป และการจัดแสดงผลงาน', url: 'ch15-demo-day.html' }
+      ];
+
+      chapterMeta.forEach(ch => {
+        const key = `curriculum_ch${ch.num}_checklist`;
+        const badge = document.getElementById(`badge-ch${ch.num}`);
+        const progContainer = document.getElementById(`prog-bar-container-ch${ch.num}`);
+        const progBar = document.getElementById(`prog-bar-ch${ch.num}`);
+        const progText = document.getElementById(`prog-text-ch${ch.num}`);
+
         try {
           const saved = localStorage.getItem(key);
+          let checked = 0;
+          let total = 5;
+
           if (saved) {
             const data = JSON.parse(saved);
-            const total = Object.keys(data).length;
-            const checked = Object.values(data).filter(Boolean).length;
-            if (total > 0 && checked === total) {
+            total = Object.keys(data).length || 5;
+            checked = Object.values(data).filter(Boolean).length;
+          }
+
+          if (checked > 0) {
+            const pct = Math.round((checked / total) * 100);
+            if (progContainer) progContainer.classList.remove('hidden');
+            if (progBar) progBar.style.width = `${pct}%`;
+            if (progText) progText.innerText = `${pct}% (${checked}/${total})`;
+
+            if (checked === total) {
               completedCount++;
               if (badge) {
-                badge.className = 'text-[11px] font-bold text-[#2BA640] flex items-center gap-1';
+                badge.className = 'text-[11px] font-bold text-[#2BA640] flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-full border border-green-200';
                 badge.innerHTML = '<span>✓</span> ผ่านแล้ว';
               }
-            } else if (checked > 0) {
+            } else {
               if (badge) {
-                badge.className = 'text-[11px] font-bold text-[#065FD4]';
+                badge.className = 'text-[11px] font-bold text-[#065FD4] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200';
                 badge.innerText = `กำลังเรียน (${checked}/${total})`;
               }
+              if (!firstUncompletedChapter) {
+                firstUncompletedChapter = ch;
+              }
+            }
+          } else {
+            if (!firstUncompletedChapter) {
+              firstUncompletedChapter = ch;
             }
           }
         } catch (e) {}
-      }
+      });
 
+      // Update Header Progress
       const percent = Math.round((completedCount / 15) * 100);
       const percentEl = document.getElementById('progressPercent');
-      if (percentEl) {
-        percentEl.innerText = `${percent}%`;
+      const countEl = document.getElementById('completedCountText');
+      if (percentEl) percentEl.innerText = `${percent}%`;
+      if (countEl) countEl.innerText = completedCount;
+
+      // Smart "Resume Learning"
+      const resumeCard = document.getElementById('resumeHeroCard');
+      const resumeTitle = document.getElementById('resumeTitleText');
+      const resumeBtn = document.getElementById('resumeBtnLink');
+
+      const targetCh = firstUncompletedChapter || chapterMeta[0];
+      if (resumeCard && resumeTitle && resumeBtn) {
+        resumeTitle.innerText = targetCh.title;
+        resumeBtn.href = targetCh.url;
+        resumeCard.classList.remove('hidden');
+      }
+
+      // If user finished all 15, trigger celebration!
+      if (completedCount === 15) {
+        EduConfetti.fire();
+        EduAudio.playFanfare();
       }
     }
 
-    document.addEventListener('DOMContentLoaded', updateCourseProgress);
+    // Keyboard shortcut: Press "/" to focus search
+    document.addEventListener('keydown', function(e) {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+      if (e.key === 'Escape') {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput && document.activeElement === searchInput) {
+          searchInput.blur();
+        }
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      EduAudio.initUI();
+      animateCountMetrics();
+      updateCourseProgress();
+    });
   </script>
 </body>
 </html>

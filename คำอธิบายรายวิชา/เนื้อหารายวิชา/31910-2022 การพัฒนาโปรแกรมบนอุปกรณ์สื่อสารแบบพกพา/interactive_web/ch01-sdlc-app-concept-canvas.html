@@ -117,7 +117,10 @@
     }
   </style>
 </head>
-<body class="bg-white text-[#0F0F0F] min-h-screen flex flex-col selection:bg-red-100 selection:text-[#FF0000]">
+<<body class="bg-white text-[#0F0F0F] min-h-screen flex flex-col selection:bg-red-100 selection:text-[#FF0000]">
+
+  <!-- Confetti Canvas Overlay -->
+  <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;"></canvas>
 
   <!-- ========================================================================= -->
   <!-- 1. READING SCROLL PROGRESS BAR (Fixed Top, Red Line 0-100%) -->
@@ -127,7 +130,7 @@
   <!-- ========================================================================= -->
   <!-- 2. STICKY TOP BAR (56px Height, Level 1 Shadow on Scroll, No Print Button) -->
   <!-- ========================================================================= -->
-  <header class="sticky top-0 z-50 h-14 bg-white border-b border-[#E5E5E5] px-4 flex items-center justify-between elevation-1">
+  <header class="sticky top-0 z-50 h-14 bg-white/90 backdrop-blur-md border-b border-[#E5E5E5] px-4 flex items-center justify-between elevation-1">
     <!-- ฝั่งซ้าย: ปุ่มเมนู + โลโก้แบรนด์ -->
     <div class="flex items-center gap-3">
       <button id="toggleSidebarBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] transition text-[#606060]" title="สลับแถบเมนู">
@@ -151,7 +154,7 @@
         <div class="relative flex-1">
           <input 
             type="text" 
-            id="searchInput"
+            id="searchInput" 
             placeholder="ค้นหาเนื้อหาบทเรียน (กด / เพื่อค้นหา เช่น SDLC, Canvas, MVP, Archetype)..." 
             class="w-full h-10 pl-4 pr-3 bg-white border border-[#E5E5E5] rounded-l-full text-sm text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#065FD4]"
           />
@@ -169,8 +172,18 @@
       </div>
     </div>
 
-    <!-- ฝั่งขวา: โหมดบทเรียน & ผู้สอน (ไม่มีปุ่มพิมพ์เอกสารตามข้อกำหนด) -->
+    <!-- ฝั่งขวา: โหมดบทเรียน & ผู้สอน -->
     <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Sound FX Toggle Button -->
+      <button 
+        id="soundToggleBtn" 
+        onclick="EduAudio.toggleSound()" 
+        class="h-9 px-3 rounded-full bg-[#F2F2F2] hover:bg-[#E5E5E5] active:scale-95 transition-all text-xs font-semibold text-[#0F0F0F] flex items-center gap-1.5"
+        title="สลับเปิด/ปิดเสียงเอฟเฟกต์บรรยากาศ">
+        <span id="soundIcon">🔊</span>
+        <span id="soundText" class="hidden sm:inline">เสียงเอฟเฟกต์</span>
+      </button>
+
       <!-- Quick Mode Badge -->
       <a href="index.html" class="hidden md:flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-[#F2F2F2] text-xs font-medium text-[#0F0F0F] hover:bg-[#E5E5E5] transition" title="กลับหน้าสารบัญ">
         <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -484,167 +497,328 @@
             </p>
           </div>
 
-          <!-- Interactive Stepper: SDLC 6 ขั้นตอน -->
-          <div class="my-8 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
-            <div class="bg-[#F8F8F8] px-5 py-3 border-b border-[#E5E5E5] flex items-center justify-between">
-              <span class="text-xs font-bold uppercase text-[#0F0F0F] flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
-                แผนภาพจำลองปฏิสัมพันธ์: SDLC 6 ขั้นตอน
-              </span>
-              <button onclick="copyText('SDLC 6 ขั้นตอน: 1.Planning & Requirements -> 2.System & UI/UX Design -> 3.Implementation/Development -> 4.Testing & QA -> 5.Deployment & Release -> 6.Maintenance & Evolution', this)" class="text-xs text-[#065FD4] hover:underline flex items-center gap-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <span>คัดลอกสรุป SDLC</span>
-              </button>
+          <!-- Interactive Stepper: แผนภาพวงจร SDLC 6 ขั้นตอน (Circular Lifecycle Wheel) -->
+          <div class="my-8 border border-[#E5E5E5] rounded-3xl overflow-hidden bg-white shadow-md">
+            <!-- Top Controls Header -->
+            <div class="bg-gradient-to-r from-zinc-900 to-black text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000] animate-pulse"></span>
+                <span class="text-xs font-bold uppercase tracking-wider">
+                  แผนภาพจำลองวงจรชีวิตซอฟต์แวร์: SDLC 6 ขั้นตอน (Circular Life Cycle Wheel)
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="sdlcAutoPlayBtn" onclick="toggleSdlcAutoPlay()" class="h-8 px-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-semibold text-white transition flex items-center gap-1.5 border border-white/10" title="หมุนวนเปลี่ยนขั้นตอนอัตโนมัติ">
+                  <span id="sdlcAutoIcon">▶</span>
+                  <span id="sdlcAutoText">หมุนวงจรอัตโนมัติ</span>
+                </button>
+                <button onclick="copyText('SDLC 6 ขั้นตอน: 1.Planning & Requirements -> 2.System & UI/UX Design -> 3.Implementation/Development -> 4.Testing & QA -> 5.Deployment & Release -> 6.Maintenance & Evolution', this)" class="h-8 px-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-xs text-zinc-300 hover:text-white transition flex items-center gap-1 border border-white/10">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  <span>คัดลอกสรุป</span>
+                </button>
+              </div>
             </div>
 
-            <!-- แถบปุ่มขั้นตอน 6 ขั้น -->
-            <div class="grid grid-cols-2 sm:grid-cols-6 border-b border-[#E5E5E5] text-xs font-medium">
-              <button onclick="showSdlcStep(1)" id="sdlcTab1" class="sdlc-tab py-3 px-2 text-center border-b-2 border-[#FF0000] bg-white font-bold text-[#FF0000] transition">
-                1. Planning
-              </button>
-              <button onclick="showSdlcStep(2)" id="sdlcTab2" class="sdlc-tab py-3 px-2 text-center border-b-2 border-transparent text-[#606060] hover:bg-[#F2F2F2] transition">
-                2. Design
-              </button>
-              <button onclick="showSdlcStep(3)" id="sdlcTab3" class="sdlc-tab py-3 px-2 text-center border-b-2 border-transparent text-[#606060] hover:bg-[#F2F2F2] transition">
-                3. Develop
-              </button>
-              <button onclick="showSdlcStep(4)" id="sdlcTab4" class="sdlc-tab py-3 px-2 text-center border-b-2 border-transparent text-[#606060] hover:bg-[#F2F2F2] transition">
-                4. Testing
-              </button>
-              <button onclick="showSdlcStep(5)" id="sdlcTab5" class="sdlc-tab py-3 px-2 text-center border-b-2 border-transparent text-[#606060] hover:bg-[#F2F2F2] transition">
-                5. Deploy
-              </button>
-              <button onclick="showSdlcStep(6)" id="sdlcTab6" class="sdlc-tab py-3 px-2 text-center border-b-2 border-transparent text-[#606060] hover:bg-[#F2F2F2] transition">
-                6. Maintain
-              </button>
-            </div>
+            <!-- Main Layout: Left = Circular Wheel, Right = Detailed Step Card -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-zinc-200">
+              
+              <!-- Left Column: SVG Circular SDLC Wheel (lg:col-span-6) -->
+              <div class="lg:col-span-6 p-6 sm:p-8 bg-gradient-to-b from-zinc-50/70 via-white to-zinc-50/40 flex flex-col items-center justify-between">
+                <div class="w-full text-center mb-1">
+                  <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">ผังวงจรแบบอินเทอร์แอคทีฟ (คลิกเลือกขั้นตอนบนวงล้อ)</span>
+                </div>
 
-            <!-- กล่องแสดงรายละเอียดแต่ละขั้นตอน -->
-            <div class="p-6">
-              <!-- Step 1 -->
-              <div id="sdlcContent1" class="sdlc-content block space-y-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">1</span>
-                  <h4 class="font-bold text-base text-[#0F0F0F]">การวางแผนและการวิเคราะห์ความต้องการ (Planning & Requirements Analysis)</h4>
+                <!-- SVG Circular Life Cycle Wheel -->
+                <div class="relative w-full max-w-[420px] aspect-square flex items-center justify-center my-2">
+                  <svg id="sdlcCircleSvg" viewBox="0 0 520 520" class="w-full h-full select-none drop-shadow-sm">
+                    <defs>
+                      <marker id="arrowRed" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#FF0000" />
+                      </marker>
+                      <marker id="arrowPurple" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#8B5CF6" />
+                      </marker>
+                      <marker id="arrowBlue" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#065FD4" />
+                      </marker>
+                      <marker id="arrowGreen" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#2BA640" />
+                      </marker>
+                      <marker id="arrowAmber" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#FB8C00" />
+                      </marker>
+                      <marker id="arrowRose" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#E11D48" />
+                      </marker>
+                    </defs>
+
+                    <!-- Background Circular Tracks -->
+                    <circle cx="260" cy="260" r="175" fill="none" stroke="#F4F4F5" stroke-width="12" />
+                    <circle cx="260" cy="260" r="175" fill="none" stroke="#E4E4E7" stroke-width="1.5" stroke-dasharray="4 6" />
+
+                    <!-- Connecting Directed Arcs (Clockwise) with fill="none" according to svg-flowchart standard -->
+                    <!-- 1 -> 2 (Plan to Design) -->
+                    <path id="sdlcArc1" d="M 305.3 90.9 A 175 175 0 0 1 383.7 136.3" fill="none" stroke="#FF0000" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowRed)" class="opacity-70 transition-all duration-300" />
+                    <!-- 2 -> 3 (Design to Develop) -->
+                    <path id="sdlcArc2" d="M 429.0 214.7 A 175 175 0 0 1 429.0 305.3" fill="none" stroke="#8B5CF6" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowPurple)" class="opacity-70 transition-all duration-300" />
+                    <!-- 3 -> 4 (Develop to Test) -->
+                    <path id="sdlcArc3" d="M 383.7 383.7 A 175 175 0 0 1 305.3 429.1" fill="none" stroke="#065FD4" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowBlue)" class="opacity-70 transition-all duration-300" />
+                    <!-- 4 -> 5 (Test to Deploy) -->
+                    <path id="sdlcArc4" d="M 214.7 429.1 A 175 175 0 0 1 136.3 383.7" fill="none" stroke="#2BA640" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowGreen)" class="opacity-70 transition-all duration-300" />
+                    <!-- 5 -> 6 (Deploy to Maintain) -->
+                    <path id="sdlcArc5" d="M 91.0 305.3 A 175 175 0 0 1 91.0 214.7" fill="none" stroke="#FB8C00" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowAmber)" class="opacity-70 transition-all duration-300" />
+                    <!-- 6 -> 1 Continuous Loop Feedback (Maintain to Plan) -->
+                    <path id="sdlcArc6" d="M 136.3 136.3 A 175 175 0 0 1 214.7 90.9" fill="none" stroke="#E11D48" stroke-width="3.5" stroke-dasharray="6 4" stroke-linecap="round" marker-end="url(#arrowRose)" class="transition-all duration-300" />
+
+                    <!-- Center Hub Circle -->
+                    <g id="sdlcCenterHub" class="cursor-pointer" onclick="toggleSdlcAutoPlay()" title="คลิกเพื่อสลับหมุนอัตโนมัติ">
+                      <circle cx="260" cy="260" r="76" fill="#FFFFFF" stroke="#0F0F0F" stroke-width="2" class="drop-shadow-md" />
+                      <circle cx="260" cy="260" r="66" fill="#FAFAFA" stroke="#E5E5E5" stroke-width="1" />
+                      
+                      <!-- Rotating Pointer Needle -->
+                      <g id="sdlcPointerGroup" style="transform-origin: 260px 260px; transform: rotate(-90deg); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                        <line x1="260" y1="260" x2="260" y2="188" stroke="#FF0000" stroke-width="3" stroke-linecap="round" />
+                        <polygon points="260,180 254,192 266,192" fill="#FF0000" />
+                      </g>
+
+                      <!-- Center Hub Text -->
+                      <circle cx="260" cy="260" r="46" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.5" />
+                      <text x="260" y="246" text-anchor="middle" font-size="11" font-weight="900" fill="#FF0000" letter-spacing="1">SDLC</text>
+                      <text id="centerStepNum" x="260" y="264" text-anchor="middle" font-size="14" font-weight="bold" fill="#0F0F0F">ขั้นที่ 1</text>
+                      <text id="centerStepTitle" x="260" y="278" text-anchor="middle" font-size="9" font-weight="600" fill="#606060">PLANNING</text>
+                      <text x="260" y="318" text-anchor="middle" font-size="8" font-weight="bold" fill="#2BA640" letter-spacing="0.5">🔄 CONTINUOUS LOOP</text>
+                    </g>
+
+                    <!-- Node 1: Planning (Top: 260, 85) -->
+                    <g id="sdlcNode1" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(1)">
+                      <circle id="sdlcAura1" cx="260" cy="85" r="38" fill="#FF0000" opacity="0.3" class="animate-pulse" />
+                      <circle id="sdlcCircle1" cx="260" cy="85" r="32" fill="#FF0000" stroke="#FFFFFF" stroke-width="3" class="drop-shadow-md" />
+                      <text id="sdlcIcon1" x="260" y="80" text-anchor="middle" font-size="16" fill="#FFFFFF">📋</text>
+                      <text id="sdlcText1" x="260" y="96" text-anchor="middle" font-size="9" font-weight="bold" fill="#FFFFFF">1. PLAN</text>
+                    </g>
+
+                    <!-- Node 2: Design (Top Right: 411.5, 172.5) -->
+                    <g id="sdlcNode2" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(2)">
+                      <circle id="sdlcAura2" cx="411.5" cy="172.5" r="38" fill="#8B5CF6" opacity="0" />
+                      <circle id="sdlcCircle2" cx="411.5" cy="172.5" r="29" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon2" x="411.5" y="168" text-anchor="middle" font-size="15" fill="#8B5CF6">🎨</text>
+                      <text id="sdlcText2" x="411.5" y="184" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">2. DESIGN</text>
+                    </g>
+
+                    <!-- Node 3: Develop (Bottom Right: 411.5, 347.5) -->
+                    <g id="sdlcNode3" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(3)">
+                      <circle id="sdlcAura3" cx="411.5" cy="347.5" r="38" fill="#065FD4" opacity="0" />
+                      <circle id="sdlcCircle3" cx="411.5" cy="347.5" r="29" fill="#FFFFFF" stroke="#065FD4" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon3" x="411.5" y="343" text-anchor="middle" font-size="15" fill="#065FD4">💻</text>
+                      <text id="sdlcText3" x="411.5" y="359" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">3. CODE</text>
+                    </g>
+
+                    <!-- Node 4: Testing (Bottom: 260, 435) -->
+                    <g id="sdlcNode4" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(4)">
+                      <circle id="sdlcAura4" cx="260" cy="435" r="38" fill="#2BA640" opacity="0" />
+                      <circle id="sdlcCircle4" cx="260" cy="435" r="29" fill="#FFFFFF" stroke="#2BA640" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon4" x="260" y="430" text-anchor="middle" font-size="15" fill="#2BA640">🧪</text>
+                      <text id="sdlcText4" x="260" y="446" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">4. TEST</text>
+                    </g>
+
+                    <!-- Node 5: Deploy (Bottom Left: 108.5, 347.5) -->
+                    <g id="sdlcNode5" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(5)">
+                      <circle id="sdlcAura5" cx="108.5" cy="347.5" r="38" fill="#FB8C00" opacity="0" />
+                      <circle id="sdlcCircle5" cx="108.5" cy="347.5" r="29" fill="#FFFFFF" stroke="#FB8C00" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon5" x="108.5" y="343" text-anchor="middle" font-size="15" fill="#FB8C00">🚀</text>
+                      <text id="sdlcText5" x="108.5" y="359" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">5. DEPLOY</text>
+                    </g>
+
+                    <!-- Node 6: Maintain (Top Left: 108.5, 172.5) -->
+                    <g id="sdlcNode6" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(6)">
+                      <circle id="sdlcAura6" cx="108.5" cy="172.5" r="38" fill="#E11D48" opacity="0" />
+                      <circle id="sdlcCircle6" cx="108.5" cy="172.5" r="29" fill="#FFFFFF" stroke="#E11D48" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon6" x="108.5" y="168" text-anchor="middle" font-size="15" fill="#E11D48">🔄</text>
+                      <text id="sdlcText6" x="108.5" y="184" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">6. EVOLVE</text>
+                    </g>
+                  </svg>
                 </div>
-                <p class="text-sm text-[#606060] leading-relaxed">
-                  เป็นขั้นตอนที่ตอบคำถามว่า <strong>"เรากำลังจะแก้ปัญหาอะไร และทำไมต้องแก้?"</strong> นักพัฒนาต้องลงพื้นที่สำรวจ สัมภาษณ์ผู้ใช้งานจริง และระบุความต้องการออกเป็น 2 มิติ:
-                </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div class="bg-[#F8F8F8] p-3.5 rounded-lg border border-[#E5E5E5]">
-                    <div class="font-bold text-[#0F0F0F] mb-1">Functional Requirements (ข้อกำหนดเชิงหน้าที่):</div>
-                    <p class="text-[#606060]">ระบบต้องทำอะไรได้บ้าง เช่น สแกนบาร์โค้ดได้, คำนวณเงินรวมได้, ส่งแจ้งเตือนคิวได้, มีระบบค้นหาประวัติย้อนหลัง</p>
+
+                <!-- Step Navigator & Loopback Pill -->
+                <div class="w-full space-y-3 mt-2">
+                  <!-- Stepper Quick Buttons -->
+                  <div class="flex items-center justify-between gap-1 max-w-sm mx-auto">
+                    <button onclick="prevSdlcStep()" class="h-8 px-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-xs font-semibold text-[#0F0F0F] transition" title="ขั้นตอนก่อนหน้า">
+                      ← ก่อนหน้า
+                    </button>
+                    <div class="flex items-center gap-1">
+                      <button onclick="showSdlcStep(1)" id="sdlcDot1" class="w-7 h-7 rounded-lg bg-[#FF0000] text-white text-xs font-bold transition">1</button>
+                      <button onclick="showSdlcStep(2)" id="sdlcDot2" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">2</button>
+                      <button onclick="showSdlcStep(3)" id="sdlcDot3" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">3</button>
+                      <button onclick="showSdlcStep(4)" id="sdlcDot4" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">4</button>
+                      <button onclick="showSdlcStep(5)" id="sdlcDot5" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">5</button>
+                      <button onclick="showSdlcStep(6)" id="sdlcDot6" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">6</button>
+                    </div>
+                    <button onclick="nextSdlcStep()" class="h-8 px-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-xs font-semibold text-[#0F0F0F] transition" title="ขั้นตอนถัดไป">
+                      ถัดไป →
+                    </button>
                   </div>
-                  <div class="bg-[#F8F8F8] p-3.5 rounded-lg border border-[#E5E5E5]">
-                    <div class="font-bold text-[#0F0F0F] mb-1">Non-Functional Requirements (ข้อกำหนดเชิงคุณภาพ):</div>
-                    <p class="text-[#606060]">คุณสมบัติแวดล้อม เช่น โหลดข้อมูลเสร็จใน 2 วินาที, หน้าจอรองรับจอเล็ก 360px, รองรับโหมดออฟไลน์เมื่อเน็ตหลุด</p>
+
+                  <!-- Continuous Loop Explanation Callout -->
+                  <div class="p-3 bg-red-50/70 border border-red-200 rounded-xl text-[11px] text-[#0F0F0F] flex items-start gap-2">
+                    <span class="text-sm shrink-0">🔄</span>
+                    <div class="leading-relaxed">
+                      <strong>วงจรไม่สิ้นสุด (Continuous Loop):</strong> เมื่อแอปถูกบำรุงรักษา (ขั้น 6) ข้อเสนอแนะและปัญหาใหม่จะถูกส่งต่อ <em>"วนลูปกลับไปสู่การวางแผน (ขั้น 1)"</em> เพื่อพัฒนาเวอร์ชันถัดไปอย่างต่อเนื่อง
+                    </div>
                   </div>
-                </div>
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
-                  💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> เหมือนการสำรวจทำเลและกลุ่มลูกค้าก่อนเปิดร้านอาหาร ว่าคนแถวนั้นชอบกินอะไร มีงบประมาณเท่าไร และมีคู่แข่งร้านไหนอยู่ใกล้บ้าง
                 </div>
               </div>
 
-              <!-- Step 2 -->
-              <div id="sdlcContent2" class="sdlc-content hidden space-y-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">2</span>
-                  <h4 class="font-bold text-base text-[#0F0F0F]">การออกแบบสถาปัตยกรรมและส่วนต่อประสาน (System & UI/UX Design)</h4>
-                </div>
-                <p class="text-sm text-[#606060] leading-relaxed">
-                  นำความต้องการที่ได้มาแปลงเป็นแบบจำลองเชิงระบบและหน้าตาของแอปพลิเคชัน:
-                </p>
-                <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
-                  <li><strong>Database Schema:</strong> กำหนดตารางเก็บข้อมูลใน Google Sheets เช่น ตารางลูกค้า, สินค้า, ออร์เดอร์, รายละเอียดการสั่งซื้อ</li>
-                  <li><strong>UX (User Experience):</strong> ออกแบบเส้นทางการกด (User Flow) ให้กระชับ สั่งของเสร็จใน 3 คลิก ไม่สับสน</li>
-                  <li><strong>UI (User Interface):</strong> วาดโครงร่าง Wireframe และ Mockup สีสมบูรณ์บน <strong>Figma</strong> พร้อม Interactive Prototype</li>
-                </ul>
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
-                  💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ให้สถาปนิกและมัณฑนากรเขียนแปลนร้านอาหาร จัดวางตำแหน่งโต๊ะ จุดชำระเงิน ครัว และออกแบบป้ายเมนูให้สวยงามน่าเข้า
-                </div>
-              </div>
-
-              <!-- Step 3 -->
-              <div id="sdlcContent3" class="sdlc-content hidden space-y-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">3</span>
-                  <h4 class="font-bold text-base text-[#0F0F0F]">การพัฒนาและเขียนโปรแกรม (Implementation / Development)</h4>
-                </div>
-                <p class="text-sm text-[#606060] leading-relaxed">
-                  นำพิมพ์เขียวที่ได้มาลงมือสร้างเป็นแอปพลิเคชันที่ทำงานได้จริง สำหรับวิชานี้เราใช้ <strong>No-Code Platform (Google AppSheet)</strong> ซึ่งช่วยลดระยะเวลาจากเดิมที่ต้องเขียนโค้ดหลายพันบรรทัด เหลือเพียงการกำหนดความสัมพันธ์ของข้อมูลและตรรกะทางธุรกิจ
-                </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
-                    <span class="font-bold text-[#0F0F0F]">Traditional Coding:</span> Swift, Kotlin, Flutter (ใช้เวลา 3-6 เดือน เหมาะกับระบบยักษ์ใหญ่)
+              <!-- Right Column: Deep-Dive Step Details (lg:col-span-6) -->
+              <div class="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-between bg-white">
+                
+                <!-- Lifecycle Hand-off Context Bar -->
+                <div id="sdlcHandoffBar" class="mb-4 p-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs flex items-center justify-between">
+                  <div class="flex items-center gap-1.5 text-zinc-500">
+                    <span class="font-bold text-zinc-700">📥 รับเข้า:</span>
+                    <span id="sdlcInputDesc" class="text-zinc-600 font-medium">Pain Points & ไอเดียธุรกิจ</span>
                   </div>
-                  <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
-                    <span class="font-bold text-[#2BA640]">No-Code Platform (AppSheet):</span> เชื่อม Google Sheets สร้างแอปเสร็จใน 1-2 สัปดาห์ เหมาะกับธุรกิจชุมชน
+                  <span class="text-zinc-400">➔</span>
+                  <div class="flex items-center gap-1.5 text-red-600">
+                    <span class="font-bold">📤 ส่งมอบ:</span>
+                    <span id="sdlcOutputDesc" class="font-semibold">App Concept Canvas & PRD</span>
                   </div>
                 </div>
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
-                  💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ช่างก่อสร้างเริ่มก่ออิฐ ฉาบปูน เดินท่อน้ำ ต่อสายไฟ ติดตั้งเคาน์เตอร์กาแฟและเครื่องชง
-                </div>
-              </div>
 
-              <!-- Step 4 -->
-              <div id="sdlcContent4" class="sdlc-content hidden space-y-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">4</span>
-                  <h4 class="font-bold text-base text-[#0F0F0F]">การทดสอบและการควบคุมคุณภาพ (Testing & Quality Assurance)</h4>
-                </div>
-                <p class="text-sm text-[#606060] leading-relaxed">
-                  นำแอปไปทดสอบในสถานการณ์จริง ค้นหาจุดบกพร่อง (Bugs) เพื่อไม่ให้เกิดปัญหาหน้างาน:
-                </p>
-                <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
-                  <li><strong>Functional Testing:</strong> ตรวจสอบสูตรคำนวณเงิน การสแกนบาร์โค้ดในที่แสงน้อย การตัดสต๊อกเมื่อกดสั่งซื้อ</li>
-                  <li><strong>Usability Testing:</strong> ให้ผู้ใช้จริงที่ไม่เชี่ยวชาญเทคโนโลยีลองกดใช้งาน ว่าตัวหนังสือเล็กไปหรือไม่ เมนูเข้าใจยากไหม</li>
-                  <li><strong>Device Compatibility:</strong> ทดสอบบนจอ iPhone, iPad, มือถือ Android จอเล็ก และผ่านเว็บเบราว์เซอร์</li>
-                </ul>
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
-                  💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ซ้อมชงกาแฟให้เพื่อนร่วมงานชิม ตรวจสอบว่าเตาแก๊สทำงานปลอดภัย และเครื่องรูดบัตรคิดเงินตรงเป๊ะ
-                </div>
-              </div>
-
-              <!-- Step 5 -->
-              <div id="sdlcContent5" class="sdlc-content hidden space-y-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">5</span>
-                  <h4 class="font-bold text-base text-[#0F0F0F]">การติดตั้งและการส่งมอบระบบ (Deployment & Release)</h4>
-                </div>
-                <p class="text-sm text-[#606060] leading-relaxed">
-                  การส่งมอบแอปให้ผู้ใช้จริงใช้งานในสภาพแวดล้อมจริง (Production Environment):
-                </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
-                    <div class="font-bold text-[#0F0F0F] mb-1">การติดตั้งหน้าร้าน:</div>
-                    <p class="text-[#606060]">ติดตั้งสแตนดี้ QR Code สำหรับสแกนใช้งานแอปได้ทันทีโดยไม่ต้องโหลดผ่านสโตร์</p>
+                <!-- Detailed Content 1 to 6 (Full contents 100% preserved) -->
+                <div>
+                  <!-- Step 1 -->
+                  <div id="sdlcContent1" class="sdlc-content block space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#FF0000] text-white flex items-center justify-center text-xs font-bold shadow-sm">1</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การวางแผนและการวิเคราะห์ความต้องการ (Planning & Requirements Analysis)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      เป็นขั้นตอนที่ตอบคำถามว่า <strong>"เรากำลังจะแก้ปัญหาอะไร และทำไมต้องแก้?"</strong> นักพัฒนาต้องลงพื้นที่สำรวจ สัมภาษณ์ผู้ใช้งานจริง และระบุความต้องการออกเป็น 2 มิติ:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div class="bg-[#F8F8F8] p-3.5 rounded-lg border border-[#E5E5E5]">
+                        <div class="font-bold text-[#0F0F0F] mb-1">Functional Requirements (ข้อกำหนดเชิงหน้าที่):</div>
+                        <p class="text-[#606060]">ระบบต้องทำอะไรได้บ้าง เช่น สแกนบาร์โค้ดได้, คำนวณเงินรวมได้, ส่งแจ้งเตือนคิวได้, มีระบบค้นหาประวัติย้อนหลัง</p>
+                      </div>
+                      <div class="bg-[#F8F8F8] p-3.5 rounded-lg border border-[#E5E5E5]">
+                        <div class="font-bold text-[#0F0F0F] mb-1">Non-Functional Requirements (ข้อกำหนดเชิงคุณภาพ):</div>
+                        <p class="text-[#606060]">คุณสมบัติแวดล้อม เช่น โหลดข้อมูลเสร็จใน 2 วินาที, หน้าจอรองรับจอเล็ก 360px, รองรับโหมดออฟไลน์เมื่อเน็ตหลุด</p>
+                      </div>
+                    </div>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> เหมือนการสำรวจทำเลและกลุ่มลูกค้าก่อนเปิดร้านอาหาร ว่าคนแถวนั้นชอบกินอะไร มีงบประมาณเท่าไร และมีคู่แข่งร้านไหนอยู่ใกล้บ้าง
+                    </div>
                   </div>
-                  <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
-                    <div class="font-bold text-[#0F0F0F] mb-1">การฝึกอบรมบุคลากร:</div>
-                    <p class="text-[#606060]">สอนวิธีรับออร์เดอร์ การกดยืนยันสถานะ และการเปิดดูรายงานสรุปยอดขาย</p>
+
+                  <!-- Step 2 -->
+                  <div id="sdlcContent2" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center text-xs font-bold shadow-sm">2</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การออกแบบสถาปัตยกรรมและส่วนต่อประสาน (System & UI/UX Design)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      นำความต้องการที่ได้มาแปลงเป็นแบบจำลองเชิงระบบและหน้าตาของแอปพลิเคชัน:
+                    </p>
+                    <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
+                      <li><strong>Database Schema:</strong> กำหนดตารางเก็บข้อมูลใน Google Sheets เช่น ตารางลูกค้า, สินค้า, ออร์เดอร์, รายละเอียดการสั่งซื้อ</li>
+                      <li><strong>UX (User Experience):</strong> ออกแบบเส้นทางการกด (User Flow) ให้กระชับ สั่งของเสร็จใน 3 คลิก ไม่สับสน</li>
+                      <li><strong>UI (User Interface):</strong> วาดโครงร่าง Wireframe และ Mockup สีสมบูรณ์บน <strong>Figma</strong> พร้อม Interactive Prototype</li>
+                    </ul>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ให้สถาปนิกและมัณฑนากรเขียนแปลนร้านอาหาร จัดวางตำแหน่งโต๊ะ จุดชำระเงิน ครัว และออกแบบป้ายเมนูให้สวยงามน่าเข้า
+                    </div>
+                  </div>
+
+                  <!-- Step 3 -->
+                  <div id="sdlcContent3" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#065FD4] text-white flex items-center justify-center text-xs font-bold shadow-sm">3</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การพัฒนาและเขียนโปรแกรม (Implementation / Development)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      นำพิมพ์เขียวที่ได้มาลงมือสร้างเป็นแอปพลิเคชันที่ทำงานได้จริง สำหรับวิชานี้เราใช้ <strong>No-Code Platform (Google AppSheet)</strong> ซึ่งช่วยลดระยะเวลาจากเดิมที่ต้องเขียนโค้ดหลายพันบรรทัด เหลือเพียงการกำหนดความสัมพันธ์ของข้อมูลและตรรกะทางธุรกิจ
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
+                        <span class="font-bold text-[#0F0F0F]">Traditional Coding:</span> Swift, Kotlin, Flutter (ใช้เวลา 3-6 เดือน เหมาะกับระบบยักษ์ใหญ่)
+                      </div>
+                      <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
+                        <span class="font-bold text-[#2BA640]">No-Code Platform (AppSheet):</span> เชื่อม Google Sheets สร้างแอปเสร็จใน 1-2 สัปดาห์ เหมาะกับธุรกิจชุมชน
+                      </div>
+                    </div>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ช่างก่อสร้างเริ่มก่ออิฐ ฉาบปูน เดินท่อน้ำ ต่อสายไฟ ติดตั้งเคาน์เตอร์กาแฟและเครื่องชง
+                    </div>
+                  </div>
+
+                  <!-- Step 4 -->
+                  <div id="sdlcContent4" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#2BA640] text-white flex items-center justify-center text-xs font-bold shadow-sm">4</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การทดสอบและการควบคุมคุณภาพ (Testing & Quality Assurance)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      นำแอปไปทดสอบในสถานการณ์จริง ค้นหาจุดบกพร่อง (Bugs) เพื่อไม่ให้เกิดปัญหาหน้างาน:
+                    </p>
+                    <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
+                      <li><strong>Functional Testing:</strong> ตรวจสอบสูตรคำนวณเงิน การสแกนบาร์โค้ดในที่แสงน้อย การตัดสต๊อกเมื่อกดสั่งซื้อ</li>
+                      <li><strong>Usability Testing:</strong> ให้ผู้ใช้จริงที่ไม่เชี่ยวชาญเทคโนโลยีลองกดใช้งาน ว่าตัวหนังสือเล็กไปหรือไม่ เมนูเข้าใจยากไหม</li>
+                      <li><strong>Device Compatibility:</strong> ทดสอบบนจอ iPhone, iPad, มือถือ Android จอเล็ก และผ่านเว็บเบราว์เซอร์</li>
+                    </ul>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ซ้อมชงกาแฟให้เพื่อนร่วมงานชิม ตรวจสอบว่าเตาแก๊สทำงานปลอดภัย และเครื่องรูดบัตรคิดเงินตรงเป๊ะ
+                    </div>
+                  </div>
+
+                  <!-- Step 5 -->
+                  <div id="sdlcContent5" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#FB8C00] text-white flex items-center justify-center text-xs font-bold shadow-sm">5</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การติดตั้งและการส่งมอบระบบ (Deployment & Release)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      การส่งมอบแอปให้ผู้ใช้จริงใช้งานในสภาพแวดล้อมจริง (Production Environment):
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
+                        <div class="font-bold text-[#0F0F0F] mb-1">การติดตั้งหน้าร้าน:</div>
+                        <p class="text-[#606060]">ติดตั้งสแตนดี้ QR Code สำหรับสแกนใช้งานแอปได้ทันทีโดยไม่ต้องโหลดผ่านสโตร์</p>
+                      </div>
+                      <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
+                        <div class="font-bold text-[#0F0F0F] mb-1">การฝึกอบรมบุคลากร:</div>
+                        <p class="text-[#606060]">สอนวิธีรับออร์เดอร์ การกดยืนยันสถานะ และการเปิดดูรายงานสรุปยอดขาย</p>
+                      </div>
+                    </div>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> วัน Grand Opening เชิญลูกค้าเข้าร้านอย่างเป็นทางการและเริ่มรับรายได้จริง
+                    </div>
+                  </div>
+
+                  <!-- Step 6 -->
+                  <div id="sdlcContent6" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#E11D48] text-white flex items-center justify-center text-xs font-bold shadow-sm">6</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การบำรุงรักษาและการพัฒนาต่อเนื่อง (Maintenance & Evolution)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      ซอฟต์แวร์ไม่เคยมีคำว่า "เสร็จสิ้นอย่างถาวร" ต้องรับฟังข้อเสนอแนะจากผู้ใช้จริงมาพัฒนาต่อยอด:
+                    </p>
+                    <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
+                      <li><strong>Corrective Maintenance:</strong> แก้ไขข้อผิดพลาดหรือบั๊กที่เพิ่งพบระหว่างการใช้งานจริง</li>
+                      <li><strong>Adaptive Maintenance:</strong> อัปเดตโครงสร้างระบบให้สอดคล้องกับการเปลี่ยนแปลงของ Google Sheets หรือเบราว์เซอร์</li>
+                      <li><strong>Perfective Maintenance:</strong> เพิ่มเมนูใหม่ ฟังก์ชันคูปองส่วนลด หรือระบบสะสมแต้มตามความต้องการของธุรกิจ</li>
+                    </ul>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ปรับปรุงสูตรอาหารตามคำติชมลูกค้า เพิ่มเมนูตามฤดูกาล และซ่อมแซมเก้าอี้ที่เริ่มชำรุด
+                    </div>
                   </div>
                 </div>
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
-                  💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> วัน Grand Opening เชิญลูกค้าเข้าร้านอย่างเป็นทางการและเริ่มรับรายได้จริง
-                </div>
-              </div>
 
-              <!-- Step 6 -->
-              <div id="sdlcContent6" class="sdlc-content hidden space-y-4">
-                <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">6</span>
-                  <h4 class="font-bold text-base text-[#0F0F0F]">การบำรุงรักษาและการพัฒนาต่อเนื่อง (Maintenance & Evolution)</h4>
-                </div>
-                <p class="text-sm text-[#606060] leading-relaxed">
-                  ซอฟต์แวร์ไม่เคยมีคำว่า "เสร็จสิ้นอย่างถาวร" ต้องรับฟังข้อเสนอแนะจากผู้ใช้จริงมาพัฒนาต่อยอด:
-                </p>
-                <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
-                  <li><strong>Corrective Maintenance:</strong> แก้ไขข้อผิดพลาดหรือบั๊กที่เพิ่งพบระหว่างการใช้งานจริง</li>
-                  <li><strong>Adaptive Maintenance:</strong> อัปเดตโครงสร้างระบบให้สอดคล้องกับการเปลี่ยนแปลงของ Google Sheets หรือเบราว์เซอร์</li>
-                  <li><strong>Perfective Maintenance:</strong> เพิ่มเมนูใหม่ ฟังก์ชันคูปองส่วนลด หรือระบบสะสมแต้มตามความต้องการของธุรกิจ</li>
-                </ul>
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
-                  💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ปรับปรุงสูตรอาหารตามคำติชมลูกค้า เพิ่มเมนูตามฤดูกาล และซ่อมแซมเก้าอี้ที่เริ่มชำรุด
+                <!-- Footer tip -->
+                <div class="mt-6 pt-3 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400">
+                  <span>วงจร SDLC สากล • IEEE Standard 1074</span>
+                  <span>คลิกเพื่อดูการถ่ายโอนข้อมูล</span>
                 </div>
               </div>
             </div>
@@ -1155,7 +1329,7 @@
 
               <!-- Status Bar -->
               <div class="px-5 pt-1.5 pb-1 flex items-center justify-between text-[10px] font-bold text-[#0F0F0F] select-none z-10 bg-white border-b border-zinc-100">
-                <span>09:41</span>
+                <span id="simLiveClock" class="tabular-nums">09:41</span>
                 <div class="flex items-center gap-1.5">
                   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
                   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"/></svg>
@@ -1772,21 +1946,303 @@
     });
 
     // -------------------------------------------------------------
-    // 3. SDLC Stepper Logic
+    // Shared Standalone Micro-Interactions Engine (Web Audio + Confetti)
     // -------------------------------------------------------------
-    function showSdlcStep(step) {
-      for (let i = 1; i <= 6; i++) {
-        const tab = document.getElementById(`sdlcTab${i}`);
-        const content = document.getElementById(`sdlcContent${i}`);
-        if (i === step) {
-          tab.className = 'sdlc-tab py-3 px-2 text-center border-b-2 border-[#FF0000] bg-white font-bold text-[#FF0000] transition';
-          content.classList.remove('hidden');
-          content.classList.add('block');
-        } else {
-          tab.className = 'sdlc-tab py-3 px-2 text-center border-b-2 border-transparent text-[#606060] hover:bg-[#F2F2F2] transition';
-          content.classList.add('hidden');
-          content.classList.remove('block');
+    const EduAudio = (function() {
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      try {
+        const saved = localStorage.getItem('edu_audio_sound_enabled');
+        if (saved !== null) soundEnabled = (saved === 'true');
+      } catch (e) {}
+
+      function getContext() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
         }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      function updateSoundUI() {
+        const iconEl = document.getElementById('soundIcon');
+        const textEl = document.getElementById('soundText');
+        const btnEl = document.getElementById('soundToggleBtn');
+        if (iconEl) iconEl.innerText = soundEnabled ? '🔊' : '🔇';
+        if (textEl) textEl.innerText = soundEnabled ? 'เสียงเปิด' : 'เสียงปิด';
+        if (btnEl) {
+          if (soundEnabled) btnEl.classList.remove('opacity-60');
+          else btnEl.classList.add('opacity-60');
+        }
+      }
+
+      return {
+        initUI: function() { updateSoundUI(); },
+        toggleSound: function() {
+          soundEnabled = !soundEnabled;
+          try { localStorage.setItem('edu_audio_sound_enabled', soundEnabled.toString()); } catch(e) {}
+          updateSoundUI();
+          if (soundEnabled) this.playClick();
+        },
+        playClick: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.06);
+          } catch(e) {}
+        },
+        playChime: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            [523.25, 659.25].forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+              gain.gain.setValueAtTime(0.15, now + idx * 0.06);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + idx * 0.06);
+              osc.stop(now + idx * 0.06 + 0.26);
+            });
+          } catch(e) {}
+        },
+        playFanfare: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const notes = [440, 554.37, 659.25, 880];
+            notes.forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+              gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + (idx === 3 ? 0.6 : 0.25));
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + idx * 0.08);
+              osc.stop(now + idx * 0.08 + (idx === 3 ? 0.65 : 0.28));
+            });
+          } catch(e) {}
+        }
+      };
+    })();
+
+    const EduConfetti = (function() {
+      let canvas, ctx;
+      let particles = [];
+      let animationId = null;
+
+      function resize() {
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function init() {
+        canvas = document.getElementById('confettiCanvas');
+        if (!canvas) return;
+        ctx = canvas.getContext('2d');
+        window.addEventListener('resize', resize);
+        resize();
+      }
+
+      function createParticle(x, y) {
+        const colors = ['#FF0000', '#FF4D4D', '#2BA640', '#065FD4', '#FB8C00', '#FFD700', '#9C27B0'];
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 4;
+        return {
+          x: x, y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3,
+          radius: Math.random() * 4 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotationSpeed: (Math.random() - 0.5) * 12,
+          alpha: 1,
+          decay: Math.random() * 0.015 + 0.012
+        };
+      }
+
+      function update() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy; p.vy += 0.18;
+          p.rotation += p.rotationSpeed;
+          p.alpha -= p.decay;
+          if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.radius, -p.radius, p.radius * 2, p.radius * 1.5);
+          ctx.restore();
+        }
+        if (particles.length > 0) animationId = requestAnimationFrame(update);
+        else { cancelAnimationFrame(animationId); animationId = null; }
+      }
+
+      return {
+        fire: function(originX, originY, count = 75) {
+          if (!canvas) init();
+          const x = originX !== undefined ? originX : window.innerWidth / 2;
+          const y = originY !== undefined ? originY : window.innerHeight / 3;
+          for (let i = 0; i < count; i++) particles.push(createParticle(x, y));
+          if (!animationId) update();
+        }
+      };
+    })();
+
+    window.EduAudio = EduAudio;
+    window.EduConfetti = EduConfetti;
+
+    // -------------------------------------------------------------
+    // 3. SDLC Circular Stepper Logic & Auto-Cycle Engine
+    // -------------------------------------------------------------
+    let currentSdlcStep = 1;
+    let sdlcAutoPlayTimer = null;
+    const sdlcAngles = [-90, -30, 30, 90, 150, 210];
+    const sdlcStageMeta = {
+      1: { name: 'PLANNING', color: '#FF0000', input: 'Pain Points & ไอเดียธุรกิจ', output: 'App Concept Canvas & PRD' },
+      2: { name: 'DESIGN', color: '#8B5CF6', input: 'App Concept Canvas & PRD', output: 'Figma UI Mockup & DB Schema' },
+      3: { name: 'DEVELOP', color: '#065FD4', input: 'Figma Mockup & DB Schema', output: 'AppSheet Working Prototype' },
+      4: { name: 'TESTING', color: '#2BA640', input: 'AppSheet Working Prototype', output: 'UAT Test Report & Bug Fixes' },
+      5: { name: 'DEPLOY', color: '#FB8C00', input: 'Verified App (Zero P0 Bugs)', output: 'Production Live Release' },
+      6: { name: 'MAINTAIN', color: '#E11D48', input: 'Live Usage & User Analytics', output: 'New Feature Backlog (วนกลับขั้น 1)' }
+    };
+
+    function showSdlcStep(step) {
+      currentSdlcStep = step;
+      if (window.EduAudio) EduAudio.playClick();
+
+      // Rotate pointer needle in center hub
+      const pointer = document.getElementById('sdlcPointerGroup');
+      if (pointer) {
+        pointer.style.transform = `rotate(${sdlcAngles[step - 1]}deg)`;
+      }
+
+      // Update Center Hub Texts
+      const stepMeta = sdlcStageMeta[step];
+      const centerNum = document.getElementById('centerStepNum');
+      const centerTitle = document.getElementById('centerStepTitle');
+      if (centerNum) centerNum.innerText = `ขั้นที่ ${step}`;
+      if (centerTitle) {
+        centerTitle.innerText = stepMeta.name;
+        centerTitle.setAttribute('fill', stepMeta.color);
+      }
+
+      // Update Handoff bar
+      const inEl = document.getElementById('sdlcInputDesc');
+      const outEl = document.getElementById('sdlcOutputDesc');
+      if (inEl) inEl.innerText = stepMeta.input;
+      if (outEl) outEl.innerText = stepMeta.output;
+
+      // Update SVG Nodes styling
+      for (let i = 1; i <= 6; i++) {
+        const circle = document.getElementById(`sdlcCircle${i}`);
+        const aura = document.getElementById(`sdlcAura${i}`);
+        const text = document.getElementById(`sdlcText${i}`);
+        const icon = document.getElementById(`sdlcIcon${i}`);
+        const dot = document.getElementById(`sdlcDot${i}`);
+        const content = document.getElementById(`sdlcContent${i}`);
+        const meta = sdlcStageMeta[i];
+
+        if (i === step) {
+          if (circle) {
+            circle.setAttribute('fill', meta.color);
+            circle.setAttribute('r', '32');
+            circle.setAttribute('stroke', '#FFFFFF');
+            circle.setAttribute('stroke-width', '3');
+          }
+          if (aura) {
+            aura.setAttribute('opacity', '0.35');
+            aura.classList.add('animate-pulse');
+          }
+          if (text) text.setAttribute('fill', '#FFFFFF');
+          if (icon) icon.setAttribute('fill', '#FFFFFF');
+          if (dot) {
+            dot.className = 'w-7 h-7 rounded-lg text-white text-xs font-bold transition shadow-sm';
+            dot.style.backgroundColor = meta.color;
+          }
+          if (content) {
+            content.classList.remove('hidden');
+            content.classList.add('block');
+          }
+        } else {
+          if (circle) {
+            circle.setAttribute('fill', '#FFFFFF');
+            circle.setAttribute('r', '29');
+            circle.setAttribute('stroke', meta.color);
+            circle.setAttribute('stroke-width', '2.5');
+          }
+          if (aura) {
+            aura.setAttribute('opacity', '0');
+            aura.classList.remove('animate-pulse');
+          }
+          if (text) text.setAttribute('fill', '#0F0F0F');
+          if (icon) icon.setAttribute('fill', meta.color);
+          if (dot) {
+            dot.className = 'w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition';
+            dot.style.backgroundColor = '';
+          }
+          if (content) {
+            content.classList.add('hidden');
+            content.classList.remove('block');
+          }
+        }
+      }
+    }
+
+    function nextSdlcStep() {
+      const next = currentSdlcStep < 6 ? currentSdlcStep + 1 : 1;
+      showSdlcStep(next);
+    }
+
+    function prevSdlcStep() {
+      const prev = currentSdlcStep > 1 ? currentSdlcStep - 1 : 6;
+      showSdlcStep(prev);
+    }
+
+    function toggleSdlcAutoPlay() {
+      const autoIcon = document.getElementById('sdlcAutoIcon');
+      const autoText = document.getElementById('sdlcAutoText');
+      const autoBtn = document.getElementById('sdlcAutoPlayBtn');
+
+      if (sdlcAutoPlayTimer) {
+        clearInterval(sdlcAutoPlayTimer);
+        sdlcAutoPlayTimer = null;
+        if (autoIcon) autoIcon.innerText = '▶';
+        if (autoText) autoText.innerText = 'หมุนวงจรอัตโนมัติ';
+        if (autoBtn) autoBtn.classList.remove('bg-red-600', 'text-white');
+      } else {
+        if (autoIcon) autoIcon.innerText = '⏸';
+        if (autoText) autoText.innerText = 'พักการหมุน';
+        if (autoBtn) autoBtn.classList.add('bg-red-600', 'text-white');
+        nextSdlcStep();
+        sdlcAutoPlayTimer = setInterval(nextSdlcStep, 3200);
       }
     }
 
@@ -2205,10 +2661,13 @@
       calculateChecklist();
     }
 
+    let lastChecklistPct = 0;
+
     function updateChecklist() {
       const checkboxes = document.querySelectorAll('.check-item');
       const checkedArr = Array.from(checkboxes).map(cb => cb.checked);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedArr));
+      if (window.EduAudio) EduAudio.playChime();
       calculateChecklist();
     }
 
@@ -2228,9 +2687,14 @@
       const badge = document.getElementById('checklistBadge');
       if (pct === 100) {
         badge.classList.remove('hidden');
+        if (lastChecklistPct < 100) {
+          if (window.EduConfetti) EduConfetti.fire();
+          if (window.EduAudio) EduAudio.playFanfare();
+        }
       } else {
         badge.classList.add('hidden');
       }
+      lastChecklistPct = pct;
     }
 
     function resetChecklist() {
@@ -2238,6 +2702,7 @@
         localStorage.removeItem(STORAGE_KEY);
         const checkboxes = document.querySelectorAll('.check-item');
         checkboxes.forEach(cb => cb.checked = false);
+        lastChecklistPct = 0;
         calculateChecklist();
       }
     }
@@ -2247,7 +2712,10 @@
     // -------------------------------------------------------------
     // 7. Interactive Rubric Calculator (10 Points)
     // -------------------------------------------------------------
+    let lastRubricTotal = 0;
+
     function calcRubric() {
+      if (window.EduAudio) EduAudio.playClick();
       let total = 0;
       for (let i = 1; i <= 5; i++) {
         const val = parseInt(document.querySelector(`input[name="rc${i}"]:checked`).value);
@@ -2276,6 +2744,10 @@
         badge.innerText = 'ระดับ: ดีเยี่ยม (Mastered / Grade A)';
         diagnostic.className = 'p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-[#2BA640] leading-relaxed';
         diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ผลงานของท่านมีความสมบูรณ์แบบในระดับวิศวกรซอฟต์แวร์ สามารถนำพิมพ์เขียวนี้ไปเริ่มเขียนตารางข้อมูลใน Google Sheets และวาด Wireframe บน Figma ได้ทันที';
+        if (total === 10 && lastRubricTotal < 10) {
+          if (window.EduConfetti) EduConfetti.fire();
+          if (window.EduAudio) EduAudio.playFanfare();
+        }
       } else if (total >= 7) {
         badge.className = 'px-4 py-2 rounded-xl bg-blue-100 text-[#065FD4] font-bold text-sm border border-blue-300';
         badge.innerText = 'ระดับ: ดี (Proficient / Grade B)';
@@ -2292,6 +2764,7 @@
         diagnostic.className = 'p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-[#FF0000] leading-relaxed';
         diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> กรอบปัญหาและกลุ่มเป้าหมายยังไม่ชัดเจน แนะนำให้ทบทวนกรณีศึกษาทั้ง 3 รูปแบบ และทำการวิเคราะห์ Pain Points 4 มิติใหม่อีกครั้ง';
       }
+      lastRubricTotal = total;
     }
 
     // -------------------------------------------------------------
@@ -2465,6 +2938,24 @@
         e.preventDefault();
         document.getElementById('searchInput').focus();
       }
+    });
+
+    // Real-Time Simulator Clock Updater
+    function updateSimLiveClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const clockEl = document.getElementById('simLiveClock');
+      if (clockEl) {
+        clockEl.innerText = `${hours}:${minutes}`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.EduAudio) EduAudio.initUI();
+      showSdlcStep(1);
+      updateSimLiveClock();
+      setInterval(updateSimLiveClock, 30000);
     });
   </script>
 </body>
