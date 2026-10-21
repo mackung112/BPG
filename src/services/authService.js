@@ -200,7 +200,7 @@ export const loginStudent = async (studentId, secretCode) => {
     .maybeSingle();
 
   if (existingParticipant) {
-    let updatePayload = {};
+    let updatePayload;
 
     const { data: pastResults } = await supabase
       .from('exam_results')

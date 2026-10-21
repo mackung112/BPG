@@ -371,7 +371,9 @@ export default function ExamRoom() {
       submitLockRef.current = false;
     }
   };
-  handleSubmitRef.current = handleSubmit;
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  });
 
   const formatTime = (seconds) => {
     if (seconds === null || seconds === undefined) return '--:--';
