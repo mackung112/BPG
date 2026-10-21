@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 1: งานวิเคราะห์หลักการออกแบบและการเลือกใช้สื่อตามกฎหมายลิขสิทธิ์ | 31910-2026</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Pridi:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'Inter', 'sans-serif'],
+            body: ['Sarabun', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            tech: ['Chakra Petch', 'sans-serif'],
+            serif: ['Pridi', 'serif']
+          },
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --bg-page: #f7f4ff;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f2ecff;
+      --border-tint: #e5dcff;
+      --text-main: #1e1b4b;
+      --text-muted: #5b5675;
+      --accent-main: #7c3aed;
+      --accent-pill-bg: #f3e8ff;
+      --accent-pill-text: #7e22ce;
+    }
+    html.dark {
+      --bg-page: #0c0a18;
+      --bg-surface: #151226;
+      --bg-subtle: #1e1936;
+      --border-tint: #2e2652;
+      --text-main: #f5f3ff;
+      --text-muted: #a59ec4;
+      --accent-main: #a78bfa;
+      --accent-pill-bg: #2e1065;
+      --accent-pill-text: #e9d5ff;
+    }
+    html.theme-accent {
+      --bg-page: #eef2ff;
+      --bg-surface: #ffffff;
+      --bg-subtle: #e0e7ff;
+      --border-tint: #c7d2fe;
+      --text-main: #1e1b4b;
+      --text-muted: #4338ca;
+      --accent-main: #4f46e5;
+      --accent-pill-bg: #fce7f3;
+      --accent-pill-text: #be185d;
+    }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Prompt', sans-serif;
+      background-image:
+        radial-gradient(circle at 15% 10%, rgba(139, 92, 246, 0.09) 0%, transparent 35%),
+        radial-gradient(circle at 85% 25%, rgba(236, 72, 153, 0.07) 0%, transparent 35%),
+        linear-gradient(to right, rgba(139, 92, 246, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .surface-card {
+      background-color: var(--bg-surface);
+      border-color: var(--border-tint);
+    }
+    .subtle-box {
+      background-color: var(--bg-subtle);
+      border-color: var(--border-tint);
+    }
+    .code-pill {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--accent-pill-bg);
+      color: var(--accent-pill-text);
+    }
+    /* Animations matching Video 2 (@davidm_ai) */
+    @keyframes fluidExpand {
+      0%, 100% { width: 100%; }
+      50% { width: 58%; }
+    }
+    .anim-fluid {
+      animation: fluidExpand 4s ease-in-out infinite;
+    }
+    @keyframes bpMorph {
+      0%, 30% { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      40%, 70% { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      80%, 100% { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    }
+    @keyframes shimmerSweep {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .anim-shimmer {
+      background: linear-gradient(90deg, rgba(139,92,246,0.12) 25%, rgba(236,72,153,0.35) 50%, rgba(139,92,246,0.12) 75%);
+      background-size: 200% 100%;
+      animation: shimmerSweep 2.4s infinite linear;
+    }
+    @keyframes pulseScale {
+      0%, 100% { transform: scale(1); opacity: 0.85; }
+      50% { transform: scale(1.06); opacity: 1; }
+    }
+    .anim-pulse-card {
+      animation: pulseScale 2.2s infinite ease-in-out;
+    }
+    @keyframes floatTag {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-3px); }
+    }
+    .anim-float {
+      animation: floatTag 2s ease-in-out infinite;
+    }
+    @keyframes staggerWave {
+      0%, 100% { opacity: 0.35; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-4px); }
+    }
+    .wave-1 { animation: staggerWave 1.8s infinite 0s; }
+    .wave-2 { animation: staggerWave 1.8s infinite 0.2s; }
+    .wave-3 { animation: staggerWave 1.8s infinite 0.4s; }
+    .wave-4 { animation: staggerWave 1.8s infinite 0.6s; }
+
+    /* Inspector Highlight Overlay Style (Video 1 @karelm_dev) */
+    .inspector-zone {
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+    .inspector-zone.active-zone {
+      transform: scale(1.01);
+      z-index: 20;
+    }
+    .bento-pattern-card {
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+    }
+    .bento-pattern-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 32px -10px rgba(124, 58, 237, 0.16);
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-purple-600 selection:text-white">
+
+  <!-- Sticky Navigation Header -->
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/85 dark:bg-[#110e20]/85 border-b border-purple-200/70 dark:border-purple-900/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      <!-- Brand / Course Title -->
+      <a href="#top-hero" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-pink-500 text-white font-bold flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition">
+          <span class="font-mono text-xs">31910</span>
+        </div>
+        <div>
+          <div class="text-[11px] font-mono uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold">
+            31910-2026 • UNIT 01
+          </div>
+          <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-tight">
+            โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์
+          </div>
+        </div>
+      </a>
+
+      <!-- Section Jump Links -->
+      <nav class="hidden xl:flex items-center gap-1 text-xs font-medium">
+        <a href="#sec-responsive" class="px-3 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">01 Responsive</a>
+        <a href="#sec-composition" class="px-3 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">02 องค์ประกอบศิลป์</a>
+        <a href="#sec-color" class="px-3 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">03 ทฤษฎีสี</a>
+        <a href="#sec-typography" class="px-3 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">04 ตัวอักษร</a>
+        <a href="#sec-copyright" class="px-3 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">05 ลิขสิทธิ์สื่อ CC</a>
+        <a href="#sec-playground" class="ml-1 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-sm hover:opacity-95 transition">
+          ⚡ Interactive Playground
+        </a>
+      </nav>
+
+      <!-- Theme Switcher (Video 2 @davidm_ai Top-Right Style: Moon / Sun / Accent) -->
+      <div class="flex items-center gap-1.5 bg-purple-100/80 dark:bg-purple-950/70 p-1.5 rounded-full border border-purple-200 dark:border-purple-800">
+        <button id="btn-theme-light" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white text-purple-700 shadow-sm transition" title="โหมดสว่าง (Light)">
+          ☀️
+        </button>
+        <button id="btn-theme-dark" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition" title="โหมดมืด (Dark)">
+          🌙
+        </button>
+        <button id="btn-theme-accent" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition" title="โหมดสีเน้น (Accent)">
+          🔮
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Horizontal Scroll Nav -->
+    <div class="xl:hidden flex items-center gap-1.5 overflow-x-auto px-4 py-2 border-t border-purple-100 dark:border-purple-900/40 text-xs whitespace-nowrap">
+      <a href="#sec-responsive" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">01 Responsive</a>
+      <a href="#sec-composition" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">02 องค์ประกอบศิลป์</a>
+      <a href="#sec-color" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">03 ทฤษฎีสี</a>
+      <a href="#sec-typography" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">04 ตัวอักษร</a>
+      <a href="#sec-copyright" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">05 ลิขสิทธิ์สื่อ</a>
+      <a href="#sec-playground" class="px-2.5 py-1 rounded-md bg-purple-600 text-white font-semibold">⚡ Playground</a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="top-hero" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 text-center">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/90 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300 text-xs font-mono font-semibold tracking-wide mb-4">
+      <span>WEB GRAPHIC DESIGN • UNIT 01</span>
+      <span class="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+      <span>VISUAL INTERACTIVE GUIDE</span>
+    </div>
+    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+      การวิเคราะห์หลักการออกแบบ<br class="hidden sm:inline">
+      <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 dark:from-purple-400 dark:via-pink-400 dark:to-indigo-400">
+        และการเลือกใช้สื่อตามกฎหมายลิขสิทธิ์
+      </span>
+    </h1>
+    <p class="mt-4 max-w-3xl mx-auto text-sm sm:text-base font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+      สื่อการสอนเชิงโต้ตอบรายวิชา <strong>31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์</strong> กดสำรวจตำแหน่งจริงบนหน้าเว็บจำลอง <strong>(Visual Inspector)</strong> และศึกษาการ์ดรูปแบบกราฟิกเคลื่อนไหว <strong>(Interactive Pattern Cards)</strong> ครบทั้ง 5 หมวดในหน้าเดียว
+    </p>
+
+    <!-- 5-Module Quick Pill Bar -->
+    <div class="mt-8 flex flex-wrap justify-center gap-2.5">
+      <a href="#sec-responsive" class="px-4 py-2 rounded-xl surface-card border shadow-sm hover:border-purple-500 text-xs sm:text-sm font-semibold flex items-center gap-2 transition">
+        <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-mono text-xs flex items-center justify-center">01</span>
+        <span>Responsive Web Design</span>
+      </a>
+      <a href="#sec-composition" class="px-4 py-2 rounded-xl surface-card border shadow-sm hover:border-purple-500 text-xs sm:text-sm font-semibold flex items-center gap-2 transition">
+        <span class="w-6 h-6 rounded-lg bg-pink-100 dark:bg-pink-900/60 text-pink-700 dark:text-pink-300 font-mono text-xs flex items-center justify-center">02</span>
+        <span>การจัดองค์ประกอบศิลป์</span>
+      </a>
+      <a href="#sec-color" class="px-4 py-2 rounded-xl surface-card border shadow-sm hover:border-purple-500 text-xs sm:text-sm font-semibold flex items-center gap-2 transition">
+        <span class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 font-mono text-xs flex items-center justify-center">03</span>
+        <span>ทฤษฎีสี &amp; กฎ 60-30-10</span>
+      </a>
+      <a href="#sec-typography" class="px-4 py-2 rounded-xl surface-card border shadow-sm hover:border-purple-500 text-xs sm:text-sm font-semibold flex items-center gap-2 transition">
+        <span class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-mono text-xs flex items-center justify-center">04</span>
+        <span>ตัวอักษรบนเว็บ (Typography)</span>
+      </a>
+      <a href="#sec-copyright" class="px-4 py-2 rounded-xl surface-card border shadow-sm hover:border-purple-500 text-xs sm:text-sm font-semibold flex items-center gap-2 transition">
+        <span class="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-mono text-xs flex items-center justify-center">05</span>
+        <span>กฎหมายลิขสิทธิ์ &amp; CC</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Main Content: All 5 Modules + Playground -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24 pb-28">
+
+    <!-- =================================================================== -->
+    <!-- MODULE 01: RESPONSIVE WEB DESIGN                                    -->
+    <!-- =================================================================== -->
+    <section id="sec-responsive" class="scroll-mt-24 space-y-10">
+      <!-- Section Header (Video 1 Style) -->
+      <div class="text-center space-y-2">
+        <div class="text-xs font-mono tracking-widest uppercase text-purple-600 dark:text-purple-400 font-semibold">
+          MODULE 01 • LAYOUT &amp; ADAPTABILITY
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          1. หลักการออกแบบ Responsive Web Design
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          การออกแบบกราฟิกและโครงสร้างหน้าเว็บไซต์ให้ปรับขนาดตามหน้าจอ Desktop, Tablet และ Mobile ได้อย่างสมบูรณ์แบบ
+        </p>
+      </div>
+
+      <!-- PART 1A: Interactive Step-by-Step Browser Inspector (Video 1 @karelm_dev Style) -->
+      <div class="surface-card border-2 rounded-3xl p-5 sm:p-8 shadow-xl max-w-4xl mx-auto">
+        <!-- Top Pill Row: Current Tag + Counter + Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span id="ins1-active-tag" class="px-3.5 py-1.5 rounded-xl border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-200 font-mono text-sm font-bold shadow-sm">
+              &lt;viewport&gt;
+            </span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">คลิกที่ส่วนประกอบในหน้าเว็บจำลองหรือกดปุ่มถัดไป</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="ins1-counter" class="px-3.5 py-1 rounded-full bg-purple-600 text-white font-mono text-xs font-bold shadow-sm">
+              1 / 6 tags
+            </span>
+            <button id="ins1-prev" type="button" class="px-3 py-1.5 rounded-xl subtle-box border text-xs font-semibold hover:border-purple-500 transition">
+              ◀ ก่อนหน้า
+            </button>
+            <button id="ins1-next" type="button" class="px-3 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition">
+              ถัดไป ▶
+            </button>
+            <button id="ins1-autoplay" type="button" class="px-3 py-1.5 rounded-xl subtle-box border text-xs font-semibold hover:border-pink-500 transition">
+              ▶ เล่นอัตโนมัติ
+            </button>
+          </div>
+        </div>
+
+        <!-- Step Selector Pills -->
+        <div id="ins1-pills" class="flex flex-wrap gap-1.5 mb-4"></div>
+
+        <!-- Explanation Callout Box (Centered Pill Banner like Video 1) -->
+        <div id="ins1-banner" class="mb-6 py-3 px-5 rounded-2xl border-2 border-purple-500 bg-purple-50/70 dark:bg-purple-950/40 text-center transition-all">
+          <span id="ins1-banner-tag" class="font-mono font-bold text-purple-700 dark:text-purple-300 mr-2">&lt;viewport&gt;</span>
+          <span id="ins1-banner-desc" class="font-body text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100">
+            พื้นที่แสดงผลหลักที่ปรับความกว้างตามหน้าจออุปกรณ์ (Desktop / Tablet / Mobile)
+          </span>
+        </div>
+
+        <!-- Simulated Browser Window -->
+        <div id="ins1-zone-0" data-ins="1" data-idx="0" class="inspector-zone rounded-2xl border-2 border-purple-500 bg-slate-50 dark:bg-[#0e0c1b] overflow-hidden shadow-lg">
+          <!-- Browser Top Bar -->
+          <div class="h-10 bg-slate-200/80 dark:bg-slate-800/90 px-4 flex items-center justify-between border-b border-slate-300 dark:border-slate-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-400"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+            </div>
+            <div class="px-4 py-1 rounded-full bg-white dark:bg-slate-900 text-[11px] font-mono text-slate-500 dark:text-slate-400 border border-slate-300/60 dark:border-slate-700">
+              🌐 banpong-digitalshop.com/responsive-demo
+            </div>
+            <div class="text-[11px] font-mono text-purple-600 dark:text-purple-400 font-bold">12-Col Grid</div>
+          </div>
+
+          <!-- Simulated Webpage Body -->
+          <div class="p-4 sm:p-6 space-y-4">
+            <!-- Zone 1: Header & Navigation -->
+            <div id="ins1-zone-1" data-ins="1" data-idx="1" class="inspector-zone p-3.5 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b] shadow-sm flex items-center justify-between">
+              <span class="hidden" data-badge="1">&lt;nav-collapse&gt;</span>
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-teal-500 text-white flex items-center justify-center font-bold text-xs">B</div>
+                <span class="font-bold text-sm">BanpongShop</span>
+              </div>
+              <div class="hidden sm:flex items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-300">
+                <span>หน้าแรก</span>
+                <span>สินค้าดิจิทัล</span>
+                <span>โปรโมชัน</span>
+                <span>ติดต่อเรา</span>
+              </div>
+              <div class="px-2.5 py-1 rounded-lg bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-xs font-mono font-bold">
+                ☰ Menu / Nav
+              </div>
+            </div>
+
+            <!-- Zone 2: Hero Banner Graphic -->
+            <div id="ins1-zone-2" data-ins="1" data-idx="2" class="inspector-zone p-5 rounded-2xl border-2 border-transparent bg-gradient-to-r from-purple-600/15 via-pink-500/15 to-indigo-500/15 dark:from-purple-900/40 dark:to-indigo-900/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="space-y-1.5 text-left">
+                <span class="px-2 py-0.5 rounded bg-amber-500 text-white font-mono text-[10px] font-bold uppercase">&lt;hero-graphic&gt;</span>
+                <h4 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">แบนเนอร์กราฟิกยืดหยุ่น (Flexible Media)</h4>
+                <p class="text-xs font-body text-slate-600 dark:text-slate-300">ย่อ-ขยายตามสัดส่วน max-width: 100% และสลับภาพแนวตั้งบนมือถือ</p>
+              </div>
+              <div class="w-full sm:w-36 h-20 rounded-xl bg-gradient-to-tr from-amber-400 to-pink-500 flex items-center justify-center text-white font-mono text-xs font-bold shadow-md shrink-0">
+                16:9 ⇄ 4:5
+              </div>
+            </div>
+
+            <!-- Zone 3 & 4: Main Content Fluid Grid + Product Cards -->
+            <div id="ins1-zone-3" data-ins="1" data-idx="3" class="inspector-zone p-4 rounded-2xl border-2 border-transparent bg-white dark:bg-[#17142b] space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">&lt;fluid-grid&gt; 12 Columns → 4 Columns</span>
+                <span class="text-[11px] font-mono text-slate-400">gap: 16px</span>
+              </div>
+              <div id="ins1-zone-4" data-ins="1" data-idx="4" class="inspector-zone p-2 rounded-xl border-2 border-transparent grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="p-3 rounded-xl subtle-box border text-center">
+                  <div class="h-12 rounded-lg bg-purple-400/20 mb-2 flex items-center justify-center font-mono text-xs text-purple-600 dark:text-purple-300">Card 01</div>
+                  <div class="text-xs font-bold">สินค้าชิ้นที่ 1</div>
+                  <div class="text-[10px] text-slate-500">Auto-Reflow</div>
+                </div>
+                <div class="p-3 rounded-xl subtle-box border text-center">
+                  <div class="h-12 rounded-lg bg-pink-400/20 mb-2 flex items-center justify-center font-mono text-xs text-pink-600 dark:text-pink-300">Card 02</div>
+                  <div class="text-xs font-bold">สินค้าชิ้นที่ 2</div>
+                  <div class="text-[10px] text-slate-500">Auto-Reflow</div>
+                </div>
+                <div class="p-3 rounded-xl subtle-box border text-center">
+                  <div class="h-12 rounded-lg bg-indigo-400/20 mb-2 flex items-center justify-center font-mono text-xs text-indigo-600 dark:text-indigo-300">Card 03</div>
+                  <div class="text-xs font-bold">สินค้าชิ้นที่ 3</div>
+                  <div class="text-[10px] text-slate-500">Auto-Reflow</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Zone 5: Touch Target CTA Footer -->
+            <div id="ins1-zone-5" data-ins="1" data-idx="5" class="inspector-zone p-3.5 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b] flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div class="text-xs font-body text-slate-600 dark:text-slate-300">
+                <strong class="text-rose-600 dark:text-rose-400 font-mono">&lt;touch-target&gt;</strong> ขนาดปุ่มขั้นต่ำ 44×44px สำหรับนิ้วสัมผัสบนสมาร์ตโฟน
+              </div>
+              <span class="px-4 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold shadow-sm">
+                สั่งซื้อสินค้า (Min 44×44px)
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PART 1B: 9 Interactive Bento Pattern Cards (Video 2 @davidm_ai Style) -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+            ตัวอย่างแต่ละเรื่อง: 9 รูปแบบกราฟิก Responsive (Interactive Pattern Cards)
+          </h3>
+          <span class="text-xs font-mono text-purple-600 dark:text-purple-400">HOVER / LIVE PREVIEW</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Card 1.1 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Fluid Grid</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">โครงสร้างคอลัมน์ยืดหดตามสัดส่วนหน้าจอ (% / fr)</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">grid-template-columns: 1fr 1fr 1fr</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 flex items-center justify-center">
+              <div class="anim-fluid grid grid-cols-3 gap-2 h-16">
+                <div class="rounded-lg bg-purple-500/30 border border-purple-500/50 flex items-center justify-center text-[10px] font-mono font-bold">1fr</div>
+                <div class="rounded-lg bg-purple-500/30 border border-purple-500/50 flex items-center justify-center text-[10px] font-mono font-bold">1fr</div>
+                <div class="rounded-lg bg-purple-500/30 border border-purple-500/50 flex items-center justify-center text-[10px] font-mono font-bold">1fr</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 1.2 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Breakpoints</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">จุดตัดเปลี่ยนเลย์เอาต์ Desktop • Tablet • Mobile</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">@media (max-width: 768px)</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 flex flex-col justify-center gap-2">
+              <div class="flex items-center justify-between text-[10px] font-mono">
+                <span class="px-2 py-0.5 rounded bg-indigo-500 text-white">Desktop ≥1024px</span>
+                <span class="px-2 py-0.5 rounded bg-purple-500 text-white">Tablet 768px</span>
+                <span class="px-2 py-0.5 rounded bg-pink-500 text-white">Mobile 375px</span>
+              </div>
+              <div class="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 anim-fluid rounded-full"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 1.3 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Flexible Images</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">รูปภาพปรับขนาดอัตโนมัติไม่ล้นกรอบคอนเทนเนอร์</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">max-width: 100%; height: auto</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 flex items-center justify-center">
+              <div class="anim-fluid h-20 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 p-2 flex flex-col justify-between text-white shadow">
+                <div class="flex justify-between text-[9px] font-mono opacity-80"><span>IMG</span><span>100%</span></div>
+                <div class="text-xs font-bold">⛰️ Scaled Vector/Photo</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 1.4 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Art Direction Crop</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">เปลี่ยนสัดส่วนภาพแบนเนอร์แนวนอนเป็นแนวตั้งบนมือถือ</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">&lt;picture&gt; + aspect-ratio</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 flex items-center justify-center gap-4">
+              <div class="w-24 h-14 rounded-lg bg-pink-500/20 border-2 border-pink-500 flex flex-col items-center justify-center text-[10px] font-mono text-pink-600 dark:text-pink-300 font-bold">
+                <span>16:9 Wide</span>
+                <span class="text-[9px] opacity-75">Desktop</span>
+              </div>
+              <span class="font-mono text-xs text-slate-400">⇄</span>
+              <div class="w-12 h-16 rounded-lg bg-purple-500/20 border-2 border-purple-500 flex flex-col items-center justify-center text-[10px] font-mono text-purple-600 dark:text-purple-300 font-bold">
+                <span>4:5</span>
+                <span class="text-[8px] opacity-75">Mobile</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 1.5 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Bento Card Reflow</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">การ์ดหลายขนาดจัดเรียงแถวใหม่อัตโนมัติเมื่อจอแคบ</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">grid-auto-flow: dense</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 grid grid-cols-3 gap-1.5">
+              <div class="col-span-2 rounded-lg bg-indigo-500/25 border border-indigo-400/50 flex items-center justify-center text-[10px] font-mono font-bold wave-1">Span 2</div>
+              <div class="rounded-lg bg-purple-500/25 border border-purple-400/50 flex items-center justify-center text-[10px] font-mono font-bold wave-2">1x</div>
+              <div class="rounded-lg bg-pink-500/25 border border-pink-400/50 flex items-center justify-center text-[10px] font-mono font-bold wave-3">1x</div>
+              <div class="col-span-2 rounded-lg bg-teal-500/25 border border-teal-400/50 flex items-center justify-center text-[10px] font-mono font-bold wave-4">Span 2</div>
+            </div>
+          </div>
+
+          <!-- Card 1.6 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Fluid Typography</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ขนาดฟอนต์ยืดหยุ่นตามความกว้าง Viewport อัตโนมัติ</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">font-size: clamp(1rem, 2.5vw, 2rem)</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 flex items-center justify-center gap-3">
+              <span class="text-xs font-bold text-slate-400">Aa</span>
+              <span class="text-base font-bold text-purple-500">Aa</span>
+              <span class="text-xl font-extrabold text-purple-600">Aa</span>
+              <span class="text-3xl font-extrabold text-pink-600 anim-pulse-card">Aa</span>
+            </div>
+          </div>
+
+          <!-- Card 1.7 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Navigation Collapse</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">เมนูแนวนอนยุบรวมเป็นปุ่ม Hamburger บนสมาร์ตโฟน</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Desktop Bar → Mobile Drawer</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 flex flex-col justify-center gap-2">
+              <div class="p-2 rounded-lg bg-white dark:bg-slate-800 border flex items-center justify-between text-[10px]">
+                <span class="font-bold text-purple-600">LOGO</span>
+                <div class="flex gap-2 text-slate-500"><span>Home</span><span>Shop</span><span>About</span></div>
+              </div>
+              <div class="p-2 rounded-lg bg-white dark:bg-slate-800 border flex items-center justify-between text-[10px] w-3/5 mx-auto">
+                <span class="font-bold text-pink-600">LOGO</span>
+                <span class="px-1.5 py-0.5 rounded bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-200 font-mono font-bold">☰</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 1.8 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Touch Target Area</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">พื้นที่ปุ่มกดขั้นต่ำสำหรับนิ้วมือ ป้องกันการกดพลาด</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">min-width: 44px; min-height: 44px</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 flex items-center justify-center gap-4">
+              <div class="text-center">
+                <div class="w-6 h-6 mx-auto rounded bg-rose-200 dark:bg-rose-900/50 text-rose-700 flex items-center justify-center text-[9px] font-mono">20px</div>
+                <span class="text-[10px] text-rose-500 mt-1 block">❌ เล็กเกินไป</span>
+              </div>
+              <div class="text-center">
+                <div class="w-11 h-11 mx-auto rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xs font-mono font-bold shadow-md anim-pulse-card">44px</div>
+                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1 block">✓ มาตรฐานนิ้วสัมผัส</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 1.9 -->
+          <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+            <div>
+              <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Container Queries</h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">คอมโพเนนต์ปรับตัวตามขนาดกล่องที่บรรจุตัวเอง</p>
+              <div class="mt-2.5">
+                <span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">@container (min-width: 400px)</span>
+              </div>
+            </div>
+            <div class="mt-5 p-4 rounded-2xl subtle-box border h-32 flex items-center justify-center">
+              <div class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 flex items-center gap-3">
+                <div class="w-12 h-12 rounded-lg anim-shimmer shrink-0"></div>
+                <div class="text-left flex-1">
+                  <div class="text-xs font-bold">Component Card</div>
+                  <div class="text-[10px] font-mono text-purple-500">container-type: inline-size</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODULE 02: VISUAL COMPOSITION & ART PRINCIPLES                      -->
+    <!-- =================================================================== -->
+    <section id="sec-composition" class="scroll-mt-24 space-y-10">
+      <div class="text-center space-y-2">
+        <div class="text-xs font-mono tracking-widest uppercase text-pink-600 dark:text-pink-400 font-semibold">
+          MODULE 02 • VISUAL COMPOSITION &amp; HIERARCHY
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          2. หลักการจัดองค์ประกอบศิลป์สำหรับเว็บกราฟิก
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          การจัดลำดับความสำคัญทางสายตา (Visual Hierarchy) จุดดึงสายตา พื้นที่ว่าง และความสมดุลบนหน้าเว็บไซต์ธุรกิจ
+        </p>
+      </div>
+
+      <!-- PART 2A: Visual Composition Inspector (Video 1 Style) -->
+      <div class="surface-card border-2 rounded-3xl p-5 sm:p-8 shadow-xl max-w-4xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span id="ins2-active-tag" class="px-3.5 py-1.5 rounded-xl border-2 border-pink-500 bg-pink-50 dark:bg-pink-950/60 text-pink-700 dark:text-pink-200 font-mono text-sm font-bold shadow-sm">
+              &lt;focal-point&gt;
+            </span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">คลิกสำรวจองค์ประกอบศิลป์แต่ละจุด</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="ins2-counter" class="px-3.5 py-1 rounded-full bg-pink-600 text-white font-mono text-xs font-bold shadow-sm">
+              1 / 6 tags
+            </span>
+            <button id="ins2-prev" type="button" class="px-3 py-1.5 rounded-xl subtle-box border text-xs font-semibold hover:border-pink-500 transition">◀ ก่อนหน้า</button>
+            <button id="ins2-next" type="button" class="px-3 py-1.5 rounded-xl bg-pink-600 text-white text-xs font-semibold hover:bg-pink-700 transition">ถัดไป ▶</button>
+          </div>
+        </div>
+
+        <div id="ins2-pills" class="flex flex-wrap gap-1.5 mb-4"></div>
+
+        <div id="ins2-banner" class="mb-6 py-3 px-5 rounded-2xl border-2 border-pink-500 bg-pink-50/70 dark:bg-pink-950/40 text-center transition-all">
+          <span id="ins2-banner-tag" class="font-mono font-bold text-pink-700 dark:text-pink-300 mr-2">&lt;focal-point&gt;</span>
+          <span id="ins2-banner-desc" class="font-body text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100">
+            จุดดึงสายตาหลักของหน้าเว็บ ใช้ภาพกราฟิกหรือพาดหัวขนาดใหญ่เพื่อหยุดสายตาผู้ใช้ใน 3 วินาทีแรก
+          </span>
+        </div>
+
+        <!-- Simulated Landing Page Composition -->
+        <div class="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0e0c1b] p-5 sm:p-7 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            <!-- Left Column: Hierarchy + Whitespace + CTA -->
+            <div id="ins2-zone-1" data-ins="2" data-idx="1" class="inspector-zone md:col-span-7 p-5 rounded-2xl border-2 border-transparent bg-white dark:bg-[#17142b] space-y-3">
+              <div class="text-[11px] font-mono font-bold text-purple-600 dark:text-purple-400">&lt;visual-hierarchy&gt; ลำดับขนาด H1 → H2 → Body</div>
+              <h4 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight">
+                ยกระดับภาพลักษณ์แบรนด์ด้วยกราฟิกสมัยใหม่
+              </h4>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-300 leading-relaxed">
+                การจัดสัดส่วนขนาดหัวข้อใหญ่ 3 เท่าของเนื้อหารอง ช่วยให้ผู้ชมเข้าใจสารสำคัญได้ทันทีโดยไม่ต้องอ่านทุกตัวอักษร
+              </p>
+
+              <!-- Whitespace Zone -->
+              <div id="ins2-zone-3" data-ins="2" data-idx="3" class="inspector-zone p-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/50 text-center text-[11px] font-mono text-slate-500">
+                &lt;white-space&gt; พื้นที่ว่างพักสายตา (Padding 32px / Gap 24px)
+              </div>
+
+              <!-- CTA Contrast Zone -->
+              <div id="ins2-zone-5" data-ins="2" data-idx="5" class="inspector-zone p-2.5 rounded-xl border-2 border-transparent inline-flex items-center gap-3">
+                <span class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-xs shadow-md">
+                  เริ่มต้นใช้งานฟรี (&lt;cta-contrast&gt;)
+                </span>
+                <span class="text-xs text-slate-500">ดูผลงานตัวอย่าง →</span>
+              </div>
+            </div>
+
+            <!-- Right Column: Focal Point & Rule of Thirds -->
+            <div id="ins2-zone-0" data-ins="2" data-idx="0" class="inspector-zone md:col-span-5 p-5 rounded-2xl border-2 border-pink-500 bg-gradient-to-br from-pink-500/15 via-purple-500/15 to-indigo-500/15 flex flex-col items-center justify-center text-center min-h-[220px] relative">
+              <!-- Rule of thirds grid lines -->
+              <div id="ins2-zone-2" data-ins="2" data-idx="2" class="inspector-zone w-full p-4 rounded-xl border-2 border-transparent grid grid-cols-3 grid-rows-3 gap-1 h-40 bg-white/60 dark:bg-slate-900/60">
+                <div class="border border-dashed border-pink-400/40 flex items-center justify-center text-[9px] font-mono text-pink-500">● จุดตัด 1</div>
+                <div class="border border-dashed border-pink-400/40"></div>
+                <div class="border border-dashed border-pink-400/40 flex items-center justify-center text-[9px] font-mono text-pink-500">● จุดตัด 2</div>
+                <div class="border border-dashed border-pink-400/40"></div>
+                <div class="border border-dashed border-pink-400/40 flex items-center justify-center">
+                  <span class="px-2 py-1 rounded-lg bg-pink-600 text-white text-[10px] font-bold shadow">🎯 Focal Point</span>
+                </div>
+                <div class="border border-dashed border-pink-400/40"></div>
+                <div class="border border-dashed border-pink-400/40 flex items-center justify-center text-[9px] font-mono text-pink-500">● จุดตัด 3</div>
+                <div class="border border-dashed border-pink-400/40"></div>
+                <div class="border border-dashed border-pink-400/40 flex items-center justify-center text-[9px] font-mono text-pink-500">● จุดตัด 4</div>
+              </div>
+              <span class="text-[11px] font-mono text-pink-600 dark:text-pink-300 font-bold mt-2">&lt;rule-of-thirds&gt; จุดตัดเก้าช่อง</span>
+            </div>
+          </div>
+
+          <!-- Alignment & Grid Baseline -->
+          <div id="ins2-zone-4" data-ins="2" data-idx="4" class="inspector-zone p-3.5 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b] flex items-center justify-between text-xs">
+            <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400">&lt;grid-alignment&gt; แนวเส้นกริดซ้าย-ขวาตรงกันทุกส่วน</span>
+            <span class="font-mono text-[11px] text-slate-400">8pt Spatial Grid System</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PART 2B: 6 Visual Composition Bento Cards (Video 2 Style) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Visual Hierarchy</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">จัดลำดับความสำคัญด้วยขนาด น้ำหนัก และสี</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Scale: 3x Heading → 1.5x Sub → 1x Body</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-28 flex flex-col justify-center gap-2 text-left">
+            <div class="h-4 w-3/4 rounded bg-purple-600"></div>
+            <div class="h-2.5 w-1/2 rounded bg-purple-400/70"></div>
+            <div class="h-2 w-full rounded bg-slate-300 dark:bg-slate-700"></div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Whitespace (Negative Space)</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">เว้นพื้นที่ว่างรอบองค์ประกอบเพื่อลดความอึดอัด</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">padding: 32px; margin-bottom: 24px</span></div>
+          </div>
+          <div class="mt-5 p-5 rounded-2xl subtle-box border h-28 flex items-center justify-center">
+            <div class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-dashed border-pink-400 text-xs font-mono font-bold text-pink-600">
+              Breathing Room
+            </div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Contrast &amp; Emphasis</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">สร้างจุดเด่นให้ปุ่มสำคัญตัดกับพื้นหลังชัดเจน</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">CTA Accent Highlight</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-28 flex items-center justify-center gap-3">
+            <span class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500 text-xs">ปุ่มรอง</span>
+            <span class="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white text-xs font-bold shadow-lg anim-pulse-card">ปุ่มหลักเด่นชัด</span>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Symmetry vs Asymmetry</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">สมดุลซ้าย-ขวาเท่ากัน (50/50) และสมดุลถ่วงน้ำหนัก (60/40)</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">60% Content / 40% Graphic</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-28 grid grid-cols-5 gap-2 items-center">
+            <div class="col-span-3 h-14 rounded-lg bg-indigo-500/25 border border-indigo-500 flex items-center justify-center text-xs font-mono font-bold">60% Text</div>
+            <div class="col-span-2 h-14 rounded-lg bg-pink-500/25 border border-pink-500 flex items-center justify-center text-xs font-mono font-bold">40% Visual</div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Law of Proximity</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">จัดวางข้อมูลที่เกี่ยวข้องกันให้อยู่ใกล้กันเป็นกลุ่มก้อน</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Inner Gap (8px) &lt; Outer Gap (24px)</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-28 flex items-center justify-center gap-5">
+            <div class="p-2 rounded-lg bg-white dark:bg-slate-800 border border-purple-400 flex gap-1">
+              <span class="w-4 h-4 rounded bg-purple-500"></span>
+              <span class="w-4 h-4 rounded bg-purple-500"></span>
+            </div>
+            <div class="p-2 rounded-lg bg-white dark:bg-slate-800 border border-pink-400 flex gap-1">
+              <span class="w-4 h-4 rounded bg-pink-500"></span>
+              <span class="w-4 h-4 rounded bg-pink-500"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white">Z-Pattern &amp; F-Pattern</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ทิศทางการกวาดสายตาของผู้ใช้จากบนซ้ายลงล่างขวา</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Logo (TL) → Nav (TR) → Body → CTA (BR)</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-28 flex flex-col justify-between text-[10px] font-mono font-bold text-purple-600 dark:text-purple-300">
+            <div class="flex justify-between"><span>1. LOGO ───►</span><span>2. MENU</span></div>
+            <div class="text-center text-pink-500">╱ สายตากวาดทแยง (Z-Path) ╱</div>
+            <div class="flex justify-between"><span>3. INFO ───►</span><span class="px-2 py-0.5 rounded bg-purple-600 text-white">4. CTA</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODULE 03: COLOR THEORY & 60-30-10 RULE                             -->
+    <!-- =================================================================== -->
+    <section id="sec-color" class="scroll-mt-24 space-y-10">
+      <div class="text-center space-y-2">
+        <div class="text-xs font-mono tracking-widest uppercase text-amber-600 dark:text-amber-400 font-semibold">
+          MODULE 03 • COLOR HARMONY &amp; PSYCHOLOGY
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          3. ทฤษฎีสีและจิตวิทยาสีสำหรับเว็บไซต์ธุรกิจ
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          การแบ่งสัดส่วนสี 60-30-10 การเลือกชุดสีตามวงล้อสี และการตรวจสอบค่าความคมชัดตามมาตรฐานสากล WCAG 2.1
+        </p>
+      </div>
+
+      <!-- PART 3A: 60-30-10 Color Inspector (Video 1 Style) -->
+      <div class="surface-card border-2 rounded-3xl p-5 sm:p-8 shadow-xl max-w-4xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span id="ins3-active-tag" class="px-3.5 py-1.5 rounded-xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 font-mono text-sm font-bold shadow-sm">
+              &lt;60%-primary-neutral&gt;
+            </span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">คลิกสำรวจสัดส่วนสีแต่ละส่วนบนหน้าเว็บ</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="ins3-counter" class="px-3.5 py-1 rounded-full bg-amber-600 text-white font-mono text-xs font-bold shadow-sm">
+              1 / 6 tags
+            </span>
+            <button id="ins3-prev" type="button" class="px-3 py-1.5 rounded-xl subtle-box border text-xs font-semibold hover:border-amber-500 transition">◀ ก่อนหน้า</button>
+            <button id="ins3-next" type="button" class="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition">ถัดไป ▶</button>
+          </div>
+        </div>
+
+        <div id="ins3-pills" class="flex flex-wrap gap-1.5 mb-4"></div>
+
+        <div id="ins3-banner" class="mb-6 py-3 px-5 rounded-2xl border-2 border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-center transition-all">
+          <span id="ins3-banner-tag" class="font-mono font-bold text-amber-700 dark:text-amber-300 mr-2">&lt;60%-primary-neutral&gt;</span>
+          <span id="ins3-banner-desc" class="font-body text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100">
+            สีพื้นหลังหลัก 60% ของหน้าเว็บ ใช้โทนสีสว่างสะอาดตาเพื่อไม่ให้รบกวนเนื้อหาและสินค้า
+          </span>
+        </div>
+
+        <!-- 60-30-10 Ratio Meter Bar -->
+        <div class="h-9 rounded-2xl overflow-hidden flex font-mono text-xs font-bold shadow-inner mb-5 border border-slate-200 dark:border-slate-700">
+          <div class="w-[60%] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center">60% Primary Neutral</div>
+          <div class="w-[30%] bg-indigo-600 text-white flex items-center justify-center">30% Brand Identity</div>
+          <div class="w-[10%] bg-amber-500 text-slate-950 flex items-center justify-center">10% CTA</div>
+        </div>
+
+        <!-- Simulated Business Color UI -->
+        <div id="ins3-zone-0" data-ins="3" data-idx="0" class="inspector-zone p-5 rounded-2xl border-2 border-amber-500 bg-slate-50 dark:bg-[#0e0c1b] space-y-4">
+          <!-- 30% Brand Header & Banner -->
+          <div id="ins3-zone-1" data-ins="3" data-idx="1" class="inspector-zone p-4 rounded-xl border-2 border-transparent bg-indigo-600 text-white flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <span class="text-[10px] font-mono uppercase bg-white/20 px-2 py-0.5 rounded">&lt;30%-brand-identity&gt;</span>
+              <h4 class="text-base font-bold mt-1">สีอัตลักษณ์แบรนด์ (30% Secondary Brand Color)</h4>
+            </div>
+            <span class="font-mono text-xs bg-indigo-800 px-3 py-1 rounded-lg">#4F46E5 Indigo</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Surface Elevation -->
+            <div id="ins3-zone-4" data-ins="3" data-idx="4" class="inspector-zone p-4 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b] shadow-sm">
+              <div class="text-xs font-mono font-bold text-purple-600">&lt;surface-elevation&gt;</div>
+              <div class="text-xs font-body mt-1 text-slate-600 dark:text-slate-300">สีพื้นผิวการ์ดแยกชั้นจากพื้นหลังหลัก</div>
+            </div>
+
+            <!-- Semantic Status Colors -->
+            <div id="ins3-zone-3" data-ins="3" data-idx="3" class="inspector-zone p-4 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b] shadow-sm space-y-1.5">
+              <div class="text-xs font-mono font-bold text-emerald-600">&lt;semantic-status&gt;</div>
+              <div class="flex gap-1.5 text-[10px] font-mono font-bold">
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">✓ สำเร็จ</span>
+                <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700">⚠ เตือน</span>
+                <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700">✕ ผิดพลาด</span>
+              </div>
+            </div>
+
+            <!-- WCAG Contrast Check -->
+            <div id="ins3-zone-5" data-ins="3" data-idx="5" class="inspector-zone p-4 rounded-xl border-2 border-transparent bg-slate-900 text-white shadow-sm">
+              <div class="text-xs font-mono font-bold text-amber-400">&lt;wcag-contrast&gt;</div>
+              <div class="text-xs mt-1">Contrast Ratio <strong>12.6 : 1</strong> (ผ่านระดับ AAA)</div>
+            </div>
+          </div>
+
+          <!-- 10% Accent CTA -->
+          <div id="ins3-zone-2" data-ins="3" data-idx="2" class="inspector-zone p-3.5 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b] flex items-center justify-between">
+            <span class="text-xs font-body"><strong>&lt;10%-accent-cta&gt;</strong> สีปุ่มกระตุ้นการตัดสินใจ ใช้เพียง 10% เพื่อให้เด่นที่สุด</span>
+            <span class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs shadow">สมัครสมาชิกทันที</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PART 3B: 9 Color Harmony Bento Cards (Video 2 Style) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">60-30-10 Rule</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">สัดส่วนสีมาตรฐานที่ทำให้เว็บไซต์สมดุลไม่รกตา</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">60% Base • 30% Brand • 10% CTA</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-24 flex items-center">
+            <div class="w-full h-8 rounded-xl overflow-hidden flex font-mono text-[10px] font-bold">
+              <div class="w-[60%] bg-slate-200 dark:bg-slate-700 flex items-center justify-center">60%</div>
+              <div class="w-[30%] bg-purple-600 text-white flex items-center justify-center">30%</div>
+              <div class="w-[10%] bg-amber-400 text-slate-900 flex items-center justify-center">10%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Monochromatic</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">สีโทนเดียวไล่ระดับความสว่าง สุขุมและเป็นมืออาชีพ</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Single Hue + Lightness Shift</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-24 grid grid-cols-5 gap-1.5 items-center">
+            <div class="h-10 rounded-lg bg-purple-200"></div>
+            <div class="h-10 rounded-lg bg-purple-400"></div>
+            <div class="h-10 rounded-lg bg-purple-600"></div>
+            <div class="h-10 rounded-lg bg-purple-800"></div>
+            <div class="h-10 rounded-lg bg-purple-950"></div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Analogous</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">สีข้างเคียงในวงล้อสี กลมกลืนเป็นธรรมชาติ</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Hue ±30° Harmony</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-24 grid grid-cols-3 gap-2 items-center">
+            <div class="h-10 rounded-lg bg-indigo-500 text-white text-[10px] font-mono flex items-center justify-center">240°</div>
+            <div class="h-10 rounded-lg bg-purple-500 text-white text-[10px] font-mono flex items-center justify-center">270°</div>
+            <div class="h-10 rounded-lg bg-pink-500 text-white text-[10px] font-mono flex items-center justify-center">300°</div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Complementary</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">สีคู่ตรงข้าม สร้างความโดดเด่นสูงสุดให้ปุ่ม CTA</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Hue +180° High Contrast</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-24 grid grid-cols-2 gap-3 items-center">
+            <div class="h-10 rounded-lg bg-purple-600 text-white text-xs font-bold flex items-center justify-center">ม่วง (Brand)</div>
+            <div class="h-10 rounded-lg bg-amber-400 text-slate-950 text-xs font-bold flex items-center justify-center">เหลืองทอง (CTA)</div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Split-Complementary</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">สีคู่ตรงข้ามเยื้อง โดดเด่นแต่ไม่แสบตา</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Base + 150° / 210°</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-24 grid grid-cols-3 gap-2 items-center">
+            <div class="h-10 rounded-lg bg-indigo-600"></div>
+            <div class="h-10 rounded-lg bg-amber-500"></div>
+            <div class="h-10 rounded-lg bg-emerald-500"></div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Triadic Balance</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">สีสามเส้าห่างกัน 120° สดใสเหมาะกับเว็บสร้างสรรค์</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">120° Tri-Hue Balance</span></div>
+          </div>
+          <div class="mt-5 p-4 rounded-2xl subtle-box border h-24 grid grid-cols-3 gap-2 items-center">
+            <div class="h-10 rounded-lg bg-purple-600"></div>
+            <div class="h-10 rounded-lg bg-orange-500"></div>
+            <div class="h-10 rounded-lg bg-teal-500"></div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Brand Color Psychology</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">การเลือกสีให้ตรงกับอารมณ์และประเภทธุรกิจ</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Blue: Trust • Green: Eco • Orange: Fun</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-24 flex items-center justify-around text-[11px] font-bold">
+            <span class="px-2.5 py-1.5 rounded-lg bg-blue-600 text-white">🏦 การเงิน</span>
+            <span class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white">🌿 สุขภาพ</span>
+            <span class="px-2.5 py-1.5 rounded-lg bg-orange-500 text-white">🍔 อาหาร</span>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">WCAG Contrast Ratio</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ค่าความต่างสีตัวอักษรกับพื้นหลังเพื่อการอ่านที่ชัดเจน</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Contrast Ratio ≥ 4.5 : 1 (AA)</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-24 grid grid-cols-2 gap-2 items-center text-xs font-bold">
+            <div class="p-2 rounded-lg bg-slate-200 text-slate-300">1.4:1 อ่านยาก ❌</div>
+            <div class="p-2 rounded-lg bg-purple-900 text-white">11.2:1 คมชัด ✓</div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Dark Mode Desaturation</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ลดความสดของสีลงเมื่ออยู่บนพื้นหลังมืดเพื่อถนอมสายตา</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Light #7C3AED → Dark #A78BFA</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-24 grid grid-cols-2 gap-2 items-center text-xs font-mono">
+            <div class="p-2 rounded-lg bg-white text-purple-700 border font-bold">Light 600</div>
+            <div class="p-2 rounded-lg bg-slate-900 text-purple-300 font-bold">Dark 400</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODULE 04: WEB TYPOGRAPHY                                           -->
+    <!-- =================================================================== -->
+    <section id="sec-typography" class="scroll-mt-24 space-y-10">
+      <div class="text-center space-y-2">
+        <div class="text-xs font-mono tracking-widest uppercase text-emerald-600 dark:text-emerald-400 font-semibold">
+          MODULE 04 • WEB TYPOGRAPHY &amp; READABILITY
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          4. รูปแบบตัวอักษรบนเว็บไซต์ (Web Typography)
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          การเลือกใช้ฟอนต์มีหัวและไม่มีหัว การจับคู่ฟอนต์ไทย-อังกฤษ และการตั้งค่าระยะบรรทัดไม่ให้สระหรือวรรณยุกต์ซ้อนทับ
+        </p>
+      </div>
+
+      <!-- PART 4A: Typography Inspector (Video 1 Style) -->
+      <div class="surface-card border-2 rounded-3xl p-5 sm:p-8 shadow-xl max-w-4xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span id="ins4-active-tag" class="px-3.5 py-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-200 font-mono text-sm font-bold shadow-sm">
+              &lt;display-h1&gt;
+            </span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">คลิกสำรวจโครงสร้างตัวอักษรในแต่ละส่วน</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="ins4-counter" class="px-3.5 py-1 rounded-full bg-emerald-600 text-white font-mono text-xs font-bold shadow-sm">
+              1 / 6 tags
+            </span>
+            <button id="ins4-prev" type="button" class="px-3 py-1.5 rounded-xl subtle-box border text-xs font-semibold hover:border-emerald-500 transition">◀ ก่อนหน้า</button>
+            <button id="ins4-next" type="button" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition">ถัดไป ▶</button>
+          </div>
+        </div>
+
+        <div id="ins4-pills" class="flex flex-wrap gap-1.5 mb-4"></div>
+
+        <div id="ins4-banner" class="mb-6 py-3 px-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 text-center transition-all">
+          <span id="ins4-banner-tag" class="font-mono font-bold text-emerald-700 dark:text-emerald-300 mr-2">&lt;display-h1&gt;</span>
+          <span id="ins4-banner-desc" class="font-body text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100">
+            พาดหัวหลัก (Heading 1) ใช้ฟอนต์ไม่มีหัว (Sans-serif / Loopless) น้ำหนัก Bold เพื่อดึงดูดสายตา
+          </span>
+        </div>
+
+        <!-- Simulated Article & Product Typography Card -->
+        <div class="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#141126] p-5 sm:p-7 space-y-4">
+          <div id="ins4-zone-0" data-ins="4" data-idx="0" class="inspector-zone p-3.5 rounded-xl border-2 border-emerald-500">
+            <span class="text-[10px] font-mono text-emerald-600 font-bold uppercase">&lt;display-h1&gt; • Prompt Bold 32px</span>
+            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+              การออกแบบกราฟิกสำหรับธุรกิจดิจิทัลยุคใหม่
+            </h4>
+          </div>
+
+          <div id="ins4-zone-1" data-ins="4" data-idx="1" class="inspector-zone p-3 rounded-xl border-2 border-transparent subtle-box">
+            <span class="text-[10px] font-mono text-purple-600 font-bold uppercase">&lt;subheading-h2&gt; • Prompt SemiBold 20px</span>
+            <h5 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 mt-0.5">
+              สร้างความน่าเชื่อถือด้วยระบบตัวอักษรที่อ่านง่ายในทุกหน้าจอ
+            </h5>
+          </div>
+
+          <div id="ins4-zone-2" data-ins="4" data-idx="2" class="inspector-zone p-4 rounded-xl border-2 border-transparent bg-slate-50 dark:bg-slate-900/60">
+            <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+              <span>&lt;body-copy&gt; • Sarabun Regular 16px</span>
+              <span id="ins4-zone-3" data-ins="4" data-idx="3" class="inspector-zone px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-bold">&lt;thai-line-height&gt; 1.75</span>
+            </div>
+            <p id="ins4-zone-4" data-ins="4" data-idx="4" class="inspector-zone p-2 rounded-lg border-2 border-transparent font-body text-sm sm:text-base text-slate-700 dark:text-slate-200 leading-[1.75] max-w-[65ch]">
+              ตัวอักษรสำหรับเนื้อหายาวควรใช้ฟอนต์มีหัว (เช่น Sarabun) ที่ช่วยให้สายตาเกาะแนวบรรทัดได้ดี พร้อมกำหนดความยาวบรรทัด (Measure) ไม่เกิน 60–75 ตัวอักษร และเว้นระยะบรรทัด 1.65–1.80 เพื่อไม่ให้วรรณยุกต์ไทยซ้อนทับกัน
+            </p>
+          </div>
+
+          <div id="ins4-zone-5" data-ins="4" data-idx="5" class="inspector-zone p-3 rounded-xl border-2 border-transparent flex items-center justify-between text-xs font-mono">
+            <span class="text-pink-600 dark:text-pink-400 font-bold">&lt;ui-caption-label&gt; • JetBrains Mono 12px</span>
+            <span class="px-3 py-1 rounded-full subtle-box border">UPDATED: OCT 2026 • READ TIME: 4 MIN</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PART 4B: 6 Web Typography Bento Cards (Video 2 Style) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">ฟอนต์มีหัว vs ไม่มีหัว</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ฟอนต์ไม่มีหัวเหมาะกับพาดหัว ฟอนต์มีหัวเหมาะกับเนื้อหายาว</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Prompt (Loopless) + Sarabun (Loop)</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 grid grid-cols-2 gap-2 items-center">
+            <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border">
+              <div class="font-sans text-sm font-bold text-purple-600">ทันสมัย</div>
+              <div class="text-[10px] text-slate-400 font-mono">Prompt (ไม่มีหัว)</div>
+            </div>
+            <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border">
+              <div class="font-body text-sm font-bold text-emerald-600">อ่านสบายตา</div>
+              <div class="text-[10px] text-slate-400 font-mono">Sarabun (มีหัว)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Display vs Body Font</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">แยกหน้าที่ฟอนต์พาดหัวสร้างเอกลักษณ์และฟอนต์เนื้อหา</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block"> maximum 2-3 font families per site</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col justify-center gap-1">
+            <div class="font-tech text-base font-bold text-indigo-600 dark:text-indigo-400">DISPLAY TECH HEADING</div>
+            <div class="font-body text-xs text-slate-600 dark:text-slate-300">จับคู่กับฟอนต์เนื้อหาที่เรียบง่ายและอ่านคล่อง</div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Type Scale Hierarchy</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ลำดับขนาดตัวอักษรตามอัตราส่วนคณิตศาสตร์ 1.25x</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">14px → 18px → 24px → 32px</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex items-baseline justify-center gap-3">
+            <span class="text-xs text-slate-400">14px</span>
+            <span class="text-sm font-medium text-slate-600">18px</span>
+            <span class="text-lg font-bold text-purple-600">24px</span>
+            <span class="text-2xl font-extrabold text-pink-600">32px</span>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Thai Line-Height</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ภาษาไทยมีสระบน-ล่างและวรรณยุกต์ ต้องใช้ระยะบรรทัดสูงกว่าอังกฤษ</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">line-height: 1.65 – 1.80</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex items-center justify-center">
+            <div class="text-xs font-body leading-[1.8] bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border">
+              บรรทัดที่ 1: น้ำพึ่งเรือเสือพึ่งป่า<br>
+              บรรทัดที่ 2: สระและวรรณยุกต์ไม่ชนกัน
+            </div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Optimal Line Length</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">จำกัดความกว้างคอลัมน์ข้อความไม่ให้ยาวเต็มจอเกินไป</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">max-width: 60ch – 75ch</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col justify-center items-center gap-1.5">
+            <div class="w-3/4 h-3 rounded bg-emerald-500/40 border border-emerald-500 flex items-center justify-center text-[9px] font-mono font-bold">✓ 65ch (อ่านสบาย)</div>
+            <div class="w-full h-3 rounded bg-rose-500/30 border border-rose-500 flex items-center justify-center text-[9px] font-mono">❌ ยาวเต็มจอ (กวาดตาเหนื่อย)</div>
+          </div>
+        </div>
+
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Font Weight &amp; Tracking</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ใช้ความหนาและระยะห่างระหว่างตัวอักษรสร้างจุดเน้น</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">font-weight: 400 / 600 / 700</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex items-center justify-around text-xs">
+            <span class="font-light">Light 300</span>
+            <span class="font-medium">Medium 500</span>
+            <span class="font-extrabold text-purple-600">Bold 700</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODULE 05: COPYRIGHT & CREATIVE COMMONS                             -->
+    <!-- =================================================================== -->
+    <section id="sec-copyright" class="scroll-mt-24 space-y-10">
+      <div class="text-center space-y-2">
+        <div class="text-xs font-mono tracking-widest uppercase text-indigo-600 dark:text-indigo-400 font-semibold">
+          MODULE 05 • DIGITAL MEDIA COPYRIGHT &amp; CREATIVE COMMONS
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          5. กฎหมายลิขสิทธิ์และสัญญาอนุญาตสื่อ Creative Commons
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          การคัดกรองสื่อดิจิทัล (ภาพถ่าย เวกเตอร์ ไอคอน ฟอนต์) ให้ถูกต้องตามกฎหมายลิขสิทธิ์ และการเขียนอ้างอิงตามหลัก TASL
+        </p>
+      </div>
+
+      <!-- PART 5A: Copyright Audit Inspector (Video 1 Style) -->
+      <div class="surface-card border-2 rounded-3xl p-5 sm:p-8 shadow-xl max-w-4xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span id="ins5-active-tag" class="px-3.5 py-1.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-200 font-mono text-sm font-bold shadow-sm">
+              &lt;stock-photo-license&gt;
+            </span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">คลิกตรวจสอบสิทธิ์การใช้งานสื่อแต่ละจุดบนหน้าเว็บ</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="ins5-counter" class="px-3.5 py-1 rounded-full bg-indigo-600 text-white font-mono text-xs font-bold shadow-sm">
+              1 / 6 tags
+            </span>
+            <button id="ins5-prev" type="button" class="px-3 py-1.5 rounded-xl subtle-box border text-xs font-semibold hover:border-indigo-500 transition">◀ ก่อนหน้า</button>
+            <button id="ins5-next" type="button" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition">ถัดไป ▶</button>
+          </div>
+        </div>
+
+        <div id="ins5-pills" class="flex flex-wrap gap-1.5 mb-4"></div>
+
+        <div id="ins5-banner" class="mb-6 py-3 px-5 rounded-2xl border-2 border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/40 text-center transition-all">
+          <span id="ins5-banner-tag" class="font-mono font-bold text-indigo-700 dark:text-indigo-300 mr-2">&lt;stock-photo-license&gt;</span>
+          <span id="ins5-banner-desc" class="font-body text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100">
+            ภาพถ่ายแบนเนอร์ธุรกิจ ต้องใช้ภาพจากแหล่งที่อนุญาตเชิงพาณิชย์ (เช่น CC0, CC BY หรือ Royalty-Free) ห้ามนำภาพจาก Google มาใช้โดยไม่ตรวจสอบสิทธิ์
+          </span>
+        </div>
+
+        <!-- Simulated Website Asset Copyright Audit -->
+        <div class="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0e0c1b] p-5 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div id="ins5-zone-0" data-ins="5" data-idx="0" class="inspector-zone p-4 rounded-xl border-2 border-indigo-500 bg-white dark:bg-[#17142b]">
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-mono text-[10px] font-bold">✓ CC0 / Commercial OK</span>
+              <h5 class="text-sm font-bold mt-2">1. ภาพแบนเนอร์สินค้า (&lt;stock-photo&gt;)</h5>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-1">ดาวน์โหลดจากคลังภาพ Public Domain ใช้ในเว็บธุรกิจและตัดต่อได้โดยไม่ละเมิดลิขสิทธิ์</p>
+            </div>
+
+            <div id="ins5-zone-1" data-ins="5" data-idx="1" class="inspector-zone p-4 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b]">
+              <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-mono text-[10px] font-bold">✓ MIT / CC BY 4.0</span>
+              <h5 class="text-sm font-bold mt-2">2. ชุดไอคอนและเวกเตอร์ (&lt;vector-icons&gt;)</h5>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-1">ตรวจสอบเงื่อนไขว่าต้องใส่ลิงก์ให้เครดิตผู้ออกแบบไอคอนในหน้าเว็บหรือไม่</p>
+            </div>
+
+            <div id="ins5-zone-2" data-ins="5" data-idx="2" class="inspector-zone p-4 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b]">
+              <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-mono text-[10px] font-bold">✓ SIL Open Font License (OFL)</span>
+              <h5 class="text-sm font-bold mt-2">3. ฟอนต์เว็บไซต์ (&lt;web-font-license&gt;)</h5>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-1">ใช้ฟอนต์จาก Google Fonts (เช่น Prompt, Sarabun) ที่อนุญาตให้ฝังบนเว็บธุรกิจได้ฟรี</p>
+            </div>
+
+            <div id="ins5-zone-3" data-ins="5" data-idx="3" class="inspector-zone p-4 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b]">
+              <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-mono text-[10px] font-bold">⚠ Trademark Protected (™ / ®)</span>
+              <h5 class="text-sm font-bold mt-2">4. โลโก้และเครื่องหมายการค้า (&lt;trademark&gt;)</h5>
+              <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-1">ห้ามดัดแปลงโลโก้แบรนด์อื่นหรือนำไปแอบอ้างเป็นพันธมิตรโดยไม่ได้รับอนุญาต</p>
+            </div>
+          </div>
+
+          <div id="ins5-zone-4" data-ins="5" data-idx="4" class="inspector-zone p-3.5 rounded-xl border-2 border-transparent bg-white dark:bg-[#17142b] flex items-center justify-between text-xs">
+            <span><strong>5. สื่อวิดีโอและเสียงประกอบ (&lt;media-embed&gt;):</strong> ตรวจสอบสิทธิ์เพลงประกอบว่าไม่ติด Content ID</span>
+            <span class="font-mono text-[11px] text-indigo-600 font-bold">Royalty-Free Audio</span>
+          </div>
+
+          <div id="ins5-zone-5" data-ins="5" data-idx="5" class="inspector-zone p-3.5 rounded-xl border-2 border-transparent bg-slate-900 text-white text-xs font-mono">
+            <strong>6. การอ้างอิงท้ายเว็บ (&lt;tasl-attribution&gt;):</strong> Photo "Coffee Workspace" by John Doe via Wikimedia Commons, licensed under CC BY 4.0
+          </div>
+        </div>
+      </div>
+
+      <!-- PART 5B: 9 Creative Commons & Copyright Bento Cards (Video 2 Style) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- CC0 -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Public Domain (CC0)</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ผู้สร้างสละลิขสิทธิ์ทั้งหมด ใช้ฟรีทุกกรณีไม่ต้องอ้างอิง</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">No Rights Reserved • Commercial OK</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col items-center justify-center gap-2">
+            <div class="px-3 py-1 rounded-full bg-emerald-600 text-white font-mono text-xs font-bold">CC0 1.0 Universal</div>
+            <div class="flex gap-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+              <span>✓ ใช้การค้าได้</span><span>✓ ดัดแปลงได้</span><span>✓ ไม่ต้องใส่เครดิต</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CC BY -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">CC BY (Attribution)</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">นำไปใช้เชิงพาณิชย์และดัดแปลงได้ แต่ต้องระบุชื่อเจ้าของผลงาน</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Credit Required • Commercial OK</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col items-center justify-center gap-2">
+            <div class="flex gap-1.5">
+              <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-white font-mono text-xs font-bold">CC</span>
+              <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">👤 BY</span>
+            </div>
+            <span class="text-[11px] font-body text-slate-600 dark:text-slate-300">ต้องให้เครดิตเจ้าของผลงานเสมอ</span>
+          </div>
+        </div>
+
+        <!-- CC BY-SA -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">CC BY-SA (ShareAlike)</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ดัดแปลงและใช้การค้าได้ แต่ผลงานใหม่ต้องใช้สัญญาอนุญาตเดิม</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Credit + Same License Required</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col items-center justify-center gap-2">
+            <div class="flex gap-1.5">
+              <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">👤 BY</span>
+              <span class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-mono text-xs font-bold">🔄 SA</span>
+            </div>
+            <span class="text-[11px] font-body text-slate-600 dark:text-slate-300">อนุญาตแบบเดียวกันเมื่อเผยแพร่ต่อ</span>
+          </div>
+        </div>
+
+        <!-- CC BY-ND -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">CC BY-ND (NoDerivs)</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ใช้เชิงพาณิชย์ได้ แต่ห้ามตัดต่อ รีทัช หรือดัดแปลงภาพต้นฉบับ</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">No Cropping / No Editing</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col items-center justify-center gap-2">
+            <div class="flex gap-1.5">
+              <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">👤 BY</span>
+              <span class="px-2.5 py-1 rounded-lg bg-amber-600 text-white font-mono text-xs font-bold">🟰 ND</span>
+            </div>
+            <span class="text-[11px] font-body text-amber-600 dark:text-amber-400 font-semibold">ห้ามตัดต่อหรือแก้ไขภาพ</span>
+          </div>
+        </div>
+
+        <!-- CC BY-NC -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">CC BY-NC (NonCommercial)</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">นำไปใช้และดัดแปลงได้ แต่ห้ามใช้เพื่อการค้าหรือเว็บขายสินค้า</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Non-Commercial Only (ห้ามการค้า)</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col items-center justify-center gap-2">
+            <div class="flex gap-1.5">
+              <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">👤 BY</span>
+              <span class="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-mono text-xs font-bold">🚫$ NC</span>
+            </div>
+            <span class="text-[11px] font-body text-rose-600 dark:text-rose-400 font-semibold">ใช้เพื่อการศึกษา/ส่วนตัวเท่านั้น</span>
+          </div>
+        </div>
+
+        <!-- CC BY-NC-SA -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">CC BY-NC-SA</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ห้ามใช้เพื่อการค้า และหากดัดแปลงต้องใช้สัญญาอนุญาตเดิม</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Credit + Non-Commercial + ShareAlike</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col items-center justify-center gap-2">
+            <div class="flex gap-1.5">
+              <span class="px-2 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">BY</span>
+              <span class="px-2 py-1 rounded-lg bg-rose-600 text-white font-mono text-xs font-bold">NC</span>
+              <span class="px-2 py-1 rounded-lg bg-indigo-600 text-white font-mono text-xs font-bold">SA</span>
+            </div>
+            <span class="text-[11px] font-body text-slate-500">ห้ามการค้า + แชร์สัญญาเดิม</span>
+          </div>
+        </div>
+
+        <!-- CC BY-NC-ND -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">CC BY-NC-ND</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">เข้มงวดที่สุด: ให้เครดิต ห้ามการค้า และห้ามดัดแปลงแก้ไขใดๆ</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Most Restrictive CC License</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex flex-col items-center justify-center gap-2">
+            <div class="flex gap-1.5">
+              <span class="px-2 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">BY</span>
+              <span class="px-2 py-1 rounded-lg bg-rose-600 text-white font-mono text-xs font-bold">NC</span>
+              <span class="px-2 py-1 rounded-lg bg-amber-600 text-white font-mono text-xs font-bold">ND</span>
+            </div>
+            <span class="text-[11px] font-body text-rose-600 dark:text-rose-400 font-semibold">ห้ามการค้า &amp; ห้ามดัดแปลง</span>
+          </div>
+        </div>
+
+        <!-- Royalty-Free vs Rights-Managed -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">Royalty-Free (RF)</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">ซื้อสิทธิ์ครั้งเดียวใช้งานเชิงพาณิชย์ได้ไม่จำกัดจำนวนครั้งตามเงื่อนไข</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">One-Time Fee vs Scoped RM</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 flex items-center justify-around text-xs">
+            <div class="p-2 rounded-lg bg-white dark:bg-slate-800 border">
+              <div class="font-bold text-indigo-600">Royalty-Free</div>
+              <div class="text-[10px] text-slate-400">จ่ายครั้งเดียวใช้ซ้ำได้</div>
+            </div>
+            <div class="p-2 rounded-lg bg-white dark:bg-slate-800 border">
+              <div class="font-bold text-pink-600">Rights-Managed</div>
+              <div class="text-[10px] text-slate-400">จำกัดเวลา/พื้นที่</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TASL Formula -->
+        <div class="bento-pattern-card surface-card border rounded-3xl p-5 text-center flex flex-col justify-between">
+          <div>
+            <h4 class="text-lg font-extrabold">การเขียนเครดิตแบบ TASL</h4>
+            <p class="text-xs font-body text-slate-500 dark:text-slate-400 mt-0.5">หลักปฏิบัติมาตรฐานในการอ้างอิงแหล่งที่มาของสื่อดิจิทัล</p>
+            <div class="mt-2.5"><span class="code-pill px-3 py-1 rounded-full text-[11px] font-semibold inline-block">Title + Author + Source + License</span></div>
+          </div>
+          <div class="mt-5 p-3 rounded-2xl subtle-box border h-28 grid grid-cols-4 gap-1.5 items-center font-mono text-xs font-bold">
+            <div class="p-2 rounded-lg bg-purple-500 text-white">T<div class="text-[9px] font-normal">Title</div></div>
+            <div class="p-2 rounded-lg bg-pink-500 text-white">A<div class="text-[9px] font-normal">Author</div></div>
+            <div class="p-2 rounded-lg bg-indigo-500 text-white">S<div class="text-[9px] font-normal">Source</div></div>
+            <div class="p-2 rounded-lg bg-emerald-500 text-white">L<div class="text-[9px] font-normal">License</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- INTERACTIVE PLAYGROUND (โหมดทดลองปรับค่าสด)                          -->
+    <!-- =================================================================== -->
+    <section id="sec-playground" class="scroll-mt-24 space-y-8">
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-mono font-bold">
+          ⚡ LIVE INTERACTIVE PLAYGROUND
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          สตูดิโอทดลองปรับค่ากราฟิกและตรวจสอบลิขสิทธิ์สด
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          ทดลองสลับขนาดหน้าจอ (Responsive), ชุดสีธุรกิจ 60-30-10, คู่ฟอนต์ไทย-อังกฤษ, ระยะบรรทัด และตัวช่วยคัดกรองสัญญาอนุญาต Creative Commons แบบเห็นผลลัพธ์ทันที
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left Control Panel (5 Cols) -->
+        <div class="lg:col-span-5 surface-card border-2 rounded-3xl p-6 space-y-6 shadow-lg">
+          <!-- Control 1: Responsive Viewport Size -->
+          <div class="space-y-2">
+            <label class="text-xs font-mono uppercase tracking-wider text-purple-600 dark:text-purple-400 font-bold block">
+              1. ขนาดหน้าจอ (Responsive Viewport)
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-vp="100%" class="vp-btn py-2 px-3 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-sm transition">
+                💻 Desktop
+              </button>
+              <button type="button" data-vp="480px" class="vp-btn py-2 px-3 rounded-xl text-xs font-bold subtle-box border hover:border-purple-500 transition">
+                📱 Tablet
+              </button>
+              <button type="button" data-vp="320px" class="vp-btn py-2 px-3 rounded-xl text-xs font-bold subtle-box border hover:border-purple-500 transition">
+                📲 Mobile
+              </button>
+            </div>
+          </div>
+
+          <!-- Control 2: 60-30-10 Color Palette -->
+          <div class="space-y-2">
+            <label class="text-xs font-mono uppercase tracking-wider text-pink-600 dark:text-pink-400 font-bold block">
+              2. ชุดสีเว็บไซต์ธุรกิจ (60-30-10 Palette)
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button type="button" data-palette="tech" class="pal-btn p-2.5 rounded-xl border-2 border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 flex items-center gap-2 text-xs font-bold">
+                <span class="w-4 h-4 rounded-full bg-purple-600"></span>
+                <span class="w-4 h-4 rounded-full bg-pink-500"></span>
+                <span>Tech Violet</span>
+              </button>
+              <button type="button" data-palette="eco" class="pal-btn p-2.5 rounded-xl border subtle-box flex items-center gap-2 text-xs font-bold">
+                <span class="w-4 h-4 rounded-full bg-emerald-600"></span>
+                <span class="w-4 h-4 rounded-full bg-amber-500"></span>
+                <span>Eco Organic</span>
+              </button>
+              <button type="button" data-palette="finance" class="pal-btn p-2.5 rounded-xl border subtle-box flex items-center gap-2 text-xs font-bold">
+                <span class="w-4 h-4 rounded-full bg-blue-700"></span>
+                <span class="w-4 h-4 rounded-full bg-cyan-500"></span>
+                <span>Finance Trust</span>
+              </button>
+              <button type="button" data-palette="food" class="pal-btn p-2.5 rounded-xl border subtle-box flex items-center gap-2 text-xs font-bold">
+                <span class="w-4 h-4 rounded-full bg-orange-600"></span>
+                <span class="w-4 h-4 rounded-full bg-yellow-400"></span>
+                <span>Food &amp; Cafe</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Control 3: Font Pairing & Line-Height -->
+          <div class="space-y-3">
+            <label class="text-xs font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold block">
+              3. จับคู่ฟอนต์และระยะบรรทัด (Web Typography)
+            </label>
+            <select id="pg-font-select" class="w-full p-2.5 rounded-xl subtle-box border text-xs sm:text-sm font-semibold focus:outline-none focus:border-purple-500">
+              <option value="modern">Prompt + Sarabun (มาตรฐานเว็บธุรกิจร่วมสมัย)</option>
+              <option value="tech">Chakra Petch + JetBrains Mono (แนวเทคโนโลยี/เกม)</option>
+              <option value="editorial">Pridi + Sarabun (แนวบทความ/นิตยสารมีหัว)</option>
+            </select>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>ระยะบรรทัดภาษาไทย (line-height)</span>
+                <span id="pg-lh-value" class="font-mono font-bold text-purple-600">1.75 (เหมาะสม)</span>
+              </div>
+              <input id="pg-lh-slider" type="range" min="1.15" max="2.10" step="0.05" value="1.75" class="w-full accent-purple-600 cursor-pointer">
+            </div>
+          </div>
+
+          <!-- Control 4: Creative Commons License Finder & TASL Generator -->
+          <div class="space-y-3 pt-2 border-t border-purple-200/60 dark:border-purple-800/50">
+            <label class="text-xs font-mono uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-bold block">
+              4. ตัวช่วยคัดกรองลิขสิทธิ์สื่อ (CC License Matcher)
+            </label>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <label class="p-2.5 rounded-xl subtle-box border flex items-center gap-2 cursor-pointer">
+                <input id="cc-commercial" type="checkbox" checked class="accent-purple-600 w-4 h-4">
+                <span>ใช้ในเว็บธุรกิจ (การค้า)</span>
+              </label>
+              <label class="p-2.5 rounded-xl subtle-box border flex items-center gap-2 cursor-pointer">
+                <input id="cc-modify" type="checkbox" checked class="accent-purple-600 w-4 h-4">
+                <span>ต้องตัดต่อ/รีทัชภาพ</span>
+              </label>
+            </div>
+            <div id="cc-recommendation" class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 text-xs space-y-1">
+              <div class="font-bold text-emerald-800 dark:text-emerald-300">✓ สัญญาอนุญาตที่ใช้ได้: CC0, CC BY, CC BY-SA</div>
+              <div class="text-[11px] font-body text-emerald-700 dark:text-emerald-400">ห้ามใช้สื่อที่มีสัญลักษณ์ NC (ห้ามการค้า) และ ND (ห้ามดัดแปลง)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Live Preview Canvas (7 Cols) -->
+        <div class="lg:col-span-7 surface-card border-2 rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-purple-100 dark:border-purple-900/50 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <span class="text-xs font-mono font-bold">LIVE PREVIEW CANVAS</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="pg-contrast-badge" class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-mono text-xs font-bold">
+                WCAG Contrast: 10.8:1 (AAA Pass)
+              </span>
+              <span id="pg-vp-badge" class="px-3 py-1 rounded-full code-pill text-xs font-bold">
+                Viewport: Desktop 100%
+              </span>
+            </div>
+          </div>
+
+          <!-- Resizable Preview Container -->
+          <div class="flex justify-center bg-slate-100 dark:bg-[#090712] p-4 rounded-2xl overflow-x-auto">
+            <div id="pg-preview-frame" style="width: 100%; transition: width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);" class="rounded-2xl overflow-hidden shadow-lg border-2 border-purple-300 dark:border-purple-800 bg-white text-slate-900">
+              <!-- Preview Top Navbar (30% Brand Color) -->
+              <div id="pg-nav-bar" class="px-5 py-3.5 bg-purple-700 text-white flex items-center justify-between transition-colors">
+                <span id="pg-brand-name" class="font-bold text-sm tracking-wide">BANPONG STUDIO</span>
+                <div id="pg-nav-links" class="flex items-center gap-3 text-xs">
+                  <span>สินค้า</span>
+                  <span>บริการ</span>
+                  <span>ติดต่อ</span>
+                </div>
+              </div>
+
+              <!-- Preview Body (60% Primary Neutral) -->
+              <div id="pg-body-area" class="p-6 bg-[#faf8ff] text-slate-900 space-y-5 transition-colors">
+                <div class="space-y-2">
+                  <span id="pg-badge-pill" class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[11px] font-mono font-bold">
+                    60-30-10 COLOR &amp; TYPOGRAPHY DEMO
+                  </span>
+                  <h3 id="pg-heading-text" class="text-xl sm:text-2xl font-extrabold leading-tight">
+                    ออกแบบกราฟิกเว็บไซต์ให้สวยงาม อ่านง่าย และถูกลิขสิทธิ์
+                  </h3>
+                  <p id="pg-sample-paragraph" style="line-height: 1.75;" class="font-body text-sm text-slate-600">
+                    ตัวอย่างการแสดงผลภาษาไทยที่มีทั้งสระบน สระล่าง และวรรณยุกต์ เช่น “พี่น้องออกแบบกราฟิกที่นี่ยอดเยี่ยมที่สุด” ลองเลื่อนปรับค่าระยะบรรทัดด้านซ้ายเพื่อสังเกตความชัดเจนในการอ่าน
+                  </p>
+                </div>
+
+                <!-- Preview Product Cards Grid -->
+                <div id="pg-card-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1">
+                    <div id="pg-box-1" class="h-16 rounded-lg bg-purple-100 flex items-center justify-center text-xs font-mono font-bold text-purple-700">
+                      Graphic Asset #01 (CC BY 4.0)
+                    </div>
+                    <div class="text-xs font-bold pt-1">แบนเนอร์โปรโมตสินค้า</div>
+                    <div class="text-[11px] text-slate-500">ขนาด 1200×630px • WebP</div>
+                  </div>
+                  <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1">
+                    <div id="pg-box-2" class="h-16 rounded-lg bg-purple-100 flex items-center justify-center text-xs font-mono font-bold text-purple-700">
+                      Vector Icon Pack (CC0)
+                    </div>
+                    <div class="text-xs font-bold pt-1">ชุดไอคอนระบบนำทาง</div>
+                    <div class="text-[11px] text-slate-500">ขนาด 24×24px • SVG</div>
+                  </div>
+                </div>
+
+                <!-- Preview 10% CTA Button & TASL Credit Footer -->
+                <div class="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200">
+                  <button id="pg-cta-btn" type="button" class="px-5 py-2.5 rounded-xl bg-pink-600 text-white font-bold text-xs shadow-md transition">
+                    สั่งซื้อแพ็กเกจกราฟิก (10% Accent CTA)
+                  </button>
+                  <button id="btn-copy-tasl" type="button" class="px-3.5 py-2 rounded-xl bg-slate-900 text-white font-mono text-[11px] hover:bg-slate-700 transition">
+                    📋 คัดลอกเครดิต TASL
+                  </button>
+                </div>
+
+                <div id="pg-tasl-box" class="p-2.5 rounded-lg bg-slate-100 text-slate-600 font-mono text-[11px]">
+                  เครดิตสื่อ (TASL): "Digital Workspace Graphic" by Banpong Studio, via Wikimedia Commons, licensed under CC BY 4.0
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast-msg" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 rounded-2xl bg-slate-900 text-white text-xs font-bold shadow-xl border border-purple-500">
+    ✓ คัดลอกข้อความอ้างอิงลิขสิทธิ์ (TASL) เรียบร้อยแล้ว!
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-purple-200/60 dark:border-purple-900/40 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>รายวิชา <strong>31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์</strong> • หน่วยที่ 1 (สัปดาห์ที่ 1–2)</div>
+      <div class="font-mono">หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) พ.ศ. 2567</div>
+    </div>
+  </footer>
+
+  <!-- Interactive Script -->
+  <script>
+    (function () {
+      // 1. Theme Switcher (Light / Dark / Accent)
+      const htmlEl = document.documentElement;
+      const btnLight = document.getElementById('btn-theme-light');
+      const btnDark = document.getElementById('btn-theme-dark');
+      const btnAccent = document.getElementById('btn-theme-accent');
+
+      function setTheme(mode) {
+        htmlEl.classList.remove('dark', 'theme-accent');
+        [btnLight, btnDark, btnAccent].forEach(b => {
+          b.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition';
+        });
+        if (mode === 'dark') {
+          htmlEl.classList.add('dark');
+          btnDark.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-purple-600 text-white shadow-sm transition';
+        } else if (mode === 'accent') {
+          htmlEl.classList.add('theme-accent');
+          btnAccent.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-pink-600 text-white shadow-sm transition';
+        } else {
+          btnLight.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white text-purple-700 shadow-sm transition';
+        }
+      }
+
+      btnLight.addEventListener('click', () => setTheme('light'));
+      btnDark.addEventListener('click', () => setTheme('dark'));
+      btnAccent.addEventListener('click', () => setTheme('accent'));
+
+      // 2. Step-by-Step Inspector Data for All 5 Modules (Video 1 @karelm_dev Style)
+      const inspectors = {
+        1: {
+          state: 0,
+          timer: null,
+          steps: [
+            { tag: '<viewport>', desc: 'พื้นที่แสดงผลหลักที่ปรับความกว้างตามหน้าจออุปกรณ์ (Desktop / Tablet / Mobile)', color: '#7c3aed' },
+            { tag: '<nav-collapse>', desc: 'แถบเมนูนำทางด้านบน ยุบรวมเป็นปุ่ม Hamburger Menu อัตโนมัติเมื่อเปิดบนหน้าจอมือถือ', color: '#0d9488' },
+            { tag: '<hero-graphic>', desc: 'แบนเนอร์กราฟิกหลัก ย่อ-ขยายตามสัดส่วน max-width: 100% และสลับสัดส่วนภาพตามอุปกรณ์', color: '#d97706' },
+            { tag: '<fluid-grid>', desc: 'ระบบกริดคอลัมน์ยืดหยุ่น ปรับจาก 12 คอลัมน์บนคอมพิวเตอร์เป็น 4 คอลัมน์บนมือถือ', color: '#059669' },
+            { tag: '<card-stack>', desc: 'การ์ดสินค้าจัดเรียงแถวใหม่อัตโนมัติ (3 คอลัมน์ → 1 คอลัมน์) โดยไม่ต้องเลื่อนจอซ้าย-ขวา', color: '#db2777' },
+            { tag: '<touch-target>', desc: 'ปุ่มกดขนาดไม่ต่ำกว่า 44×44 พิกเซล เพื่อให้ใช้นิ้วแตะบนหน้าจอสัมผัสได้อย่างแม่นยำ', color: '#e11d48' }
+          ]
+        },
+        2: {
+          state: 0,
+          steps: [
+            { tag: '<focal-point>', desc: 'จุดดึงสายตาหลักของหน้าเว็บ ใช้ภาพกราฟิกหรือพาดหัวขนาดใหญ่เพื่อหยุดสายตาผู้ใช้ใน 3 วินาทีแรก', color: '#db2777' },
+            { tag: '<visual-hierarchy>', desc: 'การจัดลำดับความสำคัญด้วยขนาดและน้ำหนักตัวอักษร (H1 ใหญ่ชัดเจน → H2 รอง → Body เนื้อหา)', color: '#7c3aed' },
+            { tag: '<rule-of-thirds>', desc: 'การวางจุดเด่นของภาพกราฟิกไว้บริเวณจุดตัด 9 ช่อง เพื่อให้ภาพดูมีมิติและสมดุลตามหลักทัศนศิลป์', color: '#d97706' },
+            { tag: '<white-space>', desc: 'พื้นที่ว่าง (Negative Space) รอบองค์ประกอบ ช่วยลดความแออัดและทำให้เนื้อหาอ่านง่ายขึ้น', color: '#0d9488' },
+            { tag: '<grid-alignment>', desc: 'การจัดแนวเส้นขอบซ้าย-ขวาให้ตรงกันตามระบบ 8pt Grid สร้างความเป็นระเบียบระดับมืออาชีพ', color: '#4f46e5' },
+            { tag: '<cta-contrast>', desc: 'ปุ่มกระตุ้นการตัดสินใจ (Call to Action) ใช้สีตัดกับพื้นหลังชัดเจนเพื่อให้ผู้ใช้คลิกทันที', color: '#e11d48' }
+          ]
+        },
+        3: {
+          state: 0,
+          steps: [
+            { tag: '<60%-primary-neutral>', desc: 'สีพื้นหลังหลัก 60% ของหน้าเว็บ ใช้โทนสีสว่างสะอาดตาเพื่อไม่ให้รบกวนเนื้อหาและสินค้า', color: '#d97706' },
+            { tag: '<30%-brand-identity>', desc: 'สีรอง 30% สื่อถึงอัตลักษณ์แบรนด์ ใช้ในส่วนหัวเว็บ แถบเมนู และการ์ดสำคัญ', color: '#4f46e5' },
+            { tag: '<10%-accent-cta>', desc: 'สีเน้น 10% ใช้สีคู่ตรงข้ามหรือสีสดสำหรับปุ่มสำคัญ เช่น ปุ่มสั่งซื้อหรือปุ่มสมัครสมาชิก', color: '#e11d48' },
+            { tag: '<semantic-status>', desc: 'สีสื่อความหมายสถานะสากล: สีเขียว (สำเร็จ), สีเหลืองอำพัน (แจ้งเตือน), สีแดง (ผิดพลาด)', color: '#059669' },
+            { tag: '<surface-elevation>', desc: 'สีพื้นผิวของการ์ดที่แยกชั้นความลึกออกจากพื้นหลังหลัก ช่วยจัดกลุ่มข้อมูลให้ชัดเจน', color: '#7c3aed' },
+            { tag: '<wcag-contrast>', desc: 'ค่าความเปรียบต่างระหว่างสีตัวอักษรกับพื้นหลังต้องไม่ต่ำกว่า 4.5:1 ตามเกณฑ์ WCAG 2.1 AA', color: '#0d9488' }
+          ]
+        },
+        4: {
+          state: 0,
+          steps: [
+            { tag: '<display-h1>', desc: 'พาดหัวหลัก (Heading 1) ใช้ฟอนต์ไม่มีหัว (Sans-serif / Loopless) น้ำหนัก Bold เพื่อดึงดูดสายตา', color: '#059669' },
+            { tag: '<subheading-h2>', desc: 'หัวข้อรอง (Subheading) เชื่อมโยงพาดหัวเข้าสู่เนื้อหาด้วยขนาดลดหลั่นตาม Type Scale', color: '#7c3aed' },
+            { tag: '<body-copy>', desc: 'เนื้อหาหลัก ใช้ฟอนต์มีหัว (เช่น Sarabun) ที่อ่านง่ายแม้เป็นข้อความยาวหลายบรรทัด', color: '#0d9488' },
+            { tag: '<thai-line-height>', desc: 'ระยะห่างระหว่างบรรทัดภาษาไทย (1.65–1.80) ป้องกันสระบน-ล่างและวรรณยุกต์ซ้อนทับกัน', color: '#d97706' },
+            { tag: '<measure-cpl>', desc: 'ความยาวบรรทัดที่เหมาะสม (60–75 ตัวอักษรต่อบรรทัด) ช่วยให้กวาดสายตาอ่านต่อได้ไม่หลงบรรทัด', color: '#db2777' },
+            { tag: '<ui-caption-label>', desc: 'ข้อความกำกับปุ่มและวันที่ ใช้ขนาดเล็กแต่คมชัด พร้อมเว้นระยะตัวอักษร (letter-spacing) พอเหมาะ', color: '#4f46e5' }
+          ]
+        },
+        5: {
+          state: 0,
+          steps: [
+            { tag: '<stock-photo-license>', desc: 'ภาพถ่ายแบนเนอร์ธุรกิจ ต้องใช้ภาพจากแหล่งที่อนุญาตเชิงพาณิชย์ (CC0, CC BY หรือ Royalty-Free)', color: '#4f46e5' },
+            { tag: '<vector-icons>', desc: 'ชุดไอคอนและกราฟิกเวกเตอร์ ต้องตรวจสอบว่าต้องให้เครดิตผู้ออกแบบหรืออนุญาตแก้ไขสี/รูปทรงหรือไม่', color: '#7c3aed' },
+            { tag: '<web-font-license>', desc: 'ฟอนต์สำหรับเว็บไซต์ ต้องใช้ฟอนต์ที่มีสัญญาอนุญาต Web/Commercial เช่น SIL Open Font License (OFL)', color: '#0d9488' },
+            { tag: '<trademark>', desc: 'โลโก้และเครื่องหมายการค้า (™ / ®) ได้รับความคุ้มครอง ห้ามดัดแปลงหรือนำไปใช้ทำให้เกิดความเข้าใจผิด', color: '#e11d48' },
+            { tag: '<media-embed>', desc: 'สื่อเสียงและวิดีโอประกอบเว็บไซต์ ต้องใช้สื่อปลอดค่าลิขสิทธิ์ซ้ำ (Royalty-Free) เพื่อไม่ถูกระงับการเผยแพร่', color: '#d97706' },
+            { tag: '<tasl-attribution>', desc: 'การเขียนอ้างอิงแหล่งที่มาตามหลัก TASL: Title (ชื่อผลงาน) + Author (ผู้สร้าง) + Source (แหล่งที่มา) + License (สัญญา)', color: '#059669' }
+          ]
+        }
+      };
+
+      function renderInspector(id) {
+        const conf = inspectors[id];
+        const step = conf.steps[conf.state];
+        const total = conf.steps.length;
+
+        const activeTagEl = document.getElementById('ins' + id + '-active-tag');
+        const counterEl = document.getElementById('ins' + id + '-counter');
+        const bannerTagEl = document.getElementById('ins' + id + '-banner-tag');
+        const bannerDescEl = document.getElementById('ins' + id + '-banner-desc');
+        const bannerEl = document.getElementById('ins' + id + '-banner');
+
+        activeTagEl.textContent = step.tag;
+        activeTagEl.style.borderColor = step.color;
+        activeTagEl.style.color = step.color;
+
+        counterEl.textContent = (conf.state + 1) + ' / ' + total + ' tags';
+        counterEl.style.backgroundColor = step.color;
+
+        bannerTagEl.textContent = step.tag;
+        bannerTagEl.style.color = step.color;
+        bannerDescEl.textContent = step.desc;
+        bannerEl.style.borderColor = step.color;
+
+        // Render step pills
+        const pillsWrap = document.getElementById('ins' + id + '-pills');
+        pillsWrap.innerHTML = '';
+        conf.steps.forEach((s, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = (idx + 1) + '. ' + s.tag;
+          if (idx === conf.state) {
+            btn.className = 'px-2.5 py-1 rounded-lg font-mono text-xs font-bold text-white shadow-sm transition';
+            btn.style.backgroundColor = s.color;
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg font-mono text-xs subtle-box border hover:border-purple-400 transition';
+          }
+          btn.addEventListener('click', () => {
+            conf.state = idx;
+            renderInspector(id);
+          });
+          pillsWrap.appendChild(btn);
+        });
+
+        // Highlight active zone in the simulated browser
+        for (let i = 0; i < total; i++) {
+          const z = document.getElementById('ins' + id + '-zone-' + i);
+          if (!z) continue;
+          if (i === conf.state) {
+            z.classList.add('active-zone');
+            z.style.borderColor = step.color;
+            z.style.boxShadow = '0 0 0 4px ' + step.color + '26';
+          } else {
+            z.classList.remove('active-zone');
+            z.style.borderColor = 'transparent';
+            z.style.boxShadow = 'none';
+          }
+        }
+      }
+
+      [1, 2, 3, 4, 5].forEach(id => {
+        renderInspector(id);
+        document.getElementById('ins' + id + '-prev').addEventListener('click', () => {
+          const c = inspectors[id];
+          c.state = (c.state - 1 + c.steps.length) % c.steps.length;
+          renderInspector(id);
+        });
+        document.getElementById('ins' + id + '-next').addEventListener('click', () => {
+          const c = inspectors[id];
+          c.state = (c.state + 1) % c.steps.length;
+          renderInspector(id);
+        });
+      });
+
+      // Clicking directly on any zone inside the simulated browser
+      document.querySelectorAll('.inspector-zone').forEach(zone => {
+        zone.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const insId = parseInt(zone.getAttribute('data-ins'), 10);
+          const idx = parseInt(zone.getAttribute('data-idx'), 10);
+          if (inspectors[insId] && !isNaN(idx)) {
+            inspectors[insId].state = idx;
+            renderInspector(insId);
+          }
+        });
+      });
+
+      // Module 1 Auto-Play Toggle (like Video 1 automatic walkthrough)
+      const btnAuto1 = document.getElementById('ins1-autoplay');
+      btnAuto1.addEventListener('click', () => {
+        const c = inspectors[1];
+        if (c.timer) {
+          clearInterval(c.timer);
+          c.timer = null;
+          btnAuto1.textContent = '▶ เล่นอัตโนมัติ';
+        } else {
+          btnAuto1.textContent = '⏸ หยุดเล่น';
+          c.timer = setInterval(() => {
+            c.state = (c.state + 1) % c.steps.length;
+            renderInspector(1);
+          }, 1800);
+        }
+      });
+
+      // 3. Interactive Playground Controls
+      const previewFrame = document.getElementById('pg-preview-frame');
+      const vpBadge = document.getElementById('pg-vp-badge');
+      const cardGrid = document.getElementById('pg-card-grid');
+
+      document.querySelectorAll('.vp-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const vp = btn.getAttribute('data-vp');
+          previewFrame.style.width = vp;
+          document.querySelectorAll('.vp-btn').forEach(b => {
+            b.className = 'vp-btn py-2 px-3 rounded-xl text-xs font-bold subtle-box border hover:border-purple-500 transition';
+          });
+          btn.className = 'vp-btn py-2 px-3 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-sm transition';
+
+          if (vp === '320px') {
+            vpBadge.textContent = 'Viewport: Mobile 320px';
+            cardGrid.className = 'grid grid-cols-1 gap-3';
+          } else if (vp === '480px') {
+            vpBadge.textContent = 'Viewport: Tablet 480px';
+            cardGrid.className = 'grid grid-cols-1 gap-3';
+          } else {
+            vpBadge.textContent = 'Viewport: Desktop 100%';
+            cardGrid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+          }
+        });
+      });
+
+      // Palette Switcher in Playground
+      const palettes = {
+        tech: {
+          navBg: '#6d28d9',
+          bodyBg: '#faf8ff',
+          badgeBg: '#f3e8ff',
+          badgeText: '#6b21a8',
+          ctaBg: '#db2777',
+          contrast: 'WCAG Contrast: 10.8:1 (AAA Pass)'
+        },
+        eco: {
+          navBg: '#047857',
+          bodyBg: '#f4fbf7',
+          badgeBg: '#d1fae5',
+          badgeText: '#065f46',
+          ctaBg: '#d97706',
+          contrast: 'WCAG Contrast: 9.4:1 (AAA Pass)'
+        },
+        finance: {
+          navBg: '#1d4ed8',
+          bodyBg: '#f8fafc',
+          badgeBg: '#dbeafe',
+          badgeText: '#1e40af',
+          ctaBg: '#0891b2',
+          contrast: 'WCAG Contrast: 11.2:1 (AAA Pass)'
+        },
+        food: {
+          navBg: '#c2410c',
+          bodyBg: '#fffbeb',
+          badgeBg: '#ffedd5',
+          badgeText: '#9a3412',
+          ctaBg: '#e11d48',
+          contrast: 'WCAG Contrast: 8.7:1 (AAA Pass)'
+        }
+      };
+
+      const pgNav = document.getElementById('pg-nav-bar');
+      const pgBody = document.getElementById('pg-body-area');
+      const pgBadge = document.getElementById('pg-badge-pill');
+      const pgCta = document.getElementById('pg-cta-btn');
+      const pgContrast = document.getElementById('pg-contrast-badge');
+      const pgBox1 = document.getElementById('pg-box-1');
+      const pgBox2 = document.getElementById('pg-box-2');
+
+      document.querySelectorAll('.pal-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-palette');
+          const p = palettes[key];
+          if (!p) return;
+          pgNav.style.backgroundColor = p.navBg;
+          pgBody.style.backgroundColor = p.bodyBg;
+          pgBadge.style.backgroundColor = p.badgeBg;
+          pgBadge.style.color = p.badgeText;
+          pgBox1.style.backgroundColor = p.badgeBg;
+          pgBox1.style.color = p.badgeText;
+          pgBox2.style.backgroundColor = p.badgeBg;
+          pgBox2.style.color = p.badgeText;
+          pgCta.style.backgroundColor = p.ctaBg;
+          pgContrast.textContent = p.contrast;
+
+          document.querySelectorAll('.pal-btn').forEach(b => {
+            b.className = 'pal-btn p-2.5 rounded-xl border subtle-box flex items-center gap-2 text-xs font-bold';
+          });
+          btn.className = 'pal-btn p-2.5 rounded-xl border-2 border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 flex items-center gap-2 text-xs font-bold';
+        });
+      });
+
+      // Font Pairing & Line-Height Slider
+      const fontSelect = document.getElementById('pg-font-select');
+      const headingText = document.getElementById('pg-heading-text');
+      const samplePara = document.getElementById('pg-sample-paragraph');
+      const lhSlider = document.getElementById('pg-lh-slider');
+      const lhValue = document.getElementById('pg-lh-value');
+
+      fontSelect.addEventListener('change', () => {
+        const val = fontSelect.value;
+        if (val === 'tech') {
+          headingText.style.fontFamily = "'Chakra Petch', sans-serif";
+          samplePara.style.fontFamily = "'Prompt', sans-serif";
+        } else if (val === 'editorial') {
+          headingText.style.fontFamily = "'Pridi', serif";
+          samplePara.style.fontFamily = "'Sarabun', sans-serif";
+        } else {
+          headingText.style.fontFamily = "'Prompt', sans-serif";
+          samplePara.style.fontFamily = "'Sarabun', sans-serif";
+        }
+      });
+
+      lhSlider.addEventListener('input', () => {
+        const v = parseFloat(lhSlider.value);
+        samplePara.style.lineHeight = v;
+        if (v < 1.45) {
+          lhValue.textContent = v.toFixed(2) + ' (แคบเกินไป สระอาจซ้อนทับ)';
+          lhValue.className = 'font-mono font-bold text-rose-600';
+        } else if (v <= 1.85) {
+          lhValue.textContent = v.toFixed(2) + ' (เหมาะสม อ่านสบายตา)';
+          lhValue.className = 'font-mono font-bold text-emerald-600';
+        } else {
+          lhValue.textContent = v.toFixed(2) + ' (ห่างมาก เหมาะกับพาดหัวพิเศษ)';
+          lhValue.className = 'font-mono font-bold text-amber-600';
+        }
+      });
+
+      // CC License Matcher
+      const chkComm = document.getElementById('cc-commercial');
+      const chkMod = document.getElementById('cc-modify');
+      const ccRec = document.getElementById('cc-recommendation');
+      const taslBox = document.getElementById('pg-tasl-box');
+
+      function updateCCMatcher() {
+        const comm = chkComm.checked;
+        const mod = chkMod.checked;
+        if (comm && mod) {
+          ccRec.innerHTML = '<div class="font-bold text-emerald-800 dark:text-emerald-300">✓ สัญญาอนุญาตที่ใช้ได้: CC0, CC BY, CC BY-SA</div><div class="text-[11px] font-body text-emerald-700 dark:text-emerald-400">ใช้เชิงพาณิชย์และตัดต่อภาพได้ (ห้ามใช้สื่อที่มี NC หรือ ND)</div>';
+          taslBox.textContent = 'เครดิตสื่อ (TASL): "Digital Workspace Graphic" by Banpong Studio, via Wikimedia Commons, licensed under CC BY 4.0 (ดัดแปลงขนาดและสีแบนเนอร์)';
+        } else if (comm && !mod) {
+          ccRec.innerHTML = '<div class="font-bold text-emerald-800 dark:text-emerald-300">✓ สัญญาอนุญาตที่ใช้ได้: CC0, CC BY, CC BY-SA, CC BY-ND</div><div class="text-[11px] font-body text-emerald-700 dark:text-emerald-400">ใช้ในเว็บธุรกิจได้โดยใช้ภาพต้นฉบับตามเดิม (ห้ามใช้สื่อที่มี NC)</div>';
+          taslBox.textContent = 'เครดิตสื่อ (TASL): "Digital Workspace Graphic" by Banpong Studio, via Wikimedia Commons, licensed under CC BY-ND 4.0';
+        } else if (!comm && mod) {
+          ccRec.innerHTML = '<div class="font-bold text-emerald-800 dark:text-emerald-300">✓ สัญญาอนุญาตที่ใช้ได้: CC0, CC BY, CC BY-SA, CC BY-NC, CC BY-NC-SA</div><div class="text-[11px] font-body text-emerald-700 dark:text-emerald-400">ใช้เพื่อการศึกษาและดัดแปลงภาพได้ (ห้ามใช้สื่อที่มี ND)</div>';
+          taslBox.textContent = 'เครดิตสื่อ (TASL): "Digital Workspace Graphic" by Banpong Studio, via Wikimedia Commons, licensed under CC BY-NC 4.0 (ใช้เพื่อการศึกษา)';
+        } else {
+          ccRec.innerHTML = '<div class="font-bold text-emerald-800 dark:text-emerald-300">✓ ใช้ได้ทุกประเภทของ Creative Commons (รวมถึง CC BY-NC-ND)</div><div class="text-[11px] font-body text-emerald-700 dark:text-emerald-400">เนื่องจากเป็นการใช้เพื่อการศึกษาและไม่มีการดัดแปลงผลงาน</div>';
+          taslBox.textContent = 'เครดิตสื่อ (TASL): "Digital Workspace Graphic" by Banpong Studio, via Wikimedia Commons, licensed under CC BY-NC-ND 4.0';
+        }
+      }
+
+      chkComm.addEventListener('change', updateCCMatcher);
+      chkMod.addEventListener('change', updateCCMatcher);
+
+      // Copy TASL Credit Button
+      const btnCopyTasl = document.getElementById('btn-copy-tasl');
+      const toastMsg = document.getElementById('toast-msg');
+      let toastTimer = null;
+
+      btnCopyTasl.addEventListener('click', () => {
+        const text = taslBox.textContent;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(() => {});
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        toastMsg.classList.remove('hidden');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastMsg.classList.add('hidden');
+        }, 2600);
+      });
+    })();
+  </script>
+</body>
+</html>
