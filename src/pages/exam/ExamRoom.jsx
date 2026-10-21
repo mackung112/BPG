@@ -76,7 +76,11 @@ export default function ExamRoom() {
         const { newTimeLimitMinutes, additionalMinutes } = payload?.payload || {};
         if (newTimeLimitMinutes) {
           setSessionInfo(prev => prev ? ({ ...prev, time_limit_minutes: newTimeLimitMinutes }) : prev);
-          showSecurityWarning(`⏰ ครูผู้คุมสอบได้ปรับเวลาสอบของห้องเป็น ${newTimeLimitMinutes} นาที`);
+          if (additionalMinutes) {
+            showSecurityWarning(`⏰ ครูผู้คุมสอบได้เพิ่มเวลาสอบให้ทุกคนในห้อง +${additionalMinutes} นาที (รวมเวลาสอบ ${newTimeLimitMinutes} นาที)`);
+          } else {
+            showSecurityWarning(`⏰ ครูผู้คุมสอบได้ปรับเวลาสอบของห้องเป็น ${newTimeLimitMinutes} นาที`);
+          }
         } else if (additionalMinutes) {
           setExtraTimeMinutes(prev => prev + Number(additionalMinutes));
           showSecurityWarning(`⏰ ครูผู้คุมสอบได้เพิ่มเวลาสอบให้ทุกคนในห้อง +${additionalMinutes} นาที`);

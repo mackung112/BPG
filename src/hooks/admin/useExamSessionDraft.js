@@ -9,7 +9,9 @@ const DEFAULT_STATE = {
   examMode: 'onsite',
   maxAttempts: 1,
   retakeUntilPass: false,
-  passingPercentage: 50
+  passingPercentage: 50,
+  shuffleQuestions: true,
+  shuffleChoices: true
 };
 
 const loadInitialDraft = () => {
@@ -81,6 +83,14 @@ export function useExamSessionDraft() {
     setDraft(prev => ({ ...prev, passingPercentage: percentage }));
   }, []);
 
+  const setShuffleQuestions = useCallback((val) => {
+    setDraft(prev => ({ ...prev, shuffleQuestions: val }));
+  }, []);
+
+  const setShuffleChoices = useCallback((val) => {
+    setDraft(prev => ({ ...prev, shuffleChoices: val }));
+  }, []);
+
   const resetDraft = useCallback(() => {
     try {
       localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -105,6 +115,10 @@ export function useExamSessionDraft() {
     setMaxAttempts,
     setRetakeUntilPass,
     setPassingPercentage,
+    shuffleQuestions: draft.shuffleQuestions !== false,
+    shuffleChoices: draft.shuffleChoices !== false,
+    setShuffleQuestions,
+    setShuffleChoices,
     resetDraft
   };
 }

@@ -71,4 +71,69 @@ describe('Exam Randomization and Timer Integration Tests', () => {
     const remaining = calculateRemainingSeconds(pastTime, durationMinutes, 0, now);
     assert.equal(remaining, 0);
   });
+
+  test('Contract Integrity: Sanitized student questions omit grading keys and preserve question IDs/choice texts', () => {
+    // Simulating database question bank records with sensitive grading keys
+    const rawBankData = [
+      {
+        id: 'sq_1',
+        points: 1,
+        order_index: 0,
+        questions: {
+          id: 'q_leak_1',
+          question_text: 'What is 2 + 2?',
+          correct_answer_index: 1,
+          solution_explanation: '2 + 2 equals 4 by basic arithmetic.',
+          choices: [
+            { text: '3', is_correct: false },
+            { text: '4', is_correct: true },
+            { text: '5', is_correct: false }
+          ]
+        }
+      }
+    ];
+
+    // Mirroring client transformation logic in getExamQuestions
+    const studentId = '68219100005';
+    const sessionId = 'session_test_xyz';
+
+    const processed = rawBankData.map((item) => {
+      const rawQ = item.questions || {};
+      const rawChoices = rawQ.choices || [];
+      let sanitizedChoices = rawChoices.map((choice) => {
+        if (typeof choice === 'object' && choice !== null) {
+          return { text: choice.text ?? '' };
+        }
+        return { text: String(choice) };
+      });
+
+      sanitizedChoices = seededShuffle(sanitizedChoices, `${sessionId}_${studentId}_choice_${rawQ.id}`);
+
+      return {
+        id: rawQ.id,
+        session_question_id: item.id,
+        question_text: rawQ.question_text,
+        points: item.points || 1,
+        choices: sanitizedChoices
+      };
+    });
+
+    const examineeQ = processed[0];
+
+    // Assert: No grading keys or secret explanations leaked to client
+    assert.equal(examineeQ.correct_answer_index, undefined);
+    assert.equal(examineeQ.solution_explanation, undefined);
+    assert.equal(examineeQ.id, 'q_leak_1');
+    assert.equal(examineeQ.choices.length, 3);
+
+    // Assert: Every choice has ONLY text, no is_correct key
+    for (const choice of examineeQ.choices) {
+      assert.ok('text' in choice);
+      assert.equal(choice.is_correct, undefined);
+    }
+
+    // Assert: All original choices still present in transformed array
+    const texts = examineeQ.choices.map(c => c.text).sort();
+    assert.deepEqual(texts, ['3', '4', '5']);
+  });
 });

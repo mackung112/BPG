@@ -67,6 +67,10 @@ export default function ExamControl() {
     setMaxAttempts,
     setRetakeUntilPass,
     setPassingPercentage,
+    shuffleQuestions,
+    shuffleChoices,
+    setShuffleQuestions,
+    setShuffleChoices,
     resetDraft
   } = useExamSessionDraft();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -82,6 +86,8 @@ export default function ExamControl() {
   const [editPassingPercentage, setEditPassingPercentage] = useState(50);
   const [editSecretCode, setEditSecretCode] = useState('');
   const [editStatus, setEditStatus] = useState('waiting');
+  const [editShuffleQuestions, setEditShuffleQuestions] = useState(true);
+  const [editShuffleChoices, setEditShuffleChoices] = useState(true);
   const [updatingSession, setUpdatingSession] = useState(false);
 
   // Action Modals
@@ -154,12 +160,7 @@ export default function ExamControl() {
       setActiveSession(prev => ({ ...prev, time_limit_minutes: newMinutes }));
       fetchSessions();
 
-      const channel = supabase.channel(`room:exam_${activeSession.id}`);
-      channel.send({
-        type: 'broadcast',
-        event: 'room_time_adjusted',
-        payload: { newTimeLimitMinutes: newMinutes, additionalMinutes: Number(extraMinutes) }
-      }).catch(() => {});
+      examAdminService.broadcastRoomTimeAdjusted(activeSession.id, newMinutes, Number(extraMinutes)).catch(() => {});
     } catch (err) {
       showToast('error', 'เพิ่มเวลาไม่สำเร็จ: ' + err.message);
     }
@@ -183,12 +184,7 @@ export default function ExamControl() {
       setIsTimeModalOpen(false);
       fetchSessions();
 
-      const channel = supabase.channel(`room:exam_${activeSession.id}`);
-      channel.send({
-        type: 'broadcast',
-        event: 'room_time_adjusted',
-        payload: { newTimeLimitMinutes: val }
-      }).catch(() => {});
+      examAdminService.broadcastRoomTimeAdjusted(activeSession.id, val).catch(() => {});
     } catch (err) {
       showToast('error', 'ปรับเวลาไม่สำเร็จ: ' + err.message);
     }
@@ -226,7 +222,9 @@ export default function ExamControl() {
         passing_percentage: passingPercentage,
         question_count: examConfig.questionCount || examConfig.questions.length,
         total_score: examConfig.totalScore,
-        status: examMode === 'online' ? 'active' : 'waiting'
+        status: examMode === 'online' ? 'active' : 'waiting',
+        shuffle_questions: shuffleQuestions,
+        shuffle_choices: shuffleChoices
       };
 
       const sessionData = await examAdminService.createExamSession(sessionPayload, examConfig.questions);
@@ -254,6 +252,8 @@ export default function ExamControl() {
     setEditPassingPercentage(session.passing_percentage || 50);
     setEditSecretCode(session.secret_code || '');
     setEditStatus(session.status || 'waiting');
+    setEditShuffleQuestions(session.shuffle_questions !== false);
+    setEditShuffleChoices(session.shuffle_choices !== false);
   };
 
   const handleUpdateSession = async (e) => {
@@ -270,16 +270,13 @@ export default function ExamControl() {
         retake_until_pass: editRetakeUntilPass,
         passing_percentage: parseInt(editPassingPercentage, 10) || 50,
         secret_code: editSecretCode.trim().toUpperCase(),
-        status: editStatus
+        status: editStatus,
+        shuffle_questions: editShuffleQuestions,
+        shuffle_choices: editShuffleChoices
       });
 
       if (parseInt(editTimeLimit, 10) !== editingSession.time_limit_minutes) {
-        const channel = supabase.channel(`room:exam_${editingSession.id}`);
-        channel.send({
-          type: 'broadcast',
-          event: 'room_time_adjusted',
-          payload: { newTimeLimitMinutes: parseInt(editTimeLimit, 10) }
-        }).catch(() => {});
+        examAdminService.broadcastRoomTimeAdjusted(editingSession.id, parseInt(editTimeLimit, 10)).catch(() => {});
       }
 
       showToast('success', 'บันทึกการแก้ไขห้องสอบสำเร็จ!');
@@ -633,6 +630,28 @@ export default function ExamControl() {
                       />
                     </div>
                   )}
+                                </div>
+
+                <div className="col-span-2 pt-2 border-t border-zinc-100 flex flex-col gap-2">
+                  <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">ระบบสุ่มลำดับ (ป้องกันการลอก)</div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={shuffleQuestions}
+                      onChange={(e) => setShuffleQuestions(e.target.checked)}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-medium text-zinc-700">สุ่มสลับลำดับข้อสอบ (Shuffle Questions)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={shuffleChoices}
+                      onChange={(e) => setShuffleChoices(e.target.checked)}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-medium text-zinc-700">สุ่มสลับลำดับตัวเลือก (Shuffle Choices)</span>
+                  </label>
                 </div>
               </div>
 
@@ -1273,6 +1292,27 @@ export default function ExamControl() {
                       />
                     </div>
                   )}
+</div>
+                <div className="col-span-2 pt-2 border-t border-zinc-100 flex flex-col gap-2">
+                  <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">ระบบสุ่มลำดับ (ป้องกันการลอก)</div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editShuffleQuestions}
+                      onChange={(e) => setEditShuffleQuestions(e.target.checked)}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-medium text-zinc-700">สุ่มสลับลำดับข้อสอบ (Shuffle Questions)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editShuffleChoices}
+                      onChange={(e) => setEditShuffleChoices(e.target.checked)}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-medium text-zinc-700">สุ่มสลับลำดับตัวเลือก (Shuffle Choices)</span>
+                  </label>
                 </div>
               </div>
 

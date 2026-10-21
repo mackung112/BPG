@@ -117,18 +117,42 @@ export const examAdminService = {
   },
 
   // --- Realtime Operations (Broadcast, Extra Time & Suspension Resolution) ---
+  async sendRoomBroadcast(sessionId, event, payload) {
+    const topic = `room:exam_${sessionId}`;
+    const channel = supabase.channel(topic);
+    if (typeof channel.subscribe === 'function' && channel.state !== 'joined') {
+      await new Promise((resolve) => {
+        channel.subscribe((status) => {
+          if (status === 'SUBSCRIBED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            resolve();
+          }
+        });
+      });
+    }
+    return channel.send({
+      type: 'broadcast',
+      event,
+      payload
+    });
+  },
+
   async broadcastAnnouncement(sessionId, message, teacherName = 'ครูผู้คุมสอบ') {
-    const channel = supabase.channel(`room:exam_${sessionId}`);
     const payload = {
       message,
       teacherName,
       timestamp: new Date().toISOString()
     };
-    await channel.send({
-      type: 'broadcast',
-      event: 'broadcast_announcement',
-      payload
-    });
+    await this.sendRoomBroadcast(sessionId, 'broadcast_announcement', payload);
+    return payload;
+  },
+
+  async broadcastRoomTimeAdjusted(sessionId, newTimeLimitMinutes, additionalMinutes = null) {
+    const payload = {
+      newTimeLimitMinutes,
+      additionalMinutes,
+      timestamp: new Date().toISOString()
+    };
+    await this.sendRoomBroadcast(sessionId, 'room_time_adjusted', payload);
     return payload;
   },
 
