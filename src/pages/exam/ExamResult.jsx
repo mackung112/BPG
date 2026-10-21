@@ -133,7 +133,7 @@ export default function ExamResult() {
   let hasAttemptsLeft = false;
   if (retakeUntilPass) {
     hasAttemptsLeft = !hasPassedOverall;
-  } else if (isOnline) {
+  } else {
     hasAttemptsLeft = results.length < maxAttempts;
   }
 

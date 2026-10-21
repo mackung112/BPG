@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์ | Curriculum Master Hub</title>
+  
+  <!-- Google Fonts: Prompt, Sarabun & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Prompt:wght@400;500;600;700;800;900&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              primary: '#2563EB',
+              accent: '#06B6D4',
+              indigo: '#4F46E5',
+              dark: '#0F172A',
+              card: '#FFFFFF'
+            }
+          },
+          fontFamily: {
+            display: ['Prompt', 'sans-serif'],
+            sans: ['Sarabun', 'Prompt', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Sarabun', 'Prompt', sans-serif;
+      color: #0F172A;
+      background-color: #F8FAFC;
+    }
+    .font-heading {
+      font-family: 'Prompt', sans-serif;
+    }
+    .hub-card {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hub-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.1), 0 8px 10px -6px rgba(37, 99, 235, 0.1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-50 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="flex items-center gap-2.5 group">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-105 transition-transform">
+          🌐
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-heading font-extrabold text-base sm:text-lg tracking-tight text-slate-900">ห้องเรียนครูแม็ค</span>
+            <span class="text-[10px] font-heading font-extrabold uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">CURRICULUM HUB</span>
+          </div>
+          <span class="text-[11px] text-slate-500 font-medium hidden sm:inline">31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์ • แผนกธุรกิจดิจิทัล</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="unit1_responsive_design.html" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-heading font-bold flex items-center gap-1.5 transition shadow-sm">
+        <span>เริ่มเรียนหน่วยที่ 1 🚀</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="relative px-4 sm:px-6 lg:px-8 pt-10 pb-12 max-w-7xl mx-auto w-full">
+    <div class="rounded-3xl bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-8 sm:p-12 shadow-xl relative overflow-hidden">
+      <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-cyan-500/20 blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 max-w-3xl space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/30 text-cyan-300 text-xs font-semibold border border-blue-400/30">
+          <span>✦ หลักสูตร ปวส. 2567</span>
+          <span>•</span>
+          <span>มาตรฐานคุณวุฒิวิชาชีพ TPQI รหัส 3023-3025</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-heading font-black tracking-tight leading-tight">
+          31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์
+        </h1>
+        <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+          ศึกษาและปฏิบัติเกี่ยวกับหลักการออกแบบกราฟิกสำหรับเว็บไซต์ แบบ Responsive การใช้ตัวอักษร สี รูปภาพตามกฎหมายลิขสิทธิ์ ออกแบบ UI และระบบนำทาง (Navigation) ภาพเคลื่อนไหวสำหรับเว็บไซต์ และการประกอบแม่แบบเว็บไซต์ (Interactive Prototype)
+        </p>
+        <div class="flex flex-wrap gap-3 pt-2 text-xs font-semibold">
+          <span class="px-3 py-1.5 bg-white/10 rounded-lg">ท-ป-น: 2-2-3 (4 คาบ/สัปดาห์)</span>
+          <span class="px-3 py-1.5 bg-white/10 rounded-lg">15 สัปดาห์ รวม 60 คาบ</span>
+          <span class="px-3 py-1.5 bg-white/10 rounded-lg">Figma + Photoshop + Web Tools</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UNITS GRID -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 space-y-8">
+    <div class="border-b border-slate-200 pb-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-heading font-bold text-slate-900">หน่วยการเรียนรู้ทั้งหมด (Units & Interactive Labs)</h2>
+        <p class="text-slate-500 text-xs sm:text-sm mt-1">คลิกเลือกหน่วยเรียนเพื่อเข้าสู่สื่อการสอนเชิงโต้ตอบแบบเต็มรูปแบบ</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Unit 1 -->
+      <a href="unit1_responsive_design.html" class="hub-card bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between group no-underline text-inherit">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">สัปดาห์ที่ 1-2</span>
+            <span class="text-2xl">📱</span>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
+            หน่วยที่ 1: งานวิเคราะห์หลักการออกแบบ & สื่อลิขสิทธิ์
+          </h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Responsive Design, สำรวจ Viewport, จิตวิทยาคู่สี 60-30-10, Typography และ Creative Commons
+          </p>
+        </div>
+        <div class="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
+          <span>เข้าสู่บทเรียน ➔</span>
+          <span class="text-slate-400 font-normal">10 คะแนน</span>
+        </div>
+      </a>
+
+      <!-- Unit 2 -->
+      <a href="2_ui_navigation_31910_2026.html" class="hub-card bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between group no-underline text-inherit">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">สัปดาห์ที่ 3-5</span>
+            <span class="text-2xl">🧭</span>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-slate-900 group-hover:text-purple-600 transition-colors">
+            หน่วยที่ 2: งานออกแบบ UI และระบบนำทาง (Navigation)
+          </h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Figma Wireframe 12-Column Grid, Desktop/Mobile Navbar, ปุ่ม CTA Variants, UI Component Kit
+          </p>
+        </div>
+        <div class="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-600">
+          <span>เข้าสู่บทเรียน ➔</span>
+          <span class="text-slate-400 font-normal">15 คะแนน</span>
+        </div>
+      </a>
+
+      <!-- Unit 3 -->
+      <a href="3_logo_icons_webp_31910_2026.html" class="hub-card bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between group no-underline text-inherit">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">สัปดาห์ที่ 6-8</span>
+            <span class="text-2xl">✨</span>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-slate-900 group-hover:text-emerald-600 transition-colors">
+            หน่วยที่ 3: งานสร้างและตกแต่งกราฟิกสำหรับเว็บไซต์
+          </h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            สร้างโลโก้และชุดไอคอนเวกเตอร์ SVG, ไดคัทรูปสินค้าด้วย Photoshop, และบีบอัดรูปภาพด้วยฟอร์แมต WebP
+          </p>
+        </div>
+        <div class="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-600">
+          <span>เข้าสู่บทเรียน ➔</span>
+          <span class="text-slate-400 font-normal">15 คะแนน</span>
+        </div>
+      </a>
+
+      <!-- Unit 4 -->
+      <a href="4_storyboard_web_animation_31910_2026.html" class="hub-card bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between group no-underline text-inherit">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">สัปดาห์ที่ 9-10</span>
+            <span class="text-2xl">🎬</span>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-slate-900 group-hover:text-amber-600 transition-colors">
+            หน่วยที่ 4: ภาพเคลื่อนไหวและแบนเนอร์สำหรับเว็บไซต์
+          </h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            การร่าง Storyboard 6 เฟรม, สร้าง Hero Banner Animation, Micro-interactions และ Keyframe Animations
+          </p>
+        </div>
+        <div class="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-amber-600">
+          <span>เข้าสู่บทเรียน ➔</span>
+          <span class="text-slate-400 font-normal">10 คะแนน</span>
+        </div>
+      </a>
+
+      <!-- Unit 5 -->
+      <a href="5_template_assembly_interactive_prototype_31910_2026.html" class="hub-card bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between group no-underline text-inherit">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">สัปดาห์ที่ 11-15</span>
+            <span class="text-2xl">🚀</span>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-slate-900 group-hover:text-rose-600 transition-colors">
+            หน่วยที่ 5: การประกอบแม่แบบเว็บ & ต้นแบบเชิงโต้ตอบ
+          </h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            ประกอบหน้าแรก (Home Page) 5 โซน, Responsive Breakpoints, Interactive Prototype และ Final Live Demo
+          </p>
+        </div>
+        <div class="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-600">
+          <span>เข้าสู่บทเรียน ➔</span>
+          <span class="text-slate-400 font-normal">40 คะแนน</span>
+        </div>
+      </a>
+    </div>
+  </main>
+
+  <footer class="mt-auto py-8 bg-slate-900 text-slate-400 text-xs text-center border-t border-slate-800">
+    <p>© 2026 Mack's Classroom • 31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์</p>
+  </footer>
+
+</body>
+</html>

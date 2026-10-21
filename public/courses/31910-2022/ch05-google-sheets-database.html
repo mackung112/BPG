@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 5: การวางโครงสร้างฐานข้อมูลร้านค้าด้วย Google Sheets | Red Broadcast</title>
+  
+  <!-- Google Fonts: Roboto, Roboto Mono, Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;600&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#FF0000',
+              redHover: '#CC0000',
+              blue: '#065FD4',
+              neutral: '#606060',
+              dark: '#0F0F0F',
+              surface: '#F2F2F2',
+              surfaceHover: '#E5E5E5',
+              border: '#E5E5E5',
+              success: '#2BA640',
+              warning: '#FB8C00'
+            }
+          },
+          fontFamily: {
+            sans: ['Roboto', 'Sarabun', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Roboto', 'Sarabun', sans-serif;
+      color: #0F0F0F;
+      background-color: #FFFFFF;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .elevation-0 { box-shadow: none; }
+    .elevation-1 { box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .elevation-2 { box-shadow: 0 4px 32px rgba(0,0,0,0.1); }
+    .elevation-3 { box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Custom Table Styles */
+    .sheet-table th, .sheet-table td {
+      border: 1px solid #E5E5E5;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .sheet-table th {
+      background-color: #F8F8F8;
+      font-weight: 600;
+      color: #0F0F0F;
+    }
+
+    /* Phone Simulator Frame */
+    .phone-mockup {
+      width: 320px;
+      height: 640px;
+      border: 12px solid #1E1E1E;
+      border-radius: 40px;
+      position: relative;
+      overflow: hidden;
+      background: #FFFFFF;
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.3);
+    }
+    .phone-notch {
+      width: 130px;
+      height: 20px;
+      background: #1E1E1E;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+    }
+
+    /* Copy Button Tooltip */
+    .copy-toast {
+      visibility: hidden;
+      min-width: 140px;
+      background-color: #0F0F0F;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 6px 10px;
+      position: fixed;
+      z-index: 999;
+      bottom: 30px;
+      right: 30px;
+      font-size: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .copy-toast.show {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-white text-[#0F0F0F] min-h-screen flex flex-col relative">
+
+  <!-- ========================================================================= -->
+  <!-- 1. READING SCROLL PROGRESS BAR (Fixed top, 0-100% Red line) -->
+  <!-- ========================================================================= -->
+  <div id="scrollProgressBar" class="fixed top-0 left-0 h-1 bg-[#FF0000] z-[100] transition-all duration-75 w-0"></div>
+
+  <!-- Toast Notification for Copy Action -->
+  <div id="copyToast" class="copy-toast">📋 คัดลอกข้อมูลเรียบร้อยแล้ว!</div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. STICKY TOP BAR (56px Height, Brand Logo, Search, NO PRINT BUTTON) -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 h-14 bg-white border-b border-[#E5E5E5] px-4 flex items-center justify-between elevation-1">
+    <!-- ฝั่งซ้าย: ปุ่มเมนู + โลโก้แบรนด์ -->
+    <div class="flex items-center gap-4">
+      <button id="toggleSidebarBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] transition text-[#606060]" title="สลับแถบเมนู">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      
+      <a href="index.html" class="flex items-center gap-2 group">
+        <div class="w-8 h-6 bg-[#FF0000] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+          <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="flex items-center">
+          <span class="font-bold text-lg tracking-tight text-[#0F0F0F]">ห้องเรียนครูแม็ค</span>
+          <span class="text-[10px] ml-1.5 font-bold uppercase tracking-wider text-[#FF0000] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">BROADCAST</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- ส่วนกลาง: ช่องค้นหา (Search Bar) -->
+    <div class="hidden sm:flex items-center flex-1 max-w-[560px] mx-6">
+      <div class="flex w-full items-center">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="ค้นหาในบทเรียน (เช่น Primary Key, Foreign Key, Data Validation, Normalization)..." 
+            class="w-full h-10 pl-4 pr-3 bg-white border border-[#E5E5E5] rounded-l-full text-sm text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#065FD4]"
+          />
+        </div>
+        <button 
+          id="searchBtn"
+          onclick="searchTopic()"
+          class="h-10 px-5 bg-[#F8F8F8] border border-l-0 border-[#E5E5E5] rounded-r-full hover:bg-[#F2F2F2] text-[#606060] flex items-center justify-center transition" 
+          title="ค้นหา">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: การแจ้งเตือน และโปรไฟล์ผู้สอน (NO PRINT BUTTON EXPLICITLY) -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Quick Nav Hub -->
+      <a href="index.html" class="hidden md:flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E5E5E5] text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+        <span>🏠 สารบัญบทเรียน</span>
+      </a>
+
+      <!-- Notification Bell -->
+      <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] text-[#606060] transition relative" title="การแจ้งเตือน">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-[#FF0000] rounded-full"></span>
+      </button>
+
+      <!-- Teacher Avatar Profile -->
+      <div class="flex items-center gap-2 pl-1">
+        <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#FF0000]">
+          MK
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN LAYOUT WRAPPER (SIDEBAR + MAIN CONTENT VIEWPORT) -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- 3. COLLAPSIBLE 240px SIDEBAR (With Sections + Course Metadata) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="w-60 bg-white border-r border-[#E5E5E5] shrink-0 hidden lg:flex flex-col justify-between overflow-y-auto transition-all duration-200">
+      <div class="p-3 space-y-1">
+        <div class="text-[11px] font-bold text-[#606060] px-3 py-2 uppercase tracking-wider">สารบัญบทที่ 5</div>
+
+        <a href="#learning-plan" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+          <span class="truncate">เป้าหมาย & ผัง 4 ชั่วโมง</span>
+        </a>
+
+        <a href="#sheets-engine" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">1. Google Sheets as DB</span>
+        </a>
+
+        <a href="#golden-rules" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">2. กฎเหล็ก 5 ประการ</span>
+        </a>
+
+        <a href="#keys-relations" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">3. Primary Key & FK</span>
+        </a>
+
+        <a href="#archetypes-schema" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">4. สถาปัตยกรรม 3 Archetypes</span>
+        </a>
+
+        <a href="#data-types" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">5. ชนิดข้อมูล Data Types</span>
+        </a>
+
+        <a href="#hands-on-workshop" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">6. ปฏิบัติการ Step-by-Step</span>
+        </a>
+
+        <a href="#image-converter-tool" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">7. แปลงลิงก์ Drive สู่ Direct</span>
+        </a>
+
+        <a href="#team-collaboration" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">8. การแบ่งหน้าที่ในทีม 3 คน</span>
+        </a>
+
+        <a href="#phone-simulator-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          <span class="truncate">9. Phone Simulator (AppSheet)</span>
+        </a>
+
+        <a href="#faqs-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">10. FAQs คำถามพบบ่อย</span>
+        </a>
+
+        <a href="#checklist-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-[#2BA640]"></span>
+          <span class="truncate">11. Self-Checklist ตรวจงาน</span>
+        </a>
+
+        <a href="#rubric-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-[#FB8C00]"></span>
+          <span class="truncate">12. เครื่องคำนวณรูบริก (10 คะแนน)</span>
+        </a>
+
+        <div class="border-t border-[#E5E5E5] my-3"></div>
+
+        <!-- Course Meta Info Box -->
+        <div class="px-3 py-2.5 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+          <div class="text-[10px] font-bold text-[#FF0000] tracking-wider uppercase">รหัสวิชา 31910-2022</div>
+          <div class="text-xs font-semibold text-[#0F0F0F] mt-0.5 leading-snug">การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา</div>
+          <div class="text-[11px] text-[#606060] mt-1">สัปดาห์ที่ 5 • 4 ชั่วโมง (240 นาที)</div>
+          <div class="text-[10px] text-zinc-500 mt-1">หลักสูตร ปวส. 2563 | สาขาธุรกิจดิจิทัล</div>
+        </div>
+
+        <!-- Course Navigation Box in Sidebar -->
+        <div class="pt-2">
+          <div class="text-[10px] font-bold text-[#606060] uppercase tracking-wider mb-1.5 px-1">นำทางหลักสูตร</div>
+          <div class="space-y-1">
+            <a href="ch04-figma-prototype.html" class="flex items-center justify-between text-xs p-2 rounded-lg bg-white border border-[#E5E5E5] hover:border-[#0F0F0F] text-[#0F0F0F] transition">
+              <span>← บทที่ 4 Figma Proto</span>
+              <span class="text-[10px] text-zinc-400">สัปดาห์ 4</span>
+            </a>
+            <a href="ch06-appsheet-first-app.html" class="flex items-center justify-between text-xs p-2 rounded-lg bg-white border border-[#E5E5E5] hover:border-[#0F0F0F] text-[#0F0F0F] transition">
+              <span>บทที่ 6 แอปแรก AppSheet →</span>
+              <span class="text-[10px] text-[#FF0000] font-bold">สัปดาห์ 6</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer in Sidebar -->
+      <div class="p-3 border-t border-[#E5E5E5] text-[11px] text-[#606060]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#2BA640]"></span>
+          <span>Red Broadcast v4.5 Active</span>
+        </div>
+        <div class="mt-0.5 text-[10px] text-zinc-400">Google Sheets DB Engine Guide</div>
+      </div>
+    </aside>
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- MAIN CONTENT VIEWPORT (Scrollable) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <main class="flex-1 overflow-y-auto bg-white flex flex-col">
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 4. STICKY HORIZONTAL PILL CHIP FILTER BAR -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="sticky top-0 z-40 bg-white border-b border-[#E5E5E5] py-2.5 px-4 sm:px-8 shadow-sm">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <button onclick="filterChip('all', this)" class="chip-btn active h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white transition shrink-0">ทั้งหมด</button>
+          <button onclick="filterChip('learning-plan', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ผังการเรียนรู้</button>
+          <button onclick="filterChip('sheets-engine', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Sheets as DB</button>
+          <button onclick="filterChip('golden-rules', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">กฎเหล็ก 5 ข้อ</button>
+          <button onclick="filterChip('keys-relations', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">PK & FK</button>
+          <button onclick="filterChip('archetypes-schema', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">3 Archetype Schemas</button>
+          <button onclick="filterChip('data-types', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ชนิดข้อมูล Data Types</button>
+          <button onclick="filterChip('hands-on-workshop', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ปฏิบัติการทีละขั้น</button>
+          <button onclick="filterChip('phone-simulator-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Phone Simulator</button>
+          <button onclick="filterChip('checklist-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Self-Checklist</button>
+          <button onclick="filterChip('rubric-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">เกณฑ์ประเมิน (Rubric)</button>
+          <button onclick="filterChip('faqs-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">FAQs คำถามพบบ่อย</button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 5. BROADCAST LECTURE THEATER HERO STAGE (Dark BG, Badges) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <section class="max-w-5xl mx-auto w-full px-4 sm:px-8 py-6">
+        
+        <!-- Broadcast Stage Frame -->
+        <div class="w-full bg-[#0F0F0F] text-white rounded-2xl overflow-hidden relative border border-black shadow-lg">
+          <div class="p-6 sm:p-10 flex flex-col justify-between min-h-[320px] sm:min-h-[380px] relative z-10">
+            <!-- Badges แถวบน -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FF0000] text-white">
+                  <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                  LECTURE BROADCAST
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-zinc-300 border border-white/10">
+                  ระยะที่ 2: Database & Core App
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-950/60 text-red-300 border border-red-800/40">
+                  สัปดาห์ที่ 5 / 15
+                </span>
+              </div>
+              <span class="font-mono text-xs text-zinc-400">COURSE ID: 31910-2022</span>
+            </div>
+
+            <!-- ข้อความชื่อบทเรียนขนาดใหญ่ -->
+            <div class="my-6">
+              <div class="text-xs uppercase tracking-widest text-[#FF0000] font-bold mb-2">บทที่ 5 • RELATIONAL DATABASE ARCHITECTURE & CLOUD MODELING</div>
+              <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+                การวางโครงสร้างฐานข้อมูลร้านค้าด้วย Google Sheets
+              </h1>
+              <p class="text-sm sm:text-base text-zinc-300 mt-3 max-w-3xl leading-relaxed">
+                เปลี่ยน Google Sheets จากตารางคำนวณทั่วไป ให้กลายเป็น <strong>"ระบบฐานข้อมูลเชิงสัมพันธ์บนคลาวด์ (Cloud Relational Database)"</strong> ที่พร้อมเชื่อมต่อกับ AppSheet ได้อย่างสมบูรณ์แบบ ออกแบบ Primary Key, Foreign Key และจัดเตรียม Mock Data คุณภาพสูง
+              </p>
+            </div>
+
+            <!-- แถบสรุปสถานะการเรียนรู้ -->
+            <div class="space-y-2 pt-2 border-t border-zinc-800">
+              <div class="flex flex-wrap justify-between text-xs text-zinc-400 font-mono gap-2">
+                <span>⏱️ ความยาวบทเรียน: 4 ชั่วโมง (240 นาที)</span>
+                <span>📊 เป้าหมาย: สร้างชีตฐานข้อมูลครบ 3 ตาราง พร้อมข้อมูล 15+ แถว</span>
+              </div>
+              <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div class="h-full bg-[#FF0000] w-1/3"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Decorative Gradient Background Behind Stage -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-black via-zinc-900 to-red-950/30 pointer-events-none"></div>
+        </div>
+
+        <!-- Instructor Stack & Social Metadata Bar -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-4 py-3 border-b border-[#E5E5E5]">
+          <!-- ผู้สอน / Channel Profile -->
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-sm ring-2 ring-[#FF0000]">
+              MK
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-sm text-[#0F0F0F]">ครูแม็ค (Mac Teacher)</span>
+                <!-- Verified Badge (#2BA640) -->
+                <svg class="w-4 h-4 text-[#2BA640]" fill="currentColor" viewBox="0 0 24 24" title="ผู้สอนผ่านการรับรอง"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              </div>
+              <div class="text-xs text-[#606060]">
+                ผู้เชี่ยวชาญการพัฒนา No-Code Apps & Cloud Database • ผู้เรียน 1,420 คน
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons (Subscribe + Like/Share) -->
+          <div class="flex items-center gap-2">
+            <button class="h-9 px-5 bg-[#0F0F0F] hover:bg-black text-white text-xs font-medium rounded-full flex items-center gap-1.5 transition shadow-sm">
+              <svg class="w-3.5 h-3.5 fill-current text-[#FF0000]" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span>ติดตามรายวิชา</span>
+            </button>
+
+            <!-- Segmented Action Pair (Like / Share) -->
+            <div class="flex items-center bg-[#F2F2F2] rounded-full p-0.5 border border-[#E5E5E5]">
+              <button id="likeBtn" onclick="toggleLike()" class="flex items-center gap-1.5 h-8 px-3.5 rounded-full hover:bg-white text-xs text-[#0F0F0F] font-medium transition">
+                <svg id="likeIcon" class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                <span id="likeCount">342</span>
+              </button>
+              <div class="w-[1px] h-4 bg-[#E5E5E5]"></div>
+              <button onclick="shareLesson()" class="flex items-center gap-1.5 h-8 px-3.5 rounded-full hover:bg-white text-xs text-[#0F0F0F] font-medium transition" title="แชร์บทเรียน">
+                <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                <span>แชร์</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course Quick Navigation Strip (Top) -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 p-3 bg-[#F8F8F8] border border-[#E5E5E5] rounded-xl text-xs">
+          <a href="ch04-figma-prototype.html" class="flex items-center gap-1 text-[#606060] hover:text-[#0F0F0F] font-medium transition">
+            <span>← บทก่อนหน้า: บทที่ 4 การทำ Prototype ด้วย Figma</span>
+          </a>
+          <a href="index.html" class="font-bold text-[#FF0000] hover:underline">
+            🏠 สารบัญบทเรียนทั้งหมด
+          </a>
+          <a href="ch06-appsheet-first-app.html" class="flex items-center gap-1 text-[#065FD4] hover:underline font-medium transition">
+            <span>บทถัดไป: บทที่ 6 การสร้างแอปแรกและดึงข้อมูลขึ้น AppSheet →</span>
+          </a>
+        </div>
+
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 6. FULL TEXTBOOK CONTENT SECTIONS (Deep, Academic, Professional) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="max-w-4xl mx-auto w-full px-4 sm:px-8 py-6 space-y-16">
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 0: วัตถุประสงค์และแผนผัง 4 ชั่วโมง -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="learning-plan" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>LEARNING ROADMAP & OBJECTIVES</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            🎯 จุดประสงค์การเรียนรู้และแผนผัง 4 ชั่วโมง
+          </h2>
+
+          <div class="bg-white border border-[#E5E5E5] rounded-2xl p-6 space-y-4 mb-6">
+            <h3 class="font-bold text-base text-[#0F0F0F]">เมื่อศึกษาบทเรียนนี้และปฏิบัติการเสร็จสิ้น ผู้เรียนสามารถ:</h3>
+            <ul class="space-y-2 text-sm text-[#0F0F0F] list-disc list-inside">
+              <li><strong>อธิบายบทบาท</strong> ของ Google Sheets ในฐานะระบบจัดการฐานข้อมูลเชิงสัมพันธ์บนคลาวด์ (Cloud Relational Database) สำหรับ AppSheet ได้อย่างลึกซึ้ง</li>
+              <li><strong>ประยุกต์ใช้หลักการ Normalization</strong> ขั้นพื้นฐานเพื่อแยกแยะตารางข้อมูล (Tables) ป้องกันความซ้ำซ้อนของข้อมูลในระบบ</li>
+              <li><strong>กำหนด Primary Key (คีย์หลัก)</strong>, Foreign Key (คีย์เชื่อมโยง), และชนิดข้อมูล (Data Types) ได้ถูกต้องตามมาตรฐานวิศวกรรมข้อมูล</li>
+              <li><strong>สร้างตารางฐานข้อมูล</strong> ครบถ้วนทั้ง 3-4 ตารางหลัก พร้อมกรอกข้อมูลจำลองจริง (Mock Data) อย่างน้อย 15 แถวตามแนวทางของ 3 รูปแบบธุรกิจ (Archetypes)</li>
+              <li><strong>ตั้งค่าเทคนิคสำคัญ</strong> เช่น ตรึงแถวหัวตาราง (Freeze Row 1), Data Validation Dropdown, และการจัดรูปแบบตัวเลข/วันที่ได้อย่างถูกต้อง 100%</li>
+              <li><strong>ทำงานร่วมกันเป็นทีม 3 คน</strong> จัดการคลังภาพบน Google Drive และกำหนดสิทธิ์การแชร์ไฟล์ระดับ Editor เพื่อเตรียมเชื่อมต่อ AppSheet ในสัปดาห์ถัดไป</li>
+            </ul>
+          </div>
+
+          <!-- แผนผัง Roadmap 4 ชั่วโมง (Hour 1 - Hour 4) -->
+          <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-[#F8F8F8]">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-base text-[#0F0F0F]">🧭 ผังกระบวนการเรียนรู้ประจำสัปดาห์ที่ 5 (4 ชั่วโมง)</h3>
+              <span class="text-xs font-mono text-[#FF0000] bg-red-50 px-2 py-0.5 rounded border border-red-200">240 MINUTES</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+              <!-- Hour 1 -->
+              <div class="bg-white p-4 rounded-xl border border-[#E5E5E5] relative shadow-sm">
+                <div class="w-6 h-6 rounded-full bg-[#FF0000] text-white font-bold flex items-center justify-center mb-2">1</div>
+                <div class="font-bold text-sm text-[#0F0F0F] mb-1">ชั่วโมงที่ 1: ทฤษฎีฐานข้อมูล</div>
+                <div class="text-[#606060] leading-relaxed space-y-1">
+                  <div>• Google Sheets as Cloud DB</div>
+                  <div>• กฎเหล็ก 5 ประการ</div>
+                  <div>• Primary Key & Foreign Key</div>
+                  <div>• ความสัมพันธ์ 1-to-Many</div>
+                </div>
+              </div>
+
+              <!-- Hour 2 -->
+              <div class="bg-white p-4 rounded-xl border border-[#E5E5E5] relative shadow-sm">
+                <div class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white font-bold flex items-center justify-center mb-2">2</div>
+                <div class="font-bold text-sm text-[#0F0F0F] mb-1">ชั่วโมงที่ 2: สถาปัตยกรรมข้อมูล</div>
+                <div class="text-[#606060] leading-relaxed space-y-1">
+                  <div>• ออกแบบ Schema 3 ธุรกิจ</div>
+                  <div>• กาแฟ/สัตว์เลี้ยง/ยืมคืน</div>
+                  <div>• วางแผน Data Types</div>
+                  <div>• กำหนดความสัมพันธ์ตาราง</div>
+                </div>
+              </div>
+
+              <!-- Hour 3 -->
+              <div class="bg-white p-4 rounded-xl border border-[#E5E5E5] relative shadow-sm">
+                <div class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white font-bold flex items-center justify-center mb-2">3</div>
+                <div class="font-bold text-sm text-[#0F0F0F] mb-1">ชั่วโมงที่ 3: ลงมือสร้างชีตจริง</div>
+                <div class="text-[#606060] leading-relaxed space-y-1">
+                  <div>• สร้าง Google Sheets</div>
+                  <div>• Freeze Row 1 หัวตาราง</div>
+                  <div>• Data Validation Dropdown</div>
+                  <div>• ระดมกรอก Mock Data 15 แถว</div>
+                </div>
+              </div>
+
+              <!-- Hour 4 -->
+              <div class="bg-white p-4 rounded-xl border border-[#E5E5E5] relative shadow-sm">
+                <div class="w-6 h-6 rounded-full bg-[#2BA640] text-white font-bold flex items-center justify-center mb-2">4</div>
+                <div class="font-bold text-sm text-[#0F0F0F] mb-1">ชั่วโมงที่ 4: รูปภาพและตรวจงาน</div>
+                <div class="text-[#606060] leading-relaxed space-y-1">
+                  <div>• โฟลเดอร์ App_Images บน Drive</div>
+                  <div>• แปลง Direct Link รูปภาพ</div>
+                  <div>• ตรวจ Self-Checklist 8 ข้อ</div>
+                  <div>• แชร์สิทธิ์ Editor พร้อมส่งงาน</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 1: Google Sheets as Database Engine -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="sheets-engine" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 1 • DATABASE ENGINE CONCEPT</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            1. Google Sheets ในฐานะระบบจัดการฐานข้อมูล (Database Engine)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              คนส่วนใหญ่มักมองว่า <strong>Google Sheets</strong> เป็นเพียงโปรแกรมตารางคำนวณ (Spreadsheet) สำหรับทำบัญชีรายรับ-รายจ่าย หรือจดบันทึกตัวเลขสรุปผล แต่ในโลกของการพัฒนาแอปพลิเคชันยุคใหม่แบบ No-Code โดยเฉพาะการใช้งานร่วมกับ <strong>Google AppSheet</strong>:
+            </p>
+
+            <div class="p-4 rounded-xl bg-red-50 border-l-4 border-[#FF0000] text-sm text-[#0F0F0F] font-medium leading-relaxed">
+              💡 <strong>นิยามสำคัญ:</strong> Google Sheets ทำหน้าที่เป็น <strong>"Cloud Relational Database Management System (RDBMS)"</strong> ขนาดย่อม ที่มีความเสถียร ปลอดภัยสูง รองรับการทำงานพร้อมกันหลายคน (Multi-user Concurrency) แบบเรียลไทม์ และไม่มีค่าใช้จ่ายในการเปิดเซิร์ฟเวอร์
+            </div>
+
+            <h3 class="text-lg font-bold text-[#0F0F0F] mt-6">1.1 ตารางเปรียบเทียบ: Flat Spreadsheet ทั่วไป vs App Database Sheet</h3>
+            <p class="text-xs text-[#606060]">
+              ทำความเข้าใจความแตกต่างอย่างสิ้นเชิงระหว่างการทำตารางดูด้วยสายตามนุษย์ กับตารางที่ถูกจัดโครงสร้างเพื่อให้ระบบคอมพิวเตอร์และแอปพลิเคชันนำไปประมวลผล
+            </p>
+
+            <div class="overflow-x-auto my-4 border border-[#E5E5E5] rounded-xl shadow-sm">
+              <table class="w-full text-left sheet-table">
+                <thead>
+                  <tr class="bg-[#F8F8F8]">
+                    <th class="w-1/4">คุณลักษณะ (Attributes)</th>
+                    <th class="w-3/8 text-red-700 bg-red-50/50">ตาราง Excel ทั่วไป (Flat Spreadsheet) ❌</th>
+                    <th class="w-3/8 text-emerald-800 bg-emerald-50/50">ฐานข้อมูลสำหรับแอป (App Database Sheet) ✔️</th>
+                  </tr>
+                </thead>
+                <tbody class="text-xs sm:text-sm">
+                  <tr>
+                    <td class="font-semibold">โครงสร้างบรรทัดที่ 1</td>
+                    <td class="text-red-700 bg-red-50/20">มักพิมพ์ชื่อร้าน สัญลักษณ์ หรือเว้นว่างไว้ 2-3 บรรทัด</td>
+                    <td class="text-emerald-800 bg-emerald-50/20 font-semibold">บรรทัดที่ 1 เป็น "ชื่อหัวคอลัมน์ (Header)" เท่านั้น ห้ามเว้นว่าง</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">การผสานเซลล์ (Merge Cells)</td>
+                    <td class="text-red-700 bg-red-50/20">ผสานเซลล์ตามใจชอบเพื่อความสวยงามในการพิมพ์รายงาน</td>
+                    <td class="text-emerald-800 bg-emerald-50/20 font-bold">ห้ามผสานเซลล์ (No Merge Cells) โดยเด็ดขาด 100%</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">การจัดเก็บข้อมูลใน 1 แถว</td>
+                    <td class="text-red-700 bg-red-50/20">ปนเปื้อนข้อมูลหลายอย่าง เช่น ชื่อคน สินค้า ยอดเงิน ในบรรทัดเดียว</td>
+                    <td class="text-emerald-800 bg-emerald-50/20">1 แถว (Row) คือ 1 รายการข้อมูล (Record) ที่มีลักษณะเดียวกัน</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">การแบ่งตาราง (Tables)</td>
+                    <td class="text-red-700 bg-red-50/20">รวมทุกสิ่งอย่างไว้ในแท็บชีตเดียวจนล้น</td>
+                    <td class="text-emerald-800 bg-emerald-50/20">แยกชีตตามหน้าที่ (เช่น Products, Orders, Customers)</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">การใส่สูตรผลรวม (SUM)</td>
+                    <td class="text-red-700 bg-red-50/20">พิมพ์สูตร `=SUM(D2:D10)` แทรกไว้ใต้คอลัมน์กลางตาราง</td>
+                    <td class="text-emerald-800 bg-emerald-50/20">ไม่ใส่ผลรวมค้างไว้ในตาราง ให้ AppSheet เป็นผู้สรุปผลแทน</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">ผลลัพธ์บน AppSheet</td>
+                    <td class="text-red-700 bg-red-50/20 font-bold">AppSheet หาข้อมูลไม่เจอ, อ่านค่าเพี้ยน, เกิด Error ทันที!</td>
+                    <td class="text-emerald-800 bg-emerald-50/20 font-bold">AppSheet สแกนตารางและสร้างแอปอัตโนมัติภายใน 30 วินาที</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 2: กฎเหล็ก 5 ประการ (The 5 Golden Rules) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="golden-rules" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 2 • DATABASE INTEGRITY</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            2. กฎเหล็ก 5 ประการในการสร้างตารางฐานข้อมูล (The 5 Golden Rules)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            หากละเมิดกฎ 5 ข้อนี้ แอปพลิเคชันจะไม่สามารถประมวลผลข้อมูลได้ เกิดข้อผิดพลาดในการเขียนสูตร หรือเกิดบั๊กข้อมูลสูญหาย:
+          </p>
+
+          <div class="space-y-4">
+            <!-- Rule 1 -->
+            <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex gap-4">
+              <div class="w-10 h-10 rounded-full bg-red-50 text-[#FF0000] font-bold text-lg flex items-center justify-center shrink-0">
+                1
+              </div>
+              <div class="space-y-1 text-sm">
+                <h3 class="font-bold text-base text-[#0F0F0F]">บรรทัดที่ 1 ต้องเป็น "ชื่อหัวคอลัมน์ (Column Headers)" เท่านั้น</h3>
+                <p class="text-[#606060] leading-relaxed">
+                  ห้ามพิมพ์ชื่อร้าน ห้ามวางโลโก้ ห้ามใส่คำบรรยาย และห้ามเว้นบรรทัดที่ 1 ว่างไว้ ข้อมูลรายการสินค้าจริงต้องเริ่มบันทึกที่บรรทัดที่ 2 เป็นต้นไป เพราะ AppSheet จะอ่านแถวที่ 1 เป็นโครงสร้างตัวแปรของฐานข้อมูลเสมอ
+                </p>
+              </div>
+            </div>
+
+            <!-- Rule 2 -->
+            <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex gap-4">
+              <div class="w-10 h-10 rounded-full bg-red-50 text-[#FF0000] font-bold text-lg flex items-center justify-center shrink-0">
+                2
+              </div>
+              <div class="space-y-1 text-sm">
+                <h3 class="font-bold text-base text-[#0F0F0F]">ห้ามมีช่องว่างในชื่อคอลัมน์เด็ดขาด (No Spaces in Column Names)</h3>
+                <p class="text-[#606060] leading-relaxed">
+                  ช่องว่างจะทำให้การเขียนสูตรตรรกะและการอ้างอิงใน AppSheet Syntax เกิดข้อผิดพลาดได้ง่าย
+                </p>
+                <div class="flex flex-wrap gap-2 text-xs pt-1 font-mono">
+                  <span class="px-2.5 py-1 bg-red-100 text-red-700 rounded line-through">Product Name</span>
+                  <span class="px-2.5 py-1 bg-red-100 text-red-700 rounded line-through">Price per unit</span>
+                  <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold rounded">👉 ProductName</span>
+                  <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold rounded">👉 Unit_Price</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rule 3 -->
+            <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex gap-4">
+              <div class="w-10 h-10 rounded-full bg-red-50 text-[#FF0000] font-bold text-lg flex items-center justify-center shrink-0">
+                3
+              </div>
+              <div class="space-y-1 text-sm">
+                <h3 class="font-bold text-base text-[#0F0F0F]">ใช้ชื่อภาษาอังกฤษสำหรับหัวคอลัมน์เสมอ (English Only for Headers)</h3>
+                <p class="text-[#606060] leading-relaxed">
+                  แม้ข้อมูลที่กรอกด้านในจะเป็นภาษาไทย เช่น ชื่อสินค้า "ชาเขียวมัทฉะ" แต่ชื่อหัวคอลัมน์ควรตั้งเป็น <code>Product_Name</code>, <code>Order_Status</code>, <code>Unit_Price</code> เพื่อให้ระบบสากลและการคำนวณใน AppSheet ไม่มีปัญหากับสระวรรณยุกต์ภาษาไทย
+                </p>
+              </div>
+            </div>
+
+            <!-- Rule 4 -->
+            <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex gap-4">
+              <div class="w-10 h-10 rounded-full bg-red-50 text-[#FF0000] font-bold text-lg flex items-center justify-center shrink-0">
+                4
+              </div>
+              <div class="space-y-1 text-sm">
+                <h3 class="font-bold text-base text-[#0F0F0F]">ห้ามผสานเซลล์ (Never Merge Cells)</h3>
+                <p class="text-[#606060] leading-relaxed">
+                  ทุกช่องเซลล์ต้องเป็นอิสระต่อกัน มีพิกัดแนวนอน (Column) และแนวตั้ง (Row) ที่ชัดเจน การผสานเซลล์จะทำให้ระบบฐานข้อมูลไม่สามารถเข้าถึงพิกัดที่ถูกต้อง และทำให้ข้อมูลแถวข้างใต้หายไปจากการมองเห็นของระบบ
+                </p>
+              </div>
+            </div>
+
+            <!-- Rule 5 -->
+            <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex gap-4">
+              <div class="w-10 h-10 rounded-full bg-red-50 text-[#FF0000] font-bold text-lg flex items-center justify-center shrink-0">
+                5
+              </div>
+              <div class="space-y-1 text-sm">
+                <h3 class="font-bold text-base text-[#0F0F0F]">ทุกตารางต้องมี "Primary Key (คีย์หลัก)" ประจำตัวเสมอ</h3>
+                <p class="text-[#606060] leading-relaxed">
+                  คอลัมน์แรกสุดของทุกชีตต้องเป็นรหัสที่ไม่ซ้ำกัน (Unique Value) เช่น <code>Product_ID</code> (P-001, P-002), <code>Order_ID</code> (ORD-001) เพื่อให้ระบบรู้ว่าผู้ใช้กำลังแก้ไขหรือลบข้อมูลของแถวใดได้อย่างแม่นยำ 100%
+                </p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 3: Primary Key & Foreign Key Relationships -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="keys-relations" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 3 • RELATIONAL ARCHITECTURE</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            3. ความเข้าใจเรื่อง Primary Key (คีย์หลัก) และ Foreign Key (คีย์เชื่อมโยง)
+          </h2>
+
+          <div class="space-y-4 text-sm sm:text-base leading-relaxed text-[#0F0F0F]">
+            <p>
+              ทำไมเราถึงไม่ควรใช้ "ชื่อสินค้า" หรือ "ชื่อลูกค้า" เป็นตัวระบุข้อมูล?
+            </p>
+            <ul class="list-disc list-inside space-y-1.5 text-sm text-[#606060] bg-[#F8F8F8] p-4 rounded-xl border border-[#E5E5E5]">
+              <li><strong>กรณีชื่อสินค้าซ้ำกัน:</strong> ในร้านเครื่องดื่มอาจมี "ชานมเย็น" ขนาดปกติ (฿45) กับ "ชานมเย็น" ขนาดแก้วจัมโบ้ (฿55) หากบันทึกด้วยชื่อ "ชานมเย็น" ระบบจะไม่ทราบว่าสั่งแก้วไหน</li>
+              <li><strong>กรณีชื่อลูกค้าซ้ำกัน:</strong> ลูกค้าชื่อ "สมชาย" เข้ามาใช้บริการ 2 คนในเวลาเดียวกัน หากไม่มี <code>Customer_ID</code> ระบบจะรวมยอดเงินและประวัติของลูกค้าทั้งสองคนเข้าด้วยกันจนผิดพลาด</li>
+              <li><strong>กรณีเปลี่ยนชื่อ:</strong> หากลูกค้าขอแก้ไขชื่อจริง หรือร้านค้าเปลี่ยนชื่อเมนู ถ้าไม่มีรหัสคีย์หลัก ข้อมูลประวัติการสั่งซื้อในอดีตทั้งหมดจะขาดการเชื่อมโยงทันที!</li>
+            </ul>
+
+            <!-- แผนผังจำลองกลไก PK และ FK -->
+            <div class="p-6 rounded-2xl bg-[#0F0F0F] text-white my-6">
+              <div class="text-xs uppercase font-mono text-[#FF0000] font-bold mb-3 tracking-wider">
+                DIAGRAM: RELATIONAL MAPPING (1-TO-MANY RELATIONSHIP)
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <!-- ตารางแม่ (Parent Table) -->
+                <div class="p-4 bg-zinc-900 border border-zinc-700 rounded-xl space-y-2">
+                  <div class="flex items-center justify-between border-b border-zinc-700 pb-2">
+                    <span class="font-bold text-white text-sm">ตารางแม่: Products (สินค้า)</span>
+                    <span class="text-[10px] bg-red-950 text-red-400 border border-red-800 px-2 py-0.5 rounded font-mono">PARENT TABLE</span>
+                  </div>
+                  <div class="font-mono text-xs space-y-1.5 text-zinc-300">
+                    <div class="flex justify-between bg-zinc-800 p-1.5 rounded">
+                      <span class="text-red-400 font-bold">Product_ID [PK]</span>
+                      <span class="text-zinc-200">Product_Name</span>
+                    </div>
+                    <div class="flex justify-between px-1.5 text-emerald-400">
+                      <span>P-001 (Unique)</span>
+                      <span class="text-zinc-300">ชานมไต้หวันบราวชูการ์</span>
+                    </div>
+                    <div class="flex justify-between px-1.5">
+                      <span>P-002 (Unique)</span>
+                      <span class="text-zinc-300">ชาเขียวมัทฉะลาเต้</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ตารางลูก (Child Table) -->
+                <div class="p-4 bg-zinc-900 border border-zinc-700 rounded-xl space-y-2">
+                  <div class="flex items-center justify-between border-b border-zinc-700 pb-2">
+                    <span class="font-bold text-white text-sm">ตารางลูก: Order_Details (รายละเอียดบิล)</span>
+                    <span class="text-[10px] bg-blue-950 text-blue-400 border border-blue-800 px-2 py-0.5 rounded font-mono">CHILD TABLE</span>
+                  </div>
+                  <div class="font-mono text-xs space-y-1.5 text-zinc-300">
+                    <div class="flex justify-between bg-zinc-800 p-1.5 rounded">
+                      <span class="text-zinc-300 font-bold">Detail_ID [PK]</span>
+                      <span class="text-blue-400 font-bold">Product_ID [FK]</span>
+                      <span class="text-zinc-300">Qty</span>
+                    </div>
+                    <div class="flex justify-between px-1.5">
+                      <span>DET-101</span>
+                      <span class="text-blue-400 font-bold">P-001 ➔</span>
+                      <span>2 แก้ว</span>
+                    </div>
+                    <div class="flex justify-between px-1.5">
+                      <span>DET-102</span>
+                      <span class="text-blue-400 font-bold">P-001 ➔</span>
+                      <span>1 แก้ว</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-zinc-800 text-xs text-zinc-400 flex flex-wrap justify-between gap-2">
+                <span>🔑 <strong>PK (Primary Key):</strong> รหัสประจำตัวที่ไม่ซ้ำใครในตารางของตัวเอง</span>
+                <span>🔗 <strong>FK (Foreign Key):</strong> รหัสที่หยิบยืมมาจากตารางแม่เพื่อเชื่อมโยงหาข้อมูลเดิม</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 4: สถาปัตยกรรม 3 รูปแบบธุรกิจ (Tri-Archetype Schemas) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="archetypes-schema" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 4 • BUSINESS ARCHETYPES</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            4. โครงสร้างสถาปัตยกรรมข้อมูล 3 รูปแบบธุรกิจ (Tri-Archetype Schemas)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            เลือกรูปแบบธุรกิจของกลุ่มตนเองเพื่อดูโครงสร้างตาราง (Schema), คอลัมน์, และข้อมูลจำลองจริง 15+ แถว พร้อมปุ่มคัดลอกไปใช้งาน
+          </p>
+
+          <!-- Tri-Archetype Segmented Switcher -->
+          <div class="flex items-center p-1 bg-[#F2F2F2] rounded-xl max-w-xl mx-auto mb-6 border border-[#E5E5E5]">
+            <button onclick="switchArchetype('freshbrew')" id="archTab-freshbrew" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-1.5">
+              <span>☕ Fresh Brew</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 hidden sm:inline">ร้านกาแฟ</span>
+            </button>
+            <button onclick="switchArchetype('happypaws')" id="archTab-happypaws" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5">
+              <span>🐾 Happy Paws</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-700 hidden sm:inline">คลินิกสัตว์</span>
+            </button>
+            <button onclick="switchArchetype('smartborrow')" id="archTab-smartborrow" class="flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5">
+              <span>📦 Smart Borrow</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-700 hidden sm:inline">ยืม-คืนพัสดุ</span>
+            </button>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- ARCHETYPE 1: FRESH BREW & BAKERY -->
+          <!-- ========================================== -->
+          <div id="archContent-freshbrew" class="archetype-container space-y-6">
+            <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E5E5] pb-3">
+                <div>
+                  <span class="px-2.5 py-1 rounded bg-amber-50 text-amber-800 font-bold text-xs uppercase border border-amber-200">
+                    FOOD & BEVERAGE PRE-ORDER APP
+                  </span>
+                  <h3 class="text-xl font-bold text-[#0F0F0F] mt-1.5">รูปแบบที่ 1: Fresh Brew & Bakery (ร้านอาหารและเครื่องดื่ม)</h3>
+                </div>
+                <div class="text-xs text-[#606060]">
+                  ความสัมพันธ์: Categories (1:N) Products (1:N) Order_Details (N:1) Orders
+                </div>
+              </div>
+
+              <!-- Interactive Sub-tabs for Fresh Brew Tables -->
+              <div class="flex items-center gap-2 border-b border-[#E5E5E5] pt-2">
+                <button onclick="switchTableTab('fb', 'products')" id="fbTab-products" class="table-subtab font-bold text-xs pb-2 border-b-2 border-[#FF0000] text-[#FF0000]">
+                  ตาราง 1: Products (15 รายการ)
+                </button>
+                <button onclick="switchTableTab('fb', 'categories')" id="fbTab-categories" class="table-subtab text-xs pb-2 border-b-2 border-transparent text-[#606060] hover:text-[#0F0F0F]">
+                  ตาราง 2: Categories (หมวดหมู่)
+                </button>
+                <button onclick="switchTableTab('fb', 'orders')" id="fbTab-orders" class="table-subtab text-xs pb-2 border-b-2 border-transparent text-[#606060] hover:text-[#0F0F0F]">
+                  ตาราง 3: Orders (คำสั่งซื้อ)
+                </button>
+              </div>
+
+              <!-- FB Table 1: Products -->
+              <div id="fbContent-products" class="table-content space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="text-xs text-[#606060]">
+                    <strong>แท็บที่ 1:</strong> ชื่อแผ่นงาน <code>Products</code> • คีย์หลัก: <code>Product_ID</code>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button onclick="copyTableHeaders('fb-products')" class="px-3 py-1.5 bg-[#F2F2F2] hover:bg-[#E5E5E5] text-[#0F0F0F] rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                      <span>📋 คัดลอกหัวคอลัมน์</span>
+                    </button>
+                    <button onclick="copyMockData('fb-products-data')" class="px-3 py-1.5 bg-[#0F0F0F] hover:bg-black text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                      <span>📥 คัดลอก Mock Data 15 แถว</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Schema Table -->
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl">
+                  <table class="w-full sheet-table text-left" id="fb-products-table">
+                    <thead>
+                      <tr>
+                        <th>Column Name</th>
+                        <th>AppSheet Type</th>
+                        <th>Key</th>
+                        <th>ตัวอย่างข้อมูล</th>
+                        <th>คำอธิบาย</th>
+                      </tr>
+                    </thead>
+                    <tbody class="text-xs">
+                      <tr><td class="font-mono font-bold text-[#FF0000]">Product_ID</td><td class="font-mono">Text</td><td><span class="px-1.5 py-0.5 bg-red-100 text-red-700 font-bold rounded">PK</span></td><td>P-001</td><td>รหัสสินค้า ห้ามซ้ำกัน</td></tr>
+                      <tr><td class="font-mono font-bold">Product_Name</td><td class="font-mono">Text</td><td>-</td><td>ชานมไต้หวันบราวชูการ์</td><td>ชื่อเครื่องดื่มหรือขนม</td></tr>
+                      <tr><td class="font-mono font-bold">Category_Name</td><td class="font-mono">Enum / Ref</td><td>-</td><td>ชานม</td><td>หมวดหมู่สำหรับจัดกลุ่ม</td></tr>
+                      <tr><td class="font-mono font-bold">Unit_Price</td><td class="font-mono">Price</td><td>-</td><td>55.00</td><td>ราคาขายต่อแก้ว (ตัวเลขล้วน)</td></tr>
+                      <tr><td class="font-mono font-bold">Cost_Price</td><td class="font-mono">Price</td><td>-</td><td>25.00</td><td>ต้นทุนสำหรับคำนวณกำไร</td></tr>
+                      <tr><td class="font-mono font-bold">Stock_Qty</td><td class="font-mono">Number</td><td>-</td><td>100</td><td>สต็อกคงเหลือปัจจุบัน</td></tr>
+                      <tr><td class="font-mono font-bold">Image_URL</td><td class="font-mono">Image</td><td>-</td><td>https://images.unsplash.com/...</td><td>ลิงก์รูปถ่ายแก้วสินค้า</td></tr>
+                      <tr><td class="font-mono font-bold">Description</td><td class="font-mono">LongText</td><td>-</td><td>ชาไต้หวันแท้หอมเข้มข้น ท็อปไข่มุกเคี่ยวสด</td><td>คำบรรยายส่วนประกอบ</td></tr>
+                      <tr><td class="font-mono font-bold">Is_Available</td><td class="font-mono">Yes/No</td><td>-</td><td>TRUE</td><td>สถานะพร้อมจำหน่าย (เปิด/ปิดเมนู)</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Mock Data Preview (15 items) -->
+                <div class="mt-4">
+                  <div class="text-xs font-bold text-[#0F0F0F] mb-2 flex items-center justify-between">
+                    <span>ข้อมูลจำลองจริง 15 รายการ (Mock Data Preview):</span>
+                    <span class="text-[11px] text-[#606060]">นำไปวางในแถวที่ 2-16 ของ Google Sheets ได้ทันที</span>
+                  </div>
+                  <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl max-h-60 overflow-y-auto">
+                    <table class="w-full sheet-table text-left font-mono text-[11px]">
+                      <thead>
+                        <tr class="sticky top-0 bg-[#F2F2F2]">
+                          <th>Product_ID</th><th>Product_Name</th><th>Category_Name</th><th>Unit_Price</th><th>Cost_Price</th><th>Stock_Qty</th><th>Image_URL</th><th>Description</th><th>Is_Available</th>
+                        </tr>
+                      </thead>
+                      <tbody id="fb-products-mock-body">
+                        <!-- Populated via script or static html for high performance -->
+                        <tr><td>P-001</td><td>ชานมไต้หวันบราวชูการ์</td><td>ชานม</td><td>55.00</td><td>25.00</td><td>120</td><td>https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500</td><td>ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับ</td><td>TRUE</td></tr>
+                        <tr><td>P-002</td><td>ชาเขียวมัทฉะลาเต้เย็น</td><td>ชาเขียว</td><td>65.00</td><td>30.00</td><td>95</td><td>https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500</td><td>มัทฉะอุจิแท้ 100% นมสดพรีเมียม</td><td>TRUE</td></tr>
+                        <tr><td>P-003</td><td>เอสเพรสโซเย็น ดับเบิ้ลช็อต</td><td>กาแฟ</td><td>60.00</td><td>20.00</td><td>150</td><td>https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=500</td><td>กาแฟอาราบิกาคั่วเข้ม รสชาติเข้มข้นตาสว่าง</td><td>TRUE</td></tr>
+                        <tr><td>P-004</td><td>อเมริกาโน่น้ำส้มสด</td><td>กาแฟ</td><td>70.00</td><td>28.00</td><td>80</td><td>https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500</td><td>ช็อตเอสเพรสโซผสานน้ำส้มสายน้ำผึ้งแท้</td><td>TRUE</td></tr>
+                        <tr><td>P-005</td><td>คาราเมลมัคคิอาโต้</td><td>กาแฟ</td><td>75.00</td><td>32.00</td><td>70</td><td>https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=500</td><td>ฟองนมนุ่มละมุน ราดซอสคาราเมลหอมหวาน</td><td>TRUE</td></tr>
+                        <tr><td>P-006</td><td>โกโก้พรีเมียมเข้มข้น</td><td>ช็อกโกแลต</td><td>55.00</td><td>22.00</td><td>110</td><td>https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=500</td><td>ดัตช์โกโก้ 100% หอมมันเข้มข้นกลมกล่อม</td><td>TRUE</td></tr>
+                        <tr><td>P-007</td><td>ชาไทยเย็นสูตรโบราณ</td><td>ชาไทย</td><td>50.00</td><td>18.00</td><td>130</td><td>https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500</td><td>ใบชาคั่วบดสูตรพิเศษ หอมฟุ้ง หวานมัน</td><td>TRUE</td></tr>
+                        <tr><td>P-008</td><td>สตรอว์เบอร์รีชีสเค้กแฟรปเป้</td><td>ปั่นสมูทตี้</td><td>85.00</td><td>38.00</td><td>45</td><td>https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500</td><td>สตรอว์เบอร์รีสดปั่นใส่ครีมชีสและแครกเกอร์</td><td>TRUE</td></tr>
+                        <tr><td>P-009</td><td>ชามะนาวแท้น้ำผึ้งป่า</td><td>ชาผลไม้</td><td>55.00</td><td>20.00</td><td>90</td><td>https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500</td><td>ใบชาซีลอน มะนาวสดแป้นคั้นแก้วต่อแก้ว</td><td>TRUE</td></tr>
+                        <tr><td>P-010</td><td>ครัวซองต์เนยสดฝรั่งเศส</td><td>เบเกอรี</td><td>65.00</td><td>28.00</td><td>40</td><td>https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500</td><td>แป้งพายกรอบนอกนุ่มใน ฉ่ำเนยสดแท้ AOP</td><td>TRUE</td></tr>
+                        <tr><td>P-011</td><td>บลูเบอร์รีชีสพาย</td><td>เบเกอรี</td><td>85.00</td><td>35.00</td><td>25</td><td>https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=500</td><td>ครีมชีสเนื้อเนียน ซอสบลูเบอร์รีลูกโต</td><td>TRUE</td></tr>
+                        <tr><td>P-012</td><td>ฟัดจ์บราวนี่ดาร์กช็อกโกแลต</td><td>เบเกอรี</td><td>50.00</td><td>18.00</td><td>50</td><td>https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500</td><td>ช็อกโกแลต 70% เนื้อหนึบหน้าฟิล์ม</td><td>TRUE</td></tr>
+                        <tr><td>P-013</td><td>แซนวิชแฮมชีสโทสต์</td><td>ของทานเล่น</td><td>65.00</td><td>26.00</td><td>35</td><td>https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500</td><td>ขนมปังบริออชย่างเนย เชดดาร์ชีสเยิ้ม</td><td>TRUE</td></tr>
+                        <tr><td>P-014</td><td>ยูซุสปาร์คกลิ้งโซดา</td><td>อิตาเลียนโซดา</td><td>60.00</td><td>22.00</td><td>65</td><td>https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500</td><td>ส้มยูซุจากญี่ปุ่น ซ่าสดชื่นคลายร้อน</td><td>TRUE</td></tr>
+                        <tr><td>P-015</td><td>มัทฉะเอสเพรสโซฟิวชั่น</td><td>สเปเชียลตี้</td><td>85.00</td><td>36.00</td><td>50</td><td>https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=500</td><td>การผสานอย่างลงตัวระหว่างมัทฉะกับกาแฟคั่วกลาง</td><td>TRUE</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FB Table 2: Categories -->
+              <div id="fbContent-categories" class="table-content hidden space-y-4">
+                <div class="text-xs text-[#606060]">
+                  <strong>แท็บที่ 2:</strong> ชื่อแผ่นงาน <code>Categories</code> • คีย์หลัก: <code>Category_ID</code>
+                </div>
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl">
+                  <table class="w-full sheet-table text-left text-xs">
+                    <thead>
+                      <tr><th>Category_ID (PK)</th><th>Category_Name</th><th>Display_Order</th><th>Icon_Name</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="font-mono text-[#FF0000] font-bold">CAT-01</td><td>กาแฟสด (Coffee)</td><td>1</td><td>coffee</td></tr>
+                      <tr><td class="font-mono text-[#FF0000] font-bold">CAT-02</td><td>ชาและนม (Tea & Milk)</td><td>2</td><td>tea</td></tr>
+                      <tr><td class="font-mono text-[#FF0000] font-bold">CAT-03</td><td>เบเกอรีและเค้ก (Bakery)</td><td>3</td><td>cake</td></tr>
+                      <tr><td class="font-mono text-[#FF0000] font-bold">CAT-04</td><td>อิตาเลียนโซดา (Sparkling)</td><td>4</td><td>sparkles</td></tr>
+                      <tr><td class="font-mono text-[#FF0000] font-bold">CAT-05</td><td>ของทานเล่น (Snacks)</td><td>5</td><td>fastfood</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- FB Table 3: Orders -->
+              <div id="fbContent-orders" class="table-content hidden space-y-4">
+                <div class="text-xs text-[#606060]">
+                  <strong>แท็บที่ 3:</strong> ชื่อแผ่นงาน <code>Orders</code> • คีย์หลัก: <code>Order_ID</code>
+                </div>
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl">
+                  <table class="w-full sheet-table text-left text-xs font-mono">
+                    <thead>
+                      <tr><th>Order_ID (PK)</th><th>Order_DateTime</th><th>Customer_Name</th><th>Customer_Phone</th><th>Total_Amount</th><th>Payment_Method</th><th>Order_Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="text-[#FF0000] font-bold">ORD-2026-001</td><td>24/10/2026 08:30:15</td><td>กนกวรรณ ธนกิจ</td><td>089-111-2233</td><td>110.00</td><td>QR PromptPay</td><td>Completed</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">ORD-2026-002</td><td>24/10/2026 09:15:40</td><td>ธีรภัทร ชาญวิทย์</td><td>081-444-5566</td><td>185.00</td><td>Cash</td><td>Completed</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">ORD-2026-003</td><td>24/10/2026 10:05:00</td><td>วิภาดา แสนสุข</td><td>086-777-8899</td><td>70.00</td><td>QR PromptPay</td><td>Cooking</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">ORD-2026-004</td><td>24/10/2026 10:20:12</td><td>มนตรี เจริญดี</td><td>092-333-1122</td><td>145.00</td><td>QR PromptPay</td><td>Pending</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- ARCHETYPE 2: HAPPY PAWS CARE -->
+          <!-- ========================================== -->
+          <div id="archContent-happypaws" class="archetype-container hidden space-y-6">
+            <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E5E5] pb-3">
+                <div>
+                  <span class="px-2.5 py-1 rounded bg-blue-50 text-blue-800 font-bold text-xs uppercase border border-blue-200">
+                    PET CLINIC & GROOMING BOOKING APP
+                  </span>
+                  <h3 class="text-xl font-bold text-[#0F0F0F] mt-1.5">รูปแบบที่ 2: Happy Paws Care (คลินิกและบริการสัตว์เลี้ยง)</h3>
+                </div>
+                <div class="text-xs text-[#606060]">
+                  ความสัมพันธ์: Customers (1:N) Appointments (N:1) Services
+                </div>
+              </div>
+
+              <!-- Interactive Sub-tabs for Happy Paws -->
+              <div class="flex items-center gap-2 border-b border-[#E5E5E5] pt-2">
+                <button onclick="switchTableTab('hp', 'services')" id="hpTab-services" class="table-subtab font-bold text-xs pb-2 border-b-2 border-[#FF0000] text-[#FF0000]">
+                  ตาราง 1: Services (15 บริการ)
+                </button>
+                <button onclick="switchTableTab('hp', 'appointments')" id="hpTab-appointments" class="table-subtab text-xs pb-2 border-b-2 border-transparent text-[#606060] hover:text-[#0F0F0F]">
+                  ตาราง 2: Appointments (นัดหมาย)
+                </button>
+                <button onclick="switchTableTab('hp', 'customers')" id="hpTab-customers" class="table-subtab text-xs pb-2 border-b-2 border-transparent text-[#606060] hover:text-[#0F0F0F]">
+                  ตาราง 3: Customers (เจ้าของ)
+                </button>
+              </div>
+
+              <!-- HP Table 1: Services -->
+              <div id="hpContent-services" class="table-content space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="text-xs text-[#606060]">
+                    <strong>แท็บที่ 1:</strong> ชื่อแผ่นงาน <code>Services</code> • คีย์หลัก: <code>Service_ID</code>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button onclick="copyTableHeaders('hp-services')" class="px-3 py-1.5 bg-[#F2F2F2] hover:bg-[#E5E5E5] text-[#0F0F0F] rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                      <span>📋 คัดลอกหัวคอลัมน์</span>
+                    </button>
+                    <button onclick="copyMockData('hp-services-data')" class="px-3 py-1.5 bg-[#0F0F0F] hover:bg-black text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                      <span>📥 คัดลอก Mock Data 15 แถว</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl max-h-60 overflow-y-auto">
+                  <table class="w-full sheet-table text-left font-mono text-[11px]" id="hp-services-table">
+                    <thead>
+                      <tr class="sticky top-0 bg-[#F2F2F2]">
+                        <th>Service_ID</th><th>Service_Name</th><th>Category</th><th>Price</th><th>Duration_Mins</th><th>Image_URL</th><th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody id="hp-services-mock-body">
+                      <tr><td>SRV-01</td><td>อาบน้ำตัดขนกรูมมิ่ง สุนัขพันธุ์เล็ก</td><td>กรูมมิ่ง</td><td>350.00</td><td>60</td><td>https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=500</td><td>อาบน้ำ แชมพูออร์แกนิก ตัดขน ไถขนอุ้งเท้า ตัดเล็บ</td></tr>
+                      <tr><td>SRV-02</td><td>อาบน้ำตัดขนกรูมมิ่ง สุนัขพันธุ์กลาง</td><td>กรูมมิ่ง</td><td>500.00</td><td>90</td><td>https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500</td><td>สปาแช่น้ำแร่ บำรุงขนให้นุ่มฟู ตัดแต่งทรงมาตรฐาน</td></tr>
+                      <tr><td>SRV-03</td><td>อาบน้ำตัดขนกรูมมิ่ง สุนัขพันธุ์ใหญ่</td><td>กรูมมิ่ง</td><td>750.00</td><td>120</td><td>https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500</td><td>เป่าไล่ขนเสีย สปาลดการหลุดร่วง ไดร์ฟูหอมชื่นใจ</td></tr>
+                      <tr><td>SRV-04</td><td>สปาอาบน้ำแมวขนสั้น</td><td>กรูมมิ่งแมว</td><td>400.00</td><td>60</td><td>https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500</td><td>อาบน้ำด้วยโฟมแห้งลดความเครียด เช็ดหู ตัดเล็บ</td></tr>
+                      <tr><td>SRV-05</td><td>สปาอาบน้ำแมวขนยาว (เปอร์เซีย/เมนคูน)</td><td>กรูมมิ่งแมว</td><td>600.00</td><td>90</td><td>https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=500</td><td>สางสังกะตัง หวีขนพันกัน สปาหมักทรีตเมนต์ขนสวย</td></tr>
+                      <tr><td>SRV-06</td><td>ฉีดวัคซีนรวมสุนัข 5 โรค</td><td>วัคซีน</td><td>350.00</td><td>20</td><td>https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=500</td><td>ป้องกันโรคไข้หัด ลำไส้อักเสบ ตับอักเสบ ไข้ฉี่หนู</td></tr>
+                      <tr><td>SRV-07</td><td>ฉีดวัคซีนรวมแมว 3 โรค</td><td>วัคซีน</td><td>350.00</td><td>20</td><td>https://images.unsplash.com/photo-1574158622682-e40e69881006?w=500</td><td>ป้องกันโรคไข้หัดแมว หวัดแมว และหลอดลมอักเสบ</td></tr>
+                      <tr><td>SRV-08</td><td>ฉีดวัคซีนพิษสุนัขบ้า (Rabies)</td><td>วัคซีน</td><td>120.00</td><td>15</td><td>https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=500</td><td>วัคซีนมาตรฐานประจำปี ป้องกันโรคพิษสุนัขบ้า</td></tr>
+                      <tr><td>SRV-09</td><td>ตรวจสุขภาพทั่วไปโดยสัตวแพทย์</td><td>ตรวจรักษา</td><td>250.00</td><td>30</td><td>https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=500</td><td>ฟังปอด ตรวจหัวใจ ตรวจช่องหู และวัดอุณหภูมิร่างกาย</td></tr>
+                      <tr><td>SRV-10</td><td>ขูดหินปูนสุนัขและแมว (Dentistry)</td><td>ทันตกรรม</td><td>1500.00</td><td>90</td><td>https://images.unsplash.com/photo-1588943211346-0908d1fb0b01?w=500</td><td>ขูดหินปูนด้วยคลื่นอัลตราโซนิก ขัดเคลือบฟันสะอาด</td></tr>
+                      <tr><td>SRV-11</td><td>หยอดยากำจัดเห็บหมัดและพยาธิหนอนหัวใจ</td><td>ป้องกันโรค</td><td>320.00</td><td>15</td><td>https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=500</td><td>หยอดยาหลังคอ ปกป้องเห็บหมัด ไรหู ยาวนาน 1 เดือน</td></tr>
+                      <tr><td>SRV-12</td><td>ฝากเลี้ยงดูแลรายวัน (Dog Daycare)</td><td>โรงแรมสัตว์</td><td>300.00</td><td>480</td><td>https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=500</td><td>ห้องแอร์ 24 ชม. มีพี่เลี้ยงพาเดินเล่นสนามหญ้า</td></tr>
+                      <tr><td>SRV-13</td><td>ฝากเลี้ยงห้องสวีทแมว (Cat Hotel)</td><td>โรงแรมสัตว์</td><td>450.00</td><td>480</td><td>https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=500</td><td>คอนโดแมวส่วนตัว มีกล้องวงจรปิดเปิดดูผ่านมือถือ</td></tr>
+                      <tr><td>SRV-14</td><td>ตรวจเลือดวิเคราะห์ค่าตับและไต (CBC/Chem)</td><td>ชันสูตร</td><td>800.00</td><td>30</td><td>https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=500</td><td>ตรวจความสมบูรณ์เม็ดเลือด เช็กการทำงานอวัยวะภายใน</td></tr>
+                      <tr><td>SRV-15</td><td>ฝังไมโครชิปมาตรฐานสากล (ISO 11784)</td><td>เวชระเบียน</td><td>500.00</td><td>20</td><td>https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=500</td><td>ระบุตัวตนสัตว์เลี้ยง ป้องกันพลัดหลงและเดินทางต่างประเทศ</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- HP Table 2: Appointments -->
+              <div id="hpContent-appointments" class="table-content hidden space-y-4">
+                <div class="text-xs text-[#606060]">
+                  <strong>แท็บที่ 2:</strong> ชื่อแผ่นงาน <code>Appointments</code> • คีย์หลัก: <code>Appointment_ID</code>
+                </div>
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl">
+                  <table class="w-full sheet-table text-left text-xs font-mono">
+                    <thead>
+                      <tr><th>Appointment_ID (PK)</th><th>Customer_Name</th><th>Pet_Name</th><th>Service_ID (FK)</th><th>Appoint_Date</th><th>Time_Slot</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="text-[#FF0000] font-bold">APP-2026-001</td><td>สมศักดิ์ รักสัตว์</td><td>น้องมอมแมม (ชิวาวา)</td><td>SRV-01</td><td>24/10/2026</td><td>10:00</td><td>Confirmed</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">APP-2026-002</td><td>วิภาดา แสนดี</td><td>น้องส้มส้ม (แมวไทย)</td><td>SRV-07</td><td>24/10/2026</td><td>11:30</td><td>Confirmed</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">APP-2026-003</td><td>อนันต์ ชัยชนะ</td><td>บราวนี่ (โกลเด้น)</td><td>SRV-03</td><td>24/10/2026</td><td>13:00</td><td>Waiting</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- HP Table 3: Customers -->
+              <div id="hpContent-customers" class="table-content hidden space-y-4">
+                <div class="text-xs text-[#606060]">
+                  <strong>แท็บที่ 3:</strong> ชื่อแผ่นงาน <code>Customers</code> • คีย์หลัก: <code>Customer_ID</code>
+                </div>
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl">
+                  <table class="w-full sheet-table text-left text-xs font-mono">
+                    <thead>
+                      <tr><th>Customer_ID (PK)</th><th>Full_Name</th><th>Phone_Number</th><th>Address</th><th>Pet_Count</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="text-[#FF0000] font-bold">CUST-001</td><td>สมศักดิ์ รักสัตว์</td><td>081-234-5678</td><td>อ.เมือง จ.พิษณุโลก</td><td>1</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">CUST-002</td><td>วิภาดา แสนดี</td><td>089-876-5432</td><td>อ.วังทอง จ.พิษณุโลก</td><td>2</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">CUST-003</td><td>อนันต์ ชัยชนะ</td><td>062-999-1234</td><td>อ.บางระกำ จ.พิษณุโลก</td><td>1</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- ARCHETYPE 3: SMART EQUIPMENT BORROW -->
+          <!-- ========================================== -->
+          <div id="archContent-smartborrow" class="archetype-container hidden space-y-6">
+            <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E5E5] pb-3">
+                <div>
+                  <span class="px-2.5 py-1 rounded bg-purple-50 text-purple-800 font-bold text-xs uppercase border border-purple-200">
+                    CAMPUS ASSET TRACKING & BORROW APP
+                  </span>
+                  <h3 class="text-xl font-bold text-[#0F0F0F] mt-1.5">รูปแบบที่ 3: Smart Borrow (ระบบยืม-คืนอุปกรณ์และครุภัณฑ์)</h3>
+                </div>
+                <div class="text-xs text-[#606060]">
+                  ความสัมพันธ์: Assets (1:N) Borrow_Logs (N:1) Borrowers
+                </div>
+              </div>
+
+              <!-- Interactive Sub-tabs for Smart Borrow -->
+              <div class="flex items-center gap-2 border-b border-[#E5E5E5] pt-2">
+                <button onclick="switchTableTab('sb', 'assets')" id="sbTab-assets" class="table-subtab font-bold text-xs pb-2 border-b-2 border-[#FF0000] text-[#FF0000]">
+                  ตาราง 1: Assets (15 ครุภัณฑ์)
+                </button>
+                <button onclick="switchTableTab('sb', 'borrowlogs')" id="sbTab-borrowlogs" class="table-subtab text-xs pb-2 border-b-2 border-transparent text-[#606060] hover:text-[#0F0F0F]">
+                  ตาราง 2: Borrow_Logs (ประวัติยืมคืน)
+                </button>
+                <button onclick="switchTableTab('sb', 'borrowers')" id="sbTab-borrowers" class="table-subtab text-xs pb-2 border-b-2 border-transparent text-[#606060] hover:text-[#0F0F0F]">
+                  ตาราง 3: Borrowers (ผู้ขอยืม)
+                </button>
+              </div>
+
+              <!-- SB Table 1: Assets -->
+              <div id="sbContent-assets" class="table-content space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="text-xs text-[#606060]">
+                    <strong>แท็บที่ 1:</strong> ชื่อแผ่นงาน <code>Assets</code> • คีย์หลัก: <code>Asset_ID</code>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button onclick="copyTableHeaders('sb-assets')" class="px-3 py-1.5 bg-[#F2F2F2] hover:bg-[#E5E5E5] text-[#0F0F0F] rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                      <span>📋 คัดลอกหัวคอลัมน์</span>
+                    </button>
+                    <button onclick="copyMockData('sb-assets-data')" class="px-3 py-1.5 bg-[#0F0F0F] hover:bg-black text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                      <span>📥 คัดลอก Mock Data 15 แถว</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl max-h-60 overflow-y-auto">
+                  <table class="w-full sheet-table text-left font-mono text-[11px]" id="sb-assets-table">
+                    <thead>
+                      <tr class="sticky top-0 bg-[#F2F2F2]">
+                        <th>Asset_ID</th><th>Barcode</th><th>Asset_Name</th><th>Category</th><th>Storage_Box</th><th>Current_Status</th><th>Image_URL</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sb-assets-mock-body">
+                      <tr><td>CAM-SONY-01</td><td>885901234001</td><td>SONY Alpha A7 IV (Body)</td><td>กล้องถ่ายภาพ</td><td>ตู้ B2 ชั้น 3 แผนก ธจ</td><td>Available</td><td>https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500</td></tr>
+                      <tr><td>CAM-CANON-02</td><td>885901234002</td><td>Canon EOS R6 Mark II</td><td>กล้องถ่ายภาพ</td><td>ตู้ B2 ชั้น 3 แผนก ธจ</td><td>Borrowed</td><td>https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=500</td></tr>
+                      <tr><td>LENS-GM-03</td><td>885901234003</td><td>Sony FE 24-70mm f/2.8 GM</td><td>เลนส์กล้อง</td><td>ตู้ B2 ชั้น 3 แผนก ธจ</td><td>Available</td><td>https://images.unsplash.com/photo-1617005082133-548c4dd27f35?w=500</td></tr>
+                      <tr><td>GIM-DJI-04</td><td>885901234004</td><td>DJI RS 3 Pro Gimbal</td><td>กิมบอลกันสั่น</td><td>ตู้ C1 ชั้น 2 สตูดิโอ</td><td>Available</td><td>https://images.unsplash.com/photo-1589872766857-2110abb95a08?w=500</td></tr>
+                      <tr><td>MIC-RODE-05</td><td>885901234005</td><td>Rode Wireless GO II Dual</td><td>ไมโครโฟนไร้สาย</td><td>กล่องเคส M-01 แผนก ธจ</td><td>Available</td><td>https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=500</td></tr>
+                      <tr><td>MIC-SHURE-06</td><td>885901234006</td><td>Shure SM7B Vocal Mic</td><td>ไมโครโฟนสตูดิโอ</td><td>ห้องบันทึกเสียง ชั้น 4</td><td>Available</td><td>https://images.unsplash.com/photo-1520523839898-50712825e3a7?w=500</td></tr>
+                      <tr><td>LGT-AMARAN-07</td><td>885901234007</td><td>Aputure Amaran 200d LED</td><td>ไฟสตูดิโอ</td><td>ชั้นวาง L-2 สตูดิโอ</td><td>Borrowed</td><td>https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=500</td></tr>
+                      <tr><td>SFT-GODOX-08</td><td>885901234008</td><td>Godox Octabox 95cm Grid</td><td>อุปกรณ์กระจายแสง</td><td>ชั้นวาง L-2 สตูดิโอ</td><td>Available</td><td>https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500</td></tr>
+                      <tr><td>TRP-MANF-09</td><td>885901234009</td><td>Manfrotto 504X Video Tripod</td><td>ขาตั้งกล้อง</td><td>มุมห้องเก็บของ สตูดิโอ</td><td>Available</td><td>https://images.unsplash.com/photo-1588702547923-7093a6c3ba33?w=500</td></tr>
+                      <tr><td>IPD-PRO-10</td><td>885901234010</td><td>iPad Pro 11-inch M2 (256GB)</td><td>แท็บเล็ตควบคุมงาน</td><td>ตู้เซฟ A1 สำนักงาน</td><td>Available</td><td>https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500</td></tr>
+                      <tr><td>MBP-14-11</td><td>885901234011</td><td>MacBook Pro 14 M3 Pro</td><td>โน้ตบุ๊กตัดต่อ</td><td>ตู้เซฟ A1 สำนักงาน</td><td>Borrowed</td><td>https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500</td></tr>
+                      <tr><td>DRN-MINI-12</td><td>885901234012</td><td>DJI Mini 4 Pro Fly More</td><td>โดรนถ่ายภาพทางอากาศ</td><td>กล่องนิรภัย D-04</td><td>Maintenance</td><td>https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=500</td></tr>
+                      <tr><td>AUD-ZOOM-13</td><td>885901234013</td><td>Zoom H6 Handy Recorder</td><td>เครื่องบันทึกเสียง</td><td>กล่องเคส M-02 แผนก ธจ</td><td>Available</td><td>https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=500</td></tr>
+                      <tr><td>MON-ATOM-14</td><td>885901234014</td><td>Atomos Ninja V 5-inch 4K</td><td>จอมอนิเตอร์พกพา</td><td>ตู้ B2 ชั้น 3 แผนก ธจ</td><td>Available</td><td>https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500</td></tr>
+                      <tr><td>TXR-HOLLY-15</td><td>885901234015</td><td>Hollyland Mars 400S Pro</td><td>ชุดส่งสัญญาณภาพไร้สาย</td><td>ตู้ C1 ชั้น 2 สตูดิโอ</td><td>Available</td><td>https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- SB Table 2: Borrow_Logs -->
+              <div id="sbContent-borrowlogs" class="table-content hidden space-y-4">
+                <div class="text-xs text-[#606060]">
+                  <strong>แท็บที่ 2:</strong> ชื่อแผ่นงาน <code>Borrow_Logs</code> • คีย์หลัก: <code>Borrow_ID</code>
+                </div>
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl">
+                  <table class="w-full sheet-table text-left text-xs font-mono">
+                    <thead>
+                      <tr><th>Borrow_ID (PK)</th><th>Asset_ID (FK)</th><th>Borrower_Name</th><th>Borrow_DateTime</th><th>Due_DateTime</th><th>Return_DateTime</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="text-[#FF0000] font-bold">BR-2026-001</td><td>CAM-CANON-02</td><td>นายธีรเดช วิเศษชาติ</td><td>24/10/2026 09:00</td><td>25/10/2026 16:30</td><td>-</td><td>Active</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">BR-2026-002</td><td>LGT-AMARAN-07</td><td>น.ส.กานดา แสงสุวรรณ</td><td>24/10/2026 10:30</td><td>24/10/2026 18:00</td><td>-</td><td>Active</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">BR-2026-003</td><td>MBP-14-11</td><td>นายณัฐพล ช่างทอง</td><td>23/10/2026 13:00</td><td>26/10/2026 12:00</td><td>-</td><td>Active</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- SB Table 3: Borrowers -->
+              <div id="sbContent-borrowers" class="table-content hidden space-y-4">
+                <div class="text-xs text-[#606060]">
+                  <strong>แท็บที่ 3:</strong> ชื่อแผ่นงาน <code>Borrowers</code> • คีย์หลัก: <code>Borrower_ID</code>
+                </div>
+                <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl">
+                  <table class="w-full sheet-table text-left text-xs font-mono">
+                    <thead>
+                      <tr><th>Borrower_ID (PK)</th><th>Full_Name</th><th>Department</th><th>Phone</th><th>Role</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="text-[#FF0000] font-bold">STD-67319101</td><td>นายธีรเดช วิเศษชาติ</td><td>ธุรกิจดิจิทัล (ปวส.1)</td><td>081-123-9988</td><td>Student</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">STD-67319102</td><td>น.ส.กานดา แสงสุวรรณ</td><td>ธุรกิจดิจิทัล (ปวส.1)</td><td>089-987-1122</td><td>Student</td></tr>
+                      <tr><td class="text-[#FF0000] font-bold">TCH-005</td><td>อ.กฤษณะ วงศ์วัฒนา</td><td>แผนกวิชาการถ่ายภาพ</td><td>086-555-4321</td><td>Teacher</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 5: การวางแผน Data Types บน AppSheet -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="data-types" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 5 • TYPE MAPPING</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            5. การวางแผนชนิดข้อมูล (Data Types Planning for AppSheet)
+          </h2>
+
+          <div class="space-y-4 text-sm sm:text-base leading-relaxed text-[#0F0F0F]">
+            <p>
+              แม้ใน Google Sheets ช่องเซลล์จะสามารถพิมพ์อะไรลงไปก็ได้ แต่เมื่อเชื่อมโยงสู่ <strong>AppSheet</strong> ระบบจะแปลงหัวตารางไปเป็น Data Types ชนิดต่าง ๆ บนสมาร์ตโฟน หากเราเตรียมข้อมูลตั้งแต่ในชีตได้ถูกต้อง ระบบจะตรวจจับและกำหนด Type ให้อัตโนมัติ:
+            </p>
+
+            <div class="overflow-x-auto border border-[#E5E5E5] rounded-xl shadow-sm">
+              <table class="w-full sheet-table text-left text-xs sm:text-sm">
+                <thead>
+                  <tr>
+                    <th>ชนิดข้อมูล (AppSheet Type)</th>
+                    <th>รูปแบบใน Google Sheets</th>
+                    <th>พฤติกรรมบนหน้าจอมือถือสมาร์ตโฟน</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">Text</td>
+                    <td>ข้อความตัวอักษรธรรมดา</td>
+                    <td>แป้นพิมพ์มาตรฐานตัวอักษร บรรทัดเดียว</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">LongText</td>
+                    <td>ข้อความย่อหน้ายาว บรรยายรายละเอียด</td>
+                    <td>กล่องข้อความหลายบรรทัด (Textarea) ขยายตามเนื้อหา</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">Number / Decimal</td>
+                    <td>ตัวเลขล้วน (ห้ามใส่หน่วย เช่น ห้ามใส่ 55 บาท)</td>
+                    <td>แป้นตัวเลขตัวเลขล้วน (Numpad) รองรับการบวก ลบ คูณ หาร</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">Price</td>
+                    <td>ตัวเลขทศนิยม จัดรูปแบบ Currency ฿</td>
+                    <td>แสดงสัญลักษณ์สกุลเงิน และคำนวณผลรวมเงินอัตโนมัติ</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">Date / Time / DateTime</td>
+                    <td>วว/ดด/ปปปป หรือ วว/ดด/ปปปป ชช:นน:วว</td>
+                    <td>ปฏิทินเลือกวันที่ (Date Picker) และนาฬิกาเลือกรอบเวลา</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">Enum</td>
+                    <td>Data Validation Dropdown บนชีต</td>
+                    <td>ปุ่มตัวเลือก (Radio Buttons) หรือ Dropdown เลือกค่าที่กำหนด</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">Image</td>
+                    <td>URL รูปภาพบนคลาวด์ หรือชื่อไฟล์</td>
+                    <td>รูปภาพแสดงขนาดใหญ่ พร้อมปุ่มเปิดกล้องถ่ายภาพใหม่</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">Phone</td>
+                    <td>ตัวเลขเบอร์โทรศัพท์ (081-xxx-xxxx)</td>
+                    <td>ปุ่มสีเขียวกดโทรออก (Call Phone) ได้ทันทีจากตัวแอป</td>
+                  </tr>
+                  <tr>
+                    <td class="font-mono font-bold text-[#065FD4]">Ref</td>
+                    <td>รหัส Primary Key จากตารางอื่น (FK)</td>
+                    <td>ลิงก์เชื่อมโยงข้ามตาราง คลิกแล้วกระโดดไปดูรายละเอียดได้</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Caution Alert Box -->
+            <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-3">
+              <span class="text-xl">⚠️</span>
+              <div>
+                <strong>ข้อควรระวังสำคัญเรื่องตัวเลขราคา (Price):</strong> ในช่องราคาขาย เช่น <code>Unit_Price</code> ให้พิมพ์เฉพาะตัวเลขล้วน <code>55</code> หรือ <code>55.00</code> <strong>ห้ามพิมพ์คำว่า "บาท" หรือ "฿" ลงในเซลล์โดยเด็ดขาด</strong> มิฉะนั้น Google Sheets และ AppSheet จะมองเซลล์นั้นเป็นข้อความ (String) ทำให้ไม่สามารถเขียนสูตรคำนวณเงินในบทที่ 8 ได้!
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 6: ปฏิบัติการ Step-by-Step Hands-on -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="hands-on-workshop" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 6 • HANDS-ON WORKSHOP</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            6. ปฏิบัติการสร้างฐานข้อมูลบน Google Sheets (Step-by-Step)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            ทำตามขั้นตอนอย่างเป็นลำดับทีละคลิกเพื่อสร้างฐานข้อมูลระดับโปรดักชัน:
+          </p>
+
+          <div class="space-y-6">
+            <!-- Step 1 -->
+            <div class="p-5 border border-[#E5E5E5] rounded-2xl bg-white space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white text-xs font-bold flex items-center justify-center">1</span>
+                <h3 class="font-bold text-base text-[#0F0F0F]">ขั้นตอนที่ 1: สร้างไฟล์และตั้งชื่อตามระเบียบ</h3>
+              </div>
+              <div class="text-xs sm:text-sm text-[#606060] space-y-2 pl-11">
+                <p>1. เปิดเบราว์เซอร์ไปที่ Google Drive ของกลุ่ม คลิกปุ่ม <strong>"+ ใหม่ (+ New)"</strong> ➔ เลือก <strong>"Google ชีต (Google Sheets)"</strong></p>
+                <p>2. เปลี่ยนชื่อไฟล์ที่มุมบนซ้ายตามรูปแบบสากล: <code class="text-[#0F0F0F] font-bold bg-[#F2F2F2] px-2 py-0.5 rounded">Group[เลขกลุ่ม]_[ชื่อโปรเจกต์]_Database</code> เช่น <code>Group03_FreshBrew_Database</code></p>
+                <p>3. ดับเบิลคลิกแท็บชีตล่างสุด เปลี่ยนชื่อจาก <code>ชีต1 (Sheet1)</code> เป็นชื่อตารางหลักภาษาอังกฤษ เช่น <strong><code>Products</code></strong></p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="p-5 border border-[#E5E5E5] rounded-2xl bg-white space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white text-xs font-bold flex items-center justify-center">2</span>
+                <h3 class="font-bold text-base text-[#0F0F0F]">ขั้นตอนที่ 2: ตรึงแถวที่ 1 (Freeze Row 1)</h3>
+              </div>
+              <div class="text-xs sm:text-sm text-[#606060] space-y-2 pl-11">
+                <p>การตรึงแถวหัวตารางจะทำให้ Header ไม่เลื่อนหายเมื่อมีข้อมูลหลายร้อยแถว:</p>
+                <p>1. คลิกที่หมายเลข <strong>1</strong> ด้านซ้ายสุดเพื่อไฮไลต์แถวที่ 1 ทั้งหมด</p>
+                <p>2. ไปที่เมนูด้านบน คลิก <strong>"ดู (View)"</strong> ➔ <strong>"ตรึง (Freeze)"</strong> ➔ เลือก <strong>"1 แถว (1 row)"</strong></p>
+                <p>3. ตรวจสอบว่ามีเส้นแบ่งสีเทาหนาปรากฏใต้บรรทัดที่ 1 แสดงว่าตรึงสำเร็จ</p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="p-5 border border-[#E5E5E5] rounded-2xl bg-white space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white text-xs font-bold flex items-center justify-center">3</span>
+                <h3 class="font-bold text-base text-[#0F0F0F]">ขั้นตอนที่ 3: สร้าง Data Validation Dropdown เมนูเลื่อนลง</h3>
+              </div>
+              <div class="text-xs sm:text-sm text-[#606060] space-y-2 pl-11">
+                <p>ป้องกันข้อผิดพลาดจากการสะกดคำผิดในคอลัมน์ตัวเลือก เช่น <code>Category_Name</code> หรือ <code>Status</code>:</p>
+                <ol class="list-decimal list-inside space-y-1">
+                  <li>คลุมแถบคอลัมน์ที่ต้องการ (เช่น คอลัมน์ C ตั้งแต่แถว C2 ลงไป)</li>
+                  <li>คลิกเมนู <strong>"ข้อมูล (Data)"</strong> ➔ เลือก <strong>"การตรวจสอบความถูกต้องของข้อมูล (Data validation)"</strong></li>
+                  <li>ที่แผงด้านขวา คลิก <strong>"+ เพิ่มกฎ (+ Add rule)"</strong></li>
+                  <li>ในช่องเกณฑ์ เลือก <strong>"เมนูแบบเลื่อนลง (Dropdown)"</strong> พร้อมพิมพ์ตัวเลือกและใส่สีตามหมวดหมู่</li>
+                  <li>คลิก <strong>"เสร็จสิ้น (Done)"</strong> เซลล์ทั้งหมดจะมีหัวลูกศรให้คลิกเลือกทันที</li>
+                </ol>
+              </div>
+            </div>
+
+            <!-- Step 4 & Image Tool -->
+            <div id="image-converter-tool" class="p-5 border border-[#E5E5E5] rounded-2xl bg-white space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-[#FF0000] text-white text-xs font-bold flex items-center justify-center">4</span>
+                <h3 class="font-bold text-base text-[#0F0F0F]">ขั้นตอนที่ 4: การเตรียมภาพ & เครื่องมือแปลงลิงก์ Drive สู่ Direct Image URL</h3>
+              </div>
+              <div class="text-xs sm:text-sm text-[#606060] space-y-3 pl-11">
+                <p>
+                  ลิงก์แชร์ปกติจาก Google Drive จะติดหน้าพรีวิว ทำให้ AppSheet โหลดภาพไม่ขึ้น ต้องแปลงให้เป็นลิงก์ส่งตรง (Direct Image Stream Link):
+                </p>
+
+                <!-- Converter Interactive Box -->
+                <div class="p-4 bg-[#F8F8F8] border border-[#E5E5E5] rounded-xl space-y-3">
+                  <div class="font-bold text-xs text-[#0F0F0F] flex items-center gap-2">
+                    <span>⚡ เครื่องมือแปลงลิงก์ Google Drive อัตโนมัติ (Drive Link Converter):</span>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-[#606060] mb-1">วางลิงก์แชร์จาก Google Drive:</label>
+                    <input 
+                      type="text" 
+                      id="driveInputUrl"
+                      placeholder="https://drive.google.com/file/d/1A2b3C4d5E6f_SAMPLE_ID/view?usp=sharing"
+                      class="w-full h-9 px-3 text-xs border border-[#E5E5E5] rounded-lg focus:outline-none focus:border-[#FF0000] font-mono"
+                    />
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button onclick="convertDriveUrl()" class="px-4 py-2 bg-[#FF0000] hover:bg-[#CC0000] text-white font-medium text-xs rounded-lg transition">
+                      🔄 แปลงเป็น Direct Link
+                    </button>
+                    <button onclick="clearDriveUrl()" class="px-3 py-2 bg-[#E5E5E5] hover:bg-zinc-300 text-[#0F0F0F] text-xs rounded-lg transition">
+                      ล้างค่า
+                    </button>
+                  </div>
+
+                  <div id="converterResult" class="hidden pt-2 border-t border-[#E5E5E5] space-y-1">
+                    <label class="block text-[11px] font-bold text-[#2BA640]">✔️ ลิงก์ที่แปลงแล้ว (นำไปวางในคอลัมน์ Image_URL ได้ทันที):</label>
+                    <div class="flex items-center gap-2">
+                      <input 
+                        type="text" 
+                        id="driveOutputUrl" 
+                        readonly 
+                        class="flex-1 h-9 px-3 text-xs bg-white border border-[#2BA640] rounded-lg font-mono text-[#0F0F0F]"
+                      />
+                      <button onclick="copyConvertedUrl()" class="px-3 py-2 bg-[#0F0F0F] hover:bg-black text-white text-xs rounded-lg transition">
+                        📋 คัดลอก
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-[11px] text-[#606060] font-mono bg-zinc-100 p-2.5 rounded-lg border border-zinc-200">
+                  <div><strong>สูตรแปลงโครงสร้าง:</strong></div>
+                  <div>Drive Link: <code>https://drive.google.com/file/d/<b>{FILE_ID}</b>/view</code></div>
+                  <div class="text-emerald-700">Direct Link: <code>https://drive.google.com/uc?export=view&id=<b>{FILE_ID}</b></code></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="p-5 border border-[#E5E5E5] rounded-2xl bg-white space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-[#2BA640] text-white text-xs font-bold flex items-center justify-center">5</span>
+                <h3 class="font-bold text-base text-[#0F0F0F]">ขั้นตอนที่ 5: การแชร์สิทธิ์ไฟล์ Google Sheets (ระดับ Editor)</h3>
+              </div>
+              <div class="text-xs sm:text-sm text-[#606060] space-y-2 pl-11">
+                <p>1. คลิกปุ่มสีเขียว <strong>"แชร์ (Share)"</strong> ที่มุมบนขวาของ Google Sheets</p>
+                <p>2. ในหัวข้อการเข้าถึงทั่วไป เปลี่ยนเป็น <strong>"ทุกคนที่มีลิงก์ (Anyone with the link)"</strong></p>
+                <p>3. ปรับสิทธิ์ด้านขวาจากผู้มีสิทธิ์อ่าน ให้เป็น 👉 <strong>"ผู้แก้ไข (Editor)"</strong></p>
+                <p>4. คลิก <strong>"คัดลอกลิงก์ (Copy link)"</strong> เตรียมนำลิงก์ไปส่งงานและเชื่อมต่อ AppSheet</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 7: การทำงานร่วมกันในทีม 3 คน (Collaboration Matrix) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="team-collaboration" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 7 • TEAM COLLABORATION</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            7. การทำงานร่วมกันในทีม 3 คน (Collaboration Matrix)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            แบ่งบทบาทความรับผิดชอบอย่างชัดเจนเพื่อให้งานเสร็จสิ้นภายในคาบเรียน 4 ชั่วโมง:
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Role 1 -->
+            <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-white space-y-3">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-red-100 text-[#FF0000] font-bold text-xs flex items-center justify-center">1</div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">สถาปนิกข้อมูล (Data Architect)</h3>
+              </div>
+              <div class="text-xs text-[#606060] space-y-2">
+                <p class="font-semibold text-[#0F0F0F]">ความรับผิดชอบหลัก:</p>
+                <ul class="list-disc list-inside space-y-1">
+                  <li>สร้างไฟล์ Google Sheets & ตั้งชื่อชีต</li>
+                  <li>พิมพ์ Header ภาษาอังกฤษทุกตาราง</li>
+                  <li>กำหนด Primary Key & Foreign Key</li>
+                  <li>ตรึงแถวที่ 1 (Freeze 1 row) ทุกชีต</li>
+                  <li>ตั้งค่า Data Validation Dropdown</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Role 2 -->
+            <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-white space-y-3">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-blue-100 text-[#065FD4] font-bold text-xs flex items-center justify-center">2</div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">ผู้จัดการคลังสื่อ (Asset Manager)</h3>
+              </div>
+              <div class="text-xs text-[#606060] space-y-2">
+                <p class="font-semibold text-[#0F0F0F]">ความรับผิดชอบหลัก:</p>
+                <ul class="list-disc list-inside space-y-1">
+                  <li>สร้างโฟลเดอร์ <code>App_Images</code> บน Drive</li>
+                  <li>ค้นหาหรือถ่ายภาพสินค้าจริง 15 ภาพ</li>
+                  <li>ไดคัทภาพและปรับขนาดไม่เกิน 500 KB</li>
+                  <li>แปลง URL ให้เป็น Direct Link</li>
+                  <li>หยอดลิงก์ภาพลงในคอลัมน์ Image_URL</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Role 3 -->
+            <div class="p-5 rounded-2xl border border-[#E5E5E5] bg-white space-y-3">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-emerald-100 text-[#2BA640] font-bold text-xs flex items-center justify-center">3</div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">หัวหน้าฝ่ายเนื้อหา & QA (QA Lead)</h3>
+              </div>
+              <div class="text-xs text-[#606060] space-y-2">
+                <p class="font-semibold text-[#0F0F0F]">ความรับผิดชอบหลัก:</p>
+                <ul class="list-disc list-inside space-y-1">
+                  <li>ระดมกรอกข้อมูลจำลองให้ครบ 15 แถว</li>
+                  <li>ตรวจทานราคาตัวเลข ห้ามใส่คำว่าบาท</li>
+                  <li>ตรวจตัวสะกดคำอธิบายสินค้า</li>
+                  <li>ตรวจสอบสิทธิ์การแชร์ไฟล์ชีตเป็น Editor</li>
+                  <li>ทำแบบประเมิน Self-Checklist ก่อนส่ง</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 8: Interactive Mobile Phone Simulator (320x640) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="phone-simulator-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 8 • INTERACTIVE SIMULATOR</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            8. Interactive Mobile Phone Simulator: หน้าจอจริงบน AppSheet
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            จำลองว่าข้อมูลใน Google Sheets แถวที่ 1-16 จะถูกนำไปแสดงผลบนแอปพลิเคชัน AppSheet อย่างไรใน 3 มุมมองหลัก
+          </p>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#F8F8F8] border border-[#E5E5E5] rounded-3xl p-6 sm:p-8">
+            
+            <!-- Phone Simulator Left Column: Controls & Information -->
+            <div class="lg:col-span-6 space-y-6">
+              <div>
+                <span class="px-2.5 py-1 rounded bg-red-100 text-red-700 font-bold text-xs uppercase">
+                  LIVE APPSHEET PROTOTYPE PREVIEW
+                </span>
+                <h3 class="text-xl font-bold text-[#0F0F0F] mt-2">สัมผัสผลลัพธ์ของข้อมูลบนอุปกรณ์สื่อสารแบบพกพา</h3>
+                <p class="text-xs sm:text-sm text-[#606060] mt-2 leading-relaxed">
+                  คลิกสลับดูหน้าจอต่าง ๆ ด้านล่าง เพื่อศึกษาว่า AppSheet ดึงคอลัมน์ชื่อ, รูปภาพ, ราคา, และสถานะ ไปเรนเดอร์เป็น UI ชนิดใด
+                </p>
+              </div>
+
+              <!-- Screen View Switcher Buttons -->
+              <div class="space-y-2">
+                <div class="text-xs font-bold text-[#0F0F0F] uppercase tracking-wider">เลือกมุมมองหน้าจอ (Views):</div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button onclick="setSimScreen('card')" id="simBtn-card" class="py-2.5 px-3 rounded-xl border border-[#FF0000] bg-white text-[#FF0000] font-bold text-xs text-center transition elevation-1">
+                    1. Card View
+                  </button>
+                  <button onclick="setSimScreen('detail')" id="simBtn-detail" class="py-2.5 px-3 rounded-xl border border-[#E5E5E5] bg-white text-[#606060] font-medium text-xs text-center hover:border-zinc-400 transition">
+                    2. Detail View
+                  </button>
+                  <button onclick="setSimScreen('form')" id="simBtn-form" class="py-2.5 px-3 rounded-xl border border-[#E5E5E5] bg-white text-[#606060] font-medium text-xs text-center hover:border-zinc-400 transition">
+                    3. Form View
+                  </button>
+                </div>
+              </div>
+
+              <!-- Archetype Selector in Simulator -->
+              <div class="space-y-2">
+                <div class="text-xs font-bold text-[#0F0F0F] uppercase tracking-wider">เลือกสลับโปรเจกต์ธุรกิจ:</div>
+                <div class="flex items-center gap-2">
+                  <button onclick="setSimArchetype('fb')" id="simArchBtn-fb" class="flex-1 py-2 px-2.5 rounded-lg text-xs font-bold bg-[#0F0F0F] text-white transition">☕ กาแฟ FreshBrew</button>
+                  <button onclick="setSimArchetype('hp')" id="simArchBtn-hp" class="flex-1 py-2 px-2.5 rounded-lg text-xs font-medium bg-white border border-[#E5E5E5] text-[#0F0F0F] hover:bg-zinc-100 transition">🐾 สัตว์เลี้ยง Paws</button>
+                  <button onclick="setSimArchetype('sb')" id="simArchBtn-sb" class="flex-1 py-2 px-2.5 rounded-lg text-xs font-medium bg-white border border-[#E5E5E5] text-[#0F0F0F] hover:bg-zinc-100 transition">📦 ยืมครุภัณฑ์</button>
+                </div>
+              </div>
+
+              <!-- Dynamic Explanation Box -->
+              <div id="simExplanation" class="p-4 bg-white border border-[#E5E5E5] rounded-xl text-xs space-y-1.5">
+                <div class="font-bold text-[#0F0F0F]">📱 มุมมอง Card View (หน้ารายการสินค้า):</div>
+                <div class="text-[#606060] leading-relaxed">
+                  ดึงคอลัมน์ <code>Image_URL</code> มาเป็นภาพปก, <code>Product_Name</code> เป็นหัวข้อหลัก, <code>Category_Name</code> เป็นป้ายแท็ก, และ <code>Unit_Price</code> แสดงเป็นราคาตัวเลขสีแดงเด่นชัด
+                </div>
+              </div>
+            </div>
+
+            <!-- Phone Simulator Right Column: 320x640 Interactive Frame -->
+            <div class="lg:col-span-6 flex justify-center">
+              <div class="phone-mockup flex flex-col justify-between select-none">
+                
+                <!-- Notch / Dynamic Island -->
+                <div class="phone-notch"></div>
+
+                <!-- Phone Status Bar -->
+                <div class="h-8 pt-1.5 px-6 flex justify-between items-center text-[10px] font-mono text-zinc-800 z-50">
+                  <span>09:41</span>
+                  <div class="flex items-center gap-1.5">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 18.25l1.41 1.41 1.64-1.64C8.93 19.26 10.88 20 13 20c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/></svg>
+                    <span>5G</span>
+                    <span class="w-4 h-2 border border-zinc-800 rounded-sm p-0.5"><span class="block h-full bg-zinc-800 w-3/4"></span></span>
+                  </div>
+                </div>
+
+                <!-- App Header Inside Phone -->
+                <div id="phoneAppHeader" class="bg-[#0F0F0F] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold border-b border-zinc-800">
+                  <div class="flex items-center gap-2">
+                    <span id="phoneAppIcon">☕</span>
+                    <span id="phoneAppTitle">Fresh Brew Cafe</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-zinc-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <svg class="w-4 h-4 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                  </div>
+                </div>
+
+                <!-- Phone Content Area (Scrollable Screen Body) -->
+                <div id="phoneScreenContent" class="flex-1 overflow-y-auto p-3 bg-zinc-50 space-y-3 text-xs">
+                  <!-- SCREEN 1: CARD VIEW DEFAULT -->
+                  <div class="sim-view space-y-2.5" id="simView-card">
+                    <div class="flex items-center justify-between text-[11px] text-zinc-500 font-semibold px-1">
+                      <span id="simCategoryPill">หมวดหมู่: ชานมและชาผลไม้</span>
+                      <span class="text-[#FF0000]">15 รายการ</span>
+                    </div>
+
+                    <!-- Card 1 -->
+                    <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm flex flex-col">
+                      <div class="h-28 bg-zinc-200 relative overflow-hidden">
+                        <img id="simImg1" src="https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500" class="w-full h-full object-cover" alt="Item Image" />
+                        <span id="simTag1" class="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold bg-white/90 text-[#0F0F0F] shadow-sm">
+                          P-001
+                        </span>
+                      </div>
+                      <div class="p-2.5">
+                        <div class="flex justify-between items-start">
+                          <h4 id="simTitle1" class="font-bold text-xs text-[#0F0F0F] line-clamp-1">ชานมไต้หวันบราวชูการ์</h4>
+                          <span id="simPrice1" class="font-bold text-xs text-[#FF0000]">฿55.00</span>
+                        </div>
+                        <p id="simDesc1" class="text-[10px] text-zinc-500 mt-1 line-clamp-2">ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับเคี่ยวสดใหม่</p>
+                        <div class="mt-2 pt-2 border-t border-zinc-100 flex justify-between items-center text-[10px]">
+                          <span class="text-emerald-600 font-bold">● พร้อมเสิร์ฟ</span>
+                          <button class="px-2 py-1 bg-[#0F0F0F] text-white rounded text-[10px]">สั่งซื้อ</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm flex flex-col">
+                      <div class="h-28 bg-zinc-200 relative overflow-hidden">
+                        <img id="simImg2" src="https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500" class="w-full h-full object-cover" alt="Item Image" />
+                        <span id="simTag2" class="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold bg-white/90 text-[#0F0F0F] shadow-sm">
+                          P-002
+                        </span>
+                      </div>
+                      <div class="p-2.5">
+                        <div class="flex justify-between items-start">
+                          <h4 id="simTitle2" class="font-bold text-xs text-[#0F0F0F] line-clamp-1">ชาเขียวมัทฉะลาเต้เย็น</h4>
+                          <span id="simPrice2" class="font-bold text-xs text-[#FF0000]">฿65.00</span>
+                        </div>
+                        <p id="simDesc2" class="text-[10px] text-zinc-500 mt-1 line-clamp-2">มัทฉะอุจิแท้ 100% นมสดพรีเมียม หอมนุ่มละมุน</p>
+                        <div class="mt-2 pt-2 border-t border-zinc-100 flex justify-between items-center text-[10px]">
+                          <span class="text-emerald-600 font-bold">● พร้อมเสิร์ฟ</span>
+                          <button class="px-2 py-1 bg-[#0F0F0F] text-white rounded text-[10px]">สั่งซื้อ</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SCREEN 2: DETAIL VIEW (HIDDEN INITIALLY) -->
+                  <div class="sim-view hidden space-y-3" id="simView-detail">
+                    <div class="h-40 rounded-xl overflow-hidden bg-zinc-200 relative">
+                      <img id="simDetailImg" src="https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500" class="w-full h-full object-cover" alt="Detail" />
+                      <div class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/70 text-white rounded text-[10px] font-mono">
+                        Primary Key: <span id="simDetailPK">P-001</span>
+                      </div>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-zinc-200 space-y-2">
+                      <div class="flex justify-between items-center">
+                        <h4 id="simDetailTitle" class="font-bold text-sm text-[#0F0F0F]">ชานมไต้หวันบราวชูการ์</h4>
+                        <span id="simDetailPrice" class="font-bold text-sm text-[#FF0000]">฿55.00</span>
+                      </div>
+                      <div class="text-[11px] text-zinc-500">หมวดหมู่: <span id="simDetailCat" class="font-semibold text-zinc-700">ชานมแท้</span></div>
+                      <div class="border-t border-zinc-100 pt-2 text-[11px] text-zinc-600 leading-relaxed" id="simDetailDesc">
+                        ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับเคี่ยวสดใหม่ หอมกลิ่นน้ำตาลทรายแดงแท้จากไต้หวัน เลือกระดับความหวานได้ 0-100%
+                      </div>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-zinc-200 space-y-1.5 text-[11px]">
+                      <div class="flex justify-between text-zinc-500"><span>สต็อกคงเหลือ:</span><span id="simDetailStock" class="font-bold text-[#0F0F0F]">120 แก้ว</span></div>
+                      <div class="flex justify-between text-zinc-500"><span>สถานะพร้อมขาย:</span><span class="font-bold text-emerald-600">TRUE (เปิดขาย)</span></div>
+                    </div>
+                    <button class="w-full py-2 bg-[#FF0000] text-white rounded-xl font-bold text-xs shadow-sm hover:bg-red-700">
+                      + เพิ่มลงในตะกร้าคำสั่งซื้อ
+                    </button>
+                  </div>
+
+                  <!-- SCREEN 3: FORM VIEW (HIDDEN INITIALLY) -->
+                  <div class="sim-view hidden space-y-3" id="simView-form">
+                    <div class="text-[11px] font-bold text-[#0F0F0F] border-b border-zinc-200 pb-1">
+                      📝 บันทึกข้อมูลคำสั่งซื้อใหม่ (Order Form)
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-zinc-200 space-y-2.5 text-[11px]">
+                      <div>
+                        <label class="block text-zinc-600 font-semibold mb-1">รหัสคำสั่งซื้อ (Auto PK):</label>
+                        <input type="text" value="ORD-2026-005" readonly class="w-full h-7 px-2 bg-zinc-100 border border-zinc-200 rounded text-zinc-500 font-mono" />
+                      </div>
+                      <div>
+                        <label class="block text-zinc-600 font-semibold mb-1">ชื่อลูกค้า (Customer Name):</label>
+                        <input type="text" placeholder="พิมพ์ชื่อ-นามสกุล..." value="สมชาย สายหวาน" class="w-full h-7 px-2 border border-zinc-200 rounded text-zinc-800" />
+                      </div>
+                      <div>
+                        <label class="block text-zinc-600 font-semibold mb-1">ระดับความหวาน (Enum Dropdown):</label>
+                        <select class="w-full h-7 px-2 border border-zinc-200 rounded text-zinc-800 bg-white">
+                          <option>หวานปกติ (100%)</option>
+                          <option selected>หวานน้อย (50%)</option>
+                          <option>ไม่หวานเลย (0%)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-zinc-600 font-semibold mb-1">วิธีชำระเงิน (Payment Enum):</label>
+                        <div class="flex gap-2">
+                          <label class="flex items-center gap-1 text-[10px]"><input type="radio" name="pay" checked /> QR พร้อมเพย์</label>
+                          <label class="flex items-center gap-1 text-[10px]"><input type="radio" name="pay" /> เงินสด</label>
+                        </div>
+                      </div>
+                    </div>
+                    <button class="w-full py-2 bg-[#2BA640] text-white rounded-xl font-bold text-xs shadow-sm hover:bg-emerald-700">
+                      💾 บันทึกข้อมูลเข้า Google Sheets
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Phone Bottom Bar Navigation -->
+                <div class="h-12 bg-white border-t border-zinc-200 px-6 flex justify-between items-center text-zinc-400 text-[10px]">
+                  <div class="flex flex-col items-center text-[#FF0000]">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    <span>หน้าหลัก</span>
+                  </div>
+                  <div class="flex flex-col items-center hover:text-zinc-700">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>ออร์เดอร์</span>
+                  </div>
+                  <div class="flex flex-col items-center hover:text-zinc-700">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span>โปรไฟล์</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 9: FAQs คำถามพบบ่อย (Accordion +/−) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="faqs-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 9 • TROUBLESHOOTING & FAQS</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            9. ปัญหาที่พบบ่อยและวิธีแก้ไข (Troubleshooting & FAQs)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            คลิกที่แต่ละข้อเพื่อเปิดดูแนวทางวิเคราะห์และวิธีแก้ไขข้อผิดพลาดในการเชื่อมต่อ Google Sheets สู่ AppSheet
+          </p>
+
+          <div class="space-y-3">
+            <!-- FAQ 1 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(1)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">Q1: ทำไมพิมพ์ราคาแล้วมีคำว่า "บาท" ต่อท้าย แล้ว AppSheet คำนวณเงินไม่ได้?</span>
+                <span id="faqIcon1" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns1" class="hidden p-4 pt-1 text-xs sm:text-sm text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+                <p><strong>สาเหตุ:</strong> การพิมพ์ตัวอักษรปนกับตัวเลข (เช่น <code>55 บาท</code>) จะทำให้สเปรดชีตมองคอลัมน์นั้นเป็นข้อความ (Text/String) ซึ่งคอมพิวเตอร์ไม่สามารถนำตัวอักษรภาษาไทยไปคำนวณบวก ลบ คูณ หารได้</p>
+                <p><strong>วิธีแก้:</strong> ให้ลบคำว่า "บาท" ออกทั้งหมด แล้วใส่เฉพาะตัวเลขล้วน <code>55</code> จากนั้นใช้คำสั่งจัดรูปแบบของชีต: <code>รูปแบบ (Format) ➔ ตัวเลข (Number) ➔ สกุลเงิน (Currency)</code> เพื่อให้แสดงเครื่องหมาย ฿ โดยที่ค่าจริงยังคงเป็นตัวเลข</p>
+              </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(2)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">Q2: หัวคอลัมน์ตั้งเป็นภาษาไทยได้หรือไม่ ทำไมต้องใช้ภาษาอังกฤษ?</span>
+                <span id="faqIcon2" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns2" class="hidden p-4 pt-1 text-xs sm:text-sm text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+                <p><strong>คำแนะนำ:</strong> ในทางเทคนิค AppSheet รองรับภาษาไทย แต่ <strong>"ไม่แนะนำอย่างยิ่ง"</strong> สำหรับหัวคอลัมน์</p>
+                <p><strong>เหตุผล:</strong> เมื่อถึงบทที่ 8 และบทที่ 9 ที่ต้องเขียนสูตรคำนวณ เช่น <code>[Unit_Price] * [Quantity]</code> หากหัวคอลัมน์เป็นภาษาไทย เวลาเขียนสูตรมักจะเกิดบั๊กสระลอย และการเขียนโค้ดอัตโนมัติจะเกิดความสับสน การใช้ภาษาอังกฤษ (เช่น <code>Product_ID</code>, <code>Unit_Price</code>) จึงเป็นมาตรฐานวิศวกรรมสากลที่ปลอดภัยที่สุด</p>
+              </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(3)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">Q3: ลิงก์รูปภาพจาก Google Drive ไม่ยอมโหลดขึ้นบน AppSheet เกิดจากอะไร?</span>
+                <span id="faqIcon3" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns3" class="hidden p-4 pt-1 text-xs sm:text-sm text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+                <p><strong>สาเหตุหลัก 2 ประการ:</strong></p>
+                <p>1. <strong>ไม่ได้เปิดสิทธิ์โฟลเดอร์:</strong> ต้องตั้งค่าโฟลเดอร์ภาพบน Drive ให้เป็น "ทุกคนที่มีลิงก์มีสิทธิ์อ่าน (Anyone with the link can view)"</p>
+                <p>2. <strong>ใช้ลิงก์หน้าดูตัวอย่าง:</strong> ลิงก์ที่ลงท้ายด้วย <code>/view?usp=sharing</code> เป็นหน้าเว็บที่มีกรอบของ Google ครอบอยู่ ให้ใช้เครื่องมือแปลงลิงก์ในบทเรียนนี้เพื่อแปลงเป็น <code>https://drive.google.com/uc?export=view&id=FILE_ID</code> รูปจะโหลดขึ้นหน้าจอแอปได้ทันที 100%</p>
+              </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(4)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">Q4: Primary Key จำเป็นต้องเรียงลำดับเป็น P-001, P-002 หรือไม่?</span>
+                <span id="faqIcon4" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns4" class="hidden p-4 pt-1 text-xs sm:text-sm text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+                <p><strong>คำตอบ:</strong> สำหรับข้อมูลเริ่มต้น (Mock Data) การรันรหัสสวยงาม เช่น <code>P-001</code> หรือ <code>ORD-001</code> ช่วยให้มนุษย์ตรวจสอบและเชื่อมโยงความสัมพันธ์ได้ง่าย</p>
+                <p>อย่างไรก็ตาม เมื่อนำไปใช้งานจริงบน AppSheet ระบบจะมีฟังก์ชันสร้างรหัสสุ่มอัตโนมัติที่ไม่ซ้ำกันทั่วโลกที่เรียกว่า <code>UNIQUEID()</code> (เช่น <code>8f7a1c9b</code>) ซึ่งจะถูกนำมาใช้ในบทที่ 7 เพื่อรองรับการบันทึกข้อมูลพร้อมกันหลายร้อยเครื่องโดยที่รหัสไม่ชนกัน</p>
+              </div>
+            </div>
+
+            <!-- FAQ 5 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white">
+              <button onclick="toggleFaq(5)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">Q5: หากเผลอผสานเซลล์ (Merge Cells) ไปแล้วจะเกิดผลเสียอย่างไรกับ AppSheet?</span>
+                <span id="faqIcon5" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns5" class="hidden p-4 pt-1 text-xs sm:text-sm text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8] space-y-2">
+                <p><strong>ผลกระทบ:</strong> เมื่อมีการผสานเซลล์ Google Sheets จะเก็บค่าจริงไว้เฉพาะในเซลล์ซ้ายบนสุด ส่วนเซลล์อื่นที่ถูกรวมจะกลายเป็นค่าว่างเปล่า (Null) ทำให้ AppSheet อ่านข้อมูลแถวนั้นไม่เจอ หรือคิดว่าข้อมูลสิ้นสุดลงแล้ว ส่งผลให้แอปพัง ไม่แสดงรายการ และไม่สามารถเขียนข้อมูลใหม่ลงแถวนั้นได้</p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 10: Interactive Self-Checklist (localStorage Persistence) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="checklist-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 10 • QUALITY ASSURANCE CHECKLIST</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            10. แบบตรวจสอบตนเองก่อนส่งงาน (Interactive Self-Checklist)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            ตรวจเช็กความพร้อมของตาราง Google Sheets ทุกจุด ข้อมูลจะถูกบันทึกอัตโนมัติลงในเบราว์เซอร์ของคุณ
+          </p>
+
+          <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-6 shadow-sm">
+            <!-- Progress Bar of Checklist -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold text-[#0F0F0F]">ความสมบูรณ์ของชิ้นงานฐานข้อมูล:</span>
+                <span id="checklistPercentage" class="font-mono font-bold text-[#FF0000]">0% (0/8 ข้อ)</span>
+              </div>
+              <div class="w-full h-2 bg-[#F2F2F2] rounded-full overflow-hidden">
+                <div id="checklistProgressBar" class="h-full bg-[#FF0000] w-0 transition-all duration-300"></div>
+              </div>
+            </div>
+
+            <!-- Checklist Items -->
+            <div class="space-y-3" id="checklistContainer">
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F8F8F8] cursor-pointer transition">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 text-[#FF0000] rounded focus:ring-0" />
+                <span class="text-xs sm:text-sm text-[#0F0F0F]">1. บรรทัดที่ 1 ของทุกชีตเป็น "ชื่อคอลัมน์ภาษาอังกฤษ ปราศจากช่องว่าง" ถูกต้อง 100%</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F8F8F8] cursor-pointer transition">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 text-[#FF0000] rounded focus:ring-0" />
+                <span class="text-xs sm:text-sm text-[#0F0F0F]">2. ไม่มีเซลล์ใดในตารางที่ถูกผสาน (No Merge Cells) ทุกช่องเซลล์เป็นอิสระ</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F8F8F8] cursor-pointer transition">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 text-[#FF0000] rounded focus:ring-0" />
+                <span class="text-xs sm:text-sm text-[#0F0F0F]">3. คอลัมน์แรกสุดของทุกตารางเป็น Primary Key ที่รหัสไม่ซ้ำกัน (เช่น Product_ID)</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F8F8F8] cursor-pointer transition">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 text-[#FF0000] rounded focus:ring-0" />
+                <span class="text-xs sm:text-sm text-[#0F0F0F]">4. แถวที่ 1 ถูกตรึงไว้ (Freeze Row 1) ครบถ้วนทุกแท็บแผ่นงาน</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F8F8F8] cursor-pointer transition">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 text-[#FF0000] rounded focus:ring-0" />
+                <span class="text-xs sm:text-sm text-[#0F0F0F]">5. มีการตั้งค่า Data Validation Dropdown เมนูเลื่อนลงสำหรับคอลัมน์ตัวเลือก (Enum)</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F8F8F8] cursor-pointer transition">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 text-[#FF0000] rounded focus:ring-0" />
+                <span class="text-xs sm:text-sm text-[#0F0F0F]">6. กรอกข้อมูลจำลองจริงครบถ้วนอย่างน้อย 15 แถว โดยไม่มีเซลล์ว่างในคอลัมน์สำคัญ</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F8F8F8] cursor-pointer transition">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 text-[#FF0000] rounded focus:ring-0" />
+                <span class="text-xs sm:text-sm text-[#0F0F0F]">7. ตัวเลขราคาและต้นทุนพิมพ์เป็นตัวเลขล้วน (ไม่มีคำว่า "บาท" หรือเครื่องหมาย ฿ ในช่อง)</span>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F8F8F8] cursor-pointer transition">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 text-[#FF0000] rounded focus:ring-0" />
+                <span class="text-xs sm:text-sm text-[#0F0F0F]">8. สิทธิ์การแชร์ไฟล์ชีตตั้งค่าเป็น "ทุกคนที่มีลิงก์สามารถแก้ไขได้ (Editor)" เรียบร้อยแล้ว</span>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-[#E5E5E5]">
+              <span class="text-[11px] text-[#606060]">บันทึกลง localStorage (curriculum_ch05_checklist)</span>
+              <button onclick="resetChecklist()" class="text-xs text-red-600 hover:underline">รีเซ็ตสถานะทั้งหมด</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 11: Interactive Rubric Calculator (10 คะแนน) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="rubric-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SECTION 11 • SCORING RUBRIC & EVALUATION</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            11. เกณฑ์การประเมินชิ้นงานและการคำนวณคะแนน (Rubric Calculator)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            คลิกเลือกระดับคะแนนในแต่ละเกณฑ์ประเมิน (5 ด้าน) เพื่อคำนวณคะแนนรวม 10 คะแนน พร้อมเกรดแบบเรียลไทม์
+          </p>
+
+          <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-6 shadow-sm">
+            
+            <!-- Result Display Box -->
+            <div class="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#0F0F0F] text-white rounded-xl">
+              <div>
+                <div class="text-[10px] text-zinc-400 font-mono uppercase tracking-wider">TOTAL SCORE EVALUATION</div>
+                <div class="flex items-baseline gap-2 mt-0.5">
+                  <span id="rubricTotalScore" class="text-3xl font-bold text-[#FF0000]">10</span>
+                  <span class="text-sm text-zinc-400">/ 10 คะแนน</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span id="rubricGradeBadge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#2BA640] text-white">
+                  ระดับดีเยี่ยม (Mastery)
+                </span>
+                <div id="rubricStatusText" class="text-[11px] text-zinc-300 mt-1">พร้อมเชื่อมต่อ AppSheet ทันที</div>
+              </div>
+            </div>
+
+            <!-- Rubric Criteria 1 to 5 -->
+            <div class="space-y-4 text-xs sm:text-sm">
+              
+              <!-- Criterion 1 (3 คะแนน) -->
+              <div class="p-4 border border-[#E5E5E5] rounded-xl space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-[#0F0F0F]">1. ความถูกต้องของโครงสร้างฐานข้อมูล (Structure & Integrity)</span>
+                  <span class="font-bold text-[#FF0000]">เต็ม 3 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <button onclick="setRubricScore(1, 3, this)" class="rubric-btn-1 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <div class="font-bold text-[#0F0F0F]">3 คะแนน (ดีมาก)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">บรรทัดที่ 1 ถูกต้อง ไม่มีช่องว่าง ไม่ Merge มี PK ตรึงแถวที่ 1 ครบ</div>
+                  </button>
+                  <button onclick="setRubricScore(1, 2, this)" class="rubric-btn-1 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <div class="font-bold text-[#0F0F0F]">2 คะแนน (พอใช้)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">โครงสร้างเกือบครบ มีหัวคอลัมน์บางชื่อมีช่องว่าง หรือลืมตรึงแถว</div>
+                  </button>
+                  <button onclick="setRubricScore(1, 1, this)" class="rubric-btn-1 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <div class="font-bold text-[#0F0F0F]">1 คะแนน (ปรับปรุง)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">ผสานเซลล์ เว้นบรรทัดที่ 1 หรือไม่มี Primary Key ระบบอ่านไม่ได้</div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Criterion 2 (3 คะแนน) -->
+              <div class="p-4 border border-[#E5E5E5] rounded-xl space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-[#0F0F0F]">2. ความสัมพันธ์และการออกแบบ Schema (Normalization & Relations)</span>
+                  <span class="font-bold text-[#FF0000]">เต็ม 3 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <button onclick="setRubricScore(2, 3, this)" class="rubric-btn-2 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <div class="font-bold text-[#0F0F0F]">3 คะแนน (ดีมาก)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">แยกตารางถูกต้องตามหน้าที่ มีคีย์ Foreign Key เชื่อมโยงชัดเจน</div>
+                  </button>
+                  <button onclick="setRubricScore(2, 2, this)" class="rubric-btn-2 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <div class="font-bold text-[#0F0F0F]">2 คะแนน (พอใช้)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">แยกตารางได้ดี แต่บางข้อมูลยังซ้ำซ้อนรวมอยู่ในตารางเดียว</div>
+                  </button>
+                  <button onclick="setRubricScore(2, 1, this)" class="rubric-btn-2 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <div class="font-bold text-[#0F0F0F]">1 คะแนน (ปรับปรุง)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">รวมทุกข้อมูลไว้ในชีตเดียว ไม่มีการจัดสถาปัตยกรรมข้อมูล</div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Criterion 3 (2 คะแนน) -->
+              <div class="p-4 border border-[#E5E5E5] rounded-xl space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-[#0F0F0F]">3. ความสมบูรณ์ของข้อมูลจำลอง (Mock Data 15 Rows)</span>
+                  <span class="font-bold text-[#FF0000]">เต็ม 2 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <button onclick="setRubricScore(3, 2, this)" class="rubric-btn-3 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <div class="font-bold text-[#0F0F0F]">2 คะแนน (ดีมาก)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">ครบ 15 แถวสมบูรณ์ มีภาพถ่าย ราคา คำอธิบายสมจริง</div>
+                  </button>
+                  <button onclick="setRubricScore(3, 1, this)" class="rubric-btn-3 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <div class="font-bold text-[#0F0F0F]">1 คะแนน (พอใช้)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">มี 10-14 แถว หรือมีบางช่องเว้นว่างไว้ยังกรอกไม่ครบ</div>
+                  </button>
+                  <button onclick="setRubricScore(3, 0, this)" class="rubric-btn-3 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <div class="font-bold text-[#0F0F0F]">0 คะแนน (ปรับปรุง)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">น้อยกว่า 10 แถว หรือกรอกข้อมูลซ้ำๆ ก๊อปปี้มาไม่สมจริง</div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Criterion 4 (1 คะแนน) -->
+              <div class="p-4 border border-[#E5E5E5] rounded-xl space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-[#0F0F0F]">4. การตั้งค่าเทคนิค Data Validation Dropdown</span>
+                  <span class="font-bold text-[#FF0000]">เต็ม 1 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  <button onclick="setRubricScore(4, 1, this)" class="rubric-btn-4 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <div class="font-bold text-[#0F0F0F]">1 คะแนน (ถูกต้อง)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">ตั้งค่า Dropdown เมนูเลื่อนลงถูกต้อง มีสีแยกหมวดหมู่ชัดเจน</div>
+                  </button>
+                  <button onclick="setRubricScore(4, 0, this)" class="rubric-btn-4 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <div class="font-bold text-[#0F0F0F]">0 คะแนน (ไม่ได้ทำ)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">ไม่มีการสร้าง Dropdown ให้ผู้ใช้พิมพ์ข้อความเองอย่างอิสระ</div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Criterion 5 (1 คะแนน) -->
+              <div class="p-4 border border-[#E5E5E5] rounded-xl space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-[#0F0F0F]">5. การแชร์สิทธิ์การเข้าถึงไฟล์ (Editor Permissions)</span>
+                  <span class="font-bold text-[#FF0000]">เต็ม 1 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  <button onclick="setRubricScore(5, 1, this)" class="rubric-btn-5 active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition">
+                    <div class="font-bold text-[#0F0F0F]">1 คะแนน (ถูกต้อง)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">แชร์ Anyone with the link มีสิทธิ์เป็น "ผู้แก้ไข (Editor)" ทันที</div>
+                  </button>
+                  <button onclick="setRubricScore(5, 0, this)" class="rubric-btn-5 p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition">
+                    <div class="font-bold text-[#0F0F0F]">0 คะแนน (ยังติดสิทธิ์)</div>
+                    <div class="text-[11px] text-[#606060] mt-0.5">ยังติด Restricted หรือเปิดเฉพาะ Viewer ทำให้ AppSheet เขียนข้อมูลไม่ได้</div>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 12: Deliverables & Submission Steps -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>SUBMISSION GUIDE</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            📤 ขั้นตอนการส่งงานผ่านระบบประจำบทที่ 5
+          </h2>
+
+          <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-[#F8F8F8] space-y-4 text-xs sm:text-sm">
+            <p class="font-semibold text-[#0F0F0F]">ให้นักเรียนตัวแทนกลุ่มดำเนินการตาม 5 ขั้นตอนต่อไปนี้:</p>
+            <ol class="list-decimal list-inside space-y-2 text-[#606060]">
+              <li>ที่มุมขวาบนของ Google Sheets คลิกปุ่มสีเขียว <strong>"แชร์ (Share)"</strong></li>
+              <li>ในหน้าต่างแชร์ หัวข้อการเข้าถึงทั่วไป เปลี่ยนเป็น: <strong>"ทุกคนที่มีลิงก์ (Anyone with the link)"</strong></li>
+              <li>เปลี่ยนสิทธิ์จาก "ผู้มีสิทธิ์อ่าน" ให้เป็น: 👉 <strong class="text-[#0F0F0F]">"ผู้แก้ไข (Editor)"</strong></li>
+              <li>คลิกปุ่ม <strong>"คัดลอกลิงก์ (Copy link)"</strong></li>
+              <li>นำลิงก์ไปส่งในระบบส่งงานของวิทยาลัย (Google Classroom) พร้อมแนบภาพสกรีนช็อตชีตที่มีข้อมูลครบ 15 แถว</li>
+            </ol>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 13: Comments & Discussion (Simulated Social Layer) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="comments-section" class="border-t border-[#E5E5E5] pt-10 pb-6">
+          <div class="flex items-center gap-6 mb-6">
+            <h3 class="font-bold text-lg text-[#0F0F0F]">ความคิดเห็นและข้อซักถามประจำบท (4)</h3>
+            <span class="text-xs text-[#606060]">จัดเรียงตาม: ความคิดเห็นยอดนิยม</span>
+          </div>
+
+          <!-- Comment Input Field -->
+          <div class="flex items-start gap-3 mb-8">
+            <div class="w-9 h-9 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">
+              ME
+            </div>
+            <div class="flex-1">
+              <input 
+                type="text" 
+                id="commentInput"
+                placeholder="เพิ่มข้อสงสัยเกี่ยวกับการวางโครงสร้างฐานข้อมูล หรือติดปัญหาขั้นตอนใด..." 
+                class="w-full pb-2 bg-transparent border-b border-[#E5E5E5] text-sm text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#FF0000]"
+              />
+              <div class="flex justify-end gap-2 mt-2">
+                <button onclick="clearComment()" class="h-8 px-3 rounded-full text-xs font-medium text-[#606060] hover:bg-[#F2F2F2]">ยกเลิก</button>
+                <button onclick="postComment()" class="h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white hover:bg-black transition">แสดงความคิดเห็น</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comment List -->
+          <div id="commentList" class="space-y-6">
+            <!-- Comment 1 -->
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xs shrink-0">กน</div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-[#0F0F0F]">กนกวรรณ ปวส.1/2 (กลุ่ม 3 Fresh Brew)</span>
+                  <span class="text-[11px] text-[#606060]">1 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-xs sm:text-sm text-[#0F0F0F] leading-relaxed">
+                  เครื่องมือแปลงลิงก์ Google Drive ในข้อ 6.4 ช่วยชีวิตมากเลยค่ะอาจารย์! ตอนแรกลองเอาลิงก์แชร์ธรรมดาไปวาง รูปไม่ขึ้นจอดำ พอแปลงเป็น uc?export=view รูปเด้งขึ้นทันทีเลย
+                </p>
+                <div class="flex items-center gap-3 pt-1 text-xs text-[#606060]">
+                  <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 18</button>
+                  <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comment 2 -->
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-full bg-blue-700 text-white flex items-center justify-center font-bold text-xs shrink-0">ธร</div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-[#0F0F0F]">ธีรภัทร ช่างเทคนิค (กลุ่ม Smart Borrow)</span>
+                  <span class="text-[11px] text-[#606060]">3 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-xs sm:text-sm text-[#0F0F0F] leading-relaxed">
+                  เข้าใจเรื่อง Primary Key ชัดเจนขึ้นเยอะเลยครับ ว่าทำไมไม่ควรเอาชื่อกล้องหรือชื่อคนมาเป็นคีย์ เพราะเวลารหัสพัสดุซ้ำกันในระบบมันจะรวน
+                </p>
+                <div class="flex items-center gap-3 pt-1 text-xs text-[#606060]">
+                  <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 11</button>
+                  <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- COURSE NAVIGATION (BOTTOM BAR) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <div class="pt-8 border-t border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+          <a href="ch04-figma-prototype.html" class="flex items-center gap-2 px-5 py-3 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#0F0F0F] text-[#0F0F0F] text-xs sm:text-sm font-semibold transition">
+            <span>← บทก่อนหน้า: บทที่ 4 การทำ Prototype ด้วย Figma</span>
+          </a>
+
+          <a href="index.html" class="px-5 py-3 rounded-xl bg-[#F2F2F2] hover:bg-[#E5E5E5] text-[#0F0F0F] text-xs sm:text-sm font-bold transition">
+            🏠 สารบัญหลักสูตร (Hub)
+          </a>
+
+          <a href="ch06-appsheet-first-app.html" class="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs sm:text-sm font-bold transition shadow-md">
+            <span>บทถัดไป: บทที่ 6 การสร้างแอปแรกด้วย AppSheet →</span>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="mt-16 bg-[#F8F8F8] border-t border-[#E5E5E5] py-8 px-4 text-center text-xs text-[#606060]">
+        <div class="max-w-4xl mx-auto space-y-2">
+          <div class="font-bold text-[#0F0F0F]">ห้องเรียนครูแม็ค • สาขาวิชาธุรกิจดิจิทัล วิทยาลัยพณิชยการบึงพระพิษณุโลก</div>
+          <div>หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) พุทธศักราช 2563 • รหัสวิชา 31910-2022</div>
+          <div class="text-[11px] text-zinc-400 mt-2">สงวนลิขสิทธิ์ตาม พ.ร.บ. ลิขสิทธิ์ • ออกแบบตามมาตรฐาน Red Broadcast Design System v4.5</div>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 7. INLINE JAVASCRIPT (Complete Functionality) -->
+  <!-- ========================================================================= -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. Reading Scroll Progress Bar
+    // -------------------------------------------------------------
+    window.addEventListener('scroll', updateScrollProgress);
+    const mainViewport = document.querySelector('main');
+    if (mainViewport) {
+      mainViewport.addEventListener('scroll', updateScrollProgress);
+    }
+
+    function updateScrollProgress() {
+      const scrollEl = mainViewport || document.documentElement;
+      const scrollTop = mainViewport ? mainViewport.scrollTop : (window.pageYOffset || document.documentElement.scrollTop);
+      const scrollHeight = (mainViewport ? mainViewport.scrollHeight : document.documentElement.scrollHeight) - (mainViewport ? mainViewport.clientHeight : window.innerHeight);
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      document.getElementById('scrollProgressBar').style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    }
+
+    // -------------------------------------------------------------
+    // 2. Sidebar Toggle
+    // -------------------------------------------------------------
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleSidebarBtn && sidebar) {
+      toggleSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 3. Chip Filter Smooth Scroll
+    // -------------------------------------------------------------
+    function filterChip(targetId, btn) {
+      document.querySelectorAll('.chip-btn').forEach(b => {
+        b.className = 'chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0';
+      });
+      btn.className = 'chip-btn active h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white transition shrink-0';
+
+      if (targetId === 'all') {
+        if (mainViewport) mainViewport.scrollTo({ top: 0, behavior: 'smooth' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const target = document.getElementById(targetId);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 4. Tri-Archetype Switcher Logic
+    // -------------------------------------------------------------
+    function switchArchetype(arch) {
+      const archs = ['freshbrew', 'happypaws', 'smartborrow'];
+      archs.forEach(a => {
+        const btn = document.getElementById(`archTab-${a}`);
+        const content = document.getElementById(`archContent-${a}`);
+        if (a === arch) {
+          btn.className = 'flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-1.5';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5';
+          content.classList.add('hidden');
+        }
+      });
+
+      // Also sync Phone Simulator archetype
+      if (arch === 'freshbrew') setSimArchetype('fb');
+      else if (arch === 'happypaws') setSimArchetype('hp');
+      else if (arch === 'smartborrow') setSimArchetype('sb');
+    }
+
+    // Table Sub-tabs switcher inside each archetype
+    function switchTableTab(prefix, tabName) {
+      const tabs = {
+        'fb': ['products', 'categories', 'orders'],
+        'hp': ['services', 'appointments', 'customers'],
+        'sb': ['assets', 'borrowlogs', 'borrowers']
+      };
+
+      tabs[prefix].forEach(t => {
+        const btn = document.getElementById(`${prefix}Tab-${t}`);
+        const content = document.getElementById(`${prefix}Content-${t}`);
+        if (t === tabName) {
+          btn.className = 'table-subtab font-bold text-xs pb-2 border-b-2 border-[#FF0000] text-[#FF0000]';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'table-subtab text-xs pb-2 border-b-2 border-transparent text-[#606060] hover:text-[#0F0F0F]';
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 5. Copy Buttons Logic with Toast Feedback
+    // -------------------------------------------------------------
+    function showCopyToast(msg) {
+      const toast = document.getElementById('copyToast');
+      if (msg) toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    function copyTableHeaders(type) {
+      let headers = '';
+      if (type === 'fb-products') {
+        headers = 'Product_ID\tProduct_Name\tCategory_Name\tUnit_Price\tCost_Price\tStock_Qty\tImage_URL\tDescription\tIs_Available';
+      } else if (type === 'hp-services') {
+        headers = 'Service_ID\tService_Name\tCategory\tPrice\tDuration_Mins\tImage_URL\tDescription';
+      } else if (type === 'sb-assets') {
+        headers = 'Asset_ID\tBarcode\tAsset_Name\tCategory\tStorage_Box\tCurrent_Status\tImage_URL';
+      }
+      navigator.clipboard.writeText(headers).then(() => {
+        showCopyToast('📋 คัดลอกหัวคอลัมน์แล้ว! วางที่แถวที่ 1 บนชีตได้ทันที');
+      });
+    }
+
+    function copyMockData(dataType) {
+      let tsvData = '';
+      if (dataType === 'fb-products-data') {
+        const rows = document.querySelectorAll('#fb-products-mock-body tr');
+        rows.forEach(r => {
+          const cols = Array.from(r.querySelectorAll('td')).map(td => td.innerText.trim());
+          tsvData += cols.join('\t') + '\n';
+        });
+      } else if (dataType === 'hp-services-data') {
+        const rows = document.querySelectorAll('#hp-services-mock-body tr');
+        rows.forEach(r => {
+          const cols = Array.from(r.querySelectorAll('td')).map(td => td.innerText.trim());
+          tsvData += cols.join('\t') + '\n';
+        });
+      } else if (dataType === 'sb-assets-data') {
+        const rows = document.querySelectorAll('#sb-assets-mock-body tr');
+        rows.forEach(r => {
+          const cols = Array.from(r.querySelectorAll('td')).map(td => td.innerText.trim());
+          tsvData += cols.join('\t') + '\n';
+        });
+      }
+
+      navigator.clipboard.writeText(tsvData).then(() => {
+        showCopyToast('📥 คัดลอกข้อมูลจำลอง 15 แถวแล้ว! วางที่เซลล์ A2 ได้ทันที');
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 6. Google Drive Link Converter
+    // -------------------------------------------------------------
+    function convertDriveUrl() {
+      const input = document.getElementById('driveInputUrl').value.trim();
+      const resultBox = document.getElementById('converterResult');
+      const output = document.getElementById('driveOutputUrl');
+
+      if (!input) {
+        alert('กรุณาวางลิงก์ Google Drive ก่อนกดแปลง');
+        return;
+      }
+
+      // Regex to extract Drive file ID
+      const reg = /\/d\/([a-zA-Z0-9_-]+)/;
+      const match = input.match(reg);
+
+      let fileId = '';
+      if (match && match[1]) {
+        fileId = match[1];
+      } else {
+        const idParam = new URLSearchParams(input.split('?')[1]).get('id');
+        if (idParam) fileId = idParam;
+      }
+
+      if (fileId) {
+        const directUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+        output.value = directUrl;
+        resultBox.classList.remove('hidden');
+        showCopyToast('⚡ แปลงเป็น Direct Link สำเร็จ!');
+      } else {
+        alert('ไม่พบ File ID ที่ถูกต้องในลิงก์ Google Drive กรุณาตรวจสอบลิงก์อีกครั้ง');
+      }
+    }
+
+    function clearDriveUrl() {
+      document.getElementById('driveInputUrl').value = '';
+      document.getElementById('converterResult').classList.add('hidden');
+    }
+
+    function copyConvertedUrl() {
+      const output = document.getElementById('driveOutputUrl');
+      navigator.clipboard.writeText(output.value).then(() => {
+        showCopyToast('📋 คัดลอก Direct Link เรียบร้อยแล้ว!');
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 7. Interactive Phone Simulator Logic
+    // -------------------------------------------------------------
+    let currentSimScreen = 'card';
+    let currentSimArch = 'fb';
+
+    function setSimScreen(screen) {
+      currentSimScreen = screen;
+      const screens = ['card', 'detail', 'form'];
+      screens.forEach(s => {
+        const btn = document.getElementById(`simBtn-${s}`);
+        const view = document.getElementById(`simView-${s}`);
+        if (s === screen) {
+          btn.className = 'py-2.5 px-3 rounded-xl border border-[#FF0000] bg-white text-[#FF0000] font-bold text-xs text-center transition elevation-1';
+          view.classList.remove('hidden');
+        } else {
+          btn.className = 'py-2.5 px-3 rounded-xl border border-[#E5E5E5] bg-white text-[#606060] font-medium text-xs text-center hover:border-zinc-400 transition';
+          view.classList.add('hidden');
+        }
+      });
+
+      const exp = document.getElementById('simExplanation');
+      if (screen === 'card') {
+        exp.innerHTML = `<div class="font-bold text-[#0F0F0F]">📱 มุมมอง Card View (หน้ารายการหลัก):</div>
+          <div class="text-[#606060] leading-relaxed">ดึงคอลัมน์ <code>Image_URL</code> มาเป็นภาพปก, <code>Name</code> เป็นหัวข้อหลัก, <code>Category</code> เป็นป้ายแท็ก, และ <code>Price</code> แสดงเป็นราคาตัวเลขสีแดงเด่นชัด</div>`;
+      } else if (screen === 'detail') {
+        exp.innerHTML = `<div class="font-bold text-[#0F0F0F]">🔍 มุมมอง Detail View (หน้ารายละเอียดเชิงลึก):</div>
+          <div class="text-[#606060] leading-relaxed">คลิกจากการ์ดเพื่อดูข้อมูลทุกคอลัมน์อย่างครบถ้วน แสดง Primary Key, คำอธิบายยาว (LongText), สต็อก และปุ่มดำเนินการ Action Button</div>`;
+      } else if (screen === 'form') {
+        exp.innerHTML = `<div class="font-bold text-[#0F0F0F]">📝 มุมมอง Form View (หน้าบันทึกข้อมูล/สั่งซื้อ):</div>
+          <div class="text-[#606060] leading-relaxed">สร้างฟอร์มอัตโนมัติตาม Data Types มีตัวเลือก Dropdown จาก Data Validation, ช่องกรอกตัวเลข และปุ่มบันทึกกลับไปยัง Google Sheets</div>`;
+      }
+    }
+
+    function setSimArchetype(arch) {
+      currentSimArch = arch;
+      const archs = ['fb', 'hp', 'sb'];
+      archs.forEach(a => {
+        const btn = document.getElementById(`simArchBtn-${a}`);
+        if (a === arch) {
+          btn.className = 'flex-1 py-2 px-2.5 rounded-lg text-xs font-bold bg-[#0F0F0F] text-white transition';
+        } else {
+          btn.className = 'flex-1 py-2 px-2.5 rounded-lg text-xs font-medium bg-white border border-[#E5E5E5] text-[#0F0F0F] hover:bg-zinc-100 transition';
+        }
+      });
+
+      // Update simulator elements based on archetype
+      const appIcon = document.getElementById('phoneAppIcon');
+      const appTitle = document.getElementById('phoneAppTitle');
+      const catPill = document.getElementById('simCategoryPill');
+      const img1 = document.getElementById('simImg1');
+      const tag1 = document.getElementById('simTag1');
+      const title1 = document.getElementById('simTitle1');
+      const price1 = document.getElementById('simPrice1');
+      const desc1 = document.getElementById('simDesc1');
+
+      const img2 = document.getElementById('simImg2');
+      const tag2 = document.getElementById('simTag2');
+      const title2 = document.getElementById('simTitle2');
+      const price2 = document.getElementById('simPrice2');
+      const desc2 = document.getElementById('simDesc2');
+
+      const detailImg = document.getElementById('simDetailImg');
+      const detailPK = document.getElementById('simDetailPK');
+      const detailTitle = document.getElementById('simDetailTitle');
+      const detailPrice = document.getElementById('simDetailPrice');
+      const detailCat = document.getElementById('simDetailCat');
+      const detailDesc = document.getElementById('simDetailDesc');
+      const detailStock = document.getElementById('simDetailStock');
+
+      if (arch === 'fb') {
+        appIcon.innerText = '☕';
+        appTitle.innerText = 'Fresh Brew Cafe';
+        catPill.innerText = 'หมวดหมู่: ชานมและชาผลไม้';
+        img1.src = 'https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500';
+        tag1.innerText = 'P-001';
+        title1.innerText = 'ชานมไต้หวันบราวชูการ์';
+        price1.innerText = '฿55.00';
+        desc1.innerText = 'ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับเคี่ยวสด';
+
+        img2.src = 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500';
+        tag2.innerText = 'P-002';
+        title2.innerText = 'ชาเขียวมัทฉะลาเต้เย็น';
+        price2.innerText = '฿65.00';
+        desc2.innerText = 'มัทฉะอุจิแท้ 100% นมสดพรีเมียม หอมนุ่มละมุน';
+
+        detailImg.src = 'https://images.unsplash.com/photo-1558857563-b371f30ca6a5?w=500';
+        detailPK.innerText = 'P-001';
+        detailTitle.innerText = 'ชานมไต้หวันบราวชูการ์';
+        detailPrice.innerText = '฿55.00';
+        detailCat.innerText = 'ชานมแท้';
+        detailDesc.innerText = 'ชาไต้หวันแท้หอมเข้มข้น ไข่มุกหนึบหนับเคี่ยวสดใหม่ หอมกลิ่นน้ำตาลทรายแดงแท้จากไต้หวัน เลือกระดับความหวานได้ 0-100%';
+        detailStock.innerText = '120 แก้ว';
+      } else if (arch === 'hp') {
+        appIcon.innerText = '🐾';
+        appTitle.innerText = 'Happy Paws Care';
+        catPill.innerText = 'หมวดบริการ: กรูมมิ่งและสปา';
+        img1.src = 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=500';
+        tag1.innerText = 'SRV-01';
+        title1.innerText = 'อาบน้ำตัดขนกรูมมิ่ง พันธุ์เล็ก';
+        price1.innerText = '฿350.00';
+        desc1.innerText = 'แชมพูออร์แกนิก ตัดขน ไถขนอุ้งเท้า ตัดเล็บ';
+
+        img2.src = 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500';
+        tag2.innerText = 'SRV-02';
+        title2.innerText = 'สปาอาบน้ำตัดขน พันธุ์กลาง';
+        price2.innerText = '฿500.00';
+        desc2.innerText = 'สปาแช่น้ำแร่ บำรุงขนให้นุ่มฟู ตัดแต่งทรงสวย';
+
+        detailImg.src = 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=500';
+        detailPK.innerText = 'SRV-01';
+        detailTitle.innerText = 'อาบน้ำตัดขนกรูมมิ่ง พันธุ์เล็ก';
+        detailPrice.innerText = '฿350.00';
+        detailCat.innerText = 'กรูมมิ่งสัตว์เลี้ยง';
+        detailDesc.innerText = 'บริการกรูมมิ่งครบวงจร อาบน้ำด้วยแชมพูสูตรอ่อนโยน ตัดแต่งทรงขน เช็ดหู ไถขนใต้เท้า ตัดเล็บ ใช้เวลาประมาณ 60 นาที';
+        detailStock.innerText = 'เปิดรับ 6 คิว/วัน';
+      } else if (arch === 'sb') {
+        appIcon.innerText = '📦';
+        appTitle.innerText = 'Smart Equipment';
+        catPill.innerText = 'หมวด: กล้องและสตูดิโอ';
+        img1.src = 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500';
+        tag1.innerText = 'CAM-01';
+        title1.innerText = 'SONY Alpha A7 IV (Body)';
+        price1.innerText = 'Available';
+        desc1.innerText = 'กล้องฟูลเฟรม 33MP สำหรับงานวิดีโอ 4K';
+
+        img2.src = 'https://images.unsplash.com/photo-1589872766857-2110abb95a08?w=500';
+        tag2.innerText = 'GIM-04';
+        title2.innerText = 'DJI RS 3 Pro Gimbal';
+        price2.innerText = 'Available';
+        desc2.innerText = 'กิมบอลกันสั่น 3 แกน รองรับกล้องโปร';
+
+        detailImg.src = 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500';
+        detailPK.innerText = 'CAM-SONY-01';
+        detailTitle.innerText = 'SONY Alpha A7 IV (Body)';
+        detailPrice.innerText = 'ว่าง (Available)';
+        detailCat.innerText = 'โสตทัศนูปกรณ์';
+        detailDesc.innerText = 'รหัสครุภัณฑ์ ธจ-6701-002 จัดเก็บตู้ B2 ชั้น 3 พร้อมแบตเตอรี่แท้ 2 ก้อน แท่นชาร์จ และสายคล้องคอ';
+        detailStock.innerText = 'ตู้ B2 ชั้น 3';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 8. FAQ Accordion Logic
+    // -------------------------------------------------------------
+    function toggleFaq(num) {
+      const ans = document.getElementById(`faqAns${num}`);
+      const icon = document.getElementById(`faqIcon${num}`);
+      if (ans.classList.contains('hidden')) {
+        ans.classList.remove('hidden');
+        icon.innerText = '−';
+      } else {
+        ans.classList.add('hidden');
+        icon.innerText = '+';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 9. Interactive Self-Checklist (localStorage Persistence)
+    // Key: curriculum_ch05_checklist
+    // -------------------------------------------------------------
+    const CHECKLIST_KEY = 'curriculum_ch05_checklist';
+
+    function loadChecklist() {
+      const saved = localStorage.getItem(CHECKLIST_KEY);
+      const checkboxes = document.querySelectorAll('.check-item');
+      if (saved) {
+        try {
+          const state = JSON.parse(saved);
+          checkboxes.forEach((cb, idx) => {
+            cb.checked = !!state[idx];
+          });
+        } catch (e) {}
+      }
+      updateChecklistView();
+    }
+
+    function updateChecklist() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const state = Array.from(checkboxes).map(cb => cb.checked);
+      localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+      updateChecklistView();
+    }
+
+    function updateChecklistView() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+      const total = checkboxes.length;
+      const percentage = Math.round((checkedCount / total) * 100);
+
+      document.getElementById('checklistPercentage').innerText = `${percentage}% (${checkedCount}/${total} ข้อ)`;
+      document.getElementById('checklistProgressBar').style.width = `${percentage}%`;
+
+      if (percentage === 100) {
+        document.getElementById('checklistProgressBar').classList.add('bg-[#2BA640]');
+        document.getElementById('checklistProgressBar').classList.remove('bg-[#FF0000]');
+      } else {
+        document.getElementById('checklistProgressBar').classList.add('bg-[#FF0000]');
+        document.getElementById('checklistProgressBar').classList.remove('bg-[#2BA640]');
+      }
+    }
+
+    function resetChecklist() {
+      if (confirm('คุณต้องการรีเซ็ตสถานะการตรวจทานทั้งหมดหรือไม่?')) {
+        localStorage.removeItem(CHECKLIST_KEY);
+        document.querySelectorAll('.check-item').forEach(cb => cb.checked = false);
+        updateChecklistView();
+        showCopyToast('🔄 รีเซ็ตรายการเช็กเรียบร้อยแล้ว');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 10. Interactive Rubric Calculator Logic (5 Criteria x 10 Points)
+    // -------------------------------------------------------------
+    let rubricScores = [3, 3, 2, 1, 1]; // defaults to max (10/10)
+
+    function setRubricScore(criteriaNum, score, btn) {
+      rubricScores[criteriaNum - 1] = score;
+
+      // Update UI buttons for this criteria
+      document.querySelectorAll(`.rubric-btn-${criteriaNum}`).forEach(b => {
+        b.className = `rubric-btn-${criteriaNum} p-2.5 rounded-lg border border-[#E5E5E5] bg-white text-left hover:border-zinc-400 transition`;
+      });
+      btn.className = `rubric-btn-${criteriaNum} active p-2.5 rounded-lg border border-[#FF0000] bg-red-50 text-left transition`;
+
+      calculateRubric();
+    }
+
+    function calculateRubric() {
+      const total = rubricScores.reduce((acc, curr) => acc + curr, 0);
+      document.getElementById('rubricTotalScore').innerText = total;
+
+      const badge = document.getElementById('rubricGradeBadge');
+      const statusText = document.getElementById('rubricStatusText');
+
+      if (total >= 9) {
+        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#2BA640] text-white';
+        badge.innerText = 'ระดับดีเยี่ยม (Mastery)';
+        statusText.innerText = 'คะแนนระดับยอดเยี่ยม โครงสร้างฐานข้อมูลพร้อมใช้งานจริง 100%';
+      } else if (total >= 7) {
+        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#065FD4] text-white';
+        badge.innerText = 'ระดับดี (Proficient)';
+        statusText.innerText = 'ผ่านเกณฑ์มาตรฐาน พร้อมเชื่อมต่อ AppSheet ในสัปดาห์ถัดไป';
+      } else if (total >= 5) {
+        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#FB8C00] text-white';
+        badge.innerText = 'ระดับพอใช้ (Developing)';
+        statusText.innerText = 'ควรตรวจเช็กหัวตาราง และเติม Mock Data ให้ครบถ้วน';
+      } else {
+        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white';
+        badge.innerText = 'ต้องปรับปรุง (Needs Work)';
+        statusText.innerText = 'ฐานข้อมูลยังไม่สมบูรณ์ อาจเกิดข้อผิดพลาดบน AppSheet';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 11. Like & Share Social Actions
+    // -------------------------------------------------------------
+    let isLiked = false;
+    function toggleLike() {
+      const countEl = document.getElementById('likeCount');
+      const iconEl = document.getElementById('likeIcon');
+      let count = parseInt(countEl.innerText);
+      if (!isLiked) {
+        countEl.innerText = count + 1;
+        iconEl.classList.remove('text-[#606060]');
+        iconEl.classList.add('text-[#FF0000]', 'fill-current');
+        isLiked = true;
+        showCopyToast('❤️ ขอบคุณสำหรับกำลังใจ!');
+      } else {
+        countEl.innerText = count - 1;
+        iconEl.classList.add('text-[#606060]');
+        iconEl.classList.remove('text-[#FF0000]', 'fill-current');
+        isLiked = false;
+      }
+    }
+
+    function shareLesson() {
+      if (navigator.share) {
+        navigator.share({
+          title: 'บทที่ 5: การวางโครงสร้างฐานข้อมูลร้านค้าด้วย Google Sheets',
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        showCopyToast('🔗 คัดลอกลิงก์บทเรียนเข้าคลิปบอร์ดแล้ว!');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 12. Comment Handling
+    // -------------------------------------------------------------
+    function postComment() {
+      const input = document.getElementById('commentInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const list = document.getElementById('commentList');
+      const newComment = document.createElement('div');
+      newComment.className = 'flex items-start gap-3';
+      newComment.innerHTML = `
+        <div class="w-9 h-9 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">ME</div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-xs text-[#0F0F0F]">นักศึกษา (คุณ)</span>
+            <span class="text-[11px] text-[#606060]">เมื่อสักครู่</span>
+          </div>
+          <p class="text-xs sm:text-sm text-[#0F0F0F] leading-relaxed">${escapeHtml(val)}</p>
+          <div class="flex items-center gap-3 pt-1 text-xs text-[#606060]">
+            <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 0</button>
+            <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+          </div>
+        </div>
+      `;
+      list.prepend(newComment);
+      input.value = '';
+      showCopyToast('💬 โพสต์ความคิดเห็นเรียบร้อยแล้ว');
+    }
+
+    function clearComment() {
+      document.getElementById('commentInput').value = '';
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // -------------------------------------------------------------
+    // 13. Search Box Logic
+    // -------------------------------------------------------------
+    function searchTopic() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!query) return;
+      if (window.find) {
+        const found = window.find(query);
+        if (!found) {
+          showCopyToast(`🔍 ไม่พบคำค้นหา: "${query}"`);
+        }
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        searchTopic();
+      }
+    });
+
+    // -------------------------------------------------------------
+    // Initial Load
+    // -------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      loadChecklist();
+      calculateRubric();
+      updateScrollProgress();
+    });
+  </script>
+</body>
+</html>

@@ -233,16 +233,16 @@ export const loginStudent = async (studentId, secretCode) => {
     }
 
     if (existingParticipant.status === 'completed') {
-      if (retakeUntilPass && !hasPassed) {
-        updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false, warnings_count: 0, started_at: new Date().toISOString() };
-      } else if (isOnline) {
-        // Normal online logic
-        updatePayload = { status: 'testing', started_at: new Date().toISOString(), warnings_count: 0, allow_rejoin: false };
+      const hasAttemptsLeft = (retakeUntilPass && !hasPassed) || (!retakeUntilPass && actualAttemptCount < maxAttempts);
+      if (hasAttemptsLeft || existingParticipant.allow_rejoin) {
+        updatePayload = {
+          status: sessionData.status === 'active' ? 'testing' : 'waiting',
+          allow_rejoin: false,
+          warnings_count: 0,
+          started_at: new Date().toISOString()
+        };
       } else {
-        if (!existingParticipant.allow_rejoin) {
-          throw new Error('คุณได้ส่งข้อสอบชุดนี้เรียบร้อยแล้ว (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
-        }
-        updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false, warnings_count: 0, started_at: new Date().toISOString() };
+        throw new Error('คุณได้ทำข้อสอบชุดนี้ครบตามจำนวนที่กำหนดแล้ว (หากต้องการสอบซ่อม กรุณาแจ้งครูผู้สอน)');
       }
     } else if (existingParticipant.status === 'disconnected' || existingParticipant.status === 'cheating') {
       if (isOnline) {
@@ -257,7 +257,7 @@ export const loginStudent = async (studentId, secretCode) => {
     } else {
       // Status is waiting or testing
       updatePayload = { status: sessionData.status === 'active' ? 'testing' : 'waiting', allow_rejoin: false };
-      if (isOnline && !existingParticipant.started_at) {
+      if (!existingParticipant.started_at) {
         updatePayload.started_at = new Date().toISOString();
       }
     }
@@ -269,10 +269,12 @@ export const loginStudent = async (studentId, secretCode) => {
   } else {
     // Insert new participant (allow both waiting and active sessions)
     const initialStatus = sessionData.status === 'active' ? 'testing' : 'waiting';
-    const insertPayload = { session_id: sessionData.id, student_id: studentId.trim(), status: initialStatus };
-    if (isOnline) {
-      insertPayload.started_at = new Date().toISOString();
-    }
+    const insertPayload = { 
+      session_id: sessionData.id, 
+      student_id: studentId.trim(), 
+      status: initialStatus,
+      started_at: new Date().toISOString()
+    };
 
     const { error: insertError } = await supabase
       .from('exam_participants')

@@ -25,6 +25,9 @@ export function useExamTimer(configOrInitialSeconds, onSubmit, isActive = true) 
   const durationMinutes = isServerMode ? configOrInitialSeconds.durationMinutes : null;
   const extraTimeMinutes = isServerMode ? (configOrInitialSeconds.extraTimeMinutes || 0) : 0;
 
+  const onSubmitRef = useRef(onSubmit);
+  onSubmitRef.current = onSubmit;
+
   const getInitialSeconds = useCallback(() => {
     if (isServerMode) {
       return calculateRemainingSeconds(startedAt, durationMinutes, extraTimeMinutes);
@@ -34,9 +37,14 @@ export function useExamTimer(configOrInitialSeconds, onSubmit, isActive = true) 
 
   const [timeLeft, setTimeLeft] = useState(getInitialSeconds);
   const submittedRef = useRef(false);
+  const hadPositiveTimeRef = useRef(false);
 
   useEffect(() => {
-    setTimeLeft(getInitialSeconds());
+    const initial = getInitialSeconds();
+    setTimeLeft(initial);
+    if (initial !== null && initial > 0) {
+      hadPositiveTimeRef.current = true;
+    }
   }, [getInitialSeconds]);
 
   useEffect(() => {
@@ -46,17 +54,26 @@ export function useExamTimer(configOrInitialSeconds, onSubmit, isActive = true) 
       if (isServerMode && startedAt && durationMinutes) {
         const remaining = calculateRemainingSeconds(startedAt, durationMinutes, extraTimeMinutes);
         setTimeLeft(remaining);
-        if (remaining !== null && remaining <= 0 && !submittedRef.current) {
+
+        if (remaining !== null && remaining > 0) {
+          hadPositiveTimeRef.current = true;
+        }
+
+        // Only auto-submit if the timer actually ran down (had positive time before reaching 0)
+        if (remaining !== null && remaining <= 0 && hadPositiveTimeRef.current && !submittedRef.current) {
           submittedRef.current = true;
-          onSubmit?.(true);
+          onSubmitRef.current?.(true);
         }
       } else {
         setTimeLeft((prev) => {
           if (prev === null) return null;
+          if (prev > 0) {
+            hadPositiveTimeRef.current = true;
+          }
           if (prev <= 1) {
-            if (!submittedRef.current) {
+            if (hadPositiveTimeRef.current && !submittedRef.current) {
               submittedRef.current = true;
-              onSubmit?.(true);
+              onSubmitRef.current?.(true);
             }
             return 0;
           }
@@ -67,7 +84,7 @@ export function useExamTimer(configOrInitialSeconds, onSubmit, isActive = true) 
 
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [isActive, isServerMode, startedAt, durationMinutes, extraTimeMinutes, onSubmit]);
+  }, [isActive, isServerMode, startedAt, durationMinutes, extraTimeMinutes]);
 
   const addTime = (seconds) => {
     setTimeLeft((prev) => (prev !== null ? prev + seconds : seconds));

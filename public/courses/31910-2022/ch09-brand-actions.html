@@ -1,0 +1,2822 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 9: การปรับแต่งธีมแบรนด์และสร้างปุ่มดำเนินการอัจฉริยะ (Brand UX Theming & Actions) | ห้องเรียนครูแม็ค BROADCAST</title>
+  
+  <!-- Google Fonts: Roboto, Sarabun, Roboto Mono ตามข้อกำหนด Red Broadcast -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#FF0000',
+              redHover: '#CC0000',
+              blue: '#065FD4',
+              neutral: '#606060',
+              dark: '#0F0F0F',
+              surface: '#F2F2F2',
+              surfaceHover: '#E5E5E5',
+              border: '#E5E5E5',
+              success: '#2BA640',
+              warning: '#FB8C00'
+            }
+          },
+          fontFamily: {
+            sans: ['Roboto', 'Sarabun', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Roboto', 'Sarabun', sans-serif;
+      color: #0F0F0F;
+      background-color: #FFFFFF;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Scrollbar Styling */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Red Broadcast Elevation tokens */
+    .elevation-0 { box-shadow: none; }
+    .elevation-1 { box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .elevation-2 { box-shadow: 0 4px 32px rgba(0,0,0,0.1); }
+    .elevation-3 { box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+
+    /* Realistic Phone Simulator Frame (320x640) */
+    .phone-mockup {
+      width: 320px;
+      height: 640px;
+      border: 10px solid #0F0F0F;
+      border-radius: 40px;
+      position: relative;
+      background: #FFFFFF;
+      overflow: hidden;
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 20px;
+      background: #0F0F0F;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      z-index: 50;
+    }
+    .phone-speaker {
+      width: 36px;
+      height: 4px;
+      background: #333333;
+      border-radius: 2px;
+      margin: 6px auto 0;
+    }
+    .phone-screen {
+      flex: 1;
+      overflow-y: auto;
+      padding-top: 24px;
+      display: flex;
+      flex-direction: column;
+      background-color: #FAFAFA;
+      position: relative;
+    }
+
+    /* Copy Feedback Toast Animation */
+    .toast-anim {
+      animation: fadeInOut 2s ease-in-out forwards;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(10px); }
+      15% { opacity: 1; transform: translateY(0); }
+      85% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+
+    /* Pulse animation for active broadcast badge */
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.15); }
+    }
+    .pulse-dot {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-white text-[#0F0F0F] min-h-screen flex flex-col selection:bg-red-100 selection:text-[#FF0000]">
+
+  <!-- ========================================================================= -->
+  <!-- 1. READING SCROLL PROGRESS BAR (Fixed Top, Red Line 0-100%) -->
+  <!-- ========================================================================= -->
+  <div id="scrollProgressBar" class="fixed top-0 left-0 h-1 bg-[#FF0000] z-[100] transition-all duration-75" style="width: 0%;"></div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. STICKY TOP BAR (56px Height, Level 1 Shadow on Scroll, No Print Button) -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 h-14 bg-white border-b border-[#E5E5E5] px-4 flex items-center justify-between elevation-1">
+    <!-- ฝั่งซ้าย: ปุ่มเมนู + โลโก้แบรนด์ -->
+    <div class="flex items-center gap-3">
+      <button id="toggleSidebarBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] transition text-[#606060]" title="สลับแถบเมนู">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      
+      <a href="index.html" class="flex items-center gap-2 group">
+        <div class="w-8 h-6 bg-[#FF0000] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+          <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="flex items-center">
+          <span class="font-bold text-lg tracking-tight text-[#0F0F0F]">ห้องเรียนครูแม็ค</span>
+          <span class="text-[10px] ml-1.5 font-bold uppercase tracking-wider text-[#FF0000] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">BROADCAST</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- ส่วนกลาง: ช่องค้นหา (Search Bar 44px) -->
+    <div class="hidden sm:flex items-center flex-1 max-w-[620px] mx-6">
+      <div class="flex w-full items-center">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="ค้นหาเนื้อหาบทเรียน (กด / เพื่อค้นหา เช่น Brand, Action, State Machine, Phone Call, Only if)..." 
+            class="w-full h-10 pl-4 pr-3 bg-white border border-[#E5E5E5] rounded-l-full text-sm text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#065FD4]"
+          />
+        </div>
+        <button 
+          id="searchBtn"
+          onclick="performSearch()"
+          class="h-10 px-6 bg-[#F8F8F8] border border-l-0 border-[#E5E5E5] rounded-r-full hover:bg-[#F2F2F2] text-[#606060] flex items-center justify-center transition" 
+          title="ค้นหา">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </button>
+        <button onclick="alert('ระบบค้นหาด้วยเสียงพร้อมใช้งานในโหมดทดลอง')" class="w-10 h-10 ml-2 rounded-full bg-[#F2F2F2] hover:bg-[#E5E5E5] flex items-center justify-center text-[#0F0F0F] transition shrink-0" title="ค้นหาด้วยเสียง">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: โหมดบทเรียน & ผู้สอน (ไม่มีปุ่มพิมพ์เอกสารตามข้อกำหนด) -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Quick Mode Badge -->
+      <a href="index.html" class="hidden md:flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-[#F2F2F2] text-xs font-medium text-[#0F0F0F] hover:bg-[#E5E5E5] transition" title="กลับหน้าสารบัญ">
+        <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span>สารบัญรวม</span>
+      </a>
+
+      <!-- Notification Bell -->
+      <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] text-[#606060] transition relative" title="การแจ้งเตือนบทเรียน">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-[#FF0000] rounded-full animate-ping"></span>
+        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-[#FF0000] rounded-full"></span>
+      </button>
+
+      <!-- รูปโปรไฟล์ครูผู้สอน -->
+      <div class="flex items-center gap-2 pl-1">
+        <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#FF0000]" title="ครูแม็ค (Instructor)">
+          MK
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 3. MAIN LAYOUT WRAPPER (SIDEBAR + MAIN CONTENT AREA) -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- LEFT SIDEBAR (240px Collapsible) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="w-60 bg-white border-r border-[#E5E5E5] shrink-0 hidden lg:flex flex-col justify-between overflow-y-auto transition-all duration-200">
+      <div class="p-3 space-y-1">
+        <div class="text-[11px] font-bold text-[#606060] px-3 py-2 uppercase tracking-wider">สารบัญเนื้อหาบทที่ 9</div>
+
+        <a href="#intro" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+          <span class="truncate">บทนำ & แผนผัง 4 ชม.</span>
+        </a>
+
+        <a href="#brand-theming" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#065FD4]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+          <span class="truncate">1. อัตลักษณ์แบรนด์บนมือถือ</span>
+        </a>
+
+        <a href="#command-pattern" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#2BA640]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span class="truncate">2. Command Pattern & Actions</span>
+        </a>
+
+        <a href="#action-types" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#FB8C00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+          <span class="truncate">3. ชนิดและการจัดวาง Prominence</span>
+        </a>
+
+        <a href="#state-machine" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#FF0000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span class="truncate">4. สถาปัตยกรรมสถานะ FSM</span>
+        </a>
+
+        <a href="#archetypes" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span class="truncate">5. เวิร์กช็อป 3 โมเดลธุรกิจ</span>
+        </a>
+
+        <a href="#phone-simulator" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#065FD4]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          <span class="truncate">6. สมาร์ตโฟนจำลอง Action</span>
+        </a>
+
+        <a href="#agile-team" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#2BA640]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <span class="truncate">7. การแบ่งงานทีม Agile Triad</span>
+        </a>
+
+        <a href="#troubleshooting" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#FB8C00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <span class="truncate">8. ข้อผิดพลาด & แนวทางแก้ไข</span>
+        </a>
+
+        <a href="#checklist-section" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#2BA640]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="truncate">9. แบบประเมินตนเอง Checklist</span>
+        </a>
+
+        <a href="#rubric-section" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#FB8C00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span class="truncate">10. เกณฑ์ประเมิน Rubric (10 คะแนน)</span>
+        </a>
+
+        <a href="#faq-section" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="truncate">11. คำถามทบทวนประจำบท FAQ</span>
+        </a>
+
+        <div class="border-t border-[#E5E5E5] my-2"></div>
+
+        <!-- กล่องข้อมูลหลักสูตร -->
+        <div class="px-3 py-2.5 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+          <div class="text-[10px] font-bold text-[#FF0000] tracking-wider uppercase">รหัสวิชา 31910-2022</div>
+          <div class="text-xs font-semibold text-[#0F0F0F] mt-0.5 leading-snug">การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา</div>
+          <div class="text-[11px] text-[#606060] mt-1">หลักสูตร ปวส. 2563 | แผนกธุรกิจดิจิทัล</div>
+        </div>
+      </div>
+
+      <!-- ส่วนล่างสุดของ Sidebar -->
+      <div class="p-3 border-t border-[#E5E5E5] text-xs text-[#606060]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#2BA640] animate-pulse"></span>
+          <span class="font-medium text-[#0F0F0F]">ระบบ Interactive Textbook</span>
+        </div>
+        <div class="mt-0.5 text-[10px] text-[#606060]">Red Broadcast Engine v4.5</div>
+      </div>
+    </aside>
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- MAIN CONTENT VIEWPORT (Scrollable) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <main id="mainViewport" class="flex-1 overflow-y-auto bg-white flex flex-col">
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 4. STICKY HORIZONTAL PILL CHIP FILTER BAR -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-[#E5E5E5] py-2.5 px-4 sm:px-8">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <button onclick="filterChip('all', this)" class="chip-btn active h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white transition shrink-0">ทั้งหมด</button>
+          <button onclick="filterChip('intro', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">บทนำ</button>
+          <button onclick="filterChip('brand-theming', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ธีมแบรนด์</button>
+          <button onclick="filterChip('command-pattern', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Command Actions</button>
+          <button onclick="filterChip('action-types', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ชนิดปุ่ม</button>
+          <button onclick="filterChip('state-machine', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">State Machine</button>
+          <button onclick="filterChip('archetypes', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">3 โมเดลธุรกิจ</button>
+          <button onclick="filterChip('phone-simulator', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Phone Simulator</button>
+          <button onclick="filterChip('agile-team', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">ทีม Agile Triad</button>
+          <button onclick="filterChip('troubleshooting', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">แก้ปัญหา</button>
+          <button onclick="filterChip('checklist-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Checklist</button>
+          <button onclick="filterChip('rubric-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Rubric 10 คะแนน</button>
+          <button onclick="filterChip('faq-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">คำถามทบทวน</button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 5. BROADCAST LECTURE THEATER HERO STAGE -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <section class="max-w-6xl mx-auto w-full px-4 sm:px-8 py-6">
+        
+        <!-- Broadcast Stage Frame (Dark Theater) -->
+        <div class="w-full bg-[#0F0F0F] text-white rounded-2xl overflow-hidden relative border border-black shadow-lg">
+          <div class="p-6 sm:p-10 flex flex-col justify-between min-h-[340px] sm:min-h-[400px] relative z-10">
+            <!-- Badges แถวบน -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FF0000] text-white shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-white pulse-dot"></span>
+                  LECTURE BROADCAST
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-zinc-300 border border-white/10 backdrop-blur-sm">
+                  หลักสูตร ปวส. 2563 • หน่วยที่ 9
+                </span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-mono text-xs text-zinc-400 bg-black/40 px-2.5 py-1 rounded border border-white/5">31910-2022</span>
+                <span class="font-mono text-xs text-[#2BA640] bg-[#2BA640]/10 px-2 py-0.5 rounded border border-[#2BA640]/30 font-bold">VERIFIED CHAPTER</span>
+              </div>
+            </div>
+
+            <!-- ข้อความชื่อบทเรียนขนาดใหญ่ -->
+            <div class="my-6">
+              <div class="text-xs uppercase tracking-widest text-[#FF0000] font-bold mb-2">บทที่ 9 • BRAND UX THEMING, STATE MACHINE & COMMAND ACTION PATTERNS</div>
+              <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+                การปรับแต่งธีมแบรนด์และสร้างปุ่มดำเนินการอัจฉริยะด้วย AppSheet
+              </h1>
+              <p class="text-sm sm:text-base text-zinc-300 mt-3 max-w-3xl leading-relaxed">
+                เปลี่ยนแอปพลิเคชันจากฐานข้อมูลธรรมดาให้มีอัตลักษณ์ระดับพรีเมียมด้วยการแมป Figma Design Tokens เข้าสู่ระบบแบรนด์ พร้อมขับเคลื่อนวงจรชีวิตข้อมูลธุรกิจด้วยสถาปัตยกรรมคำสั่ง Command Pattern และ Finite State Machine เพื่อประสบการณ์ผู้ใช้ระดับสากล
+              </p>
+            </div>
+
+            <!-- แถบเมตริกบทเรียนและสถานะความคืบหน้า -->
+            <div class="space-y-3 pt-3 border-t border-white/10">
+              <div class="flex flex-wrap justify-between text-xs text-zinc-400 font-mono gap-2">
+                <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg> ความยาวเนื้อหา: 4 ชั่วโมงเรียนรู้ (ทฤษฎี 2 ชม. + ปฏิบัติ 2 ชม.)</span>
+                <span>ระดับ: สถาปัตยกรรมเชิงตรรกะและการโต้ตอบ (Interaction & Behavioral Logic)</span>
+              </div>
+
+              <!-- ผู้สอนและปุ่ม Social Action -->
+              <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-white text-[#0F0F0F] flex items-center justify-center font-bold text-sm shadow ring-2 ring-[#FF0000]">
+                    MK
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span>ครูแม็ค (Instructor Mac)</span>
+                      <svg class="w-3.5 h-3.5 text-[#065FD4]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    </div>
+                    <div class="text-[11px] text-zinc-400">ผู้เชี่ยวชาญการพัฒนาโมบายล์แอปพลิเคชัน & สถาปัตยกรรม No-Code</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button id="likeBtn" onclick="toggleLike()" class="h-9 px-4 rounded-full bg-white/10 hover:bg-white/20 text-xs font-medium text-white flex items-center gap-2 transition border border-white/10">
+                    <svg id="likeIcon" class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/></svg>
+                    <span>ถูกใจ</span>
+                    <span id="likeCount" class="font-mono text-[11px] text-zinc-300">142</span>
+                  </button>
+
+                  <button onclick="shareLesson()" class="h-9 px-4 rounded-full bg-white/10 hover:bg-white/20 text-xs font-medium text-white flex items-center gap-1.5 transition border border-white/10" title="แชร์บทเรียน">
+                    <svg class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    <span>แชร์</span>
+                  </button>
+
+                  <button id="subBtn" onclick="toggleSubscribe()" class="h-9 px-5 bg-[#0F0F0F] hover:bg-black text-white text-xs font-medium rounded-full flex items-center gap-1.5 transition border border-zinc-700">
+                    <span id="subBtnText">ติดตามรายวิชา</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 6. CHAPTER MAIN CONTENT (Container) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="max-w-5xl mx-auto w-full px-4 sm:px-8 py-8 space-y-16">
+
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 0: บทนำและแผนผังการเรียนรู้ประจำสัปดาห์ (4 ชั่วโมง) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="intro" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>บทนำประจำสัปดาห์ • WEEK 9 ROADMAP</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            ก้าวสู่มืออาชีพ: จากฐานข้อมูลธรรมดา สู่โมบายล์แอปพลิเคชันที่มีชีวิต
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              ในบทเรียนที่ผ่านมา นักศึกษาได้สร้างตารางฐานข้อมูลที่มีความสัมพันธ์แบบ Parent-Child (1:N) และใส่สูตรคำนวณเงินใน AppSheet เรียบร้อยแล้ว แต่ในโลกการทำงานจริง แอปพลิเคชันไม่ได้มีไว้เพียงแค่ "แสดงข้อมูลนิ่ง ๆ" เท่านั้น แต่จะต้องเป็นเครื่องมือที่ช่วยให้พนักงานหน้างานสามารถตัดสินใจและปฏิบัติการได้อย่างรวดเร็ว ถูกต้อง และมีภาพลักษณ์แบรนด์ที่น่าเชื่อถือ
+            </p>
+            <p class="text-xs sm:text-sm text-[#606060] italic bg-[#F2F2F2] p-4 rounded-xl border border-[#E5E5E5] leading-relaxed">
+              <strong>ข้อคิดเชิงสถาปัตยกรรม:</strong> "แอปพลิเคชันที่ยอดเยี่ยมไม่ใช่แอปที่มีช่องให้กรอกข้อมูลมากที่สุด แต่เป็นแอปที่ผู้ใช้ <em>'แตะหน้าจอน้อยที่สุด'</em> แล้วได้ผลลัพธ์ที่ต้องการมากที่สุด นั่นคือปรัชญาของ <strong>Command Pattern</strong> และ <strong>State Machine</strong>"
+            </p>
+          </div>
+
+          <!-- จุดประสงค์การเรียนรู้ประจำบท (8 ข้อ) -->
+          <div class="my-8 bg-[#F8F8F8] border border-[#E5E5E5] rounded-2xl p-6">
+            <div class="flex items-center gap-2.5 mb-4">
+              <span class="w-7 h-7 rounded-full bg-[#FF0000] text-white flex items-center justify-center text-xs font-bold shadow-sm">🎯</span>
+              <h3 class="font-bold text-base text-[#0F0F0F]">จุดประสงค์การเรียนรู้ประจำบท (Learning Objectives)</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed text-[#0F0F0F]">
+              <div class="p-3 bg-white rounded-xl border border-[#E5E5E5] flex items-start gap-2.5">
+                <span class="text-[#2BA640] font-bold text-sm shrink-0">01</span>
+                <div><strong>แมปอัตลักษณ์แบรนด์:</strong> นำชุดสี Design Tokens จาก Figma มากำหนดใน Brand Settings ของ AppSheet สร้างความกลมกลืนเชิงภาพลักษณ์ (Visual Branding Consistency) ได้อย่างถูกต้อง</div>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#E5E5E5] flex items-start gap-2.5">
+                <span class="text-[#2BA640] font-bold text-sm shrink-0">02</span>
+                <div><strong>รูปแบบคำสั่ง Command Pattern:</strong> อธิบายหลักการของ Command Action ในการห่อหุ้มคำสั่งที่พบบ่อยให้กลายเป็นปุ่มลัดอัจฉริยะแบบ 1-Tap Execution ได้</div>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#E5E5E5] flex items-start gap-2.5">
+                <span class="text-[#2BA640] font-bold text-sm shrink-0">03</span>
+                <div><strong>ปุ่มโทรศัพท์ภายนอก (Inline Action):</strong> สร้างปุ่ม <code class="font-mono text-[#065FD4]">External: open a phone call</code> ประกบข้างเบอร์โทรศัพท์เพื่อโทรหาลูกค้าหรือผู้รับบริการได้โดยตรงจากสมาร์ตโฟน</div>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#E5E5E5] flex items-start gap-2.5">
+                <span class="text-[#2BA640] font-bold text-sm shrink-0">04</span>
+                <div><strong>สถาปัตยกรรมสถานะ (State Machine):</strong> ขับเคลื่อนวงจรชีวิตข้อมูล (Lifecycle) เช่น <code class="font-mono text-zinc-700">Pending ➔ Paid ➔ Completed</code> ด้วยปุ่ม Action เพียงคลิกเดียว</div>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#E5E5E5] flex items-start gap-2.5">
+                <span class="text-[#2BA640] font-bold text-sm shrink-0">05</span>
+                <div><strong>เงื่อนไขการแสดงผล (Only if Condition):</strong> ใช้สูตรตรรกศาสตร์บูลีนซ่อนหรือแสดงปุ่มตามสถานะปัจจุบัน ป้องกันความสับสนและความผิดพลาดของผู้ใช้</div>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#E5E5E5] flex items-start gap-2.5">
+                <span class="text-[#2BA640] font-bold text-sm shrink-0">06</span>
+                <div><strong>ระบบยืนยันความปลอดภัย (Confirmation Prompt):</strong> เปิดใช้ <code class="font-mono text-amber-700">Needs confirmation?</code> พร้อมข้อความแจ้งเตือน เพื่อป้องกันการกดปุ่มเปลี่ยนสถานะโดยไม่ได้ตั้งใจ</div>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#E5E5E5] flex items-start gap-2.5">
+                <span class="text-[#2BA640] font-bold text-sm shrink-0">07</span>
+                <div><strong>ประยุกต์ใช้กับ 3 รูปแบบธุรกิจ:</strong> ปรับแต่งแบรนด์และสร้าง Actions สมบูรณ์แบบสำหรับ Fresh Brew, Happy Paws และ Smart Borrow</div>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#E5E5E5] flex items-start gap-2.5">
+                <span class="text-[#2BA640] font-bold text-sm shrink-0">08</span>
+                <div><strong>การทำงานเป็นทีมแบบ Agile Triad:</strong> แบ่งหน้าที่ 3 บทบาท (Brand UX, Action Engineer, State QA) ร่วมกันพัฒนาและทดสอบบนมือถือจริงได้อย่างมีประสิทธิภาพ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- แผนผังการเรียนรู้ประจำสัปดาห์ 4 ชั่วโมง (Interactive Stepper Cards) -->
+          <div class="my-8 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div class="bg-[#F8F8F8] px-5 py-3 border-b border-[#E5E5E5] flex items-center justify-between">
+              <span class="text-xs font-bold uppercase text-[#0F0F0F] flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                แผนผังกระบวนการเรียนรู้ 4 ชั่วโมง (4-Hour Learning Roadmap)
+              </span>
+              <button onclick="copyText('แผนผังบทที่ 9: ชม.1 ปรับแต่งธีมแบรนด์ (Brand UX) -> ชม.2 Command Pattern & Action Buttons -> ชม.3 State Machine & Only if Condition -> ชม.4 เวิร์กช็อป 3 Archetypes & ทดสอบบนมือถือจริง', this)" class="text-xs text-[#065FD4] hover:underline flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>คัดลอกแผนผัง 4 ชม.</span>
+              </button>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <!-- Hour 1 -->
+              <div class="p-4 bg-gradient-to-b from-blue-50/50 to-white rounded-xl border border-blue-200 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-[#065FD4]">ชั่วโมงที่ 1</span>
+                    <span class="text-base">🎨</span>
+                  </div>
+                  <h4 class="font-bold text-xs text-[#0F0F0F] mb-1">Brand UX Theming</h4>
+                  <p class="text-[11px] text-[#606060] leading-relaxed">
+                    แมป Figma Design Tokens เข้าสู่ AppSheet: ตั้งค่าสีหลัก Theme Color, โลโก้ร้าน 512x512, ภาพเปิดแอป Launch Image และการปรับแถบ Header
+                  </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-blue-100 text-[10px] font-medium text-[#065FD4]">
+                  ผลลัพธ์: แอปมีอัตลักษณ์ระดับสากล
+                </div>
+              </div>
+
+              <!-- Hour 2 -->
+              <div class="p-4 bg-gradient-to-b from-emerald-50/50 to-white rounded-xl border border-emerald-200 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-[#2BA640]">ชั่วโมงที่ 2</span>
+                    <span class="text-base">⚡</span>
+                  </div>
+                  <h4 class="font-bold text-xs text-[#0F0F0F] mb-1">Command Action Pattern</h4>
+                  <p class="text-[11px] text-[#606060] leading-relaxed">
+                    สร้างปุ่มคำสั่งลัดอัตโนมัติ: Do this ชนิด External โทรหาลูกค้าแบบ Inline และปุ่ม Data Mutation สำหรับเปลี่ยนค่าในคอลัมน์ด้วยคลิกเดียว
+                  </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-emerald-100 text-[10px] font-medium text-[#2BA640]">
+                  ผลลัพธ์: ลดขั้นตอนการทำงาน 80%
+                </div>
+              </div>
+
+              <!-- Hour 3 -->
+              <div class="p-4 bg-gradient-to-b from-purple-50/50 to-white rounded-xl border border-purple-200 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700">ชั่วโมงที่ 3</span>
+                    <span class="text-base">🔄</span>
+                  </div>
+                  <h4 class="font-bold text-xs text-[#0F0F0F] mb-1">State Machine & Safety</h4>
+                  <p class="text-[11px] text-[#606060] leading-relaxed">
+                    ออกแบบสถาปัตยกรรมสถานะ: กำหนดสูตร Only if this condition is true และเปิดใช้ระบบยืนยันความปลอดภัย Needs confirmation? ป้องกันมือลั่น
+                  </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-purple-100 text-[10px] font-medium text-purple-700">
+                  ผลลัพธ์: ลอจิกธุรกิจรัดกุม ปลอดภัย
+                </div>
+              </div>
+
+              <!-- Hour 4 -->
+              <div class="p-4 bg-gradient-to-b from-red-50/50 to-white rounded-xl border border-red-200 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-[#FF0000]">ชั่วโมงที่ 4</span>
+                    <span class="text-base">📱</span>
+                  </div>
+                  <h4 class="font-bold text-xs text-[#0F0F0F] mb-1">3 Archetypes Workshop</h4>
+                  <p class="text-[11px] text-[#606060] leading-relaxed">
+                    ประกอบร่างโมเดลธุรกิจ Fresh Brew, Happy Paws, Smart Borrow ทดสอบบนสมาร์ตโฟนจริง และประเมินผลตามเกณฑ์รูบริก 10 คะแนน
+                  </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-red-100 text-[10px] font-medium text-[#FF0000]">
+                  ผลลัพธ์: นำเสนอชิ้นงานสมบูรณ์แบบ
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ตารางเปรียบเทียบการทำงานทั่วไป vs การใช้ Action -->
+          <div class="my-6 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div class="bg-[#F8F8F8] px-5 py-3 border-b border-[#E5E5E5]">
+              <h3 class="font-bold text-xs text-[#0F0F0F] uppercase tracking-wider">
+                ตารางเปรียบเทียบเชิงประสิทธิภาพ: การแก้ไขข้อมูลทั่วไป vs การใช้ Action Button
+              </h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-zinc-50 border-b border-[#E5E5E5] text-[#606060]">
+                  <tr>
+                    <th class="p-3 w-1/4">มิติการเปรียบเทียบ</th>
+                    <th class="p-3 w-3/8 text-red-600 bg-red-50/40">❌ การทำงานทั่วไป (ไม่มี Action Buttons)</th>
+                    <th class="p-3 w-3/8 text-emerald-700 bg-emerald-50/40">✅ การใช้งาน Action Buttons (Command Pattern)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E5E5E5] text-[#0F0F0F]">
+                  <tr>
+                    <td class="p-3 font-bold bg-zinc-50">ขั้นตอนการกด (Interaction Steps)</td>
+                    <td class="p-3 text-[#606060]">
+                      1. แตะปุ่ม [Edit] ดินสอ<br>
+                      2. เลื่อนหาช่อง Order_Status ท่ามกลาง 15 ฟิลด์<br>
+                      3. แตะเพื่อลบคำว่า "Pending"<br>
+                      4. พิมพ์คำว่า "Paid"<br>
+                      5. แตะปุ่ม [Save] ด้านบน<br>
+                      <strong>➔ รวม 5 ขั้นตอน</strong>
+                    </td>
+                    <td class="p-3 font-bold text-emerald-800">
+                      1. มองเห็นปุ่ม <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">[💰 รับชำระเงินแล้ว]</span> ปรากฏเด่นชัด<br>
+                      2. แตะปุ่มเพียง 1 ครั้ง ➔ จบกระบวนการทันที!<br>
+                      <strong>➔ รวม 1 ขั้นตอน (ลดเวลาได้กว่า 80%)</strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold bg-zinc-50">ความเสี่ยงจากความผิดพลาด (Human Errors)</td>
+                    <td class="p-3 text-[#606060]">
+                      สูงมาก เช่น พิมพ์ตัวสะกดผิดเป็น "paid" (ตัวพิมพ์เล็ก) หรือ "Paidd" ทำให้สูตรและระบบรายงานผลลัพธ์ล้มเหลว
+                    </td>
+                    <td class="p-3 text-emerald-800">
+                      ศูนย์เปอร์เซ็นต์ (0%) ระบบกำหนดค่าที่แม่นยำตามที่วิศวกรกำหนดไว้ล่วงหน้า
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold bg-zinc-50">ความเร็วในการปฏิบัติงาน (Latency)</td>
+                    <td class="p-3 text-[#606060]">ใช้เวลาเฉลี่ย 15 - 25 วินาทีต่อ 1 บิลออร์เดอร์</td>
+                    <td class="p-3 font-bold text-emerald-800">ใช้เวลาต่ำกว่า 1 วินาที (Instant Execution)</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold bg-zinc-50">ความพึงพอใจของผู้ใช้ (UX Score)</td>
+                    <td class="p-3 text-[#606060]">พนักงานเหนื่อยล้า เบื่อหน่าย เกิดความล่าช้าหน้าร้าน</td>
+                    <td class="p-3 text-emerald-800">พนักงานทำงานได้คล่องแคล่ว ลูกค้าไม่ต้องยืนรอนาน</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 1: สถาปัตยกรรมอัตลักษณ์แบรนด์บนแอปพลิเคชันมือถือ -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="brand-theming" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#065FD4] mb-1">
+            <span>หัวข้อที่ 1 • BRAND UX THEMING & VISUAL IDENTITY</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            สถาปัตยกรรมอัตลักษณ์แบรนด์บนแอปพลิเคชันมือถือ (Visual Branding Consistency)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              ในบทที่ 3 นักศึกษาได้ผ่านการออกแบบ <strong>Design Tokens</strong> และวางชุดสีตามกฎ <strong>60-30-10</strong> บนโปรแกรม Figma มาแล้ว เมื่อนำมาประยุกต์ใช้ในการสร้างแอปพลิเคชันบน AppSheet การนำรหัสสีเหล่านั้นมาติดตั้งให้ถูกต้องถือเป็นขั้นตอนสำคัญในการสร้างความเชื่อมั่น (Brand Credibility) ให้กับผู้ใช้งาน
+            </p>
+            <p>
+              แอปพลิเคชันระดับองค์กรที่ไม่มีการปรับแต่งแบรนด์ (ปล่อยให้เป็นธีมสีฟ้าหรือสีเทามาตรฐานเริ่มต้น) มักถูกผู้ใช้มองว่าเป็น "ระบบทดลองที่ยังไม่เสร็จ" ในขณะที่แอปที่มีโลโก้ สีสัน และภาพต้อนรับที่ประณีต จะสร้างความคุ้นเคยและเพิ่มอัตราการยอมรับใช้งาน (User Adoption) ได้อย่างมีนัยสำคัญ
+            </p>
+          </div>
+
+          <!-- กฎ 60-30-10 บน Mobile UI -->
+          <div class="my-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-sm text-[#0F0F0F]">60% สีพื้นฐาน (Neutral/Base)</span>
+                <span class="w-4 h-4 rounded-full bg-white border border-zinc-300"></span>
+              </div>
+              <p class="text-zinc-600">
+                คือสีพื้นหลังของแอปพลิเคชัน (สีขาว <code class="font-mono text-[11px]">#FFFFFF</code> หรือสีเทาอ่อน <code class="font-mono text-[11px]">#F8F8F8</code>) ช่วยให้พื้นที่หน้าจอโปร่งตา อ่านเนื้อหาได้ง่ายเป็นเวลานานโดยไม่เมื่อยล้าสายตา
+              </p>
+            </div>
+            <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-sm text-[#0F0F0F]">30% สีโครงสร้าง (Structural)</span>
+                <span class="w-4 h-4 rounded-full bg-zinc-800"></span>
+              </div>
+              <p class="text-zinc-600">
+                คือสีของข้อความหลัก หัวเรื่อง เส้นขอบการ์ด และแถบการจัดหมวดหมู่ (เช่น <code class="font-mono text-[11px]">#0F0F0F</code> หรือ <code class="font-mono text-[11px]">#333333</code>) ช่วยสร้างความคมชัดในการอ่าน
+              </p>
+            </div>
+            <div class="p-4 bg-red-50 rounded-xl border border-red-200">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-sm text-[#FF0000]">10% สีแบรนด์เน้น (Accent/CTA)</span>
+                <span class="w-4 h-4 rounded-full bg-[#FF0000]"></span>
+              </div>
+              <p class="text-red-900">
+                คือสีหลักของแบรนด์ (Primary Theme Color) ที่ใช้เฉพาะจุดสำคัญ เช่น ปุ่มกด Action, ไอคอนที่กำลังเลือก, แถบสถานะความคืบหน้า เพื่อชี้นำสายตาผู้ใช้ไปยังสิ่งที่สำคัญที่สุด
+              </p>
+            </div>
+          </div>
+
+          <!-- ตารางแมปรหัสสี Design Tokens สู่ AppSheet -->
+          <div class="my-6 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div class="bg-[#F8F8F8] px-5 py-3 border-b border-[#E5E5E5] flex items-center justify-between">
+              <h3 class="font-bold text-xs text-[#0F0F0F] uppercase tracking-wider">
+                ตารางแมป Figma Design Tokens เข้าสู่การตั้งค่า AppSheet Brand Settings
+              </h3>
+              <span class="text-[11px] font-mono text-[#606060]">Theme & Brand Matrix</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-zinc-50 border-b border-[#E5E5E5] text-[#606060]">
+                  <tr>
+                    <th class="p-3 w-1/4">องค์ประกอบของแบรนด์</th>
+                    <th class="p-3 w-1/4">ข้อกำหนด Design Token (Figma)</th>
+                    <th class="p-3 w-1/4">ตำแหน่งใน AppSheet Settings</th>
+                    <th class="p-3 w-1/4">คำแนะนำเชิงวิชาการ (Best Practices)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E5E5E5] text-[#0F0F0F]">
+                  <tr>
+                    <td class="p-3 font-bold">สีหลักของแบรนด์ (Primary Color)</td>
+                    <td class="p-3 font-mono text-[#065FD4]">HEX Code (เช่น #FF0000, #065FD4)</td>
+                    <td class="p-3 font-medium">Settings ➔ Theme & Brand ➔ <strong>Primary color</strong></td>
+                    <td class="p-3 text-[#606060]">เลือกรหัสสีหลักของแบรนด์ตนเอง หลีกเลี่ยงสีที่สว่างเกินไปจนกลืนกับสีขาว</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold">ธีมพื้นหลัง (App Style Mode)</td>
+                    <td class="p-3">Light Mode / Dark Mode Tokens</td>
+                    <td class="p-3 font-medium">Settings ➔ Theme & Brand ➔ <strong>Theme</strong></td>
+                    <td class="p-3 text-[#606060]">แนะนำเลือก <strong>Light</strong> สำหรับแอปพลิเคชันธุรกิจหน้าร้าน เพื่อให้อ่านตัวเลขและบาร์โค้ดได้ชัดเจนกลางแจ้ง</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold">โลโก้แอปพลิเคชัน (App Logo)</td>
+                    <td class="p-3">Vector SVG หรือ PNG 512x512 px (1:1 Square)</td>
+                    <td class="p-3 font-medium">Settings ➔ Theme & Brand ➔ <strong>App logo</strong></td>
+                    <td class="p-3 text-[#606060]">ต้องเป็นไฟล์พื้นหลังโปร่งใส (Transparent) ไม่บิดเบี้ยว เพื่อให้ระบบครอบเป็นวงกลมบนมือถือได้สวยงาม</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold">หน้าเปิดแอป (Launch Screen)</td>
+                    <td class="p-3">Mobile Splash Screen (1080x1920 px)</td>
+                    <td class="p-3 font-medium">Settings ➔ Theme & Brand ➔ <strong>Launch image</strong></td>
+                    <td class="p-3 text-[#606060]">ภาพต้อนรับตอนโหลดข้อมูลครั้งแรก ควรมีโลโก้และสโลแกนร้านตรงกลางภาพ</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold">ชื่อแอปบนหัวหน้าจอ (Header Title)</td>
+                    <td class="p-3">Brand Typography Header</td>
+                    <td class="p-3 font-medium">Settings ➔ Theme & Brand ➔ <strong>Show app name in header</strong></td>
+                    <td class="p-3 text-[#606060]">เปิด <strong>ON</strong> เพื่อให้พนักงานและลูกค้ามองเห็นชื่อระบบอย่างชัดเจนตลอดเวลา</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold">โลโก้บนหัวหน้าจอ (Header Logo)</td>
+                    <td class="p-3">Micro Icon Header Token</td>
+                    <td class="p-3 font-medium">Settings ➔ Theme & Brand ➔ <strong>Show logo in header</strong></td>
+                    <td class="p-3 text-[#606060]">เปิด <strong>ON</strong> เพื่อประดับโลโก้ขนาดย่อที่มุมบนซ้าย เพิ่มความรู้สึกระดับมืออาชีพ</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Click-by-Click Guide to AppSheet Theme Setup -->
+          <div class="my-6 bg-gradient-to-r from-zinc-900 to-zinc-800 text-white rounded-2xl p-6 shadow-md">
+            <h4 class="font-bold text-sm text-white mb-3 flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-[#FF0000] text-white flex items-center justify-center text-xs">🛠️</span>
+              ขั้นตอนการตั้งค่าธีมแบรนด์ใน AppSheet แบบ Click-by-Click
+            </h4>
+            <ol class="space-y-3 text-xs text-zinc-300 list-decimal pl-5">
+              <li>เปิดโปรเจกต์ใน AppSheet Editor ➔ คลิกเมนู <strong>Settings</strong> (ไอคอนรูปฟันเฟืองทางซ้าย)</li>
+              <li>เลือกแท็บ <strong>Theme & Brand</strong> จากเมนูย่อย</li>
+              <li>ในส่วน <strong>Primary color</strong>: คลิกเลือกสีที่สอดคล้องกับแบรนด์ หรือพิมพ์รหัส HEX ประจำกลุ่ม</li>
+              <li>ในส่วน <strong>Theme</strong>: เลือก <strong>Light</strong> (แนะนำสำหรับงานปฏิบัติการหน้าร้าน)</li>
+              <li>ในส่วน <strong>App logo</strong>: คลิก <em>Custom</em> ➔ วางลิงก์รูปภาพ หรืออัปโหลดรูปภาพโลโก้ขนาด 1:1 จาก Google Drive</li>
+              <li>ในส่วน <strong>Launch image</strong>: เลือกภาพกราฟิกเปิดแอป หรือใส่ภาพพื้นหลังที่กลมกลืนกับแบรนด์</li>
+              <li>เปิดสวิตช์ <strong>Show app name in header</strong> เป็น <code class="bg-black/50 text-[#2BA640] px-2 py-0.5 rounded font-mono font-bold">ON</code></li>
+              <li>เปิดสวิตช์ <strong>Show logo in header</strong> เป็น <code class="bg-black/50 text-[#2BA640] px-2 py-0.5 rounded font-mono font-bold">ON</code></li>
+              <li>กดปุ่ม <strong>Save</strong> สีฟ้าที่มุมขวาบน ➔ สังเกตหน้าจอจำลอง (Mobile Emulator) ด้านขวาจะเปลี่ยนสีและโลโก้ทันที</li>
+            </ol>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 2: รูปแบบคำสั่งเชิงพฤติกรรม (Command Pattern ผ่าน Action) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="command-pattern" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#2BA640] mb-1">
+            <span>หัวข้อที่ 2 • BEHAVIORAL COMMAND PATTERN</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            รูปแบบคำสั่งเชิงพฤติกรรม (Command Pattern ผ่าน Action Buttons)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              ในวิศวกรรมซอฟต์แวร์ <strong>Command Pattern</strong> คือรูปแบบการออกแบบ (Design Pattern) ในกลุ่มเชิงพฤติกรรม (Behavioral) ที่มีหลักการสำคัญคือ <em>"การห่อหุ้มคำสั่งการทำงานหรือคำร้องขอทั้งหมด ให้กลายเป็นอ็อบเจกต์เดี่ยว ๆ ที่เรียกใช้ได้ด้วยคำสั่งเดียว"</em>
+            </p>
+            <p>
+              ในแพลตฟอร์ม AppSheet แนวคิดนี้ถูกนำมาพัฒนาเป็นฟังก์ชันที่เรียกว่า <strong>Action Buttons</strong> ซึ่งช่วยให้ผู้พัฒนาสามารถสร้างปุ่มลัดที่เมื่อแตะแล้ว ระบบจะประมวลผลคำสั่งที่ซับซ้อนทันที เช่น การโทรศัพท์, การเปลี่ยนสถานะข้อมูล, การบันทึกเวลาปัจจุบัน หรือการนำทางไปยังหน้าจอที่กำหนด โดยที่ผู้ใช้ไม่ต้องรับรู้ถึงความซับซ้อนเบื้องหลัง
+            </p>
+          </div>
+
+          <!-- โครงสร้าง Action Settings Matrix 4 ส่วนสำคัญ -->
+          <div class="my-8 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div class="bg-[#F8F8F8] px-5 py-3 border-b border-[#E5E5E5] flex items-center justify-between">
+              <h3 class="font-bold text-xs text-[#0F0F0F] uppercase tracking-wider">
+                โครงสร้างสถาปัตยกรรมการกำหนดค่า Action (Action Settings Matrix)
+              </h3>
+              <span class="text-[11px] font-mono text-[#606060]">4 Core Pillars</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E5E5E5] text-xs">
+              <div class="p-5 space-y-4">
+                <div class="flex items-start gap-3">
+                  <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">1</span>
+                  <div>
+                    <h4 class="font-bold text-sm text-[#0F0F0F]">ขอบเขตตาราง (For a record of this table)</h4>
+                    <p class="text-[#606060] mt-1 leading-relaxed">
+                      กำหนดว่า Action นี้จะผูกติดกับตารางข้อมูลใด เช่น ตาราง <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">Orders</code>, <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">Appointments</code> หรือ <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">Borrow_Requests</code> โดยระบบจะดึงคอลัมน์ทั้งหมดของตารางนั้นมาให้เลือกใช้งาน
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-3 pt-3 border-t border-[#E5E5E5]">
+                  <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">2</span>
+                  <div>
+                    <h4 class="font-bold text-sm text-[#0F0F0F]">พฤติกรรมที่ต้องทำ (Do this)</h4>
+                    <p class="text-[#606060] mt-1 leading-relaxed">
+                      กำหนดชนิดของพฤติกรรมที่ระบบต้องปฏิบัติการเมื่อถูกกด แบ่งเป็นกลุ่มหลัก:
+                    </p>
+                    <ul class="list-disc pl-5 mt-1.5 space-y-1 text-zinc-700">
+                      <li><strong>Data: set values of some columns:</strong> เปลี่ยนแปลงค่าในแถว (เช่น เปลี่ยนสถานะ)</li>
+                      <li><strong>External: open a phone call:</strong> ส่ง Intent เปิดแอปโทรศัพท์บนเครื่อง</li>
+                      <li><strong>App: go to another view:</strong> นำทางไปยังมุมมองอื่นแบบ Deep-link</li>
+                      <li><strong>Grouped: execute a sequence:</strong> รวมหลาย Action ให้ทำงานต่อเนื่องกัน</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-5 space-y-4">
+                <div class="flex items-start gap-3">
+                  <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">3</span>
+                  <div>
+                    <h4 class="font-bold text-sm text-[#0F0F0F]">ตำแหน่งการแสดงผล (Prominence)</h4>
+                    <p class="text-[#606060] mt-1 leading-relaxed">
+                      กำหนดการจัดวางปุ่มบนหน้าจอสมาร์ตโฟน:
+                    </p>
+                    <ul class="list-disc pl-5 mt-1.5 space-y-1 text-zinc-700">
+                      <li><strong>Display inline:</strong> ปุ่มแนบข้างฟิลด์ข้อมูล (เหมาะกับปุ่มโทรศัพท์ข้างเบอร์โทร)</li>
+                      <li><strong>Display prominently:</strong> ปุ่มเด่นบนแถบ Action ด้านบนหรือล่างของการ์ด</li>
+                      <li><strong>Display overlay:</strong> ปุ่มลอย (Floating Action Button) มุมขวาล่าง</li>
+                      <li><strong>Do not display:</strong> ซ่อนปุ่มไว้เบื้องหลัง สำหรับเรียกผ่าน Grouped Action</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-3 pt-3 border-t border-[#E5E5E5]">
+                  <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">4</span>
+                  <div>
+                    <h4 class="font-bold text-sm text-[#0F0F0F]">เงื่อนไขและความปลอดภัย (Behavior)</h4>
+                    <p class="text-[#606060] mt-1 leading-relaxed">
+                      ควบคุมว่าจะให้ปุ่มนี้ปรากฏในจังหวะใด และต้องยืนยันหรือไม่:
+                    </p>
+                    <ul class="list-disc pl-5 mt-1.5 space-y-1 text-zinc-700">
+                      <li><strong>Only if this condition is true:</strong> สูตรบูลีนควบคุมการมองเห็น</li>
+                      <li><strong>Needs confirmation?:</strong> เปิดใช้ไดอะล็อกยืนยันก่อนทำงานจริง</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 3: สถาปัตยกรรมการจัดวางปุ่ม (Action Prominence & UI Layout) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="action-types" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FB8C00] mb-1">
+            <span>หัวข้อที่ 3 • ACTION PROMINENCE & TOUCH ERGONOMICS</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            สถาปัตยกรรมการจัดวางปุ่ม (Action Prominence & Ergonomics)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              การเลือกตำแหน่งของปุ่ม Action ส่งผลโดยตรงต่อความสะดวกในการใช้งานตามหลักสรีรศาสตร์ของนิ้วโป้งบนสมาร์ตโฟน (Mobile Thumb Zone) AppSheet ได้จัดเตรียมรูปแบบ Prominence ไว้ 4 รูปแบบ โดยแต่ละแบบถูกออกแบบมาเพื่อวัตถุประสงค์ที่แตกต่างกันอย่างชัดเจน:
+            </p>
+          </div>
+
+          <!-- การ์ด 4 รูปแบบ Prominence -->
+          <div class="my-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <!-- Inline -->
+            <div class="p-5 bg-white rounded-2xl border border-[#E5E5E5] shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-[#065FD4] flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                  Display inline
+                </span>
+                <span class="px-2 py-0.5 rounded bg-blue-100 text-[#065FD4] font-bold text-[10px]">แนบคอลัมน์</span>
+              </div>
+              <p class="text-[#606060] leading-relaxed">
+                ปุ่มจะถูกนำไปวางประกบเคียงข้างกับช่องข้อมูลที่เลือกผ่านตัวเลือก <em>Attach to column</em> เช่น วางไอคอนโทรศัพท์ไว้ติดกับช่องเบอร์โทรลูกค้า หรือวางไอคอนเปิดแผนที่ติดกับช่องที่อยู่
+              </p>
+              <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <div class="text-[11px] font-bold text-zinc-700 mb-1">ตัวอย่างการใช้งานจริง:</div>
+                <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-zinc-200">
+                  <div>
+                    <div class="text-[10px] text-zinc-400 uppercase font-mono">เบอร์โทรศัพท์ลูกค้า</div>
+                    <div class="font-bold text-zinc-800">089-123-4567</div>
+                  </div>
+                  <button class="w-8 h-8 rounded-full bg-blue-50 text-[#065FD4] flex items-center justify-center border border-blue-200 shadow-sm" title="จำลองปุ่มโทร">
+                    📞
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Prominently -->
+            <div class="p-5 bg-white rounded-2xl border border-[#E5E5E5] shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-[#FF0000] flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                  Display prominently
+                </span>
+                <span class="px-2 py-0.5 rounded bg-red-100 text-[#FF0000] font-bold text-[10px]">ปุ่มเด่นบนหัว</span>
+              </div>
+              <p class="text-[#606060] leading-relaxed">
+                ปุ่มจะปรากฏเป็นปุ่มคำสั่งหลักที่เห็นชัดเจนบนแถบด้านบน (Action Bar) ในหน้า Detail View หรืออยู่บริเวณส่วนล่างของการ์ดรายการ เหมาะสำหรับปุ่มเปลี่ยนสถานะที่เป็นคำสั่งถัดไปของกระบวนการ
+              </p>
+              <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <div class="text-[11px] font-bold text-zinc-700 mb-1">ตัวอย่างการใช้งานจริง:</div>
+                <button class="w-full py-2 bg-[#FF0000] text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+                  <span>💰 ยืนยันรับเงินสด (฿150)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Overlay -->
+            <div class="p-5 bg-white rounded-2xl border border-[#E5E5E5] shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-[#2BA640] flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  Display overlay
+                </span>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-[#2BA640] font-bold text-[10px]">ปุ่มลอย FAB</span>
+              </div>
+              <p class="text-[#606060] leading-relaxed">
+                ปุ่มจะลอยอยู่เหนือเนื้อหาที่มุมขวาล่างของหน้าจอ (Floating Action Button: FAB) เข้าถึงได้ง่ายด้วยนิ้วโป้งมือขวา เหมาะกับการเพิ่มรายการใหม่ เช่น <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">[+] สั่งซื้อเพิ่ม</code> หรือการสแกนด่วน
+              </p>
+              <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200 flex justify-end">
+                <div class="w-10 h-10 rounded-full bg-[#2BA640] text-white flex items-center justify-center shadow-lg font-bold text-lg">
+                  +
+                </div>
+              </div>
+            </div>
+
+            <!-- Do not display -->
+            <div class="p-5 bg-white rounded-2xl border border-[#E5E5E5] shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-[#606060] flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
+                  Do not display
+                </span>
+                <span class="px-2 py-0.5 rounded bg-zinc-200 text-zinc-700 font-bold text-[10px]">ซ่อนเบื้องหลัง</span>
+              </div>
+              <p class="text-[#606060] leading-relaxed">
+                ไม่แสดงปุ่มใด ๆ บนหน้าจอของผู้ใช้ แต่เก็บ Action นี้ไว้ให้ระบบเรียกใช้งานอัตโนมัติ (Automation Bot) หรือนำไปเป็นส่วนประกอบใน <em>Grouped: execute a sequence of actions</em>
+              </p>
+              <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200 text-[10px] text-zinc-500 italic">
+                ⚙️ เบื้องหลัง: คำสั่งหักสต็อกสินค้าอัตโนมัติเมื่อออร์เดอร์เสร็จสิ้น
+              </div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 4: สถาปัตยกรรมสถานะของข้อมูล (State Machine Pattern) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="state-machine" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 4 • STATE MACHINE PATTERN & DATA INTEGRITY</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            สถาปัตยกรรมสถานะของข้อมูล (Finite State Machine Pattern)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              ในโลกธุรกิจจริง เอกสารหรือรายการข้อมูลทุกระเบียน (Record) มี <strong>"วงจรชีวิต (Lifecycle)"</strong> ตั้งแต่เริ่มต้นจนกระทั่งเสร็จสิ้น เช่น ออร์เดอร์ร้านอาหารจะเริ่มต้นที่สถานะรอชำระเงิน เมื่อชำระแล้วจะเข้าสู่สถานะกำลังปรุง และสิ้นสุดเมื่อส่งมอบให้อาหารแก่ลูกค้า
+            </p>
+            <p>
+              แนวคิด <strong>Finite State Machine (FSM)</strong> กำหนดว่า ณ เวลาใดเวลาหนึ่ง ข้อมูลจะสามารถมีสถานะได้เพียง <em>"สถานะเดียวเท่านั้น"</em> และการเปลี่ยนผ่านจากสถานะหนึ่งไปยังอีกสถานะหนึ่ง (State Transition) จะต้องเกิดจาก <strong>"เหตุการณ์หรือคำสั่งที่ถูกต้องตามกฎเกณฑ์"</strong> เสมอ
+            </p>
+          </div>
+
+          <!-- แผนผังจำลองวงจรสถานะ FSM (State Diagram UI) -->
+          <div class="my-6 bg-zinc-900 text-white p-6 rounded-2xl border border-zinc-800 shadow-md">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800">
+              <span class="text-xs font-bold uppercase text-zinc-300 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#FF0000] pulse-dot"></span>
+                แผนผังการเปลี่ยนผ่านสถานะ (Finite State Transition Flow)
+              </span>
+              <span class="text-[10px] font-mono text-zinc-400">Order Lifecycle Architecture</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center">
+              <!-- State 1 -->
+              <div class="p-3 bg-zinc-800/80 rounded-xl border border-amber-500/30 flex flex-col justify-between">
+                <div class="text-[10px] text-amber-400 font-mono font-bold uppercase">สถานะที่ 1</div>
+                <div class="text-sm font-bold text-white my-1">Pending</div>
+                <div class="text-[10px] text-zinc-400">รอชำระเงินสด / โอน</div>
+                <div class="mt-2 text-[10px] text-amber-300 bg-amber-950/60 py-0.5 rounded border border-amber-700/50">
+                  ปุ่ม: [💰 รับชำระเงิน]
+                </div>
+              </div>
+
+              <!-- State 2 -->
+              <div class="p-3 bg-zinc-800/80 rounded-xl border border-blue-500/30 flex flex-col justify-between">
+                <div class="text-[10px] text-blue-400 font-mono font-bold uppercase">สถานะที่ 2</div>
+                <div class="text-sm font-bold text-white my-1">Paid</div>
+                <div class="text-[10px] text-zinc-400">ชำระเงินครบถ้วน</div>
+                <div class="mt-2 text-[10px] text-blue-300 bg-blue-950/60 py-0.5 rounded border border-blue-700/50">
+                  ปุ่ม: [☕ เริ่มชงเครื่องดื่ม]
+                </div>
+              </div>
+
+              <!-- State 3 -->
+              <div class="p-3 bg-zinc-800/80 rounded-xl border border-purple-500/30 flex flex-col justify-between">
+                <div class="text-[10px] text-purple-400 font-mono font-bold uppercase">สถานะที่ 3</div>
+                <div class="text-sm font-bold text-white my-1">Brewing</div>
+                <div class="text-[10px] text-zinc-400">บาริสต้ากำลังชง</div>
+                <div class="mt-2 text-[10px] text-purple-300 bg-purple-950/60 py-0.5 rounded border border-purple-700/50">
+                  ปุ่ม: [✅ เสิร์ฟเสร็จสิ้น]
+                </div>
+              </div>
+
+              <!-- State 4 -->
+              <div class="p-3 bg-zinc-800/80 rounded-xl border border-emerald-500/30 flex flex-col justify-between">
+                <div class="text-[10px] text-emerald-400 font-mono font-bold uppercase">สถานะที่ 4 (สิ้นสุด)</div>
+                <div class="text-sm font-bold text-white my-1">Completed</div>
+                <div class="text-[10px] text-zinc-400">ส่งมอบเรียบร้อย</div>
+                <div class="mt-2 text-[10px] text-emerald-300 bg-emerald-950/60 py-0.5 rounded border border-emerald-700/50">
+                  (ไม่มีปุ่มดำเนินการต่อ)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- หัวใจของ State Machine: Dynamic Action Visibility -->
+          <div class="my-6 space-y-3">
+            <h3 class="font-bold text-base text-[#0F0F0F]">
+              4.1 หัวใจของ State Machine: การเปลี่ยนปุ่มตามสถานะ (Dynamic Actions)
+            </h3>
+            <p class="text-xs sm:text-sm text-[#606060] leading-relaxed">
+              ผู้ใช้ไม่ควรเห็นปุ่ม "เสิร์ฟเสร็จสิ้น" ในขณะที่ลูกค้ายังไม่ได้ชำระเงิน! เราจึงต้องใช้สูตร <strong><code class="font-mono text-[#065FD4]">Only if this condition is true</code></strong> เพื่อล็อกปุ่มให้แสดงเฉพาะช่วงเวลาที่ถูกต้องตามลำดับ:
+            </p>
+          </div>
+
+          <!-- ตาราง Matrix การกำหนดปุ่มและสูตร Only if -->
+          <div class="my-6 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div class="bg-[#F8F8F8] px-5 py-3 border-b border-[#E5E5E5]">
+              <h4 class="font-bold text-xs text-[#0F0F0F] uppercase tracking-wider">
+                ตารางเมทริกซ์การกำหนดค่า State Transition Actions
+              </h4>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-zinc-50 border-b border-[#E5E5E5] text-[#606060]">
+                  <tr>
+                    <th class="p-3 w-1/4">ชื่อปุ่ม Action</th>
+                    <th class="p-3 w-1/3">คำสั่งที่ระบบทำ (Do this: Data Mutation)</th>
+                    <th class="p-3 w-5/12">เงื่อนไขแสดงปุ่ม (Only if this condition is true)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E5E5E5] text-[#0F0F0F]">
+                  <tr>
+                    <td class="p-3 font-bold text-blue-700">1. [💰 ยืนยันรับชำระเงิน]</td>
+                    <td class="p-3 font-mono">Set Order_Status = "Paid"</td>
+                    <td class="p-3 font-mono text-[#FF0000] bg-red-50/40 flex items-center justify-between">
+                      <span>[Order_Status] = "Pending"</span>
+                      <button onclick="copyText('[Order_Status] = &quot;Pending&quot;', this)" class="text-[10px] text-[#065FD4] hover:underline font-sans ml-2">คัดลอก</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold text-purple-700">2. [☕ เริ่มชงเครื่องดื่ม]</td>
+                    <td class="p-3 font-mono">Set Order_Status = "Brewing"</td>
+                    <td class="p-3 font-mono text-[#FF0000] bg-red-50/40 flex items-center justify-between">
+                      <span>[Order_Status] = "Paid"</span>
+                      <button onclick="copyText('[Order_Status] = &quot;Paid&quot;', this)" class="text-[10px] text-[#065FD4] hover:underline font-sans ml-2">คัดลอก</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold text-emerald-700">3. [✅ ส่งมอบสินค้าเรียบร้อย]</td>
+                    <td class="p-3 font-mono">Set Order_Status = "Completed"</td>
+                    <td class="p-3 font-mono text-[#FF0000] bg-red-50/40 flex items-center justify-between">
+                      <span>[Order_Status] = "Brewing"</span>
+                      <button onclick="copyText('[Order_Status] = &quot;Brewing&quot;', this)" class="text-[10px] text-[#065FD4] hover:underline font-sans ml-2">คัดลอก</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ระบบยืนยันความปลอดภัย Action Confirmation Prompt -->
+          <div class="my-6 bg-amber-50/60 border border-amber-200 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">⚠️</span>
+              <h3 class="font-bold text-sm text-amber-900">4.2 ความปลอดภัย: ระบบยืนยันคำสั่ง (Action Confirmation Prompt)</h3>
+            </div>
+            <p class="text-xs text-amber-950 leading-relaxed">
+              ในขั้นตอนสำคัญที่เกี่ยวข้องกับการเงินหรือการปิดจบงาน การแตะหน้าจอโดยไม่ตั้งใจ (Accidental Tap หรือ Fat-finger error) อาจทำให้เกิดความเสียหายทางธุรกิจ เช่น พนักงานเผลอไปแตะรับเงิน ทั้ง ๆ ที่ลูกค้ายังไม่ได้สแกนจ่ายเงินจริง
+            </p>
+            <div class="p-3 bg-white rounded-xl border border-amber-300 space-y-2 text-xs">
+              <div class="font-bold text-amber-900">การตั้งค่าใน AppSheet (Behavior ➔ Confirmation):</div>
+              <ul class="list-disc pl-5 space-y-1 text-zinc-700">
+                <li>ทำเครื่องหมายถูกที่ช่อง <code class="font-mono font-bold text-amber-800">[✓] Needs confirmation?</code></li>
+                <li>ใส่สูตรข้อความแจ้งเตือนแบบไดนามิกในช่อง <strong>Confirmation Message:</strong></li>
+              </ul>
+              <div class="p-2.5 bg-zinc-900 text-amber-300 font-mono text-xs rounded-lg flex items-center justify-between">
+                <code>="คุณได้รับเงินสดจำนวน " & TEXT([Total_Amount], "#,##0.00") & " บาท เรียบร้อยแล้วใช่หรือไม่?"</code>
+                <button onclick="copyText('=&quot;คุณได้รับเงินสดจำนวน &quot; & TEXT([Total_Amount], &quot;#,##0.00&quot;) & &quot; บาท เรียบร้อยแล้วใช่หรือไม่?&quot;', this)" class="text-white hover:text-amber-200 text-[10px] bg-zinc-800 px-2 py-1 rounded ml-2 shrink-0">คัดลอกสูตร</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 5: เวิร์กช็อป 3 โมเดลธุรกิจ (Tri-Archetype Deep Dive) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="archetypes" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#065FD4] mb-1">
+            <span>หัวข้อที่ 5 • TRI-ARCHETYPE IMPLEMENTATION WORKSHOP</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            เวิร์กช็อปปฏิบัติการ: ติดตั้งธีมแบรนด์และ Actions สำหรับ 3 ธุรกิจต้นแบบ
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              เลือกศึกษาและปฏิบัติตามแนวทางของธุรกิจประจำกลุ่มของนักศึกษา แต่ละโมเดลจะมีการกำหนดรหัสสีแบรนด์, ไอคอน, ชนิด Action, และสูตรเงื่อนไข State Machine ที่ออกแบบมาสำหรับบริบทงานนั้นโดยเฉพาะ:
+            </p>
+          </div>
+
+          <!-- Tri-Archetype Switcher Tabs -->
+          <div class="my-6 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div class="flex border-b border-[#E5E5E5] bg-[#F8F8F8] p-1.5 gap-1.5">
+              <button 
+                id="archTabFreshbrew" 
+                onclick="switchArchetype('freshbrew')" 
+                class="arch-tab flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-2">
+                <span>☕</span>
+                <span>Fresh Brew Cafe</span>
+              </button>
+              <button 
+                id="archTabHappypaws" 
+                onclick="switchArchetype('happypaws')" 
+                class="arch-tab flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-2">
+                <span>🐾</span>
+                <span>Happy Paws Care</span>
+              </button>
+              <button 
+                id="archTabSmartborrow" 
+                onclick="switchArchetype('smartborrow')" 
+                class="arch-tab flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-2">
+                <span>📦</span>
+                <span>Smart Borrow</span>
+              </button>
+            </div>
+
+            <!-- Content: Fresh Brew -->
+            <div id="archContentFreshbrew" class="p-6 space-y-6">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-[#6F4E37] text-white flex items-center justify-center text-2xl shadow-md">
+                    ☕
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-base text-[#0F0F0F]">Fresh Brew Cafe & Bakery</h3>
+                    <div class="text-xs text-[#606060]">ธุรกิจค้าปลีก ร้านกาแฟ และเบเกอรี่ (Retail & Food Ordering)</div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-block px-2.5 py-1 rounded bg-[#6F4E37]/10 text-[#6F4E37] text-xs font-mono font-bold border border-[#6F4E37]/20">
+                    Primary: #6F4E37 (Espresso)
+                  </span>
+                </div>
+              </div>
+
+              <!-- Action 1: โทรหาลูกค้า -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-blue-100 text-[#065FD4] flex items-center justify-center text-[10px] font-bold">1</span>
+                    <span>Action โทรหาลูกค้า (Inline Phone Call)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-[#065FD4] border border-blue-200">Table: Orders</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                  <li><strong>Do this:</strong> <code class="font-mono text-[#065FD4]">External: open a phone call</code></li>
+                  <li><strong>Phone number:</strong> เลือกคอลัมน์ <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded text-zinc-800">[Phone_Number]</code></li>
+                  <li><strong>Prominence:</strong> <code class="font-mono text-zinc-800">Display inline</code> ➔ Attach to: <code class="font-mono text-zinc-800">Phone_Number</code></li>
+                  <li><strong>Icon:</strong> ค้นหา <code class="font-mono">phone</code> (ไอคอนรูปโทรศัพท์)</li>
+                </ul>
+              </div>
+
+              <!-- Action 2: รับชำระเงิน -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-emerald-100 text-[#2BA640] flex items-center justify-center text-[10px] font-bold">2</span>
+                    <span>Action ยืนยันรับเงิน (Confirm Payment)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-[#2BA640] border border-emerald-200">State: Pending ➔ Paid</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                  <li><strong>Do this:</strong> <code class="font-mono text-emerald-700">Data: set the values of some columns in this row</code></li>
+                  <li><strong>Set column:</strong> <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">Order_Status</code> = <code class="font-mono text-emerald-800 font-bold">"Paid"</code></li>
+                  <li><strong>Prominence:</strong> <code class="font-mono text-zinc-800">Display prominently</code></li>
+                  <li><strong>Only if this condition is true:</strong>
+                    <div class="my-1.5 p-2 bg-zinc-900 text-white font-mono text-xs rounded flex items-center justify-between">
+                      <code>[Order_Status] = "Pending"</code>
+                      <button onclick="copyText('[Order_Status] = &quot;Pending&quot;', this)" class="text-zinc-300 hover:text-white text-[10px] bg-zinc-800 px-2 py-1 rounded">คัดลอก</button>
+                    </div>
+                  </li>
+                  <li><strong>Needs confirmation?:</strong> ติ๊กถูก <code class="font-mono text-amber-700">[✓]</code> ➔ ข้อความ: <em>"ยืนยันว่าลูกค้าได้ชำระเงินเรียบร้อยแล้วใช่หรือไม่?"</em></li>
+                </ul>
+              </div>
+
+              <!-- Action 3: เริ่มชงกาแฟ & เสิร์ฟ -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">3</span>
+                    <span>Action เริ่มชงกาแฟ (Start Brewing) & เสิร์ฟเสร็จสิ้น (Complete)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">State: Paid ➔ Brewing ➔ Completed</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                  <div class="p-3 bg-white rounded-lg border border-zinc-200">
+                    <div class="font-bold text-zinc-800 mb-1">ปุ่มเริ่มชง (Start Brewing):</div>
+                    <div>Set: <code class="font-mono">Order_Status = "Brewing"</code></div>
+                    <div class="mt-1">Only if: <code class="font-mono text-[#FF0000]">[Order_Status] = "Paid"</code></div>
+                  </div>
+                  <div class="p-3 bg-white rounded-lg border border-zinc-200">
+                    <div class="font-bold text-zinc-800 mb-1">ปุ่มเสิร์ฟเสร็จ (Complete):</div>
+                    <div>Set: <code class="font-mono">Order_Status = "Completed"</code></div>
+                    <div class="mt-1">Only if: <code class="font-mono text-[#FF0000]">[Order_Status] = "Brewing"</code></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Content: Happy Paws -->
+            <div id="archContentHappypaws" class="p-6 space-y-6 hidden">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-[#0D9488] text-white flex items-center justify-center text-2xl shadow-md">
+                    🐾
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-base text-[#0F0F0F]">Happy Paws Care</h3>
+                    <div class="text-xs text-[#606060]">ธุรกิจบริการและคลินิกสัตว์เลี้ยง (Service & Booking Appointments)</div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-block px-2.5 py-1 rounded bg-[#0D9488]/10 text-[#0D9488] text-xs font-mono font-bold border border-[#0D9488]/20">
+                    Primary: #0D9488 (Teal)
+                  </span>
+                </div>
+              </div>
+
+              <!-- Action 1: โทรหาเจ้าของ -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-blue-100 text-[#065FD4] flex items-center justify-center text-[10px] font-bold">1</span>
+                    <span>Action โทรยืนยันนัดหมายสัตว์เลี้ยง (Call Pet Owner)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-[#065FD4] border border-blue-200">Table: Appointments</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                  <li><strong>Do this:</strong> <code class="font-mono text-[#065FD4]">External: open a phone call</code></li>
+                  <li><strong>Phone number:</strong> เลือกคอลัมน์ <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded text-zinc-800">[Owner_Phone]</code></li>
+                  <li><strong>Prominence:</strong> <code class="font-mono text-zinc-800">Display inline</code> ➔ Attach to: <code class="font-mono text-zinc-800">Owner_Phone</code></li>
+                  <li><strong>Icon:</strong> ค้นหา <code class="font-mono">phone_in_talk</code></li>
+                </ul>
+              </div>
+
+              <!-- Action 2: เช็คอินรับสัตว์เลี้ยง -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-emerald-100 text-[#2BA640] flex items-center justify-center text-[10px] font-bold">2</span>
+                    <span>Action เช็คอินรับสัตว์เลี้ยงเข้าร้าน (Check-in Pet)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-[#2BA640] border border-emerald-200">State: Booked ➔ In-Service</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                  <li><strong>Do this:</strong> <code class="font-mono text-emerald-700">Data: set the values of some columns in this row</code></li>
+                  <li><strong>Set column:</strong> <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">Status</code> = <code class="font-mono text-emerald-800 font-bold">"In-Service"</code></li>
+                  <li><strong>Prominence:</strong> <code class="font-mono text-zinc-800">Display prominently</code> ➔ Icon: <code class="font-mono">pets</code></li>
+                  <li><strong>Only if this condition is true:</strong>
+                    <div class="my-1.5 p-2 bg-zinc-900 text-white font-mono text-xs rounded flex items-center justify-between">
+                      <code>[Status] = "Booked"</code>
+                      <button onclick="copyText('[Status] = &quot;Booked&quot;', this)" class="text-zinc-300 hover:text-white text-[10px] bg-zinc-800 px-2 py-1 rounded">คัดลอก</button>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Action 3: บริการเสร็จสิ้น -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">3</span>
+                    <span>Action บริการเสร็จสิ้น/แจ้งรับกลับ (Ready for Pickup)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">State: In-Service ➔ Completed</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                  <li><strong>Do this:</strong> <code class="font-mono text-purple-700">Data: set the values of some columns in this row</code></li>
+                  <li><strong>Set column:</strong> <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">Status</code> = <code class="font-mono text-purple-800 font-bold">"Completed"</code></li>
+                  <li><strong>Only if this condition is true:</strong>
+                    <div class="my-1.5 p-2 bg-zinc-900 text-white font-mono text-xs rounded flex items-center justify-between">
+                      <code>[Status] = "In-Service"</code>
+                      <button onclick="copyText('[Status] = &quot;In-Service&quot;', this)" class="text-zinc-300 hover:text-white text-[10px] bg-zinc-800 px-2 py-1 rounded">คัดลอก</button>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Content: Smart Borrow -->
+            <div id="archContentSmartborrow" class="p-6 space-y-6 hidden">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-[#2563EB] text-white flex items-center justify-center text-2xl shadow-md">
+                    📦
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-base text-[#0F0F0F]">Smart Equipment Borrow</h3>
+                    <div class="text-xs text-[#606060]">ระบบติดตามครุภัณฑ์และคลังอุปกรณ์ (Asset Tracking & Operations)</div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-block px-2.5 py-1 rounded bg-[#2563EB]/10 text-[#2563EB] text-xs font-mono font-bold border border-[#2563EB]/20">
+                    Primary: #2563EB (Tech Blue)
+                  </span>
+                </div>
+              </div>
+
+              <!-- Action 1: โทรติดตามพัสดุ -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-blue-100 text-[#065FD4] flex items-center justify-center text-[10px] font-bold">1</span>
+                    <span>Action โทรติดตามพัสดุกับผู้ยืม (Contact Borrower)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-[#065FD4] border border-blue-200">Table: Borrow_Requests</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                  <li><strong>Do this:</strong> <code class="font-mono text-[#065FD4]">External: open a phone call</code></li>
+                  <li><strong>Phone number:</strong> เลือกคอลัมน์ <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded text-zinc-800">[Requester_Phone]</code></li>
+                  <li><strong>Prominence:</strong> <code class="font-mono text-zinc-800">Display inline</code> ➔ Attach to: <code class="font-mono text-zinc-800">Requester_Phone</code></li>
+                  <li><strong>Icon:</strong> ค้นหา <code class="font-mono">contact_phone</code></li>
+                </ul>
+              </div>
+
+              <!-- Action 2: อนุมัติและปล่อยพัสดุ -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-emerald-100 text-[#2BA640] flex items-center justify-center text-[10px] font-bold">2</span>
+                    <span>Action เจ้าหน้าที่อนุมัติและปล่อยพัสดุ (Approve & Dispatch)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-[#2BA640] border border-emerald-200">State: Pending ➔ Borrowed</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                  <li><strong>Do this:</strong> <code class="font-mono text-emerald-700">Data: set the values of some columns in this row</code></li>
+                  <li><strong>Set column:</strong> <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">Status</code> = <code class="font-mono text-emerald-800 font-bold">"Borrowed"</code></li>
+                  <li><strong>Prominence:</strong> <code class="font-mono text-zinc-800">Display prominently</code> ➔ Icon: <code class="font-mono">outbox</code></li>
+                  <li><strong>Only if this condition is true:</strong>
+                    <div class="my-1.5 p-2 bg-zinc-900 text-white font-mono text-xs rounded flex items-center justify-between">
+                      <code>[Status] = "Pending"</code>
+                      <button onclick="copyText('[Status] = &quot;Pending&quot;', this)" class="text-zinc-300 hover:text-white text-[10px] bg-zinc-800 px-2 py-1 rounded">คัดลอก</button>
+                    </div>
+                  </li>
+                  <li><strong>Needs confirmation?:</strong> ติ๊กถูก <code class="font-mono text-amber-700">[✓]</code> ➔ ข้อความ: <em>"ตรวจสอบรายการอุปกรณ์ครบถ้วนก่อนส่งมอบ"</em></li>
+                </ul>
+              </div>
+
+              <!-- Action 3: บันทึกรับคืนอุปกรณ์เข้าคลัง -->
+              <div class="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">3</span>
+                    <span>Action บันทึกรับคืนอุปกรณ์เข้าคลัง (Return & Restock)</span>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">State: Borrowed ➔ Returned</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                  <li><strong>Do this:</strong> <code class="font-mono text-purple-700">Data: set the values of some columns in this row</code></li>
+                  <li><strong>Set column:</strong> <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">Status</code> = <code class="font-mono text-purple-800 font-bold">"Returned"</code></li>
+                  <li><strong>Only if this condition is true:</strong>
+                    <div class="my-1.5 p-2 bg-zinc-900 text-white font-mono text-xs rounded flex items-center justify-between">
+                      <code>[Status] = "Borrowed"</code>
+                      <button onclick="copyText('[Status] = &quot;Borrowed&quot;', this)" class="text-zinc-300 hover:text-white text-[10px] bg-zinc-800 px-2 py-1 rounded">คัดลอก</button>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 6: สมาร์ตโฟนจำลองแบบอินเตอร์แอคทีฟ (Interactive Phone Simulator) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="phone-simulator" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#065FD4] mb-1">
+            <span>หัวข้อที่ 6 • INTERACTIVE MOBILE STATE MACHINE SIMULATOR</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            สมาร์ตโฟนจำลอง: ทดสอบการทำงานของปุ่ม Action และ State Machine จริง
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              สัมผัสประสบการณ์การใช้งานจริงบนสมาร์ตโฟนจำลองขนาด 320x640 พิกเซล แตะปุ่ม Action เพื่อสั่งงาน เช่น <strong>แตะปุ่มโทรหาลูกค้า</strong> หรือ <strong>แตะปุ่มเปลี่ยนสถานะออร์เดอร์</strong> สังเกตการแสดงผลของไดอะล็อกยืนยัน และดูว่าปุ่มบนหน้าจอจะเปลี่ยนผ่านไปตามสถานะ (State Transition) ในชีวิตจริงอย่างไร:
+            </p>
+          </div>
+
+          <!-- Phone Simulator Wrapper with Controls -->
+          <div class="my-8 bg-[#F8F8F8] border border-[#E5E5E5] rounded-3xl p-6 sm:p-10 flex flex-col lg:flex-row items-center justify-center gap-8 shadow-inner">
+            
+            <!-- PHONE FRAME (320x640) -->
+            <div class="phone-mockup shadow-2xl shrink-0">
+              <!-- Notch & Speaker -->
+              <div class="phone-notch">
+                <div class="phone-speaker"></div>
+              </div>
+
+              <!-- Phone Screen -->
+              <div class="phone-screen text-xs">
+                <!-- App Header (Dynamic Theme) -->
+                <div id="simHeader" class="bg-[#6F4E37] text-white p-3 pt-4 flex items-center justify-between shadow-sm transition-colors duration-300">
+                  <div class="flex items-center gap-2">
+                    <span id="simHeaderLogo" class="text-sm">☕</span>
+                    <span id="simAppTitle" class="font-bold text-xs truncate max-w-[170px]">Fresh Brew Cafe</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-[10px]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span class="font-mono text-zinc-200">ONLINE</span>
+                  </div>
+                </div>
+
+                <!-- Screen Body Container (Dynamic Content) -->
+                <div id="simScreenBody" class="p-3 flex-1 flex flex-col justify-between overflow-y-auto relative">
+                  <!-- Injected via JavaScript -->
+                </div>
+
+                <!-- Call Popover Modal (Inside Phone Screen) -->
+                <div id="simCallModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4 text-white text-center">
+                  <div class="w-16 h-16 rounded-full bg-blue-600/30 border-2 border-blue-400 flex items-center justify-center text-3xl mb-3 animate-pulse">
+                    📞
+                  </div>
+                  <div class="font-bold text-sm mb-1" id="simCallName">คุณวิภาดา (ลูกค้า)</div>
+                  <div class="font-mono text-xs text-blue-300 mb-4" id="simCallPhone">081-234-5678</div>
+                  <div class="text-[10px] text-zinc-400 mb-6">กำลังเชื่อมต่อสายโทรศัพท์ผ่าน Native Dialer...</div>
+                  <button onclick="simCloseCall()" class="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 transition">
+                    ✕
+                  </button>
+                  <div class="text-[9px] text-zinc-400 mt-2">แตะเพื่อวางสาย</div>
+                </div>
+
+                <!-- Confirmation Modal (Inside Phone Screen) -->
+                <div id="simConfirmModal" class="absolute inset-0 bg-black/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+                  <div class="bg-white rounded-2xl p-4 w-full shadow-2xl border border-zinc-200 text-center space-y-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-lg">
+                      ⚠️
+                    </div>
+                    <div class="font-bold text-xs text-[#0F0F0F]">ยืนยันการทำรายการ</div>
+                    <p class="text-[11px] text-zinc-600 leading-relaxed" id="simConfirmMsg">
+                      คุณได้รับเงินสดจำนวน ฿185.00 เรียบร้อยแล้วใช่หรือไม่?
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 pt-2">
+                      <button onclick="simCancelConfirm()" class="py-2 rounded-xl bg-zinc-100 text-zinc-700 font-bold text-[11px] hover:bg-zinc-200">
+                        ยกเลิก
+                      </button>
+                      <button onclick="simExecuteConfirm()" class="py-2 rounded-xl bg-[#FF0000] text-white font-bold text-[11px] hover:bg-red-700 shadow-sm">
+                        ยืนยันรับเงิน
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- CONTROLS & STATE MACHINE AUDIT LOG -->
+            <div class="w-full lg:w-96 space-y-4">
+              <div class="p-5 bg-white rounded-2xl border border-[#E5E5E5] shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold uppercase text-[#0F0F0F] tracking-wider">แผงควบคุมการจำลองสถานะ</span>
+                  <button onclick="simResetState()" class="text-xs text-[#065FD4] hover:underline flex items-center gap-1 font-medium">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>รีเซ็ตสถานะ</span>
+                  </button>
+                </div>
+
+                <!-- Current State Indicator -->
+                <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+                  <div class="text-[10px] text-zinc-500 font-bold uppercase">สถานะปัจจุบัน (Current State):</div>
+                  <div class="flex items-center justify-between">
+                    <span id="simStateLabel" class="text-sm font-bold text-[#FF0000]">Pending (รอชำระเงิน)</span>
+                    <span id="simOnlyIfBadge" class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-200 text-zinc-700">Only If: TRUE</span>
+                  </div>
+                </div>
+
+                <!-- Simulation Guide & Tips -->
+                <div class="text-xs text-zinc-600 space-y-2">
+                  <div class="font-bold text-zinc-800">คำแนะนำในการทดสอบ:</div>
+                  <ol class="list-decimal pl-4 space-y-1 text-[11px]">
+                    <li>ลองแตะไอคอน <span class="text-[#065FD4] font-bold">📞 โทรศัพท์</span> ข้างเบอร์ติดต่อ เพื่อทดสอบ Native Dialer Action</li>
+                    <li>แตะปุ่ม Action สีแดงด้านล่าง เพื่อเปิดไดอะล็อกยืนยัน <code class="font-mono text-zinc-800">Needs confirmation?</code></li>
+                    <li>เมื่อกดยืนยัน สังเกตว่าสถานะจะเปลี่ยน และปุ่มถัดไปจะปรากฏขึ้นมาแทนที่โดยอัตโนมัติ!</li>
+                  </ol>
+                </div>
+              </div>
+
+              <!-- Real-time State Audit Log -->
+              <div class="p-4 bg-zinc-900 text-zinc-300 rounded-2xl border border-zinc-800 space-y-2 font-mono text-[10px]">
+                <div class="flex items-center justify-between text-zinc-400 pb-1.5 border-b border-zinc-800">
+                  <span class="font-bold flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#2BA640] animate-pulse"></span>
+                    STATE MACHINE AUDIT LOG
+                  </span>
+                  <span class="text-[9px]">Event Stream</span>
+                </div>
+                <div id="simAuditLog" class="h-32 overflow-y-auto space-y-1 text-zinc-400 no-scrollbar">
+                  <div>[READY] Simulator initialized for Fresh Brew.</div>
+                  <div>[STATE] Current Status = 'Pending'</div>
+                  <div>[ACTION] 'Confirm Payment' visible (Only if = TRUE)</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 7: การแบ่งบทบาทหน้าที่ของสมาชิก 3 คนในทีม (Agile Triad) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="agile-team" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#2BA640] mb-1">
+            <span>หัวข้อที่ 7 • AGILE TRIAD COLLABORATION</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            การแบ่งบทบาทหน้าที่ของสมาชิก 3 คนในทีม (Agile Triad Collaboration)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพาในบทเรียนนี้ ใช้โมเดลการทำงานร่วมกันเป็นทีม 3 คน (Agile Triad) เพื่อจำลองการทำงานในบริษัทเทคโนโลยีชั้นนำ โดยแต่ละคนจะมีขอบเขตความรับผิดชอบที่เกื้อหนุนกันอย่างเป็นระบบ:
+            </p>
+          </div>
+
+          <!-- ตารางบทบาท 3 สมาชิก -->
+          <div class="my-6 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div class="bg-[#F8F8F8] px-5 py-3 border-b border-[#E5E5E5]">
+              <h3 class="font-bold text-xs text-[#0F0F0F] uppercase tracking-wider">
+                เมทริกซ์บทบาทหน้าที่และความรับผิดชอบ (Team Role Matrix)
+              </h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#E5E5E5] text-xs">
+              <!-- Member 1 -->
+              <div class="p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full bg-blue-100 text-[#065FD4] font-bold text-[10px]">สมาชิกคนที่ 1</span>
+                  <span class="text-xl">🎨</span>
+                </div>
+                <h4 class="font-bold text-sm text-[#0F0F0F]">Brand UX & Assets Manager</h4>
+                <div class="text-[11px] text-[#065FD4] font-medium">ผู้จัดการแบรนด์และภาพลักษณ์</div>
+                <ul class="list-disc pl-5 space-y-1.5 text-zinc-600">
+                  <li>นำรหัสสีจาก Figma Design Tokens มาตั้งค่า Theme Color ใน AppSheet</li>
+                  <li>เตรียมและอัปโหลดไฟล์ App Logo (สัดส่วน 1:1 ขนาด 512x512) พื้นหลังโปร่งใส</li>
+                  <li>ออกแบบและอัปโหลดภาพ Launch Image ต้อนรับเปิดแอป</li>
+                  <li>เปิดและจัดรูปแบบ Show app name และ Show logo in header</li>
+                </ul>
+              </div>
+
+              <!-- Member 2 -->
+              <div class="p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-[#2BA640] font-bold text-[10px]">สมาชิกคนที่ 2</span>
+                  <span class="text-xl">⚡</span>
+                </div>
+                <h4 class="font-bold text-sm text-[#0F0F0F]">Action & Command Engineer</h4>
+                <div class="text-[11px] text-[#2BA640] font-medium">วิศวกรปุ่มคำสั่งและพฤติกรรม</div>
+                <ul class="list-disc pl-5 space-y-1.5 text-zinc-600">
+                  <li>สร้างปุ่มโทรศัพท์ <code class="font-mono">External: open a phone call</code> แบบ Inline ผูกกับเบอร์ติดต่อ</li>
+                  <li>สร้างปุ่มเปลี่ยนค่าข้อมูลในคอลัมน์สถานะ (Data Mutation)</li>
+                  <li>คัดสรรไอคอนที่สื่อความหมายชัดเจน และตั้ง Display Name ให้เข้าใจง่าย</li>
+                  <li>กำหนดตำแหน่ง Prominence ให้เหมาะสมตามหลัก Thumb Zone</li>
+                </ul>
+              </div>
+
+              <!-- Member 3 -->
+              <div class="p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 font-bold text-[10px]">สมาชิกคนที่ 3</span>
+                  <span class="text-xl">🛡️</span>
+                </div>
+                <h4 class="font-bold text-sm text-[#0F0F0F]">State Machine & QA Specialist</h4>
+                <div class="text-[11px] text-purple-700 font-medium">ผู้ควบคุมสถานะและประกันคุณภาพ</div>
+                <ul class="list-disc pl-5 space-y-1.5 text-zinc-600">
+                  <li>เขียนสูตรเงื่อนไข <code class="font-mono">Only if this condition is true</code> กำกับปุ่มทุกสถานะ</li>
+                  <li>เปิดใช้ระบบยืนยันความปลอดภัย <code class="font-mono">Needs confirmation?</code> พร้อมเขียนสูตรข้อความเตือน</li>
+                  <li>ทดสอบการทำงานของปุ่มทั้งหมดบนสมาร์ตโฟนจริง (Physical Device Testing)</li>
+                  <li>ตรวจสอบความถูกต้องตามเกณฑ์รูบริก 10 คะแนนก่อนส่งงาน</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 8: ข้อผิดพลาดที่พบบ่อยและแนวทางแก้ไข (Troubleshooting) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="troubleshooting" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FB8C00] mb-1">
+            <span>หัวข้อที่ 8 • TROUBLESHOOTING & COMMON PITFALLS</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            ข้อผิดพลาดที่พบบ่อยและแนวทางแก้ไข (Troubleshooting & Common Pitfalls)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              ในการสร้าง Action Buttons และการปรับแต่งธีม นักศึกษามักเผชิญกับข้อผิดพลาดทั่วไปที่ทำให้ปุ่มไม่แสดงผล หรือแตะแล้วระบบไม่ทำงานตามที่คาดหวัง ต่อไปนี้คือแนวทางการตรวจวินิจฉัยและแก้ไขปัญหาอย่างเป็นระบบ:
+            </p>
+          </div>
+
+          <!-- ตาราง 6 ปัญหาและวิธีแก้ไข -->
+          <div class="my-6 border border-[#E5E5E5] rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div class="bg-[#F8F8F8] px-5 py-3 border-b border-[#E5E5E5] flex items-center justify-between">
+              <h3 class="font-bold text-xs text-[#0F0F0F] uppercase tracking-wider">
+                ตารางวินิจฉัยอาการผิดปกติและแนวทางแก้ไข (Diagnostic Matrix)
+              </h3>
+              <span class="text-[11px] font-mono text-[#606060]">AppSheet Action Debugger</span>
+            </div>
+            <div class="divide-y divide-[#E5E5E5] text-xs">
+              <!-- Item 1 -->
+              <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start bg-white">
+                <div class="w-full sm:w-1/3">
+                  <span class="px-2 py-0.5 rounded bg-red-100 text-[#FF0000] font-bold text-[10px]">อาการที่ 1</span>
+                  <div class="font-bold text-sm text-[#0F0F0F] mt-1">ปุ่มโทรออกกดแล้วไม่เกิดอะไรขึ้น</div>
+                  <div class="text-[11px] text-zinc-500 mt-0.5">แตะไอคอนรูปโทรศัพท์แล้วระบบนิ่งสนิท ไม่เรียกแอปโทรออก</div>
+                </div>
+                <div class="w-full sm:w-2/3 space-y-1.5">
+                  <div class="text-red-700 font-bold">❌ สาเหตุ:</div>
+                  <p class="text-zinc-600">คอลัมน์เบอร์โทรศัพท์ในตารางถูกตั้งเป็นชนิด <strong>Text</strong> หรือมีตัวอักษรพิเศษที่ไม่รองรับมาตรฐานตัวเลขสากล</p>
+                  <div class="text-[#2BA640] font-bold pt-1">✅ แนวทางแก้ไข:</div>
+                  <p class="text-zinc-700">ไปที่เมนู <strong>Data ➔ Columns</strong> ➔ ตรวจสอบคอลัมน์ <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">[Phone_Number]</code> แล้วเปลี่ยน <strong>Type เป็นชนิด 'Phone'</strong> เพื่อให้ AppSheet ทราบว่าต้องเรียก Native Dialer Intent</p>
+                </div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start bg-zinc-50/50">
+                <div class="w-full sm:w-1/3">
+                  <span class="px-2 py-0.5 rounded bg-red-100 text-[#FF0000] font-bold text-[10px]">อาการที่ 2</span>
+                  <div class="font-bold text-sm text-[#0F0F0F] mt-1">ปุ่ม Action ไม่ปรากฏบนหน้าจอ</div>
+                  <div class="text-[11px] text-zinc-500 mt-0.5">สร้าง Action เรียบร้อยแล้ว แต่ไม่พบบนมือถือ</div>
+                </div>
+                <div class="w-full sm:w-2/3 space-y-1.5">
+                  <div class="text-red-700 font-bold">❌ สาเหตุ:</div>
+                  <p class="text-zinc-600">1) สูตรในช่อง <em>Only if this condition is true</em> เป็นเท็จ (FALSE) เพราะพิมพ์สะกดชื่อสถานะไม่ตรงกัน (Case-sensitive) หรือ 2) เลือก Prominence เป็น <em>Do not display</em></p>
+                  <div class="text-[#2BA640] font-bold pt-1">✅ แนวทางแก้ไข:</div>
+                  <p class="text-zinc-700">ตรวจเช็คค่าข้อความในสูตร เช่น <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">[Order_Status] = "Pending"</code> ว่าคำว่า "Pending" ตรงกับข้อมูลจริงในชีตทุกตัวอักษร และตรวจว่าเลือก Prominence เป็น <em>Display prominently</em> หรือ <em>Display inline</em></p>
+                </div>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start bg-white">
+                <div class="w-full sm:w-1/3">
+                  <span class="px-2 py-0.5 rounded bg-red-100 text-[#FF0000] font-bold text-[10px]">อาการที่ 3</span>
+                  <div class="font-bold text-sm text-[#0F0F0F] mt-1">แตะปุ่มเปลี่ยนสถานะแล้ว ข้อมูลไม่เปลี่ยน</div>
+                  <div class="text-[11px] text-zinc-500 mt-0.5">แตะปุ่มแล้วแต่ค่าในคอลัมน์ยังคงเป็นสถานะเดิม</div>
+                </div>
+                <div class="w-full sm:w-2/3 space-y-1.5">
+                  <div class="text-red-700 font-bold">❌ สาเหตุ:</div>
+                  <p class="text-zinc-600">ตารางข้อมูลถูกตั้งค่าสิทธิ์เป็น <strong>Read-Only</strong> ทำให้ระบบปฏิเสธการแก้ไขข้อมูลทุกกรณี</p>
+                  <div class="text-[#2BA640] font-bold pt-1">✅ แนวทางแก้ไข:</div>
+                  <p class="text-zinc-700">ไปที่เมนู <strong>Data ➔ Tables</strong> ➔ คลิกที่ตารางที่ต้องการ ➔ ตรวจสอบหัวข้อ <strong>Table properties</strong> ➔ เปลี่ยนสิทธิ์เป็น <strong>Updates_Only</strong> หรือ <strong>All (Adds, Updates, Deletes)</strong></p>
+                </div>
+              </div>
+
+              <!-- Item 4 -->
+              <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start bg-zinc-50/50">
+                <div class="w-full sm:w-1/3">
+                  <span class="px-2 py-0.5 rounded bg-red-100 text-[#FF0000] font-bold text-[10px]">อาการที่ 4</span>
+                  <div class="font-bold text-sm text-[#0F0F0F] mt-1">ปุ่มหลายปุ่มแสดงพร้อมกันจนสับสน</div>
+                  <div class="text-[11px] text-zinc-500 mt-0.5">พบทั้งปุ่ม "รับเงิน" และปุ่ม "เสิร์ฟเสร็จ" ปรากฏพร้อมกัน</div>
+                </div>
+                <div class="w-full sm:w-2/3 space-y-1.5">
+                  <div class="text-red-700 font-bold">❌ สาเหตุ:</div>
+                  <p class="text-zinc-600">ผู้พัฒนาลืมใส่สูตรในช่อง <em>Only if this condition is true</em> ทำให้ปุ่มแสดงตลอดเวลาโดยไม่ขึ้นกับสถานะของระเบียน</p>
+                  <div class="text-[#2BA640] font-bold pt-1">✅ แนวทางแก้ไข:</div>
+                  <p class="text-zinc-700">ใส่สูตรเงื่อนไขกำกับให้ชัดเจนตามผัง State Machine: ปุ่มรับเงินใส่ <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">[Order_Status] = "Pending"</code> และปุ่มเสิร์ฟเสร็จใส่ <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded">[Order_Status] = "Brewing"</code></p>
+                </div>
+              </div>
+
+              <!-- Item 5 -->
+              <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start bg-white">
+                <div class="w-full sm:w-1/3">
+                  <span class="px-2 py-0.5 rounded bg-red-100 text-[#FF0000] font-bold text-[10px]">อาการที่ 5</span>
+                  <div class="font-bold text-sm text-[#0F0F0F] mt-1">ข้อความยืนยัน Error หรือแสดงสูตรผิด</div>
+                  <div class="text-[11px] text-zinc-500 mt-0.5">กล่องยืนยันแสดงสูตรขึ้นมาทั้งบรรทัดแทนที่จะเป็นยอดเงิน</div>
+                </div>
+                <div class="w-full sm:w-2/3 space-y-1.5">
+                  <div class="text-red-700 font-bold">❌ สาเหตุ:</div>
+                  <p class="text-zinc-600">ลืมใส่เครื่องหมายเท่ากับ <code class="font-mono">=</code> นำหน้าสูตร หรือลืมใช้เครื่องหมาย <code class="font-mono">&</code> ในการเชื่อมข้อความ (String Concatenation)</p>
+                  <div class="text-[#2BA640] font-bold pt-1">✅ แนวทางแก้ไข:</div>
+                  <p class="text-zinc-700">ตรวจสอบสูตรให้ขึ้นต้นด้วยเครื่องหมายเท่ากับเสมอ เช่น <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded text-amber-800">="คุณได้รับเงินจำนวน " & TEXT([Total_Amount], "#,##0.00") & " บาท ใช่หรือไม่?"</code></p>
+                </div>
+              </div>
+
+              <!-- Item 6 -->
+              <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start bg-zinc-50/50">
+                <div class="w-full sm:w-1/3">
+                  <span class="px-2 py-0.5 rounded bg-red-100 text-[#FF0000] font-bold text-[10px]">อาการที่ 6</span>
+                  <div class="font-bold text-sm text-[#0F0F0F] mt-1">โลโก้หรือภาพเปิดแอปบิดเบี้ยวบนมือถือ</div>
+                  <div class="text-[11px] text-zinc-500 mt-0.5">ภาพโลโก้ยืดหรือแบน ไม่สวยงามเหมือนใน Figma</div>
+                </div>
+                <div class="w-full sm:w-2/3 space-y-1.5">
+                  <div class="text-red-700 font-bold">❌ สาเหตุ:</div>
+                  <p class="text-zinc-600">ไฟล์ภาพที่อัปโหลดไม่ได้สัดส่วนสี่เหลี่ยมจัตุรัส 1:1 หรือพื้นหลังไม่ใช่แบบโปร่งใส (Transparent PNG)</p>
+                  <div class="text-[#2BA640] font-bold pt-1">✅ แนวทางแก้ไข:</div>
+                  <p class="text-zinc-700">Export โลโก้จาก Figma ใหม่โดยเลือก Frame สี่เหลี่ยมจัตุรัส 512x512 พิกเซล บันทึกเป็น PNG พร้อมติ๊กเปิด Transparent Background ก่อนนำมาอัปโหลด</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 9: แบบตรวจสอบตนเองก่อนส่งงาน (Self-Checklist) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="checklist-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#2BA640] mb-1">
+            <span>หัวข้อที่ 9 • INTERACTIVE SELF-CHECKLIST</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            แบบตรวจสอบตนเองก่อนส่งงาน (Self-Checklist ประจำบทที่ 9)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              ให้นักศึกษาแต่ละกลุ่มตรวจสอบความพร้อมของชิ้นงานให้ครบถ้วนทุกข้อ ระบบจะบันทึกสถานะการเช็คไว้ในเบราว์เซอร์อัตโนมัติ (LocalStorage: <code class="font-mono text-xs">curriculum_ch09_checklist</code>) เพื่อความสะดวกในการติดตามความก้าวหน้า:
+            </p>
+          </div>
+
+          <!-- Checklist Container -->
+          <div class="my-6 bg-white border border-[#E5E5E5] rounded-2xl p-6 shadow-sm space-y-6">
+            <!-- Progress Header -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-[#0F0F0F] flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-[#2BA640]"></span>
+                  ความคืบหน้าการตรวจสอบชิ้นงาน
+                </span>
+                <span id="checklistPercentage" class="font-mono text-sm text-[#2BA640]">0%</span>
+              </div>
+              <div class="w-full h-2.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div id="checklistProgressBar" class="h-full bg-[#2BA640] transition-all duration-300" style="width: 0%;"></div>
+              </div>
+              <div class="flex justify-between items-center text-[11px] text-zinc-500 pt-1">
+                <span id="checklistCount">เสร็จสิ้น 0 จาก 6 ข้อหลัก</span>
+                <button onclick="resetChecklist()" class="text-zinc-400 hover:text-red-600 transition">
+                  รีเซ็ตแบบประเมิน
+                </button>
+              </div>
+            </div>
+
+            <!-- Checklist Items (6 Core Items + Sub-items) -->
+            <div class="space-y-3 text-xs text-[#0F0F0F]">
+              <!-- Item 1 -->
+              <label class="flex items-start gap-3 p-3.5 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 cursor-pointer transition">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#2BA640] focus:ring-0 cursor-pointer" onchange="updateChecklist()">
+                <div class="space-y-1">
+                  <div class="font-bold text-zinc-900">1. การปรับแต่งแบรนด์ (Brand Theming):</div>
+                  <p class="text-zinc-600 leading-relaxed">
+                    กำหนดรหัสสีหลัก (Primary Color) ตาม Figma Design Tokens, ติดตั้ง App Logo ขนาด 1:1 พื้นหลังโปร่งใส, และใส่ภาพ Launch Screen สวยงาม
+                  </p>
+                </div>
+              </label>
+
+              <!-- Item 2 -->
+              <label class="flex items-start gap-3 p-3.5 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 cursor-pointer transition">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#2BA640] focus:ring-0 cursor-pointer" onchange="updateChecklist()">
+                <div class="space-y-1">
+                  <div class="font-bold text-zinc-900">2. ปุ่มโทรศัพท์ (Inline Phone Action):</div>
+                  <p class="text-zinc-600 leading-relaxed">
+                    สร้างปุ่มโทรออกชนิด <code class="font-mono text-[#065FD4]">External: open a phone call</code> ที่ประกบข้างเบอร์โทรศัพท์ และสามารถกดโทรออกได้จริงบนสมาร์ตโฟน
+                  </p>
+                </div>
+              </label>
+
+              <!-- Item 3 -->
+              <label class="flex items-start gap-3 p-3.5 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 cursor-pointer transition">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#2BA640] focus:ring-0 cursor-pointer" onchange="updateChecklist()">
+                <div class="space-y-1">
+                  <div class="font-bold text-zinc-900">3. สถาปัตยกรรมสถานะ (State Machine Action):</div>
+                  <p class="text-zinc-600 leading-relaxed">
+                    สร้างปุ่มเปลี่ยนสถานะออร์เดอร์หรืองานบริการอย่างน้อย 2 ระดับ ที่ปรับค่าในคอลัมน์สถานะได้ถูกต้องตามลำดับ Lifecycle
+                  </p>
+                </div>
+              </label>
+
+              <!-- Item 4 -->
+              <label class="flex items-start gap-3 p-3.5 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 cursor-pointer transition">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#2BA640] focus:ring-0 cursor-pointer" onchange="updateChecklist()">
+                <div class="space-y-1">
+                  <div class="font-bold text-zinc-900">4. เงื่อนไขการแสดงผล (Only if Condition):</div>
+                  <p class="text-zinc-600 leading-relaxed">
+                    ปุ่มแต่ละสถานะแสดงและซ่อนตามเงื่อนไขอย่างถูกต้องตามสูตรตรรกะ ไม่ปรากฏซ้ำซ้อนหรือแสดงปุ่มผิดจังหวะ
+                  </p>
+                </div>
+              </label>
+
+              <!-- Item 5 -->
+              <label class="flex items-start gap-3 p-3.5 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 cursor-pointer transition">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#2BA640] focus:ring-0 cursor-pointer" onchange="updateChecklist()">
+                <div class="space-y-1">
+                  <div class="font-bold text-zinc-900">5. ระบบยืนยันความปลอดภัย (Confirmation Prompt):</div>
+                  <p class="text-zinc-600 leading-relaxed">
+                    มีการเปิดใช้ <code class="font-mono text-amber-800">Needs confirmation?</code> พร้อมเขียนสูตรข้อความแจ้งเตือนที่ชัดเจนก่อนเปลี่ยนสถานะสำคัญ
+                  </p>
+                </div>
+              </label>
+
+              <!-- Item 6 -->
+              <label class="flex items-start gap-3 p-3.5 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 cursor-pointer transition">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#2BA640] focus:ring-0 cursor-pointer" onchange="updateChecklist()">
+                <div class="space-y-1">
+                  <div class="font-bold text-zinc-900">6. การทดสอบบนมือถือจริง (Live Device Verification):</div>
+                  <p class="text-zinc-600 leading-relaxed">
+                    สมาชิกในกลุ่มเปิดแอปพลิเคชันบนสมาร์ตโฟนจริง ทดสอบแตะโทรออก และแตะเปลี่ยนสถานะได้ลื่นไหลสมบูรณ์ พร้อมแบ่งบทบาท 3 คนชัดเจน
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Celebration Badge -->
+            <div id="checklistBadge" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1 animate-fade-in">
+              <span class="text-2xl">🎉</span>
+              <div class="font-bold text-sm text-[#2BA640]">ยอดเยี่ยมมาก! ตรวจสอบครบถ้วน 100%</div>
+              <div class="text-xs text-emerald-800">ชิ้นงานของกลุ่มท่านพร้อมสำหรับการนำเสนอและรับการประเมินคะแนนเต็ม 10 แล้ว</div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 10: เกณฑ์ประเมินผลงาน 10 คะแนน (Rubric Calculator) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="rubric-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FB8C00] mb-1">
+            <span>หัวข้อที่ 10 • INTERACTIVE RUBRIC CALCULATOR</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            เกณฑ์การประเมินผลงาน 10 คะแนน (Interactive Rubric Calculator)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              เกณฑ์การประเมินผลงานตามสภาพจริงแบ่งออกเป็น <strong>5 มิติ มิติละ 2 คะแนน (รวม 10 คะแนนเต็ม)</strong> คลิกเลือกคะแนนที่สอดคล้องกับผลงานเพื่อคำนวณเกรดและรับข้อเสนอแนะเชิงวิชาการทันที:
+            </p>
+          </div>
+
+          <!-- Rubric Calculator Component -->
+          <div class="my-6 bg-white border border-[#E5E5E5] rounded-2xl p-6 shadow-sm space-y-8">
+            
+            <!-- Dimension 1 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-[#0F0F0F]">1. อัตลักษณ์แบรนด์และความสวยงาม (Brand UX & Visual Consistency)</h4>
+                <span id="rubricC1Score" class="font-mono text-xs font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc1" value="2" checked onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ดีเยี่ยม (2 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">Theme Color, โลโก้ 1:1, Launch Image สอดคล้องกับ Figma Tokens สวยงามเป็นมืออาชีพ</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc1" value="1" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">พอใช้ (1 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">ตั้งค่า Theme Color และโลโก้แล้ว แต่สัดส่วนบิดเบี้ยว หรือภาพไม่โปร่งใส</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc1" value="0" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ต้องปรับปรุง (0 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">ใช้ธีมมาตรฐานเริ่มต้น ไม่มีการเปลี่ยนสีหรือโลโก้ของแบรนด์</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Dimension 2 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-[#0F0F0F]">2. การสร้างปุ่มโทรศัพท์ภายนอก (Inline Phone Action)</h4>
+                <span id="rubricC2Score" class="font-mono text-xs font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc2" value="2" checked onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ดีเยี่ยม (2 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">สร้างปุ่ม Phone Call แบบ Display inline แนบช่องเบอร์โทร และกดโทรออกได้จริง</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc2" value="1" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">พอใช้ (1 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">สร้างปุ่มโทรได้ แต่วางตำแหน่งไม่เหมาะสม หรือตั้งค่า Column Type ผิดพลาด</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc2" value="0" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ต้องปรับปรุง (0 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">ไม่มีปุ่มโทรศัพท์ หรือกดแล้วเกิดข้อผิดพลาด</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Dimension 3 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-[#0F0F0F]">3. สถาปัตยกรรมสถานะของข้อมูล (State Machine Data Mutation)</h4>
+                <span id="rubricC3Score" class="font-mono text-xs font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc3" value="2" checked onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ดีเยี่ยม (2 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">สร้างปุ่มเปลี่ยนค่าในคอลัมน์สถานะได้ถูกต้องตามลำดับ Lifecycle ครบทุกระยะ</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc3" value="1" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">พอใช้ (1 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">เปลี่ยนสถานะได้เพียง 1 ขั้นตอน หรือกำหนดค่าในคอลัมน์ไม่สอดคล้อง</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc3" value="0" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ต้องปรับปรุง (0 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">ไม่สามารถสร้างปุ่มเปลี่ยนค่าในคอลัมน์ได้</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Dimension 4 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-[#0F0F0F]">4. การกำหนดเงื่อนไขการแสดงผล (Only if Condition Logic)</h4>
+                <span id="rubricC4Score" class="font-mono text-xs font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc4" value="2" checked onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ดีเยี่ยม (2 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">ใส่สูตร Only if รัดกุม ปุ่มแสดงและซ่อนตามสถานะถูกต้อง ไม่ปรากฏซ้ำซ้อน</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc4" value="1" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">พอใช้ (1 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">ใส่สูตรบางปุ่ม แต่ยังมีบางจังหวะที่ปุ่มปรากฏพร้อมกันสร้างความสับสน</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc4" value="0" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ต้องปรับปรุง (0 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">ไม่ได้กำหนดสูตร Only if ปุ่มแสดงค้างอยู่ตลอดเวลา</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Dimension 5 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-[#0F0F0F]">5. ระบบยืนยันความปลอดภัย & ทดสอบจริง (Confirmation & Mobile QA)</h4>
+                <span id="rubricC5Score" class="font-mono text-xs font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc5" value="2" checked onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ดีเยี่ยม (2 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">เปิดใช้ Needs confirmation? พร้อมข้อความเตือนชัดเจน และทดสอบบนมือถือจริงลื่นไหล</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc5" value="1" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">พอใช้ (1 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">มีระบบยืนยันแต่ข้อความเป็นค่าว่าง หรือทดสอบได้เฉพาะบนคอมพิวเตอร์</p>
+                    </div>
+                  </div>
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="flex items-start gap-2">
+                    <input type="radio" name="rc5" value="0" onchange="calcRubric()" class="mt-0.5">
+                    <div>
+                      <div class="font-bold text-zinc-900">ต้องปรับปรุง (0 คะแนน)</div>
+                      <p class="text-zinc-600 text-[11px] mt-1">ไม่มีระบบยืนยันความปลอดภัย และไม่สามารถสาธิตบนสมาร์ตโฟนได้</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Total Score & Diagnostic Result Card -->
+            <div class="p-6 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <div class="text-[11px] text-zinc-500 font-bold uppercase">คะแนนรวมการประเมิน (Total Score)</div>
+                  <div class="flex items-baseline gap-2 mt-1">
+                    <span id="rubricTotal" class="text-4xl font-black font-mono text-[#0F0F0F]">10</span>
+                    <span class="text-sm text-zinc-500">/ 10 คะแนน</span>
+                  </div>
+                </div>
+                <div id="rubricBadge" class="px-4 py-2 rounded-xl bg-emerald-100 text-[#2BA640] font-bold text-sm border border-emerald-300">
+                  ระดับ: ดีเยี่ยม (Mastered / Grade A)
+                </div>
+              </div>
+
+              <div id="rubricDiagnostic" class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-[#2BA640] leading-relaxed">
+                <strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ผลงานของกลุ่มท่านมีอัตลักษณ์แบรนด์ที่โดดเด่น มีสถาปัตยกรรมสถานะและการสร้าง Action Buttons ที่สมบูรณ์แบบตามหลักวิศวกรรมซอฟต์แวร์ สามารถนำไปต่อยอดเชื่อมต่อกับฮาร์ดแวร์มือถือในบทที่ 10 ได้ทันที
+              </div>
+            </div>
+
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 11: คำถามทบทวนประจำบท FAQ (Accordion) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="faq-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#606060] mb-1">
+            <span>หัวข้อที่ 11 • COMPREHENSION FAQ ACCORDION</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            คำถามทบทวนความรู้ประจำบท (Frequently Asked Questions)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-sm sm:text-base">
+            <p>
+              ทดสอบความเข้าใจเชิงลึกในมิติสถาปัตยกรรมซอฟต์แวร์และการออกแบบพฤติกรรมบนโมบายล์แอปพลิเคชัน แตะที่คำถามเพื่อเปิดอ่านแนวคำตอบเชิงวิชาการ:
+            </p>
+          </div>
+
+          <!-- FAQ Accordion List -->
+          <div class="my-6 space-y-3 text-xs">
+            <!-- FAQ 1 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(1)" class="w-full p-4 text-left font-bold text-[#0F0F0F] hover:bg-zinc-50 flex items-center justify-between transition">
+                <span>Q1: รูปแบบ Command Pattern ผ่าน Action Buttons ช่วยเพิ่มประสิทธิภาพให้ผู้ใช้อย่างไรเมื่อเทียบกับการกด Edit แบบเดิม?</span>
+                <span id="faqIcon1" class="text-base text-zinc-400 font-mono ml-2 shrink-0">+</span>
+              </button>
+              <div id="faqAns1" class="p-4 pt-1 text-zinc-600 border-t border-zinc-100 leading-relaxed hidden bg-zinc-50/50">
+                Command Pattern ช่วยลดจำนวนขั้นตอนการโต้ตอบ (Interaction Steps) จากเดิม 5 ขั้นตอน (กด Edit ➔ เลื่อนหาช่อง ➔ ลบข้อความ ➔ พิมพ์สถานะใหม่ ➔ กด Save) ให้เหลือเพียง <strong>1 คลิก (1-Tap Execution)</strong> ทำให้ประหยัดเวลาได้กว่า 80% ป้องกันข้อผิดพลาดจากการพิมพ์สะกดผิด (Human Typos) และช่วยให้ข้อมูลในระบบมีความสอดคล้องกัน 100%
+              </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(2)" class="w-full p-4 text-left font-bold text-[#0F0F0F] hover:bg-zinc-50 flex items-center justify-between transition">
+                <span>Q2: ความแตกต่างระหว่าง Action ชนิด Display inline, Display prominently และ Display overlay คืออะไร?</span>
+                <span id="faqIcon2" class="text-base text-zinc-400 font-mono ml-2 shrink-0">+</span>
+              </button>
+              <div id="faqAns2" class="p-4 pt-1 text-zinc-600 border-t border-zinc-100 leading-relaxed hidden bg-zinc-50/50">
+                <strong>Display inline:</strong> วางประกบคู่กับฟิลด์ข้อมูลโดยเฉพาะ (เช่น ไอคอนโทรศัพท์ข้างเบอร์โทร)<br>
+                <strong>Display prominently:</strong> วางเป็นปุ่มเด่นบนแถบด้านบนหรือล่างของการ์ด เหมาะสำหรับปุ่มขับเคลื่อนสถานะหลัก (Primary Call-to-Action)<br>
+                <strong>Display overlay:</strong> เป็นปุ่มลอย (Floating Action Button: FAB) ที่มุมขวาล่าง เหมาะสำหรับการกระทำความถี่สูงที่กดได้ง่ายด้วยนิ้วโป้งมือขวา เช่น การกดเพิ่มออร์เดอร์ใหม่
+              </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(3)" class="w-full p-4 text-left font-bold text-[#0F0F0F] hover:bg-zinc-50 flex items-center justify-between transition">
+                <span>Q3: เหตุใด State Machine Pattern จึงต้องใช้ควบคู่กับเงื่อนไข "Only if this condition is true"?</span>
+                <span id="faqIcon3" class="text-base text-zinc-400 font-mono ml-2 shrink-0">+</span>
+              </button>
+              <div id="faqAns3" class="p-4 pt-1 text-zinc-600 border-t border-zinc-100 leading-relaxed hidden bg-zinc-50/50">
+                เพราะหากไม่มีเงื่อนไข <em>Only if</em> ปุ่มดำเนินการของทุกสถานะจะปรากฏขึ้นพร้อมกันทั้งหมด ทำให้ผู้ใช้สับสนและอาจกดข้ามขั้นตอน เช่น กดส่งมอบสินค้าทั้ง ๆ ที่ลูกค้ายังไม่ได้ชำระเงิน สูตร <em>Only if</em> จึงทำหน้าที่เป็น Guard Condition เพื่อบังคับให้ข้อมูลวิ่งตามลำดับวงจรชีวิตที่ถูกต้องเสมอ
+              </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(4)" class="w-full p-4 text-left font-bold text-[#0F0F0F] hover:bg-zinc-50 flex items-center justify-between transition">
+                <span>Q4: ฟังก์ชัน Needs confirmation? มีความสำคัญอย่างไรต่อความมั่นคงปลอดภัยของข้อมูล?</span>
+                <span id="faqIcon4" class="text-base text-zinc-400 font-mono ml-2 shrink-0">+</span>
+              </button>
+              <div id="faqAns4" class="p-4 pt-1 text-zinc-600 border-t border-zinc-100 leading-relaxed hidden bg-zinc-50/50">
+                ฟังก์ชัน <em>Needs confirmation?</em> ทำหน้าที่เป็นระบบป้องกันความผิดพลาดจากการสัมผัสหน้าจอโดยไม่ได้ตั้งใจ (Fat-finger Error) ในขั้นตอนที่ไม่สามารถย้อนกลับได้ (Irreversible Actions) เช่น การรับชำระเงิน การลบข้อมูล หรือการปล่อยครุภัณฑ์ โดยระบบจะบังคับให้ผู้ใช้ทบทวนตัวเลขและกดยืนยันอีกครั้งก่อนบันทึกจริง
+              </div>
+            </div>
+
+            <!-- FAQ 5 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(5)" class="w-full p-4 text-left font-bold text-[#0F0F0F] hover:bg-zinc-50 flex items-center justify-between transition">
+                <span>Q5: หากต้องการให้ปุ่มโทรศัพท์ทำงานได้ถูกต้องบนสมาร์ตโฟน ต้องตั้งค่าโครงสร้างข้อมูลอย่างไร?</span>
+                <span id="faqIcon5" class="text-base text-zinc-400 font-mono ml-2 shrink-0">+</span>
+              </button>
+              <div id="faqAns5" class="p-4 pt-1 text-zinc-600 border-t border-zinc-100 leading-relaxed hidden bg-zinc-50/50">
+                ต้องกำหนด Column Type ของเบอร์โทรศัพท์ให้เป็นชนิด <strong>Phone</strong> ในเมนู Data > Columns และกำหนด Action ให้เป็นชนิด <code class="font-mono text-zinc-800">External: open a phone call</code> โดยผูกเข้ากับคอลัมน์นั้น ซึ่งจะทำให้แอปส่ง Intent แบบ <code class="font-mono">tel:</code> ไปยังระบบปฏิบัติการ Android หรือ iOS เพื่อเปิดแป้นโทรศัพท์ขึ้นมาพร้อมเบอร์โดยอัตโนมัติ
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 12: ความคิดเห็นและการอภิปรายจำลอง (Discussion & Social) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section class="border-t border-[#E5E5E5] pt-8 space-y-6">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-sm text-[#0F0F0F]">ความคิดเห็นและข้อซักถามประจำบท (<span id="commentTotalCount">2</span>)</h3>
+            <span class="text-xs text-[#606060]">ชุมชนนักพัฒนาธุรกิจดิจิทัล</span>
+          </div>
+
+          <!-- กล่องพิมพ์ความคิดเห็น -->
+          <div class="flex items-start gap-3 bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
+            <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">
+              ME
+            </div>
+            <div class="flex-1 space-y-2">
+              <input 
+                type="text" 
+                id="commentInput"
+                placeholder="พิมพ์ข้อสงสัยเกี่ยวกับการตั้งค่า Brand และ Action Buttons..." 
+                class="w-full pb-2 bg-transparent border-b border-[#E5E5E5] text-xs text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#0F0F0F]"
+              />
+              <div class="flex justify-end gap-2 pt-1">
+                <button onclick="clearComment()" class="h-8 px-3 rounded-full text-xs font-medium text-[#606060] hover:bg-[#E5E5E5]">ยกเลิก</button>
+                <button onclick="postComment()" class="h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white hover:bg-black transition">แสดงความคิดเห็น</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- รายการความคิดเห็นตัวอย่าง -->
+          <div id="commentList" class="space-y-4">
+            <div class="flex items-start gap-3 p-3 bg-white rounded-xl border border-zinc-100">
+              <div class="w-8 h-8 rounded-full bg-[#065FD4] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                WP
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-[#0F0F0F]">วิภาดา ปวส.1/2 (Fresh Brew Team)</span>
+                  <span class="text-[10px] text-[#606060]">1 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-xs text-[#0F0F0F] leading-relaxed">
+                  ตอนแรกกลุ่มหน้างงว่าทำไมปุ่มรับเงินไม่ยอมหายไป พออาจารย์แนะนำเรื่องสูตร Only if ใน State Machine ตอนนี้เข้าใจแจ่มแจ้งแล้วค่ะ ปุ่มสลับไปเป็นเริ่มชงและเสิร์ฟเสร็จเรียบร้อย ลื่นไหลมากเลยค่ะ!
+                </p>
+                <div class="flex items-center gap-3 pt-1 text-[11px] text-[#606060]">
+                  <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 12</button>
+                  <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 bg-white rounded-xl border border-zinc-100">
+              <div class="w-8 h-8 rounded-full bg-[#2BA640] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                PT
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-[#0F0F0F]">ปกรณ์ หัวหน้าทีม Smart Borrow</span>
+                  <span class="text-[10px] text-[#606060]">3 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-xs text-[#0F0F0F] leading-relaxed">
+                  ปุ่มโทรติดตามพัสดุแบบ Inline ข้างเบอร์โทร สะดวกต่อเจ้าหน้าที่คลังมากครับ ไม่ต้องคัดลอกเบอร์ไปวางในแอปโทรเอง แตะปุ๊บโทรติดทันที
+                </p>
+                <div class="flex items-center gap-3 pt-1 text-[11px] text-[#606060]">
+                  <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 9</button>
+                  <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 13: COURSE NAVIGATION (บทก่อนหน้า / สารบัญ / บทถัดไป) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <nav class="border-t border-[#E5E5E5] pt-8 pb-16 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <!-- Previous Chapter: Chapter 8 -->
+          <div class="w-full sm:w-auto">
+            <a href="ch08-relations-formulas.html" class="w-full sm:w-auto h-11 px-5 rounded-xl border border-[#E5E5E5] bg-white hover:bg-[#F2F2F2] text-xs font-medium text-[#0F0F0F] flex items-center justify-center gap-2 transition shadow-sm group">
+              <svg class="w-4 h-4 text-[#606060] group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              <span>บทก่อนหน้า: บทที่ 8 ความสัมพันธ์ตารางและสูตร</span>
+            </a>
+          </div>
+
+          <!-- Course Hub -->
+          <div class="w-full sm:w-auto">
+            <a href="index.html" class="w-full sm:w-auto h-11 px-6 rounded-xl border border-[#E5E5E5] bg-white hover:bg-[#F2F2F2] text-xs font-bold text-[#0F0F0F] flex items-center justify-center gap-2 transition shadow-sm">
+              <svg class="w-4 h-4 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              <span>🏠 สารบัญบทเรียนทั้งหมด</span>
+            </a>
+          </div>
+
+          <!-- Next Chapter: Chapter 10 -->
+          <div class="w-full sm:w-auto">
+            <a href="ch10-barcode-qr-signature.html" class="w-full sm:w-auto h-11 px-6 rounded-xl bg-[#0F0F0F] hover:bg-black text-xs font-bold text-white flex items-center justify-center gap-2 transition shadow-sm group">
+              <span>บทถัดไป: บทที่ 10 บาร์โค้ด QR และลายเซ็นดิจิทัล</span>
+              <svg class="w-4 h-4 text-[#FF0000] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </nav>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-6 right-6 hidden bg-[#0F0F0F] text-white text-xs px-4 py-2.5 rounded-full shadow-lg items-center gap-2 z-[200]">
+    <svg class="w-4 h-4 text-[#2BA640]" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    <span id="toastMsg">คัดลอกข้อความแล้ว!</span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 7. JAVASCRIPT LOGIC (Interactive Widgets & State Management) -->
+  <!-- ========================================================================= -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. Reading Scroll Progress Bar
+    // -------------------------------------------------------------
+    const mainViewport = document.getElementById('mainViewport');
+    const scrollProgressBar = document.getElementById('scrollProgressBar');
+
+    mainViewport.addEventListener('scroll', () => {
+      const scrollTop = mainViewport.scrollTop;
+      const scrollHeight = mainViewport.scrollHeight - mainViewport.clientHeight;
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      scrollProgressBar.style.width = progress + '%';
+    });
+
+    // -------------------------------------------------------------
+    // 2. Sidebar Toggle
+    // -------------------------------------------------------------
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    toggleSidebarBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden');
+    });
+
+    // -------------------------------------------------------------
+    // 3. Search Box & Keyboard Shortcut (Press / to search)
+    // -------------------------------------------------------------
+    function performSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (q && window.find) {
+        window.find(q);
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') performSearch();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+      }
+    });
+
+    // -------------------------------------------------------------
+    // 4. Horizontal Chip Filters
+    // -------------------------------------------------------------
+    function filterChip(targetId, btn) {
+      document.querySelectorAll('.chip-btn').forEach(b => {
+        b.className = 'chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0';
+      });
+      btn.className = 'chip-btn active h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white transition shrink-0';
+
+      if (targetId === 'all') {
+        mainViewport.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 5. Tri-Archetype Switcher (Section 5 + Sync to Phone Simulator)
+    // -------------------------------------------------------------
+    let currentArchetype = 'freshbrew';
+
+    function switchArchetype(arch) {
+      currentArchetype = arch;
+      const tabs = {
+        freshbrew: document.getElementById('archTabFreshbrew'),
+        happypaws: document.getElementById('archTabHappypaws'),
+        smartborrow: document.getElementById('archTabSmartborrow')
+      };
+      const contents = {
+        freshbrew: document.getElementById('archContentFreshbrew'),
+        happypaws: document.getElementById('archContentHappypaws'),
+        smartborrow: document.getElementById('archContentSmartborrow')
+      };
+
+      Object.keys(tabs).forEach(key => {
+        if (key === arch) {
+          tabs[key].className = 'arch-tab flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-2';
+          contents[key].classList.remove('hidden');
+        } else {
+          tabs[key].className = 'arch-tab flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-2';
+          contents[key].classList.add('hidden');
+        }
+      });
+
+      // Synchronize Phone Simulator with Selected Archetype
+      simInitArchetype();
+    }
+
+    // -------------------------------------------------------------
+    // 6. Interactive Mobile Phone Simulator (State Machine Engine)
+    // -------------------------------------------------------------
+    const archetypeConfigs = {
+      freshbrew: {
+        title: 'Fresh Brew Cafe',
+        logo: '☕',
+        headerColor: '#6F4E37',
+        customerName: 'คุณวิภาดา (ลูกค้า VIP)',
+        phone: '081-234-5678',
+        orderId: '#FB-2026-089',
+        itemTitle: 'อเมริกาโน่เย็น x1 + ครัวซองต์ x1',
+        amount: '185.00',
+        states: ['Pending', 'Paid', 'Brewing', 'Completed'],
+        stateLabels: {
+          Pending: { text: 'Pending (รอชำระเงิน)', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+          Paid: { text: 'Paid (ชำระเงินแล้ว)', color: 'text-blue-600 bg-blue-50 border-blue-200' },
+          Brewing: { text: 'Brewing (กำลังชงเครื่องดื่ม)', color: 'text-purple-600 bg-purple-50 border-purple-200' },
+          Completed: { text: 'Completed (เสิร์ฟสำเร็จ)', color: 'text-[#2BA640] bg-emerald-50 border-emerald-200' }
+        },
+        actions: {
+          Pending: { name: '💰 ยืนยันรับเงินสด (฿185.00)', next: 'Paid', needsConfirm: true, confirmMsg: 'คุณได้รับเงินสดจำนวน ฿185.00 จากคุณวิภาดา เรียบร้อยแล้วใช่หรือไม่?' },
+          Paid: { name: '☕ เริ่มชงเครื่องดื่ม', next: 'Brewing', needsConfirm: false },
+          Brewing: { name: '✅ ส่งมอบสินค้าเรียบร้อย', next: 'Completed', needsConfirm: false }
+        }
+      },
+      happypaws: {
+        title: 'Happy Paws Care',
+        logo: '🐾',
+        headerColor: '#0D9488',
+        customerName: 'คุณธนภัทร (เจ้าของมอมแมม)',
+        phone: '089-987-6543',
+        orderId: '#HP-BOOK-042',
+        itemTitle: 'สปาอาบน้ำตัดแต่งขน สุนัขพันธุ์เล็ก',
+        amount: '450.00',
+        states: ['Booked', 'In-Service', 'Completed'],
+        stateLabels: {
+          Booked: { text: 'Booked (จองคิวสำเร็จ)', color: 'text-blue-600 bg-blue-50 border-blue-200' },
+          'In-Service': { text: 'In-Service (กำลังรับบริการ)', color: 'text-purple-600 bg-purple-50 border-purple-200' },
+          Completed: { text: 'Completed (ส่งมอบสัตว์เลี้ยง)', color: 'text-[#2BA640] bg-emerald-50 border-emerald-200' }
+        },
+        actions: {
+          Booked: { name: '🐾 รับสัตว์เลี้ยงเข้าร้าน', next: 'In-Service', needsConfirm: true, confirmMsg: 'ยืนยันรับน้องมอมแมมเข้าสู่ห้องสปาตัดแต่งขน?' },
+          'In-Service': { name: '✅ บริการเสร็จสิ้น/ส่งมอบ', next: 'Completed', needsConfirm: false }
+        }
+      },
+      smartborrow: {
+        title: 'Smart Borrow System',
+        logo: '📦',
+        headerColor: '#2563EB',
+        customerName: 'อาจารย์สมศักดิ์ (ผู้ยืม)',
+        phone: '082-555-1212',
+        orderId: '#SB-REQ-108',
+        itemTitle: 'ชุดกล้อง Sony A7 IV + ขาตั้งไฟ',
+        amount: '0.00 (ครุภัณฑ์แผนก)',
+        states: ['Pending', 'Borrowed', 'Returned'],
+        stateLabels: {
+          Pending: { text: 'Pending (รออนุมัติเบิก)', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+          Borrowed: { text: 'Borrowed (ส่งมอบแล้ว)', color: 'text-blue-600 bg-blue-50 border-blue-200' },
+          Returned: { text: 'Returned (ส่งคืนเข้าคลัง)', color: 'text-[#2BA640] bg-emerald-50 border-emerald-200' }
+        },
+        actions: {
+          Pending: { name: '📤 อนุมัติ & ปล่อยพัสดุ', next: 'Borrowed', needsConfirm: true, confirmMsg: 'ตรวจสอบรายการอุปกรณ์ครบถ้วนก่อนส่งมอบให้ผู้ยืม?' },
+          Borrowed: { name: '📥 บันทึกรับคืนเข้าคลัง', next: 'Returned', needsConfirm: false }
+        }
+      }
+    };
+
+    let simState = 'Pending';
+    let pendingAction = null;
+
+    function simInitArchetype() {
+      const config = archetypeConfigs[currentArchetype];
+      document.getElementById('simHeader').style.backgroundColor = config.headerColor;
+      document.getElementById('simAppTitle').innerText = config.title;
+      document.getElementById('simHeaderLogo').innerText = config.logo;
+      document.getElementById('simCallName').innerText = config.customerName;
+      document.getElementById('simCallPhone').innerText = config.phone;
+
+      // Set initial state
+      simState = config.states[0];
+      simRender();
+      simAddLog("[SWITCH] Archetype changed to '" + config.title + "'");
+      simAddLog("[STATE] Initial Status = '" + simState + "'");
+    }
+
+    function simRender() {
+      const config = archetypeConfigs[currentArchetype];
+      const stateMeta = config.stateLabels[simState];
+      const currentAction = config.actions[simState];
+
+      // Update control panel state
+      document.getElementById('simStateLabel').innerText = stateMeta.text;
+      document.getElementById('simStateLabel').className = 'text-xs font-bold ' + (stateMeta.text.includes('Pending') ? 'text-amber-600' : (stateMeta.text.includes('Completed') || stateMeta.text.includes('Returned')) ? 'text-[#2BA640]' : 'text-[#065FD4]');
+      document.getElementById('simOnlyIfBadge').innerText = currentAction ? 'Only If: TRUE' : 'Final State';
+      document.getElementById('simOnlyIfBadge').className = currentAction ? 'text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-100 text-[#2BA640] font-bold' : 'text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-200 text-zinc-600';
+
+      // Render Phone Body
+      const screen = document.getElementById('simScreenBody');
+      let actionBtnHtml = '';
+      if (currentAction) {
+        actionBtnHtml = '<button onclick="simClickAction()" class="w-full py-3 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition active:scale-98"><span>' + currentAction.name + '</span></button>';
+      } else {
+        actionBtnHtml = '<div class="w-full py-3 rounded-xl bg-emerald-50 border border-emerald-300 text-[#2BA640] font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm"><span>✓ วงจรข้อมูลเสร็จสมบูรณ์ 100%</span></div>';
+      }
+
+      screen.innerHTML = 
+        '<div class="space-y-3">' +
+          '<!-- Order Header Card -->' +
+          '<div class="bg-white p-3 rounded-2xl border border-zinc-200 shadow-sm space-y-2">' +
+            '<div class="flex justify-between items-start">' +
+              '<div>' +
+                '<span class="text-[9px] font-mono text-zinc-400 uppercase">รหัสรายการ</span>' +
+                '<div class="font-bold text-xs text-[#0F0F0F] font-mono">' + config.orderId + '</div>' +
+              '</div>' +
+              '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold border ' + stateMeta.color + '">' +
+                simState +
+              '</span>' +
+            '</div>' +
+            '<div class="pt-2 border-t border-zinc-100">' +
+              '<div class="text-[11px] font-bold text-zinc-800">' + config.itemTitle + '</div>' +
+              '<div class="text-[10px] text-zinc-500">ยอดรวม: ฿' + config.amount + '</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<!-- Customer Info & Inline Phone Action -->' +
+          '<div class="bg-white p-3 rounded-2xl border border-zinc-200 shadow-sm space-y-2">' +
+            '<div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">ข้อมูลผู้ติดต่อ (Inline Action)</div>' +
+            '<div class="flex items-center justify-between">' +
+              '<div>' +
+                '<div class="font-bold text-xs text-[#0F0F0F]">' + config.customerName + '</div>' +
+                '<div class="text-[11px] font-mono text-zinc-500">' + config.phone + '</div>' +
+              '</div>' +
+              '<button onclick="simTriggerCall()" class="w-9 h-9 rounded-full bg-blue-50 hover:bg-blue-100 text-[#065FD4] border border-blue-200 flex items-center justify-center text-sm shadow-sm transition active:scale-95" title="แตะเพื่อโทรออก">' +
+                '📞' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+
+          '<!-- Dynamic State Explanation -->' +
+          '<div class="p-3 bg-zinc-50 rounded-2xl border border-dashed border-zinc-300 text-[10px] text-zinc-600 space-y-1">' +
+            '<div class="font-bold text-zinc-700 flex items-center gap-1">' +
+              '<span>⚡</span> <span>State Machine Evaluator:</span>' +
+            '</div>' +
+            '<div>สถานะปัจจุบันคือ <code class="font-mono font-bold text-[#0F0F0F]">\'' + simState + '\'</code></div>' +
+            '<div>เงื่อนไข Only If: <span class="text-[#2BA640] font-bold">' + (currentAction ? 'TRUE (แสดงปุ่ม)' : 'FALSE (สิ้นสุดวงจร)') + '</span></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<!-- Action Button Bar at Bottom -->' +
+        '<div class="pt-3">' +
+          actionBtnHtml +
+        '</div>';
+    }
+
+    function simTriggerCall() {
+      const config = archetypeConfigs[currentArchetype];
+      document.getElementById('simCallModal').classList.remove('hidden');
+      document.getElementById('simCallModal').classList.add('flex');
+      simAddLog("[NATIVE INTENT] tel:" + config.phone + " dispatched.");
+    }
+
+    function simCloseCall() {
+      document.getElementById('simCallModal').classList.add('hidden');
+      document.getElementById('simCallModal').classList.remove('flex');
+      simAddLog("[CALL ENDED] Native call session closed.");
+    }
+
+    function simClickAction() {
+      const config = archetypeConfigs[currentArchetype];
+      const action = config.actions[simState];
+      if (!action) return;
+
+      if (action.needsConfirm) {
+        pendingAction = action;
+        document.getElementById('simConfirmMsg').innerText = action.confirmMsg;
+        document.getElementById('simConfirmModal').classList.remove('hidden');
+        document.getElementById('simConfirmModal').classList.add('flex');
+        simAddLog("[PROMPT] Needs confirmation? triggered.");
+      } else {
+        simApplyStateChange(action);
+      }
+    }
+
+    function simExecuteConfirm() {
+      document.getElementById('simConfirmModal').classList.add('hidden');
+      document.getElementById('simConfirmModal').classList.remove('flex');
+      if (pendingAction) {
+        simApplyStateChange(pendingAction);
+        pendingAction = null;
+      }
+    }
+
+    function simCancelConfirm() {
+      document.getElementById('simConfirmModal').classList.add('hidden');
+      document.getElementById('simConfirmModal').classList.remove('flex');
+      pendingAction = null;
+      simAddLog("[CANCEL] User cancelled confirmation prompt.");
+    }
+
+    function simApplyStateChange(action) {
+      const oldState = simState;
+      simState = action.next;
+      simAddLog("[MUTATION] Status changed: '" + oldState + "' ➔ '" + simState + "'");
+      showToast('อัปเดตสถานะเป็น ' + simState + ' สำเร็จแล้ว');
+      simRender();
+    }
+
+    function simResetState() {
+      const config = archetypeConfigs[currentArchetype];
+      simState = config.states[0];
+      simAddLog("[RESET] State reset to '" + simState + "'");
+      showToast('รีเซ็ตสถานะเรียบร้อย');
+      simRender();
+    }
+
+    function simAddLog(msg) {
+      const logContainer = document.getElementById('simAuditLog');
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.innerText = "[" + timeStr + "] " + msg;
+      logContainer.prepend(div);
+    }
+
+    // Initialize Phone Simulator on Page Load
+    simInitArchetype();
+
+    // -------------------------------------------------------------
+    // 7. Interactive Self-Checklist (LocalStorage Persistence)
+    // -------------------------------------------------------------
+    const STORAGE_KEY = 'curriculum_ch09_checklist';
+
+    function initChecklist() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const checkedArr = JSON.parse(saved);
+          const checkboxes = document.querySelectorAll('.check-item');
+          checkboxes.forEach((cb, index) => {
+            cb.checked = !!checkedArr[index];
+          });
+        } catch (e) {}
+      }
+      calculateChecklist();
+    }
+
+    function updateChecklist() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const checkedArr = Array.from(checkboxes).map(cb => cb.checked);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedArr));
+      calculateChecklist();
+    }
+
+    function calculateChecklist() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const total = checkboxes.length;
+      let checked = 0;
+      checkboxes.forEach(cb => {
+        if (cb.checked) checked++;
+      });
+
+      const pct = Math.round((checked / total) * 100);
+      document.getElementById('checklistPercentage').innerText = pct + '%';
+      document.getElementById('checklistProgressBar').style.width = pct + '%';
+      document.getElementById('checklistCount').innerText = 'เสร็จสิ้น ' + checked + ' จาก ' + total + ' ข้อหลัก';
+
+      const badge = document.getElementById('checklistBadge');
+      if (pct === 100) {
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function resetChecklist() {
+      if (confirm('คุณต้องการรีเซ็ตสถานะการตรวจสอบตนเองทั้งหมดหรือไม่?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        const checkboxes = document.querySelectorAll('.check-item');
+        checkboxes.forEach(cb => cb.checked = false);
+        calculateChecklist();
+        showToast('รีเซ็ตแบบตรวจสอบเรียบร้อย');
+      }
+    }
+
+    initChecklist();
+
+    // -------------------------------------------------------------
+    // 8. Interactive Rubric Calculator (10 Points)
+    // -------------------------------------------------------------
+    function calcRubric() {
+      let total = 0;
+      for (let i = 1; i <= 5; i++) {
+        const checkedInput = document.querySelector('input[name="rc' + i + '"]:checked');
+        const val = checkedInput ? parseInt(checkedInput.value) : 2;
+        total += val;
+        document.getElementById('rubricC' + i + 'Score').innerText = val + ' คะแนน';
+
+        // Update card styles
+        const inputs = document.querySelectorAll('input[name="rc' + i + '"]');
+        inputs.forEach(input => {
+          const parent = input.closest('.rubric-opt');
+          if (parent) {
+            if (input.checked) {
+              parent.className = 'rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition';
+            } else {
+              parent.className = 'rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition';
+            }
+          }
+        });
+      }
+
+      document.getElementById('rubricTotal').innerText = total;
+
+      const badge = document.getElementById('rubricBadge');
+      const diagnostic = document.getElementById('rubricDiagnostic');
+
+      if (total >= 9) {
+        badge.className = 'px-4 py-2 rounded-xl bg-emerald-100 text-[#2BA640] font-bold text-sm border border-emerald-300';
+        badge.innerText = 'ระดับ: ดีเยี่ยม (Mastered / Grade A)';
+        diagnostic.className = 'p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-[#2BA640] leading-relaxed';
+        diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ผลงานของกลุ่มท่านมีอัตลักษณ์แบรนด์ที่โดดเด่น มีสถาปัตยกรรมสถานะและการสร้าง Action Buttons ที่สมบูรณ์แบบตามหลักวิศวกรรมซอฟต์แวร์ สามารถนำไปต่อยอดเชื่อมต่อกับฮาร์ดแวร์มือถือในบทที่ 10 ได้ทันที';
+      } else if (total >= 7) {
+        badge.className = 'px-4 py-2 rounded-xl bg-blue-100 text-[#065FD4] font-bold text-sm border border-blue-300';
+        badge.innerText = 'ระดับ: ดี (Proficient / Grade B)';
+        diagnostic.className = 'p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#065FD4] leading-relaxed';
+        diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> การตั้งค่าแบรนด์และการทำงานของปุ่ม Action อยู่ในเกณฑ์ดีมาก แนะนำให้ตรวจสอบความกระชับของสูตร Only if ในบางจุดเพื่อป้องกันไม่ให้ปุ่มปรากฏซ้ำซ้อนในจังหวะสลับหน้าจอ';
+      } else if (total >= 5) {
+        badge.className = 'px-4 py-2 rounded-xl bg-amber-100 text-[#FB8C00] font-bold text-sm border border-amber-300';
+        badge.innerText = 'ระดับ: พอใช้ (Developing / Grade C)';
+        diagnostic.className = 'p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-[#FB8C00] leading-relaxed';
+        diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ปุ่ม Action ยังทำงานไม่ครบทุกระยะของ State Machine หรือขาดระบบยืนยันความปลอดภัย Needs confirmation? ควรทบทวนตาราง State Transition Matrix อีกครั้ง';
+      } else {
+        badge.className = 'px-4 py-2 rounded-xl bg-red-100 text-[#FF0000] font-bold text-sm border border-red-300';
+        badge.innerText = 'ระดับ: ควรปรับปรุง (Needs Revision)';
+        diagnostic.className = 'p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-[#FF0000] leading-relaxed';
+        diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ธีมแบรนด์ยังไม่ได้ปรับแต่ง และปุ่ม Action ไม่สามารถทำงานได้บนสมาร์ตโฟนจริง แนะนำให้ตรวจสอบสิทธิ์ตาราง (Table Properties) และ Column Type ตามหัวข้อ Troubleshooting';
+      }
+    }
+
+    calcRubric();
+
+    // -------------------------------------------------------------
+    // 9. FAQ Accordion Logic
+    // -------------------------------------------------------------
+    function toggleFaq(num) {
+      const ans = document.getElementById('faqAns' + num);
+      const icon = document.getElementById('faqIcon' + num);
+      if (ans.classList.contains('hidden')) {
+        ans.classList.remove('hidden');
+        icon.innerText = '−';
+      } else {
+        ans.classList.add('hidden');
+        icon.innerText = '+';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 10. Copy to Clipboard Utility & Toast
+    // -------------------------------------------------------------
+    function copyText(str, btn) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(str).then(() => {
+          showToast('คัดลอกข้อความสำเร็จแล้ว!');
+        });
+      } else {
+        const input = document.createElement('textarea');
+        input.value = str;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('คัดลอกข้อความสำเร็จแล้ว!');
+      }
+
+      if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="text-[#2BA640] font-bold">คัดลอกแล้ว! ✓</span>';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex', 'toast-anim');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex', 'toast-anim');
+      }, 2000);
+    }
+
+    // -------------------------------------------------------------
+    // 11. Social Actions (Like, Subscribe, Comment, Share)
+    // -------------------------------------------------------------
+    let isSubscribed = false;
+    function toggleSubscribe() {
+      const btn = document.getElementById('subBtn');
+      const text = document.getElementById('subBtnText');
+      if (!isSubscribed) {
+        btn.className = 'h-9 px-5 bg-[#F2F2F2] hover:bg-[#E5E5E5] text-[#0F0F0F] text-xs font-bold rounded-full flex items-center gap-1.5 transition border border-zinc-300';
+        text.innerText = 'ติดตามแล้ว (Subscribed) ✓';
+        isSubscribed = true;
+        showToast('ติดตามรายวิชาเรียบร้อยแล้ว');
+      } else {
+        btn.className = 'h-9 px-5 bg-[#0F0F0F] hover:bg-black text-white text-xs font-medium rounded-full flex items-center gap-1.5 transition border border-zinc-700';
+        text.innerText = 'ติดตามรายวิชา';
+        isSubscribed = false;
+      }
+    }
+
+    let isLiked = false;
+    function toggleLike() {
+      const countEl = document.getElementById('likeCount');
+      const iconEl = document.getElementById('likeIcon');
+      let count = parseInt(countEl.innerText);
+      if (!isLiked) {
+        countEl.innerText = count + 1;
+        iconEl.classList.remove('text-[#606060]');
+        iconEl.classList.add('text-[#FF0000]', 'fill-current');
+        isLiked = true;
+        showToast('ถูกใจบทเรียนนี้');
+      } else {
+        countEl.innerText = count - 1;
+        iconEl.classList.add('text-[#606060]');
+        iconEl.classList.remove('text-[#FF0000]', 'fill-current');
+        isLiked = false;
+      }
+    }
+
+    function shareLesson() {
+      copyText(window.location.href);
+    }
+
+    function postComment() {
+      const input = document.getElementById('commentInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const list = document.getElementById('commentList');
+      const newComment = document.createElement('div');
+      newComment.className = 'flex items-start gap-3 bg-red-50/40 p-3.5 rounded-xl border border-red-100';
+      newComment.innerHTML = 
+        '<div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">ME</div>' +
+        '<div class="space-y-1">' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="font-bold text-xs text-[#0F0F0F]">นักศึกษา (คุณ)</span>' +
+            '<span class="text-[10px] text-[#606060]">เมื่อสักครู่</span>' +
+          '</div>' +
+          '<p class="text-xs text-[#0F0F0F] leading-relaxed">' + escapeHtml(text) + '</p>' +
+          '<div class="flex items-center gap-3 pt-1 text-[11px] text-[#606060]">' +
+            '<button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 1</button>' +
+            '<button class="hover:text-[#0F0F0F]">ตอบกลับ</button>' +
+          '</div>' +
+        '</div>';
+      list.prepend(newComment);
+      input.value = '';
+
+      const totalCount = document.getElementById('commentTotalCount');
+      totalCount.innerText = parseInt(totalCount.innerText) + 1;
+      showToast('โพสต์ความคิดเห็นแล้ว');
+    }
+
+    function clearComment() {
+      document.getElementById('commentInput').value = '';
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+  </script>
+</body>
+</html>
+

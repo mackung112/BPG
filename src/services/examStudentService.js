@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase.js';
+import { seededShuffle } from '../utils/seededShuffle.js';
 
 export const getSessionInfo = async (sessionId) => {
   const { data, error } = await supabase
@@ -43,8 +44,9 @@ export const updateParticipantById = async (participantId, payload) => {
 /**
  * Fetch exam questions for examinees with ZERO LEAK of answers.
  * Explicitly excludes correct_answer_index and solution explanations.
+ * Supports seeded deterministic randomization per student.
  */
-export const getExamQuestions = async (sessionId) => {
+export const getExamQuestions = async (sessionId, studentId = null, shuffleOptions = {}) => {
   let { data, error } = await supabase
     .from('exam_session_questions')
     .select(`
@@ -85,17 +87,25 @@ export const getExamQuestions = async (sessionId) => {
 
   if (error) throw error;
 
-  return (data || []).map((item, idx) => {
+  const shouldShuffleChoices = shuffleOptions.shuffleChoices !== false;
+  const shouldShuffleQuestions = shuffleOptions.shuffleQuestions !== false;
+
+  const processedQuestions = (data || []).map((item, idx) => {
     const rawQ = item.questions || {};
     const rawChoices = rawQ.choices || [];
 
     // Sanitize choices: strip any is_correct or internal answer flags
-    const sanitizedChoices = rawChoices.map((choice) => {
+    let sanitizedChoices = rawChoices.map((choice) => {
       if (typeof choice === 'object' && choice !== null) {
         return { text: choice.text ?? '' };
       }
       return { text: String(choice) };
     });
+
+    // Seeded shuffle of choices per student and question
+    if (studentId && shouldShuffleChoices) {
+      sanitizedChoices = seededShuffle(sanitizedChoices, `${sessionId}_${studentId}_choice_${rawQ.id}`);
+    }
 
     return {
       session_question_id: item.id,
@@ -108,6 +118,21 @@ export const getExamQuestions = async (sessionId) => {
       order_index: item.order_index ?? idx
     };
   });
+
+  let finalQuestions = processedQuestions;
+
+  // Seeded shuffle of question list per student
+  if (studentId && shouldShuffleQuestions) {
+    finalQuestions = seededShuffle(processedQuestions, `${sessionId}_${studentId}_questions`);
+  }
+
+  // Subset sampling if target question_count is less than pool
+  const targetCount = Number(shuffleOptions.questionCount || 0);
+  if (targetCount > 0 && targetCount < finalQuestions.length) {
+    finalQuestions = finalQuestions.slice(0, targetCount);
+  }
+
+  return finalQuestions;
 };
 
 /**
@@ -185,7 +210,7 @@ export const deleteSuspendedResult = async (sessionId, studentId, attemptNumber)
 export const getStudentResults = async (sessionId, studentId) => {
   const { data, error } = await supabase
     .from('exam_results')
-    .select('*, exam_sessions(title, total_score, question_count, exam_mode, max_attempts, retake_until_pass, passing_percentage, solutions_released)')
+    .select('*, exam_sessions(title, total_score, question_count, exam_mode, max_attempts, retake_until_pass, passing_percentage, solutions_released, shuffle_questions, shuffle_choices)')
     .eq('session_id', sessionId)
     .eq('student_id', studentId)
     .order('submitted_at', { ascending: true });

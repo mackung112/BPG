@@ -1,0 +1,2962 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 1: วงจรการพัฒนาซอฟต์แวร์และการออกแบบแนวคิดแอปพลิเคชัน | ห้องเรียนครูแม็ค BROADCAST</title>
+  
+  <!-- Google Fonts: Roboto, Roboto Mono, Sarabun ตามข้อกำหนด Red Broadcast -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#FF0000',
+              redHover: '#CC0000',
+              blue: '#065FD4',
+              neutral: '#606060',
+              dark: '#0F0F0F',
+              surface: '#F2F2F2',
+              surfaceHover: '#E5E5E5',
+              border: '#E5E5E5',
+              success: '#2BA640',
+              warning: '#FB8C00'
+            }
+          },
+          fontFamily: {
+            sans: ['Roboto', 'Sarabun', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Roboto', 'Sarabun', sans-serif;
+      color: #0F0F0F;
+      background-color: #FFFFFF;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Scrollbar Styling */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Red Broadcast Elevation tokens */
+    .elevation-0 { box-shadow: none; }
+    .elevation-1 { box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .elevation-2 { box-shadow: 0 4px 32px rgba(0,0,0,0.1); }
+    .elevation-3 { box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+
+    /* Phone Simulator Frame */
+    .phone-mockup {
+      width: 320px;
+      height: 640px;
+      border: 10px solid #0F0F0F;
+      border-radius: 40px;
+      position: relative;
+      background: #FFFFFF;
+      overflow: hidden;
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 20px;
+      background: #0F0F0F;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      z-index: 50;
+    }
+    .phone-speaker {
+      width: 36px;
+      height: 4px;
+      background: #333333;
+      border-radius: 2px;
+      margin: 6px auto 0;
+    }
+    .phone-screen {
+      flex: 1;
+      overflow-y: auto;
+      padding-top: 24px;
+      display: flex;
+      flex-direction: column;
+      background-color: #FAFAFA;
+    }
+
+    /* Copy Feedback Toast Animation */
+    .toast-anim {
+      animation: fadeInOut 2s ease-in-out forwards;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(10px); }
+      15% { opacity: 1; transform: translateY(0); }
+      85% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<<body class="bg-white text-[#0F0F0F] min-h-screen flex flex-col selection:bg-red-100 selection:text-[#FF0000]">
+
+  <!-- Confetti Canvas Overlay -->
+  <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;"></canvas>
+
+  <!-- ========================================================================= -->
+  <!-- 1. READING SCROLL PROGRESS BAR (Fixed Top, Red Line 0-100%) -->
+  <!-- ========================================================================= -->
+  <div id="scrollProgressBar" class="fixed top-0 left-0 h-1 bg-[#FF0000] z-[100] transition-all duration-75" style="width: 0%;"></div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. STICKY TOP BAR (56px Height, Level 1 Shadow on Scroll, No Print Button) -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 h-14 bg-white/90 backdrop-blur-md border-b border-[#E5E5E5] px-4 flex items-center justify-between elevation-1">
+    <!-- ฝั่งซ้าย: ปุ่มเมนู + โลโก้แบรนด์ -->
+    <div class="flex items-center gap-3">
+      <button id="toggleSidebarBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] transition text-[#606060]" title="สลับแถบเมนู">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      
+      <a href="index.html" class="flex items-center gap-2 group">
+        <div class="w-8 h-6 bg-[#FF0000] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+          <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="flex items-center">
+          <span class="font-bold text-lg tracking-tight text-[#0F0F0F]">ห้องเรียนครูแม็ค</span>
+          <span class="text-[10px] ml-1.5 font-bold uppercase tracking-wider text-[#FF0000] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">BROADCAST</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- ส่วนกลาง: ช่องค้นหา (Search Bar 44px) -->
+    <div class="hidden sm:flex items-center flex-1 max-w-[620px] mx-6">
+      <div class="flex w-full items-center">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="ค้นหาเนื้อหาบทเรียน (กด / เพื่อค้นหา เช่น SDLC, Canvas, MVP, Archetype)..." 
+            class="w-full h-10 pl-4 pr-3 bg-white border border-[#E5E5E5] rounded-l-full text-sm text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#065FD4]"
+          />
+        </div>
+        <button 
+          id="searchBtn"
+          onclick="performSearch()"
+          class="h-10 px-6 bg-[#F8F8F8] border border-l-0 border-[#E5E5E5] rounded-r-full hover:bg-[#F2F2F2] text-[#606060] flex items-center justify-center transition" 
+          title="ค้นหา">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </button>
+        <button onclick="alert('ระบบค้นหาด้วยเสียงพร้อมใช้งานในโหมดทดลอง')" class="w-10 h-10 ml-2 rounded-full bg-[#F2F2F2] hover:bg-[#E5E5E5] flex items-center justify-center text-[#0F0F0F] transition shrink-0" title="ค้นหาด้วยเสียง">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: โหมดบทเรียน & ผู้สอน -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Sound FX Toggle Button -->
+      <button 
+        id="soundToggleBtn" 
+        onclick="EduAudio.toggleSound()" 
+        class="h-9 px-3 rounded-full bg-[#F2F2F2] hover:bg-[#E5E5E5] active:scale-95 transition-all text-xs font-semibold text-[#0F0F0F] flex items-center gap-1.5"
+        title="สลับเปิด/ปิดเสียงเอฟเฟกต์บรรยากาศ">
+        <span id="soundIcon">🔊</span>
+        <span id="soundText" class="hidden sm:inline">เสียงเอฟเฟกต์</span>
+      </button>
+
+      <!-- Quick Mode Badge -->
+      <a href="index.html" class="hidden md:flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-[#F2F2F2] text-xs font-medium text-[#0F0F0F] hover:bg-[#E5E5E5] transition" title="กลับหน้าสารบัญ">
+        <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span>สารบัญรวม</span>
+      </a>
+
+      <!-- Notification Bell -->
+      <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] text-[#606060] transition relative" title="การแจ้งเตือนบทเรียน">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-[#FF0000] rounded-full animate-ping"></span>
+        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-[#FF0000] rounded-full"></span>
+      </button>
+
+      <!-- รูปโปรไฟล์ครูผู้สอน -->
+      <div class="flex items-center gap-2 pl-1">
+        <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#FF0000]">
+          MK
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 3. MAIN LAYOUT WRAPPER (SIDEBAR + MAIN CONTENT AREA) -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- LEFT SIDEBAR (240px Collapsible) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="w-60 bg-white border-r border-[#E5E5E5] shrink-0 hidden lg:flex flex-col justify-between overflow-y-auto transition-all duration-200">
+      <div class="p-3 space-y-1">
+        <div class="text-[11px] font-bold text-[#606060] px-3 py-2 uppercase tracking-wider">สารบัญเนื้อหาบทที่ 1</div>
+
+        <a href="#intro" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+          <span class="truncate">บทนำ: พลังโมบายล์แอป</span>
+        </a>
+
+        <a href="#sdlc" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span class="truncate">1. วงจรซอฟต์แวร์ SDLC 6 ขั้น</span>
+        </a>
+
+        <a href="#problem-framing" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          <span class="truncate">2. วิเคราะห์ Pain Points 4 มิติ</span>
+        </a>
+
+        <a href="#canvas-section" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+          <span class="truncate">3. App Concept Canvas 9 มิติ</span>
+        </a>
+
+        <a href="#case-studies" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span class="truncate">4. กรณีศึกษา 3 ธุรกิจต้นแบบ</span>
+        </a>
+
+        <a href="#phone-simulator" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#065FD4]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          <span class="truncate">5. สมาร์ตโฟน Simulator</span>
+        </a>
+
+        <a href="#checklist-section" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#2BA640]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="truncate">6. แบบประเมินตนเอง Checklist</span>
+        </a>
+
+        <a href="#rubric-section" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#FB8C00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span class="truncate">7. เกณฑ์ประเมิน Rubric (10 คะแนน)</span>
+        </a>
+
+        <a href="#questions" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="truncate">8. คำถามทบทวนประจำบท FAQ</span>
+        </a>
+
+        <div class="border-t border-[#E5E5E5] my-2"></div>
+
+        <!-- กล่องข้อมูลหลักสูตร -->
+        <div class="px-3 py-2.5 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+          <div class="text-[10px] font-bold text-[#FF0000] tracking-wider uppercase">รหัสวิชา 31910-2022</div>
+          <div class="text-xs font-semibold text-[#0F0F0F] mt-0.5 leading-snug">การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา</div>
+          <div class="text-[11px] text-[#606060] mt-1">หลักสูตร ปวส. 2563 | แผนกธุรกิจดิจิทัล</div>
+        </div>
+      </div>
+
+      <!-- ส่วนล่างสุดของ Sidebar -->
+      <div class="p-3 border-t border-[#E5E5E5] text-xs text-[#606060]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#2BA640] animate-pulse"></span>
+          <span class="font-medium text-[#0F0F0F]">ระบบ Interactive Textbook</span>
+        </div>
+        <div class="mt-0.5 text-[10px] text-[#606060]">Red Broadcast Engine v4.5</div>
+      </div>
+    </aside>
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- MAIN CONTENT VIEWPORT (Scrollable) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <main id="mainViewport" class="flex-1 overflow-y-auto bg-white flex flex-col">
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 4. STICKY HORIZONTAL PILL CHIP FILTER BAR -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-[#E5E5E5] py-2.5 px-4 sm:px-8">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <button onclick="filterChip('all', this)" class="chip-btn active h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white transition shrink-0">ทั้งหมด</button>
+          <button onclick="filterChip('intro', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">บทนำ</button>
+          <button onclick="filterChip('sdlc', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">SDLC 6 ขั้น</button>
+          <button onclick="filterChip('problem-framing', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Pain Points 4 มิติ</button>
+          <button onclick="filterChip('canvas-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Canvas 9 ช่อง</button>
+          <button onclick="filterChip('case-studies', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">3 กรณีศึกษา</button>
+          <button onclick="filterChip('phone-simulator', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Phone Simulator</button>
+          <button onclick="filterChip('checklist-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Checklist</button>
+          <button onclick="filterChip('rubric-section', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">Rubric 10 คะแนน</button>
+          <button onclick="filterChip('questions', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">คำถามทบทวน</button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 5. BROADCAST LECTURE THEATER HERO STAGE -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <section class="max-w-6xl mx-auto w-full px-4 sm:px-8 py-6">
+        
+        <!-- Broadcast Stage Frame (Dark Theater) -->
+        <div class="w-full bg-[#0F0F0F] text-white rounded-2xl overflow-hidden relative border border-black shadow-lg">
+          <div class="p-6 sm:p-10 flex flex-col justify-between min-h-[320px] sm:min-h-[380px] relative z-10">
+            <!-- Badges แถวบน -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FF0000] text-white shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                  LECTURE BROADCAST
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-zinc-300 border border-white/10 backdrop-blur-sm">
+                  หลักสูตร ปวส. 2563 • หน่วยที่ 1
+                </span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-mono text-xs text-zinc-400 bg-black/40 px-2.5 py-1 rounded border border-white/5">31910-2022</span>
+                <span class="font-mono text-xs text-[#2BA640] bg-[#2BA640]/10 px-2 py-0.5 rounded border border-[#2BA640]/30 font-bold">VERIFIED CHAPTER</span>
+              </div>
+            </div>
+
+            <!-- ข้อความชื่อบทเรียนขนาดใหญ่ -->
+            <div class="my-6">
+              <div class="text-xs uppercase tracking-widest text-[#FF0000] font-bold mb-2">บทที่ 1 • SOFTWARE DEVELOPMENT LIFE CYCLE & APP CONCEPT CANVAS</div>
+              <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+                วงจรการพัฒนาซอฟต์แวร์และการออกแบบแนวคิดแอปพลิเคชัน
+              </h1>
+              <p class="text-sm sm:text-base text-zinc-300 mt-3 max-w-3xl leading-relaxed">
+                เปลี่ยนปัญหาหน้างานจริงของชุมชนให้กลายเป็นพิมพ์เขียวโมบายล์แอปพลิเคชัน 9 มิติ (App Concept Canvas) ผ่านกระบวนการวิศวกรรมซอฟต์แวร์ SDLC 6 ขั้นตอน เพื่อสร้างโซลูชันธุรกิจดิจิทัลที่ใช้งานได้จริง
+              </p>
+            </div>
+
+            <!-- แถบเมตริกบทเรียนและสถานะความคืบหน้า -->
+            <div class="space-y-2 pt-2 border-t border-white/10">
+              <div class="flex flex-wrap justify-between text-xs text-zinc-400 font-mono gap-2">
+                <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg> ความยาวเนื้อหา: 4 ชั่วโมงเรียนรู้ (ทฤษฎี 2 ชม. + ปฏิบัติ 2 ชม.)</span>
+                <span>ระดับ: ขั้นพื้นฐานสู่การลงมือปฏิบัติ (Zero-Code Friendly)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Decorative Gradient Background Behind Stage -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-black via-zinc-900 to-red-950/40 pointer-events-none"></div>
+        </div>
+
+        <!-- Instructor Stack & Metadata Bar -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-4 py-3 border-b border-[#E5E5E5]">
+          <!-- ผู้สอน / Channel Profile -->
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-sm ring-2 ring-[#FF0000]">
+              MK
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-sm text-[#0F0F0F]">ครูแม็ค (Mac Teacher)</span>
+                <!-- Verified Badge (#2BA640) -->
+                <svg class="w-4 h-4 text-[#2BA640]" fill="currentColor" viewBox="0 0 24 24" title="ผู้สอนผ่านการรับรอง"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              </div>
+              <div class="text-xs text-[#606060]">
+                สาขาวิชาเทคโนโลยีธุรกิจดิจิทัล • ผู้เรียนในระบบ 1,420 คน
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons (Subscribe Dark Button + Like/Share Buttons) -->
+          <div class="flex items-center gap-2">
+            <!-- Subscribe Button -->
+            <button id="subBtn" onclick="toggleSubscribe()" class="h-9 px-5 bg-[#0F0F0F] hover:bg-black text-white text-xs font-medium rounded-full flex items-center gap-1.5 transition">
+              <svg class="w-3.5 h-3.5 fill-current text-[#FF0000]" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <span id="subBtnText">ติดตามรายวิชา</span>
+            </button>
+
+            <!-- Segmented Action Pair (Like / Share) -->
+            <div class="flex items-center bg-[#F2F2F2] rounded-full p-0.5 border border-[#E5E5E5]">
+              <button id="likeBtn" onclick="toggleLike()" class="flex items-center gap-1.5 h-8 px-3 rounded-full hover:bg-white text-xs text-[#0F0F0F] font-medium transition">
+                <svg id="likeIcon" class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+                <span id="likeCount">246</span>
+              </button>
+              <div class="w-[1px] h-4 bg-[#E5E5E5]"></div>
+              <button onclick="shareLesson()" class="flex items-center gap-1.5 h-8 px-3 rounded-full hover:bg-white text-xs text-[#0F0F0F] font-medium transition" title="คัดลอกลิงก์แชร์">
+                <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                <span>แชร์</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- 6. MAIN BODY TEXTBOOK CONTENT (Comprehensive Depth) -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="max-w-4xl mx-auto w-full px-4 sm:px-8 py-6 space-y-16">
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 0: บทนำ -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="intro" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>บทนำ (Introduction)</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            พลังของแอปพลิเคชันบนอุปกรณ์สื่อสารแบบพกพาในยุคธุรกิจดิจิทัล
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-base">
+            <p>
+              ในอดีต ซอฟต์แวร์คอมพิวเตอร์ถูกจำกัดการใช้งานอยู่เพียงบนโต๊ะทำงานผ่านเครื่องคอมพิวเตอร์ส่วนบุคคล (Desktop PC) ธุรกิจที่ต้องการบันทึกข้อมูลต้องรอให้พนักงานกลับมานั่งหน้าจอ หรือต้องพึ่งพาเอกสารกระดาษในการจดบันทึกหน้างาน แต่ในปัจจุบัน <strong>อุปกรณ์สื่อสารแบบพกพา (Mobile Devices)</strong> โดยเฉพาะสมาร์ตโฟนและแท็บเล็ต ได้เข้ามาเปลี่ยนแปลงวิถีชีวิตของผู้คนและกระบวนการทำงานของธุรกิจไปอย่างสิ้นเชิง
+            </p>
+            <p>
+              สมาร์ตโฟนไม่ได้เป็นเพียงเครื่องมือติดต่อสื่อสาร แต่เปรียบเสมือน <strong>"คอมพิวเตอร์พกพาอัจฉริยะ"</strong> ที่ผู้ใช้งานพกติดตัวตลอด 24 ชั่วโมง มีคุณลักษณะเด่นเฉพาะตัว 4 ประการที่ระบบคอมพิวเตอร์ตั้งโต๊ะทั่วไปไม่สามารถทำได้ทัดเทียม:
+            </p>
+
+            <!-- Grid คุณลักษณะ 4 ด้านของสมาร์ตโฟน -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+              <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] hover:border-[#FF0000] transition">
+                <div class="w-9 h-9 rounded-lg bg-red-50 text-[#FF0000] flex items-center justify-center font-bold mb-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <h4 class="font-bold text-sm text-[#0F0F0F]">1. การเข้าถึงได้ทันที (Portability & Instant Access)</h4>
+                <p class="text-xs text-[#606060] mt-1 leading-relaxed">เข้าถึงข้อมูล ทำธุรกรรม หรือสั่งงานได้ทุกที่ทุกเวลา (Anywhere, Anytime) โดยไม่ต้องนั่งรอหน้าโต๊ะคอมพิวเตอร์ ทำงานหน้างานจริงได้อย่างไร้รอยต่อ</p>
+              </div>
+
+              <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] hover:border-[#FF0000] transition">
+                <div class="w-9 h-9 rounded-lg bg-red-50 text-[#FF0000] flex items-center justify-center font-bold mb-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+                <h4 class="font-bold text-sm text-[#0F0F0F]">2. กล้องถ่ายภาพและเซนเซอร์ (Camera & Sensor Integration)</h4>
+                <p class="text-xs text-[#606060] mt-1 leading-relaxed">สแกน QR Code พร้อมเพย์, สแกนบาร์โค้ดสินค้า (Barcode), ถ่ายภาพหลักฐานการทำงาน หรือบันทึกภาพถ่ายสภาพอุปกรณ์ได้อย่างรวดเร็ว</p>
+              </div>
+
+              <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] hover:border-[#FF0000] transition">
+                <div class="w-9 h-9 rounded-lg bg-red-50 text-[#FF0000] flex items-center justify-center font-bold mb-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+                <h4 class="font-bold text-sm text-[#0F0F0F]">3. พิกัดดาวเทียมและการสัมผัส (GPS & Touchscreen)</h4>
+                <p class="text-xs text-[#606060] mt-1 leading-relaxed">ปักหมุดตำแหน่งร้านค้า ติดตามสถานะรถส่งของ คำนวณระยะทางจัดส่ง และรองรับการเซ็นลายมือชื่อดิจิทัล (Digital Signature) บนหน้าจอสัมผัส</p>
+              </div>
+
+              <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] hover:border-[#FF0000] transition">
+                <div class="w-9 h-9 rounded-lg bg-red-50 text-[#FF0000] flex items-center justify-center font-bold mb-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                </div>
+                <h4 class="font-bold text-sm text-[#0F0F0F]">4. การแจ้งเตือนทันที (Push Notification Alerts)</h4>
+                <p class="text-xs text-[#606060] mt-1 leading-relaxed">ส่งข้อความเตือนสถานะคำสั่งซื้อ คิวบริการ หรือแจ้งเตือนกำหนดส่งคืนเข้าสู่หน้าจอล็อกของผู้ใช้ได้ทันทีโดยไม่ต้องรอเปิดแอป</p>
+              </div>
+            </div>
+
+            <!-- กล่องข้อสังเกตสำคัญ: สถิติแอป 90% ถูกลบทิ้ง -->
+            <div class="p-4 rounded-xl bg-[#F8F8F8] border-l-4 border-[#FF0000] text-sm text-[#0F0F0F] relative">
+              <div class="flex items-center justify-between">
+                <div class="font-bold text-[#FF0000] text-sm flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                  ความจริงที่เจ็บปวด: ทำไมแอปกว่า 90% จึงถูกลบทิ้งภายใน 30 วันแรก?
+                </div>
+                <button onclick="copyText('กฎเหล็ก: เริ่มต้นที่ความเข้าใจปัญหาที่แท้จริงของผู้ใช้ ไม่ใช่การเขียนโค้ด เพราะกว่า 90% ของแอปที่ล้มเหลว เกิดจากการสร้างสิ่งที่ไม่มีใครต้องการใช้งานจริง', this)" class="text-xs text-[#606060] hover:text-[#0F0F0F] flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  <span>คัดลอกข้อคิด</span>
+                </button>
+              </div>
+              <p class="text-xs text-[#606060] mt-1 leading-relaxed">
+                สถิติในอุตสาหกรรมเทคโนโลยีระบุชัดเจนว่า แอปพลิเคชันมากกว่า 80-90% ที่ถูกปล่อยสู่ตลาดต้องล้มเหลวและถูกลบทิ้ง สาเหตุหลักไม่ได้เกิดจากโค้ดผิดพลาด (Software Bugs) แต่เกิดจาก <strong>"การสร้างสิ่งที่ไม่มีใครต้องการใช้งานจริง"</strong> ดังนั้น การวางกรอบปัญหาให้คมกริบ (Problem Framing) และการทำความเข้าใจวงจร SDLC จึงเป็นหัวใจสำคัญก่อนเริ่มลงมือพัฒนา
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 1: วงจร SDLC 6 ขั้นตอน -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="sdlc" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 1</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            วงจรการพัฒนาซอฟต์แวร์ (Software Development Life Cycle : SDLC)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-base">
+            <p>
+              <strong>วงจรการพัฒนาซอฟต์แวร์ (SDLC)</strong> คือ กรอบแนวคิดเชิงกระบวนการที่เป็นมาตรฐานสากล ใช้ควบคุมและขับเคลื่อนการสร้างซอฟต์แวร์ตั้งแต่ขั้นตอนแรกเริ่มที่เกิดความคิดริเริ่ม จนกระทั่งซอฟต์แวร์ถูกนำไปติดตั้ง ใช้งาน และบำรุงรักษาอย่างมีประสิทธิภาพ
+            </p>
+            <p class="text-xs sm:text-sm text-[#606060] italic bg-[#F2F2F2] p-3 rounded-lg border border-[#E5E5E5]">
+              "การพัฒนาแอปพลิเคชันโดยปราศจาก SDLC เปรียบเสมือนการสร้างตึกสูงโดยไม่มีพิมพ์เขียว แม้ช่างก่อสร้างจะขยันขันแข็งเพียงใด ย่อมเสี่ยงต่อการพังทลายหรือใช้งานจริงไม่ได้ในที่สุด"
+            </p>
+          </div>
+
+          <!-- Interactive Stepper: แผนภาพวงจร SDLC 6 ขั้นตอน (Circular Lifecycle Wheel) -->
+          <div class="my-8 border border-[#E5E5E5] rounded-3xl overflow-hidden bg-white shadow-md">
+            <!-- Top Controls Header -->
+            <div class="bg-gradient-to-r from-zinc-900 to-black text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000] animate-pulse"></span>
+                <span class="text-xs font-bold uppercase tracking-wider">
+                  แผนภาพจำลองวงจรชีวิตซอฟต์แวร์: SDLC 6 ขั้นตอน (Circular Life Cycle Wheel)
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="sdlcAutoPlayBtn" onclick="toggleSdlcAutoPlay()" class="h-8 px-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-semibold text-white transition flex items-center gap-1.5 border border-white/10" title="หมุนวนเปลี่ยนขั้นตอนอัตโนมัติ">
+                  <span id="sdlcAutoIcon">▶</span>
+                  <span id="sdlcAutoText">หมุนวงจรอัตโนมัติ</span>
+                </button>
+                <button onclick="copyText('SDLC 6 ขั้นตอน: 1.Planning & Requirements -> 2.System & UI/UX Design -> 3.Implementation/Development -> 4.Testing & QA -> 5.Deployment & Release -> 6.Maintenance & Evolution', this)" class="h-8 px-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-xs text-zinc-300 hover:text-white transition flex items-center gap-1 border border-white/10">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  <span>คัดลอกสรุป</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Main Layout: Left = Circular Wheel, Right = Detailed Step Card -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-zinc-200">
+              
+              <!-- Left Column: SVG Circular SDLC Wheel (lg:col-span-6) -->
+              <div class="lg:col-span-6 p-6 sm:p-8 bg-gradient-to-b from-zinc-50/70 via-white to-zinc-50/40 flex flex-col items-center justify-between">
+                <div class="w-full text-center mb-1">
+                  <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">ผังวงจรแบบอินเทอร์แอคทีฟ (คลิกเลือกขั้นตอนบนวงล้อ)</span>
+                </div>
+
+                <!-- SVG Circular Life Cycle Wheel -->
+                <div class="relative w-full max-w-[420px] aspect-square flex items-center justify-center my-2">
+                  <svg id="sdlcCircleSvg" viewBox="0 0 520 520" class="w-full h-full select-none drop-shadow-sm">
+                    <defs>
+                      <marker id="arrowRed" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#FF0000" />
+                      </marker>
+                      <marker id="arrowPurple" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#8B5CF6" />
+                      </marker>
+                      <marker id="arrowBlue" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#065FD4" />
+                      </marker>
+                      <marker id="arrowGreen" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#2BA640" />
+                      </marker>
+                      <marker id="arrowAmber" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#FB8C00" />
+                      </marker>
+                      <marker id="arrowRose" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#E11D48" />
+                      </marker>
+                    </defs>
+
+                    <!-- Background Circular Tracks -->
+                    <circle cx="260" cy="260" r="175" fill="none" stroke="#F4F4F5" stroke-width="12" />
+                    <circle cx="260" cy="260" r="175" fill="none" stroke="#E4E4E7" stroke-width="1.5" stroke-dasharray="4 6" />
+
+                    <!-- Connecting Directed Arcs (Clockwise) with fill="none" according to svg-flowchart standard -->
+                    <!-- 1 -> 2 (Plan to Design) -->
+                    <path id="sdlcArc1" d="M 305.3 90.9 A 175 175 0 0 1 383.7 136.3" fill="none" stroke="#FF0000" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowRed)" class="opacity-70 transition-all duration-300" />
+                    <!-- 2 -> 3 (Design to Develop) -->
+                    <path id="sdlcArc2" d="M 429.0 214.7 A 175 175 0 0 1 429.0 305.3" fill="none" stroke="#8B5CF6" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowPurple)" class="opacity-70 transition-all duration-300" />
+                    <!-- 3 -> 4 (Develop to Test) -->
+                    <path id="sdlcArc3" d="M 383.7 383.7 A 175 175 0 0 1 305.3 429.1" fill="none" stroke="#065FD4" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowBlue)" class="opacity-70 transition-all duration-300" />
+                    <!-- 4 -> 5 (Test to Deploy) -->
+                    <path id="sdlcArc4" d="M 214.7 429.1 A 175 175 0 0 1 136.3 383.7" fill="none" stroke="#2BA640" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowGreen)" class="opacity-70 transition-all duration-300" />
+                    <!-- 5 -> 6 (Deploy to Maintain) -->
+                    <path id="sdlcArc5" d="M 91.0 305.3 A 175 175 0 0 1 91.0 214.7" fill="none" stroke="#FB8C00" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowAmber)" class="opacity-70 transition-all duration-300" />
+                    <!-- 6 -> 1 Continuous Loop Feedback (Maintain to Plan) -->
+                    <path id="sdlcArc6" d="M 136.3 136.3 A 175 175 0 0 1 214.7 90.9" fill="none" stroke="#E11D48" stroke-width="3.5" stroke-dasharray="6 4" stroke-linecap="round" marker-end="url(#arrowRose)" class="transition-all duration-300" />
+
+                    <!-- Center Hub Circle -->
+                    <g id="sdlcCenterHub" class="cursor-pointer" onclick="toggleSdlcAutoPlay()" title="คลิกเพื่อสลับหมุนอัตโนมัติ">
+                      <circle cx="260" cy="260" r="76" fill="#FFFFFF" stroke="#0F0F0F" stroke-width="2" class="drop-shadow-md" />
+                      <circle cx="260" cy="260" r="66" fill="#FAFAFA" stroke="#E5E5E5" stroke-width="1" />
+                      
+                      <!-- Rotating Pointer Needle -->
+                      <g id="sdlcPointerGroup" style="transform-origin: 260px 260px; transform: rotate(-90deg); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                        <line x1="260" y1="260" x2="260" y2="188" stroke="#FF0000" stroke-width="3" stroke-linecap="round" />
+                        <polygon points="260,180 254,192 266,192" fill="#FF0000" />
+                      </g>
+
+                      <!-- Center Hub Text -->
+                      <circle cx="260" cy="260" r="46" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.5" />
+                      <text x="260" y="246" text-anchor="middle" font-size="11" font-weight="900" fill="#FF0000" letter-spacing="1">SDLC</text>
+                      <text id="centerStepNum" x="260" y="264" text-anchor="middle" font-size="14" font-weight="bold" fill="#0F0F0F">ขั้นที่ 1</text>
+                      <text id="centerStepTitle" x="260" y="278" text-anchor="middle" font-size="9" font-weight="600" fill="#606060">PLANNING</text>
+                      <text x="260" y="318" text-anchor="middle" font-size="8" font-weight="bold" fill="#2BA640" letter-spacing="0.5">🔄 CONTINUOUS LOOP</text>
+                    </g>
+
+                    <!-- Node 1: Planning (Top: 260, 85) -->
+                    <g id="sdlcNode1" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(1)">
+                      <circle id="sdlcAura1" cx="260" cy="85" r="38" fill="#FF0000" opacity="0.3" class="animate-pulse" />
+                      <circle id="sdlcCircle1" cx="260" cy="85" r="32" fill="#FF0000" stroke="#FFFFFF" stroke-width="3" class="drop-shadow-md" />
+                      <text id="sdlcIcon1" x="260" y="80" text-anchor="middle" font-size="16" fill="#FFFFFF">📋</text>
+                      <text id="sdlcText1" x="260" y="96" text-anchor="middle" font-size="9" font-weight="bold" fill="#FFFFFF">1. PLAN</text>
+                    </g>
+
+                    <!-- Node 2: Design (Top Right: 411.5, 172.5) -->
+                    <g id="sdlcNode2" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(2)">
+                      <circle id="sdlcAura2" cx="411.5" cy="172.5" r="38" fill="#8B5CF6" opacity="0" />
+                      <circle id="sdlcCircle2" cx="411.5" cy="172.5" r="29" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon2" x="411.5" y="168" text-anchor="middle" font-size="15" fill="#8B5CF6">🎨</text>
+                      <text id="sdlcText2" x="411.5" y="184" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">2. DESIGN</text>
+                    </g>
+
+                    <!-- Node 3: Develop (Bottom Right: 411.5, 347.5) -->
+                    <g id="sdlcNode3" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(3)">
+                      <circle id="sdlcAura3" cx="411.5" cy="347.5" r="38" fill="#065FD4" opacity="0" />
+                      <circle id="sdlcCircle3" cx="411.5" cy="347.5" r="29" fill="#FFFFFF" stroke="#065FD4" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon3" x="411.5" y="343" text-anchor="middle" font-size="15" fill="#065FD4">💻</text>
+                      <text id="sdlcText3" x="411.5" y="359" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">3. CODE</text>
+                    </g>
+
+                    <!-- Node 4: Testing (Bottom: 260, 435) -->
+                    <g id="sdlcNode4" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(4)">
+                      <circle id="sdlcAura4" cx="260" cy="435" r="38" fill="#2BA640" opacity="0" />
+                      <circle id="sdlcCircle4" cx="260" cy="435" r="29" fill="#FFFFFF" stroke="#2BA640" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon4" x="260" y="430" text-anchor="middle" font-size="15" fill="#2BA640">🧪</text>
+                      <text id="sdlcText4" x="260" y="446" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">4. TEST</text>
+                    </g>
+
+                    <!-- Node 5: Deploy (Bottom Left: 108.5, 347.5) -->
+                    <g id="sdlcNode5" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(5)">
+                      <circle id="sdlcAura5" cx="108.5" cy="347.5" r="38" fill="#FB8C00" opacity="0" />
+                      <circle id="sdlcCircle5" cx="108.5" cy="347.5" r="29" fill="#FFFFFF" stroke="#FB8C00" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon5" x="108.5" y="343" text-anchor="middle" font-size="15" fill="#FB8C00">🚀</text>
+                      <text id="sdlcText5" x="108.5" y="359" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">5. DEPLOY</text>
+                    </g>
+
+                    <!-- Node 6: Maintain (Top Left: 108.5, 172.5) -->
+                    <g id="sdlcNode6" class="sdlc-node cursor-pointer group" onclick="showSdlcStep(6)">
+                      <circle id="sdlcAura6" cx="108.5" cy="172.5" r="38" fill="#E11D48" opacity="0" />
+                      <circle id="sdlcCircle6" cx="108.5" cy="172.5" r="29" fill="#FFFFFF" stroke="#E11D48" stroke-width="2.5" class="drop-shadow-sm" />
+                      <text id="sdlcIcon6" x="108.5" y="168" text-anchor="middle" font-size="15" fill="#E11D48">🔄</text>
+                      <text id="sdlcText6" x="108.5" y="184" text-anchor="middle" font-size="9" font-weight="bold" fill="#0F0F0F">6. EVOLVE</text>
+                    </g>
+                  </svg>
+                </div>
+
+                <!-- Step Navigator & Loopback Pill -->
+                <div class="w-full space-y-3 mt-2">
+                  <!-- Stepper Quick Buttons -->
+                  <div class="flex items-center justify-between gap-1 max-w-sm mx-auto">
+                    <button onclick="prevSdlcStep()" class="h-8 px-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-xs font-semibold text-[#0F0F0F] transition" title="ขั้นตอนก่อนหน้า">
+                      ← ก่อนหน้า
+                    </button>
+                    <div class="flex items-center gap-1">
+                      <button onclick="showSdlcStep(1)" id="sdlcDot1" class="w-7 h-7 rounded-lg bg-[#FF0000] text-white text-xs font-bold transition">1</button>
+                      <button onclick="showSdlcStep(2)" id="sdlcDot2" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">2</button>
+                      <button onclick="showSdlcStep(3)" id="sdlcDot3" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">3</button>
+                      <button onclick="showSdlcStep(4)" id="sdlcDot4" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">4</button>
+                      <button onclick="showSdlcStep(5)" id="sdlcDot5" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">5</button>
+                      <button onclick="showSdlcStep(6)" id="sdlcDot6" class="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition">6</button>
+                    </div>
+                    <button onclick="nextSdlcStep()" class="h-8 px-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-xs font-semibold text-[#0F0F0F] transition" title="ขั้นตอนถัดไป">
+                      ถัดไป →
+                    </button>
+                  </div>
+
+                  <!-- Continuous Loop Explanation Callout -->
+                  <div class="p-3 bg-red-50/70 border border-red-200 rounded-xl text-[11px] text-[#0F0F0F] flex items-start gap-2">
+                    <span class="text-sm shrink-0">🔄</span>
+                    <div class="leading-relaxed">
+                      <strong>วงจรไม่สิ้นสุด (Continuous Loop):</strong> เมื่อแอปถูกบำรุงรักษา (ขั้น 6) ข้อเสนอแนะและปัญหาใหม่จะถูกส่งต่อ <em>"วนลูปกลับไปสู่การวางแผน (ขั้น 1)"</em> เพื่อพัฒนาเวอร์ชันถัดไปอย่างต่อเนื่อง
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Deep-Dive Step Details (lg:col-span-6) -->
+              <div class="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-between bg-white">
+                
+                <!-- Lifecycle Hand-off Context Bar -->
+                <div id="sdlcHandoffBar" class="mb-4 p-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs flex items-center justify-between">
+                  <div class="flex items-center gap-1.5 text-zinc-500">
+                    <span class="font-bold text-zinc-700">📥 รับเข้า:</span>
+                    <span id="sdlcInputDesc" class="text-zinc-600 font-medium">Pain Points & ไอเดียธุรกิจ</span>
+                  </div>
+                  <span class="text-zinc-400">➔</span>
+                  <div class="flex items-center gap-1.5 text-red-600">
+                    <span class="font-bold">📤 ส่งมอบ:</span>
+                    <span id="sdlcOutputDesc" class="font-semibold">App Concept Canvas & PRD</span>
+                  </div>
+                </div>
+
+                <!-- Detailed Content 1 to 6 (Full contents 100% preserved) -->
+                <div>
+                  <!-- Step 1 -->
+                  <div id="sdlcContent1" class="sdlc-content block space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#FF0000] text-white flex items-center justify-center text-xs font-bold shadow-sm">1</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การวางแผนและการวิเคราะห์ความต้องการ (Planning & Requirements Analysis)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      เป็นขั้นตอนที่ตอบคำถามว่า <strong>"เรากำลังจะแก้ปัญหาอะไร และทำไมต้องแก้?"</strong> นักพัฒนาต้องลงพื้นที่สำรวจ สัมภาษณ์ผู้ใช้งานจริง และระบุความต้องการออกเป็น 2 มิติ:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div class="bg-[#F8F8F8] p-3.5 rounded-lg border border-[#E5E5E5]">
+                        <div class="font-bold text-[#0F0F0F] mb-1">Functional Requirements (ข้อกำหนดเชิงหน้าที่):</div>
+                        <p class="text-[#606060]">ระบบต้องทำอะไรได้บ้าง เช่น สแกนบาร์โค้ดได้, คำนวณเงินรวมได้, ส่งแจ้งเตือนคิวได้, มีระบบค้นหาประวัติย้อนหลัง</p>
+                      </div>
+                      <div class="bg-[#F8F8F8] p-3.5 rounded-lg border border-[#E5E5E5]">
+                        <div class="font-bold text-[#0F0F0F] mb-1">Non-Functional Requirements (ข้อกำหนดเชิงคุณภาพ):</div>
+                        <p class="text-[#606060]">คุณสมบัติแวดล้อม เช่น โหลดข้อมูลเสร็จใน 2 วินาที, หน้าจอรองรับจอเล็ก 360px, รองรับโหมดออฟไลน์เมื่อเน็ตหลุด</p>
+                      </div>
+                    </div>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> เหมือนการสำรวจทำเลและกลุ่มลูกค้าก่อนเปิดร้านอาหาร ว่าคนแถวนั้นชอบกินอะไร มีงบประมาณเท่าไร และมีคู่แข่งร้านไหนอยู่ใกล้บ้าง
+                    </div>
+                  </div>
+
+                  <!-- Step 2 -->
+                  <div id="sdlcContent2" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center text-xs font-bold shadow-sm">2</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การออกแบบสถาปัตยกรรมและส่วนต่อประสาน (System & UI/UX Design)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      นำความต้องการที่ได้มาแปลงเป็นแบบจำลองเชิงระบบและหน้าตาของแอปพลิเคชัน:
+                    </p>
+                    <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
+                      <li><strong>Database Schema:</strong> กำหนดตารางเก็บข้อมูลใน Google Sheets เช่น ตารางลูกค้า, สินค้า, ออร์เดอร์, รายละเอียดการสั่งซื้อ</li>
+                      <li><strong>UX (User Experience):</strong> ออกแบบเส้นทางการกด (User Flow) ให้กระชับ สั่งของเสร็จใน 3 คลิก ไม่สับสน</li>
+                      <li><strong>UI (User Interface):</strong> วาดโครงร่าง Wireframe และ Mockup สีสมบูรณ์บน <strong>Figma</strong> พร้อม Interactive Prototype</li>
+                    </ul>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ให้สถาปนิกและมัณฑนากรเขียนแปลนร้านอาหาร จัดวางตำแหน่งโต๊ะ จุดชำระเงิน ครัว และออกแบบป้ายเมนูให้สวยงามน่าเข้า
+                    </div>
+                  </div>
+
+                  <!-- Step 3 -->
+                  <div id="sdlcContent3" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#065FD4] text-white flex items-center justify-center text-xs font-bold shadow-sm">3</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การพัฒนาและเขียนโปรแกรม (Implementation / Development)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      นำพิมพ์เขียวที่ได้มาลงมือสร้างเป็นแอปพลิเคชันที่ทำงานได้จริง สำหรับวิชานี้เราใช้ <strong>No-Code Platform (Google AppSheet)</strong> ซึ่งช่วยลดระยะเวลาจากเดิมที่ต้องเขียนโค้ดหลายพันบรรทัด เหลือเพียงการกำหนดความสัมพันธ์ของข้อมูลและตรรกะทางธุรกิจ
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
+                        <span class="font-bold text-[#0F0F0F]">Traditional Coding:</span> Swift, Kotlin, Flutter (ใช้เวลา 3-6 เดือน เหมาะกับระบบยักษ์ใหญ่)
+                      </div>
+                      <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
+                        <span class="font-bold text-[#2BA640]">No-Code Platform (AppSheet):</span> เชื่อม Google Sheets สร้างแอปเสร็จใน 1-2 สัปดาห์ เหมาะกับธุรกิจชุมชน
+                      </div>
+                    </div>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ช่างก่อสร้างเริ่มก่ออิฐ ฉาบปูน เดินท่อน้ำ ต่อสายไฟ ติดตั้งเคาน์เตอร์กาแฟและเครื่องชง
+                    </div>
+                  </div>
+
+                  <!-- Step 4 -->
+                  <div id="sdlcContent4" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#2BA640] text-white flex items-center justify-center text-xs font-bold shadow-sm">4</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การทดสอบและการควบคุมคุณภาพ (Testing & Quality Assurance)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      นำแอปไปทดสอบในสถานการณ์จริง ค้นหาจุดบกพร่อง (Bugs) เพื่อไม่ให้เกิดปัญหาหน้างาน:
+                    </p>
+                    <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
+                      <li><strong>Functional Testing:</strong> ตรวจสอบสูตรคำนวณเงิน การสแกนบาร์โค้ดในที่แสงน้อย การตัดสต๊อกเมื่อกดสั่งซื้อ</li>
+                      <li><strong>Usability Testing:</strong> ให้ผู้ใช้จริงที่ไม่เชี่ยวชาญเทคโนโลยีลองกดใช้งาน ว่าตัวหนังสือเล็กไปหรือไม่ เมนูเข้าใจยากไหม</li>
+                      <li><strong>Device Compatibility:</strong> ทดสอบบนจอ iPhone, iPad, มือถือ Android จอเล็ก และผ่านเว็บเบราว์เซอร์</li>
+                    </ul>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ซ้อมชงกาแฟให้เพื่อนร่วมงานชิม ตรวจสอบว่าเตาแก๊สทำงานปลอดภัย และเครื่องรูดบัตรคิดเงินตรงเป๊ะ
+                    </div>
+                  </div>
+
+                  <!-- Step 5 -->
+                  <div id="sdlcContent5" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#FB8C00] text-white flex items-center justify-center text-xs font-bold shadow-sm">5</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การติดตั้งและการส่งมอบระบบ (Deployment & Release)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      การส่งมอบแอปให้ผู้ใช้จริงใช้งานในสภาพแวดล้อมจริง (Production Environment):
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
+                        <div class="font-bold text-[#0F0F0F] mb-1">การติดตั้งหน้าร้าน:</div>
+                        <p class="text-[#606060]">ติดตั้งสแตนดี้ QR Code สำหรับสแกนใช้งานแอปได้ทันทีโดยไม่ต้องโหลดผ่านสโตร์</p>
+                      </div>
+                      <div class="bg-[#F8F8F8] p-3 rounded-lg border border-[#E5E5E5]">
+                        <div class="font-bold text-[#0F0F0F] mb-1">การฝึกอบรมบุคลากร:</div>
+                        <p class="text-[#606060]">สอนวิธีรับออร์เดอร์ การกดยืนยันสถานะ และการเปิดดูรายงานสรุปยอดขาย</p>
+                      </div>
+                    </div>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> วัน Grand Opening เชิญลูกค้าเข้าร้านอย่างเป็นทางการและเริ่มรับรายได้จริง
+                    </div>
+                  </div>
+
+                  <!-- Step 6 -->
+                  <div id="sdlcContent6" class="sdlc-content hidden space-y-4">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[#E11D48] text-white flex items-center justify-center text-xs font-bold shadow-sm">6</span>
+                      <h4 class="font-bold text-base text-[#0F0F0F]">การบำรุงรักษาและการพัฒนาต่อเนื่อง (Maintenance & Evolution)</h4>
+                    </div>
+                    <p class="text-sm text-[#606060] leading-relaxed">
+                      ซอฟต์แวร์ไม่เคยมีคำว่า "เสร็จสิ้นอย่างถาวร" ต้องรับฟังข้อเสนอแนะจากผู้ใช้จริงมาพัฒนาต่อยอด:
+                    </p>
+                    <ul class="text-xs text-[#0F0F0F] space-y-2 list-disc pl-5">
+                      <li><strong>Corrective Maintenance:</strong> แก้ไขข้อผิดพลาดหรือบั๊กที่เพิ่งพบระหว่างการใช้งานจริง</li>
+                      <li><strong>Adaptive Maintenance:</strong> อัปเดตโครงสร้างระบบให้สอดคล้องกับการเปลี่ยนแปลงของ Google Sheets หรือเบราว์เซอร์</li>
+                      <li><strong>Perfective Maintenance:</strong> เพิ่มเมนูใหม่ ฟังก์ชันคูปองส่วนลด หรือระบบสะสมแต้มตามความต้องการของธุรกิจ</li>
+                    </ul>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-[#065FD4]">
+                      💡 <strong>เปรียบเทียบกับชีวิตจริง:</strong> ปรับปรุงสูตรอาหารตามคำติชมลูกค้า เพิ่มเมนูตามฤดูกาล และซ่อมแซมเก้าอี้ที่เริ่มชำรุด
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Footer tip -->
+                <div class="mt-6 pt-3 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400">
+                  <span>วงจร SDLC สากล • IEEE Standard 1074</span>
+                  <span>คลิกเพื่อดูการถ่ายโอนข้อมูล</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 2: วิเคราะห์ Pain Points 4 มิติ -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="problem-framing" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 2</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-4">
+            การกำหนดกรอบปัญหาและการค้นหาโอกาสทางธุรกิจ (Problem Framing)
+          </h2>
+
+          <div class="prose text-[#0F0F0F] leading-relaxed space-y-4 text-base">
+            <p>
+              จุดเริ่มต้นของแอปพลิเคชันที่ประสบความสำเร็จ ไม่ได้เริ่มจาก <em>"เราอยากเขียนโค้ดอะไร"</em> แต่เริ่มจาก <em>"ผู้ใช้งานกำลังเจอปัญหาอะไรที่เจ็บปวดที่สุด"</em>
+            </p>
+            <p>
+              <strong>จุดเจ็บปวด (Pain Points)</strong> คือ ความยุ่งยาก ล่าช้า สูญเสีย หรือข้อผิดพลาดที่เกิดขึ้นซ้ำๆ ในการดำเนินชีวิตหรือการทำงาน ซึ่งสามารถจำแนกออกเป็น 4 มิติหลักที่ต้องวิเคราะห์อย่างเป็นระบบ:
+            </p>
+          </div>
+
+          <!-- ตาราง 4 มิติของ Pain Points -->
+          <div class="my-6 border border-[#E5E5E5] rounded-xl overflow-hidden shadow-sm">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-[#F8F8F8] border-b border-[#E5E5E5] text-xs font-bold text-[#0F0F0F]">
+                <tr>
+                  <th class="py-3 px-4">มิติของจุดเจ็บปวด (Pain Dimensions)</th>
+                  <th class="py-3 px-4">ลักษณะปัญหา</th>
+                  <th class="py-3 px-4">ตัวอย่างสถานการณ์จริง</th>
+                  <th class="py-3 px-4 text-right">โซลูชันแอปพลิเคชัน</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E5E5E5] text-xs">
+                <tr class="hover:bg-red-50/30 transition">
+                  <td class="py-3.5 px-4 font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                    1. ด้านเวลา (Time)
+                  </td>
+                  <td class="py-3.5 px-4 text-[#606060]">ต้องรอนาน ขั้นตอนซ้ำซ้อน เสียเวลาต่อคิวช่วงเร่งด่วน</td>
+                  <td class="py-3.5 px-4 text-[#0F0F0F]">นักเรียนเข้าแถวซื้อกาแฟพักเที่ยงนาน 15 นาทีจนหมดเวลาพัก</td>
+                  <td class="py-3.5 px-4 text-right font-medium text-[#065FD4]">สั่งล่วงหน้า & บัตรคิวดิจิทัล</td>
+                </tr>
+                <tr class="hover:bg-red-50/30 transition">
+                  <td class="py-3.5 px-4 font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                    2. ด้านการเงิน (Financial)
+                  </td>
+                  <td class="py-3.5 px-4 text-[#606060]">รายได้รั่วไหล สต๊อกสูญหาย รายจ่ายไม่จำเป็น ทอนเงินผิด</td>
+                  <td class="py-3.5 px-4 text-[#0F0F0F]">อุปกรณ์กล้องแผนกหาย อะไหล่ในอู่ไม่รู้ว่าใครเบิกไป ซื้อซ้ำซ้อน</td>
+                  <td class="py-3.5 px-4 text-right font-medium text-[#065FD4]">สแกนบาร์โค้ดตัดสต๊อกอัตโนมัติ</td>
+                </tr>
+                <tr class="hover:bg-red-50/30 transition">
+                  <td class="py-3.5 px-4 font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                    3. ด้านกระบวนการ (Process)
+                  </td>
+                  <td class="py-3.5 px-4 text-[#606060]">ความผิดพลาดจากคน (Human Error) จดกระดาษหาย ลายมืออ่านไม่ออก</td>
+                  <td class="py-3.5 px-4 text-[#0F0F0F]">จดออร์เดอร์ใส่กระดาษเปียกน้ำ ชงหวาน 100% ให้คนสั่งหวาน 0%</td>
+                  <td class="py-3.5 px-4 text-right font-medium text-[#065FD4]">ฟอร์มสั่งซื้อพร้อมตัวเลือกล็อกค่า</td>
+                </tr>
+                <tr class="hover:bg-red-50/30 transition">
+                  <td class="py-3.5 px-4 font-bold text-[#0F0F0F] flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                    4. ด้านความรู้สึก (Experience)
+                  </td>
+                  <td class="py-3.5 px-4 text-[#606060]">หงุดหงิด กังวลใจ ไม่มั่นใจ ขาดความโปร่งใสและสถานะแจ้งเตือน</td>
+                  <td class="py-3.5 px-4 text-[#0F0F0F]">เจ้าของสัตว์เลี้ยงนำหมามาอาบน้ำ ไม่รู้ว่าทำเสร็จเมื่อไร ต้องนั่งเฝ้า</td>
+                  <td class="py-3.5 px-4 text-right font-medium text-[#065FD4]">แจ้งเตือน Live Status & Push Alert</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- การแยก Pain Point แท้จริง vs ความต้องการลอยๆ (Nice-to-Have) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+            <div class="p-4 rounded-xl border border-red-200 bg-red-50/50">
+              <div class="text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">🔥 Pain Point ที่แท้จริง (Must-Solve)</div>
+              <p class="text-xs text-[#0F0F0F] leading-relaxed">
+                "ถ้าไม่มีระบบนี้ งานจะหยุดชะงัก หรือธุรกิจต้องสูญเสียเงินทุกวัน" ผู้ใช้งานจะยินยอมปรับเปลี่ยนพฤติกรรมเพื่อมาใช้งานแอปทันทีเพราะแก้ความทุกข์ได้จริง
+              </p>
+            </div>
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-[#F8F8F8]">
+              <div class="text-xs font-bold uppercase tracking-wider text-[#606060] mb-1">💭 ความต้องการลอยๆ (Nice-to-Have)</div>
+              <p class="text-xs text-[#606060] leading-relaxed">
+                "มีก็ดี ไม่มีก็ได้ ไม่ได้เดือดร้อนอะไร" เช่น ธีมเปลี่ยนสีได้ 10 แบบ, แอนิเมชันตอนเปิดแอป หากมัวแต่ทำสิ่งเหล่านี้จะทำให้ส่งมอบงานไม่ทันเวลา
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 3: APP CONCEPT CANVAS (9 มิติเชิงยุทธศาสตร์) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="canvas-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 3</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            กระดานแนวคิดแอปพลิเคชัน (App Concept Canvas 9 มิติ)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            พิมพ์เขียวสถาปัตยกรรมแนวคิดที่กลั่นกรองสาระสำคัญทั้งหมดของแอปพลิเคชันลงในหน้าเดียว ก่อนเริ่มเขียนโปรแกรมจริง
+          </p>
+
+          <!-- ผัง Interactive Canvas 9 ช่อง -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+
+            <!-- ช่อง 1: ปัญหาและโอกาส -->
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#FF0000] mb-1">
+                  <span>ช่องที่ 1</span>
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">1. ปัญหาและโอกาส (Problems & Pain Points)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  ระบุอุปสรรคที่ผู้ใช้พบเจอเป็นประจำ (4 มิติ) และทำไมต้องแก้ปัญหานี้ตอนนี้ ช่องว่างของโซลูชันเดิมคืออะไร
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#065FD4] font-medium">
+                คีย์เวิร์ด: Real Pain, Market Window
+              </div>
+            </div>
+
+            <!-- ช่อง 3: คุณค่าที่ส่งมอบ (วางตรงกลางตามหลัก Lean Canvas) -->
+            <div class="p-4 rounded-xl border-2 border-[#0F0F0F] bg-[#F8F8F8] flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#0F0F0F] mb-1">
+                  <span class="text-[#FF0000] font-bold">ช่องที่ 3 (หัวใจของแอป)</span>
+                  <svg class="w-4 h-4 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">3. คุณค่าที่ส่งมอบ (Value Proposition)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  คำสัญญาว่าผู้ใช้จะได้ประโยชน์สูงสุดอะไร และแอปนี้ดีกว่า แตกต่างจากเดิมอย่างไร สรุปชัดเจนใน 1 ประโยคทอง
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#0F0F0F] font-bold">
+                คีย์เวิร์ด: จุดขายหลัก, ข้อแตกต่าง
+              </div>
+            </div>
+
+            <!-- ช่อง 2: กลุ่มเป้าหมาย -->
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#FF0000] mb-1">
+                  <span>ช่องที่ 2</span>
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">2. กลุ่มเป้าหมาย (Audience & Personas)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  ระบุผู้ใช้ 2 ฝั่งชัดเจน: ฝั่งลูกค้า/ผู้รับบริการ (Front-end) และฝั่งเจ้าของร้าน/ผู้ดูแล (Back-end) อย่าตอบว่า "ทุกคน"
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#065FD4] font-medium">
+                คีย์เวิร์ด: User Persona, Jobs to be Done
+              </div>
+            </div>
+
+            <!-- ช่อง 4: ฟีเจอร์หลัก (MVP) -->
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#FF0000] mb-1">
+                  <span>ช่องที่ 4</span>
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">4. ฟีเจอร์หลัก (Key Features / MVP)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  คัดเฉพาะฟังก์ชันที่ <strong>"ต้องมี (Must-Have)"</strong> ในเวอร์ชันแรกเพื่อแก้ปัญหาหลัก ฟังก์ชันเสริมเก็บไว้ก่อน
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#065FD4] font-medium">
+                คีย์เวิร์ด: Minimum Viable Product
+              </div>
+            </div>
+
+            <!-- ช่อง 5: ประสบการณ์ & หน้าจอสำคัญ -->
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#FF0000] mb-1">
+                  <span>ช่องที่ 5</span>
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">5. ประสบการณ์ & หน้าจอสำคัญ (UX & Screens)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  ผังการกดตั้งแต่เปิดแอปจนจบงาน (User Flow) พร้อมตั้งชื่อ 4-5 หน้าจอสำคัญ เช่น Screen_Catalog, Screen_Cart
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#065FD4] font-medium">
+                คีย์เวิร์ด: User Flow, Key Screens
+              </div>
+            </div>
+
+            <!-- ช่อง 6: แพลตฟอร์ม & เทคโนโลยี -->
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#FF0000] mb-1">
+                  <span>ช่องที่ 6</span>
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">6. แพลตฟอร์ม & เทคโนโลยี (Tech Stack)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  รองรับ Cross-Platform (Android/iOS/Web) โดยใช้ <strong>Google Sheets + AppSheet + Figma</strong>
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#065FD4] font-medium">
+                คีย์เวิร์ด: No-Code, Cross-Platform
+              </div>
+            </div>
+
+            <!-- ช่อง 7: ช่องทาง & การเข้าถึง -->
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#FF0000] mb-1">
+                  <span>ช่องที่ 7</span>
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">7. ช่องทาง & การเข้าถึง (Channels & Retention)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  การดึงดูดผู้ใช้ใหม่ด้วย QR Code สแตนดี้หน้าร้าน และการรักษาผู้ใช้เดิมด้วยปุ่มสั่งซ้ำใน 1 คลิก
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#065FD4] font-medium">
+                คีย์เวิร์ด: Acquisition, Retention
+              </div>
+            </div>
+
+            <!-- ช่อง 8: ตัวชี้วัดความสำเร็จ -->
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#FF0000] mb-1">
+                  <span>ช่องที่ 8</span>
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">8. ตัวชี้วัดความสำเร็จ (Metrics / Key Results)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  วัดผลเชิงตัวเลขชัดเจน เช่น เวลารอคิวลดลงจาก 15 นาที เหลือ 1 นาที, อัตราชงผิดลดลงเหลือ 0 ครั้ง
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#065FD4] font-medium">
+                คีย์เวิร์ด: Key Performance Indicators
+              </div>
+            </div>
+
+            <!-- ช่อง 9: เว็บไซต์และส่วนต่อขยาย -->
+            <div class="p-4 rounded-xl border border-[#E5E5E5] bg-white hover:border-[#FF0000] transition flex flex-col justify-between shadow-sm">
+              <div>
+                <div class="flex items-center justify-between text-xs font-bold text-[#FF0000] mb-1">
+                  <span>ช่องที่ 9</span>
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+                </div>
+                <h3 class="font-bold text-sm text-[#0F0F0F]">9. ระบบสนับสนุน & ส่วนขยาย (Ecosystem)</h3>
+                <p class="text-xs text-[#606060] mt-2 leading-relaxed">
+                  ระบบเสริมที่อยากให้มีควบคู่ เช่น Web Admin Dashboard สำหรับดูยอดขาย, ใบเสร็จ PDF อัตโนมัติ, บอท LINE OA
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#065FD4] font-medium">
+                คีย์เวิร์ด: Admin Portal, Automation Bot
+              </div>
+            </div>
+
+          </div>
+
+          <!-- กล่องสูตร Value Proposition พร้อมปุ่มคัดลอก -->
+          <div class="p-4 rounded-xl bg-[#F8F8F8] border border-[#E5E5E5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-bold text-[#FF0000] uppercase tracking-wider">สูตรเขียนประโยคคุณค่าส่งมอบ (Value Proposition Formula)</div>
+              <div class="font-mono text-xs text-[#0F0F0F] mt-1">
+                "แอป [ชื่อ] ช่วยให้ [กลุ่มผู้ใช้] สามารถ [แก้ปัญหาหลัก] โดย [จุดเด่นที่แตกต่าง] เพื่อให้ [ผลลัพธ์ที่ดีขึ้น]"
+              </div>
+            </div>
+            <button onclick="copyText('แอป [ชื่อ] ช่วยให้ [กลุ่มผู้ใช้] สามารถ [แก้ปัญหาหลัก] โดย [จุดเด่นที่แตกต่าง] เพื่อให้ [ผลลัพธ์ที่ดีขึ้น]', this)" class="shrink-0 h-8 px-3 rounded-lg border border-[#E5E5E5] bg-white hover:bg-[#F2F2F2] text-xs font-medium text-[#0F0F0F] flex items-center gap-1.5 transition">
+              <svg class="w-3.5 h-3.5 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <span>คัดลอกเทมเพลต</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 4: กรณีศึกษา 3 ธุรกิจต้นแบบ (Tri-Archetype Switcher) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="case-studies" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 4</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            กรณีศึกษาการออกแบบแอปพลิเคชัน 3 ธุรกิจต้นแบบ (Tri-Archetype Case Studies)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            สลับเพื่อศึกษากรณีตัวอย่างการจัดทำ App Concept Canvas ฉบับสมบูรณ์ 100% สำหรับ 3 อาร์คิไทป์หลักของรายวิชา
+          </p>
+
+          <!-- ตัวสลับ 3 Archetypes (Segmented 3-Way Switcher) -->
+          <div class="flex items-center p-1 bg-[#F2F2F2] rounded-xl max-w-xl mx-auto mb-6 border border-[#E5E5E5]">
+            <button onclick="switchArchetype('freshbrew')" id="archTabFreshbrew" class="arch-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-1.5">
+              <span>☕</span>
+              <span>Fresh Brew</span>
+            </button>
+            <button onclick="switchArchetype('happypaws')" id="archTabHappypaws" class="arch-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5">
+              <span>🐾</span>
+              <span>Happy Paws</span>
+            </button>
+            <button onclick="switchArchetype('smartborrow')" id="archTabSmartborrow" class="arch-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5">
+              <span>📦</span>
+              <span>Smart Borrow</span>
+            </button>
+          </div>
+
+          <!-- กล่องเนื้อหา Archetype 1: Fresh Brew & Bakery -->
+          <div id="archContentFreshbrew" class="arch-content border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-6 shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <span class="px-2.5 py-1 rounded bg-red-50 text-[#FF0000] font-bold text-xs uppercase border border-red-200">
+                  RETAIL & FOOD ORDERING ARCHETYPE
+                </span>
+                <h3 class="text-xl font-bold text-[#0F0F0F] mt-2">ระบบสั่งเครื่องดื่มล่วงหน้า "Fresh Brew & Bakery"</h3>
+                <p class="text-xs text-[#606060] mt-1">โมเดลธุรกิจร้านกาแฟและเบเกอรี่ในสถาบันการศึกษา แก้ปัญหารอคิวยาวช่วงพักเที่ยงและการจดสูตรหวานผิด</p>
+              </div>
+              <button onclick="copyText('Fresh Brew: สั่งเครื่องดื่มล่วงหน้าใน 3 คลิก ไม่ต้องยืนรอคิว ได้รสชาติถูกต้อง 100% พร้อมรับทันทีที่เดินมาถึง', this)" class="text-xs text-[#065FD4] hover:underline flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>คัดลอก Value Proposition</span>
+              </button>
+            </div>
+
+            <!-- ตารางสรุป 9 ช่อง Fresh Brew -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#FF0000] mb-1">1. ปัญหาและโอกาส</div>
+                <p class="text-[#606060]">พักเที่ยงนักเรียน 50 คน รอนาน 15-20 นาที ป้าสมศรีชงคนเดียว จดใส่เศษกระดาษปลิวหาย ทอนเงินช้า</p>
+              </div>
+              <div class="p-3 bg-red-50/50 rounded-xl border border-red-200">
+                <div class="font-bold text-[#FF0000] mb-1">3. คุณค่าหลัก (Core Value)</div>
+                <p class="text-[#0F0F0F] font-medium">"สั่งเครื่องดื่มล่วงหน้า ไม่ต้องยืนรอคิว ได้รสชาติถูกต้อง 100% พร้อมรับทันทีที่เดินมาถึง"</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#FF0000] mb-1">2. กลุ่มเป้าหมาย (Personas)</div>
+                <p class="text-[#606060]">ลูกค้า: นักเรียน/อาจารย์ เวลาจำกัด 45 นาที | ร้านค้า: ป้าสมศรี อายุ 52 ปี ต้องการปุ่มใหญ่ ตัวหนังสือชัด</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">4. ฟีเจอร์ MVP (Must-Have)</div>
+                <p class="text-[#606060]">แคตตาล็อกแยกหมวด, เลือกระดับหวาน 0-100%, ตะกร้าคำนวณเงิน, QR Code พร้อมเพย์, บัตรคิวสถานะชงสด</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">5. หน้าจอสำคัญ (UX Flow)</div>
+                <p class="text-[#606060]">Screen_Catalog -> Screen_Customize -> Screen_Cart -> Screen_LiveQueue -> Screen_KitchenBar</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">6. แพลตฟอร์ม & เทคโนโลยี</div>
+                <p class="text-[#606060]">Google Sheets (Products, Orders, Order_Details) + Google AppSheet + Figma Prototype</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">7. ช่องทาง & การรักษาผู้ใช้</div>
+                <p class="text-[#606060]">ป้ายสแตนดี้ QR Code หน้าร้าน + ปุ่มสั่งซ้ำเมนูโปรด (One-Click Reorder) ใน 1 วินาที</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">8. ตัวชี้วัดความสำเร็จ (KPIs)</div>
+                <p class="text-[#606060]">เวลารอคิวลดลง &lt; 1 นาที, อัตราชงผิด 0 ครั้ง/สัปดาห์, ยอดสั่งผ่านแอป &gt; 60% ภายใน 3 สัปดาห์</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">9. ระบบสนับสนุน Ecosystem</div>
+                <p class="text-[#606060]">Web Admin Dashboard ดูยอดขายรายวัน + Automation Bot ส่งแจ้งเตือนผ่าน LINE Notify เมื่อน้ำชงเสร็จ</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- กล่องเนื้อหา Archetype 2: Happy Paws Care -->
+          <div id="archContentHappypaws" class="arch-content hidden border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-6 shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <span class="px-2.5 py-1 rounded bg-blue-50 text-[#065FD4] font-bold text-xs uppercase border border-blue-200">
+                  SERVICE & BOOKING APPOINTMENTS ARCHETYPE
+                </span>
+                <h3 class="text-xl font-bold text-[#0F0F0F] mt-2">ระบบจองคิวบริการสัตว์เลี้ยง "Happy Paws Care"</h3>
+                <p class="text-xs text-[#606060] mt-1">โมเดลบริการอาบน้ำ-ตัดขน สปา และคลินิกสัตว์เลี้ยง แก้ปัญหาสัตว์เลี้ยงเครียดจากการนั่งรอคิวนาน และการลืมประวัติแพ้ยา</p>
+              </div>
+              <button onclick="copyText('Happy Paws: จองคิวสปาอาบน้ำตัดขนล่วงหน้า เช็กเวลาว่างเรียลไทม์ บันทึกประวัติสุขภาพสัตว์เลี้ยงและแจ้งเตือนเมื่อเสร็จ', this)" class="text-xs text-[#065FD4] hover:underline flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>คัดลอก Value Proposition</span>
+              </button>
+            </div>
+
+            <!-- ตารางสรุป 9 ช่อง Happy Paws -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#065FD4] mb-1">1. ปัญหาและโอกาส</div>
+                <p class="text-[#606060]">ลูกค้าพาน้องหมามาหน้าร้านแล้วคิวเต็ม น้องหมาเห่าเสียงดังเครียด จำประวัติวัคซีนไม่ได้ ช่างไม่รู้ข้อควรระวัง</p>
+              </div>
+              <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-200">
+                <div class="font-bold text-[#065FD4] mb-1">3. คุณค่าหลัก (Core Value)</div>
+                <p class="text-[#0F0F0F] font-medium">"จองคิวบริการสัตว์เลี้ยงล่วงหน้า เลือกช่างและเวลาที่สะดวก พร้อมระบบประวัติดิจิทัลไร้รอยต่อ"</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#065FD4] mb-1">2. กลุ่มเป้าหมาย (Personas)</div>
+                <p class="text-[#606060]">เจ้าของสัตว์เลี้ยง: คนทำงานรุ่นใหม่ รักสัตว์เหมือนลูก | ช่างตัดขน: คุณหมอสมพร ดูแลสัตว์อย่างประณีต</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">4. ฟีเจอร์ MVP (Must-Have)</div>
+                <p class="text-[#606060]">เมนูบริการ (อาบน้ำ/สปา/วัคซีน), ปฏิทินเลือกวัน-รอบเวลาว่าง, ฟอร์มประวัติสัตว์เลี้ยงและข้อควรระวัง, สแกน QR Pet Tag</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">5. หน้าจอสำคัญ (UX Flow)</div>
+                <p class="text-[#606060]">Screen_Services -> Screen_DateTimeSlot -> Screen_PetProfile -> Screen_QueuePass -> Screen_GroomerBoard</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">6. แพลตฟอร์ม & เทคโนโลยี</div>
+                <p class="text-[#606060]">Google Sheets (Services, Pets, Bookings) + Google AppSheet (ใช้กล้องสแกน QR Pet Tag) + Figma</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">7. ช่องทาง & การรักษาผู้ใช้</div>
+                <p class="text-[#606060]">ลิงก์จองผ่าน Facebook Fanpage / LINE OA + ระบบแจ้งเตือนรอบฉีดวัคซีนหรือตัดขนในอีก 4 สัปดาห์</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">8. ตัวชี้วัดความสำเร็จ (KPIs)</div>
+                <p class="text-[#606060]">เวลานั่งรอหน้าร้านลดลงเหลือ 0 นาที (มาตามนัด), นัดหมายซ้ำซ้อน 0 ครั้ง, ความพึงพอใจเจ้าของสัตว์ &gt; 98%</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">9. ระบบสนับสนุน Ecosystem</div>
+                <p class="text-[#606060]">ระบบส่งสลิปนัดหมายและใบเสร็จ PDF อัตโนมัติเข้าอีเมล พร้อมการแจ้งเตือนสเตตัส In-Service ผ่าน LINE</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- กล่องเนื้อหา Archetype 3: Smart Borrow -->
+          <div id="archContentSmartborrow" class="arch-content hidden border border-[#E5E5E5] rounded-2xl p-6 bg-white space-y-6 shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <span class="px-2.5 py-1 rounded bg-emerald-50 text-[#2BA640] font-bold text-xs uppercase border border-emerald-200">
+                  ASSET TRACKING & OPERATIONS ARCHETYPE
+                </span>
+                <h3 class="text-xl font-bold text-[#0F0F0F] mt-2">ระบบยืม-คืนพัสดุและครุภัณฑ์ "Smart Borrow"</h3>
+                <p class="text-xs text-[#606060] mt-1">โมเดลการบริหารคลังครุภัณฑ์ อุปกรณ์กล้อง โน้ตบุ๊ก เครื่องมือช่าง แก้ปัญหาเอกสารสมุดหาย ไม่รู้ใครยืม และของชำรุดไม่บันทึก</p>
+              </div>
+              <button onclick="copyText('Smart Borrow: ตรวจสอบสถานะครุภัณฑ์ ยืม-คืนด้วยการสแกน Barcode พร้อมลายเซ็นดิจิทัลและเตือนกำหนดคืนอัตโนมัติ', this)" class="text-xs text-[#065FD4] hover:underline flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>คัดลอก Value Proposition</span>
+              </button>
+            </div>
+
+            <!-- ตารางสรุป 9 ช่อง Smart Borrow -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#2BA640] mb-1">1. ปัญหาและโอกาส</div>
+                <p class="text-[#606060]">ยืมกล้อง Sony ไมค์ไร้สาย จดใส่สมุดกระดาษแล้วหาย ไม่รู้ใครยืม ของชำรุดไม่แจ้ง เสียเวลาเดินตามหาอุปกรณ์</p>
+              </div>
+              <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-200">
+                <div class="font-bold text-[#2BA640] mb-1">3. คุณค่าหลัก (Core Value)</div>
+                <p class="text-[#0F0F0F] font-medium">"เช็กสถานะอุปกรณ์ว่างเรียลไทม์ ยืม-คืนใน 30 วินาทีด้วยสแกนบาร์โค้ด พร้อมลายเซ็นดิจิทัลรัดกุม"</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#2BA640] mb-1">2. กลุ่มเป้าหมาย (Personas)</div>
+                <p class="text-[#606060]">ผู้ยืม: นักศึกษา/อาจารย์ผู้สอน ต้องการยืมด่วน | ผู้ดูแลพัสดุ: เจ้าหน้าที่คลังครุภัณฑ์ ต้องการระบบตรวจนับแม่นยำ</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">4. ฟีเจอร์ MVP (Must-Have)</div>
+                <p class="text-[#606060]">แคตตาล็อกครุภัณฑ์พร้อมแท็กสถานะ (ว่าง/ถูกยืม/ชำรุด), สแกนบาร์โค้ดกล่องพัสดุ, เซ็นชื่อบนจอ, บัตรยืม QR Pass</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">5. หน้าจอสำคัญ (UX Flow)</div>
+                <p class="text-[#606060]">Screen_AssetCatalog -> Screen_AssetDetail -> Screen_BorrowForm -> Screen_DigitalPassQR -> Screen_AdminApproval</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">6. แพลตฟอร์ม & เทคโนโลยี</div>
+                <p class="text-[#606060]">Google Sheets (Equipments, Borrow_Transactions) + Google AppSheet (Barcode Scanner + Signature Pad) + Figma</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">7. ช่องทาง & การรักษาผู้ใช้</div>
+                <p class="text-[#606060]">ป้าย QR หน้ารวมหมวดหน้าห้องพัสดุ + การแจ้งเตือนเตือนคืนพัสดุล่วงหน้า 1 วันก่อนครบกำหนด</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">8. ตัวชี้วัดความสำเร็จ (KPIs)</div>
+                <p class="text-[#606060]">เวลาทำรายการยืม-คืนลดลงจาก 5 นาทีเหลือ 30 วินาที, ครุภัณฑ์สูญหาย 0 ชิ้นต่อปี, การอนุมัติไร้กระดาษ 100%</p>
+              </div>
+              <div class="p-3 bg-[#F8F8F8] rounded-xl border border-[#E5E5E5]">
+                <div class="font-bold text-[#0F0F0F] mb-1">9. ระบบสนับสนุน Ecosystem</div>
+                <p class="text-[#606060]">ออกใบยืมพัสดุราชการ PDF อัตโนมัติ + แดชบอร์ดสรุปสถิติความถี่การยืมอุปกรณ์แต่ละชิ้นสำหรับจัดซื้อใหม่</p>
+              </div>
+            </div>
+          </div>
+
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 5: เครื่องจำลองสมาร์ตโฟน (Mobile Phone Simulator) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="phone-simulator" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 5</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            เครื่องจำลองหน้าจอแอปพลิเคชัน (Interactive Mobile Phone Simulator)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            ทดลองสัมผัสประสบการณ์ใช้งานหน้าจอสมาร์ตโฟนขนาด 320x640 พิกเซล ก้าวทีละขั้นตอน (Step-through Screens) ตามบริบทของแต่ละอาร์คิไทป์
+          </p>
+
+          <div class="flex flex-col lg:flex-row items-center justify-center gap-8 bg-[#F8F8F8] p-6 sm:p-10 rounded-3xl border border-[#E5E5E5]">
+            
+            <!-- Phone Mockup Frame (320x640) -->
+            <div class="phone-mockup shrink-0">
+              <!-- Notch & Speaker -->
+              <div class="phone-notch">
+                <div class="phone-speaker"></div>
+              </div>
+
+              <!-- Status Bar -->
+              <div class="px-5 pt-1.5 pb-1 flex items-center justify-between text-[10px] font-bold text-[#0F0F0F] select-none z-10 bg-white border-b border-zinc-100">
+                <span id="simLiveClock" class="tabular-nums">09:41</span>
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"/></svg>
+                  <span class="text-[9px]">100%</span>
+                </div>
+              </div>
+
+              <!-- Phone Top App Bar -->
+              <div id="simTopBar" class="px-4 py-2.5 bg-white border-b border-[#E5E5E5] flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <button onclick="simPrevStep()" class="text-[#0F0F0F] hover:text-[#FF0000]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                  </button>
+                  <span id="simAppTitle" class="font-bold text-xs text-[#0F0F0F] truncate max-w-[150px]">Fresh Brew Cafe</span>
+                </div>
+                <span id="simStepBadge" class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-red-100 text-[#FF0000] font-bold">1 / 4</span>
+              </div>
+
+              <!-- Phone Screen Content (Dynamic Body) -->
+              <div id="simScreenBody" class="phone-screen p-3 space-y-3">
+                <!-- Dynamically injected via JavaScript -->
+              </div>
+
+              <!-- Phone Bottom Nav Bar -->
+              <div class="px-4 py-2 bg-white border-t border-[#E5E5E5] flex items-center justify-around text-xs text-[#606060]">
+                <button onclick="simSetStep(1)" class="flex flex-col items-center gap-0.5 text-[#FF0000]">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                  <span class="text-[8px] font-bold">หน้าแรก</span>
+                </button>
+                <button onclick="simSetStep(2)" class="flex flex-col items-center gap-0.5 hover:text-[#0F0F0F]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                  <span class="text-[8px]">เลือก/กรอก</span>
+                </button>
+                <button onclick="simSetStep(3)" class="flex flex-col items-center gap-0.5 hover:text-[#0F0F0F]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  <span class="text-[8px]">ตะกร้า</span>
+                </button>
+                <button onclick="simSetStep(4)" class="flex flex-col items-center gap-0.5 hover:text-[#0F0F0F]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span class="text-[8px]">คิว/บัตร</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Simulator Control Deck -->
+            <div class="flex-1 max-w-md space-y-5">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#FF0000]">SIMULATOR CONTROLS</span>
+                <h3 class="text-lg font-bold text-[#0F0F0F] mt-1">แผงควบคุมการจำลองหน้าจอโมบายล์</h3>
+                <p class="text-xs text-[#606060] mt-1 leading-relaxed">
+                  เลือกขั้นตอนหน้าจอเพื่อศึกษาการจัดวางข้อมูล (UI) และลำดับประสบการณ์ผู้ใช้งาน (UX Flow)
+                </p>
+              </div>
+
+              <!-- Step Buttons Indicator -->
+              <div class="space-y-2">
+                <button onclick="simSetStep(1)" id="simStepBtn1" class="sim-ctrl-btn w-full p-3 rounded-xl border border-[#FF0000] bg-red-50 text-left flex items-center justify-between text-xs font-bold transition">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded-full bg-[#FF0000] text-white flex items-center justify-center text-[10px]">1</span>
+                    <span>Screen 1: แคตตาล็อก / รายการสินค้า-บริการ</span>
+                  </div>
+                  <span class="text-[10px] text-[#FF0000]">Catalog</span>
+                </button>
+
+                <button onclick="simSetStep(2)" id="simStepBtn2" class="sim-ctrl-btn w-full p-3 rounded-xl border border-[#E5E5E5] bg-white text-left flex items-center justify-between text-xs font-medium text-[#606060] hover:bg-[#F2F2F2] transition">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded-full bg-zinc-200 text-[#0F0F0F] flex items-center justify-center text-[10px]">2</span>
+                    <span>Screen 2: ปรับแต่งตัวเลือก / ฟอร์มระบุข้อมูล</span>
+                  </div>
+                  <span class="text-[10px] text-[#606060]">Customize</span>
+                </button>
+
+                <button onclick="simSetStep(3)" id="simStepBtn3" class="sim-ctrl-btn w-full p-3 rounded-xl border border-[#E5E5E5] bg-white text-left flex items-center justify-between text-xs font-medium text-[#606060] hover:bg-[#F2F2F2] transition">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded-full bg-zinc-200 text-[#0F0F0F] flex items-center justify-center text-[10px]">3</span>
+                    <span>Screen 3: สรุปยอดเงิน / ชำระเงินหรือยืนยัน</span>
+                  </div>
+                  <span class="text-[10px] text-[#606060]">Checkout</span>
+                </button>
+
+                <button onclick="simSetStep(4)" id="simStepBtn4" class="sim-ctrl-btn w-full p-3 rounded-xl border border-[#E5E5E5] bg-white text-left flex items-center justify-between text-xs font-medium text-[#606060] hover:bg-[#F2F2F2] transition">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded-full bg-zinc-200 text-[#0F0F0F] flex items-center justify-center text-[10px]">4</span>
+                    <span>Screen 4: บัตรคิวดิจิทัล / ติดตามสถานะ Live Queue</span>
+                  </div>
+                  <span class="text-[10px] text-[#606060]">Pass / Status</span>
+                </button>
+              </div>
+
+              <!-- Prev / Next Controller -->
+              <div class="flex items-center gap-3 pt-2">
+                <button onclick="simPrevStep()" class="flex-1 h-9 rounded-lg border border-[#E5E5E5] bg-white hover:bg-[#F2F2F2] text-xs font-medium text-[#0F0F0F] flex items-center justify-center gap-1 transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                  <span>ย้อนกลับ</span>
+                </button>
+                <button onclick="simNextStep()" class="flex-1 h-9 rounded-lg bg-[#0F0F0F] hover:bg-black text-xs font-medium text-white flex items-center justify-center gap-1 transition">
+                  <span>ถัดไป</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 6: แบบประเมินตนเอง (Interactive Self-Checklist) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="checklist-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 6</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            แบบตรวจสอบตนเองประจำบท (Interactive Learning Self-Checklist)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            ตรวจสอบความรู้ความเข้าใจด้วยตนเอง ระบบจะบันทึกสถานะลงในบราวเซอร์ของคุณโดยอัตโนมัติ (LocalStorage Persistence)
+          </p>
+
+          <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white shadow-sm space-y-6">
+            
+            <!-- Progress Bar Card -->
+            <div class="bg-[#F8F8F8] p-4 rounded-xl border border-[#E5E5E5] space-y-2">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-[#0F0F0F] flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-[#2BA640]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  ความคืบหน้าการเรียนรู้บทที่ 1
+                </span>
+                <span id="checklistPercentage" class="font-mono text-[#FF0000] text-sm">0%</span>
+              </div>
+              <div class="w-full h-2.5 bg-zinc-200 rounded-full overflow-hidden">
+                <div id="checklistProgressBar" class="h-full bg-[#FF0000] transition-all duration-300" style="width: 0%;"></div>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-[#606060]">
+                <span id="checklistCount">เสร็จสิ้น 0 จาก 9 หัวข้อ</span>
+                <button onclick="resetChecklist()" class="text-[#FF0000] hover:underline">รีเซ็ตสถานะทั้งหมด</button>
+              </div>
+            </div>
+
+            <!-- รายการ Checklist 9 ข้อ -->
+            <div class="space-y-3" id="checklistContainer">
+              <!-- Item 1 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">1. เข้าใจคุณลักษณะเด่นของ Mobile Devices เหนือ Desktop PC</div>
+                  <div class="text-[#606060] mt-0.5">อธิบายความสามารถด้าน Instant Access, กล้อง/สแกนเนอร์, พิกัด GPS, การแจ้งเตือน และทัชสกรีนได้</div>
+                </div>
+              </label>
+
+              <!-- Item 2 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">2. อธิบายวงจร SDLC 6 ขั้นตอนได้อย่างถูกต้องตามลำดับ</div>
+                  <div class="text-[#606060] mt-0.5">เข้าใจความสำคัญของการวางแผน (Planning) และการส่งมอบซอฟต์แวร์แบบวนซ้ำ (Iterative)</div>
+                </div>
+              </label>
+
+              <!-- Item 3 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">3. วิเคราะห์ Pain Points ได้ครบทั้ง 4 มิติ</div>
+                  <div class="text-[#606060] mt-0.5">จำแนกปัญหาด้านเวลา (Time), การเงิน (Financial), กระบวนการ (Process), และความรู้สึก (Experience) ได้ชัดเจน</div>
+                </div>
+              </label>
+
+              <!-- Item 4 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">4. เข้าใจหลักการ MVP และแยกแยะ Must-Have ออกจาก Nice-to-Have</div>
+                  <div class="text-[#606060] mt-0.5">คัดเลือกเฉพาะฟังก์ชันแกนหลักที่จำเป็น เพื่อป้องกันขอบเขตโครงการบานปลาย (Scope Creep)</div>
+                </div>
+              </label>
+
+              <!-- Item 5 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">5. สามารถกรอก App Concept Canvas ครบทั้ง 9 องค์ประกอบ</div>
+                  <div class="text-[#606060] mt-0.5">เชื่อมโยงปัญหา, กลุ่มเป้าหมาย, คุณค่า, ฟีเจอร์, หน้าจอ, เทคโนโลยี, ช่องทาง, ตัวชี้วัด และระบบสนับสนุนได้</div>
+                </div>
+              </label>
+
+              <!-- Item 6 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">6. กำหนดกลุ่มเป้าหมาย (Personas) ชัดเจนทั้ง 2 ฝั่ง</div>
+                  <div class="text-[#606060] mt-0.5">ระบุความต้องการของฝั่งลูกค้าผู้ใช้งาน (Front-end) และฝั่งผู้ดูแลระบบร้านค้า (Back-end) ไม่ตอบว่า "ทุกคน"</div>
+                </div>
+              </label>
+
+              <!-- Item 7 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">7. ออกแบบ User Flow และระบุรายชื่อ 4-5 หน้าจอสำคัญได้</div>
+                  <div class="text-[#606060] mt-0.5">วาดเส้นทางการกดตั้งแต่เปิดแอปจนจบงาน และตั้งชื่อโครงสร้างหน้าจอหลักอย่างเป็นระบบ</div>
+                </div>
+              </label>
+
+              <!-- Item 8 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">8. เลือกใช้ Tech Stack ที่เหมาะสม (Google Sheets + AppSheet + Figma)</div>
+                  <div class="text-[#606060] mt-0.5">เข้าใจบทบาทของเครื่องมือ No-Code สำหรับการพัฒนาแอปพลิเคชันธุรกิจจริงในระดับชุมชน</div>
+                </div>
+              </label>
+
+              <!-- Item 9 -->
+              <label class="flex items-start gap-3 p-3 rounded-xl border border-[#E5E5E5] hover:bg-[#F9F9F9] cursor-pointer transition select-none">
+                <input type="checkbox" onchange="updateChecklist()" class="check-item mt-0.5 w-4 h-4 rounded text-[#065FD4] focus:ring-0 cursor-pointer">
+                <div class="text-xs">
+                  <div class="font-bold text-[#0F0F0F]">9. กำหนดตัวชี้วัดความสำเร็จ (KPIs) ที่เป็นตัวเลขวัดผลได้จริง</div>
+                  <div class="text-[#606060] mt-0.5">กำหนดเป้าหมายการลดเวลา การลดข้อผิดพลาด หรือสัดส่วนการสั่งซื้อผ่านแอปได้อย่างเป็นรูปธรรม</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Complete Celebration Banner -->
+            <div id="checklistBadge" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
+              <div class="text-sm font-bold text-[#2BA640] flex items-center justify-center gap-1.5">
+                <span>🎉</span>
+                <span>ยินดีด้วย! คุณผ่านเกณฑ์การประเมินตนเองบทที่ 1 ครบถ้วน 100%</span>
+              </div>
+              <p class="text-xs text-[#606060]">
+                คุณมีรากฐานความเข้าใจด้าน SDLC และ App Concept Canvas ที่มั่นคง พร้อมเข้าสู่บทที่ 2 การออกแบบ Wireframe บน Figma
+              </p>
+            </div>
+
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 7: เกณฑ์การให้คะแนน RUBRIC CALCULATOR (10 คะแนน) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="rubric-section" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>หัวข้อที่ 7</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            เกณฑ์การประเมินชิ้นงานใบงานแคนวาส (Interactive Rubric Calculator)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            คำนวณคะแนนประเมินโครงงาน App Concept Canvas ตามเกณฑ์มาตรฐาน 5 ด้าน (คะแนนเต็ม 10 คะแนน)
+          </p>
+
+          <div class="border border-[#E5E5E5] rounded-2xl p-6 bg-white shadow-sm space-y-6">
+            
+            <!-- Rubric Score Summary Card -->
+            <div class="bg-[#F8F8F8] p-5 rounded-2xl border border-[#E5E5E5] flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <span class="text-xs font-bold uppercase text-[#606060]">คะแนนประเมินรวม</span>
+                <div class="flex items-baseline gap-2 mt-0.5">
+                  <span id="rubricTotal" class="text-3xl sm:text-4xl font-bold font-mono text-[#0F0F0F]">10</span>
+                  <span class="text-sm text-[#606060] font-mono">/ 10 คะแนน</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <div id="rubricBadge" class="px-4 py-2 rounded-xl bg-emerald-100 text-[#2BA640] font-bold text-sm border border-emerald-300">
+                  ระดับ: ดีเยี่ยม (Mastered)
+                </div>
+              </div>
+            </div>
+
+            <!-- Rubric Criteria 1 to 5 -->
+            <div class="space-y-6">
+              
+              <!-- Criteria 1 -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-[#0F0F0F]">1. การวิเคราะห์ปัญหาและโอกาส (Problem Framing & Opportunity)</span>
+                  <span id="rubricC1Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition" onclick="calcRubric()">
+                    <input type="radio" name="rc1" value="2" checked class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">2 คะแนน (ดีเยี่ยม)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">วิเคราะห์ครบ 4 มิติ ชัดเจน มีข้อมูลเชิงประจักษ์ ชี้ช่องว่างตลาดตรงจุด</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc1" value="1" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">1 คะแนน (พอใช้)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ระบุปัญหาได้บางมิติ แต่ขาดความลึกซึ้ง หรือแยก Nice-to-Have ไม่ออก</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc1" value="0" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">0 คะแนน (ปรับปรุง)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ปัญหากลุมเครือ ไม่สะท้อนความเจ็บปวดจริงหน้างาน</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Criteria 2 -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-[#0F0F0F]">2. การกำหนดกลุ่มเป้าหมายและคุณค่าส่งมอบ (Persona & Value Proposition)</span>
+                  <span id="rubricC2Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition" onclick="calcRubric()">
+                    <input type="radio" name="rc2" value="2" checked class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">2 คะแนน (ดีเยี่ยม)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ระบุ Persona ครบทั้ง Front-end/Back-end คุณค่า 1 ประโยคโดดเด่น คมชัด</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc2" value="1" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">1 คะแนน (พอใช้)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ระบุกลุ่มเป้าหมายกว้างเกินไป หรือเขียนคุณค่าไม่ชี้จุดแตกต่าง</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc2" value="0" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">0 คะแนน (ปรับปรุง)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ไม่มี Persona ที่ชัดเจน ระบุเพียง "สำหรับทุกคน"</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Criteria 3 -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-[#0F0F0F]">3. การกำหนดขอบเขต MVP และฟังก์ชันแกนหลัก (Key Features & Scope)</span>
+                  <span id="rubricC3Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition" onclick="calcRubric()">
+                    <input type="radio" name="rc3" value="2" checked class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">2 คะแนน (ดีเยี่ยม)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">แยก Must-Have ได้ตรงเป้า ฟังก์ชันหลักแก้ปัญหาครบในเวอร์ชันแรก</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc3" value="1" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">1 คะแนน (พอใช้)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ฟังก์ชันปะปนกับฟังก์ชันเสริมมากเกินไป เสี่ยงทำไม่ทัน</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc3" value="0" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">0 คะแนน (ปรับปรุง)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ฟังก์ชันไม่ตรงกับปัญหา หรือขอบเขตงานกว้างเกินศักยภาพ</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Criteria 4 -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-[#0F0F0F]">4. การวางผัง User Flow และโครงสร้างหน้าจอหลัก (UX & Key Screens)</span>
+                  <span id="rubricC4Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition" onclick="calcRubric()">
+                    <input type="radio" name="rc4" value="2" checked class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">2 คะแนน (ดีเยี่ยม)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">User Flow กระชับ ไม่สะดุด ระบุชื่อ 4-5 หน้าจอหลักพร้อมหน้าที่ชัดเจน</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc4" value="1" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">1 คะแนน (พอใช้)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">มีขั้นตอนซ้ำซ้อน หรือระบุหน้าจอหลักไม่ครบถ้วนตามกระบวนการ</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc4" value="0" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">0 คะแนน (ปรับปรุง)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ลำดับขั้นตอนสับสน ไม่สามารถนำไปสร้างหน้าจอจริงได้</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Criteria 5 -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-[#0F0F0F]">5. ความสมบูรณ์ของ App Concept Canvas 9 มิติ (Completeness & Feasibility)</span>
+                  <span id="rubricC5Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition" onclick="calcRubric()">
+                    <input type="radio" name="rc5" value="2" checked class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">2 คะแนน (ดีเยี่ยม)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">กรอกครบ 9 ช่อง ทุกช่องสอดคล้องกัน เป็นไปได้จริงด้วย AppSheet</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc5" value="1" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">1 คะแนน (พอใช้)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">ข้อมูลครบ แต่บางช่องยังขัดแย้งกัน หรือเลือกใช้เทคนิคที่ซับซ้อนเกินไป</span>
+                  </label>
+                  <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition" onclick="calcRubric()">
+                    <input type="radio" name="rc5" value="0" class="hidden">
+                    <span class="font-bold text-[#0F0F0F]">0 คะแนน (ปรับปรุง)</span>
+                    <span class="text-[#606060] text-[11px] mt-1">กรอกข้อมูลไม่ครบ ขาดหัวข้อสำคัญมากกว่า 3 ช่อง</span>
+                  </label>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Diagnostic Report Box -->
+            <div id="rubricDiagnostic" class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#065FD4] leading-relaxed">
+              <strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ผลงานของท่านอยู่ในเกณฑ์ดีเยี่ยม สามารถนำพิมพ์เขียวนี้ไปเริ่มเขียนตารางข้อมูลใน Google Sheets และวาด Wireframe บน Figma ได้ทันที
+            </div>
+
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 8: คำถามทบทวนประจำบท FAQ -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="questions" class="lesson-section scroll-mt-20">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000] mb-1">
+            <span>คำถามทบทวน</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-[#0F0F0F] tracking-tight mb-2">
+            คำถามทบทวนประจำบท (Review Questions & FAQ)
+          </h2>
+          <p class="text-sm text-[#606060] mb-6">
+            ทดสอบความเข้าใจเชิงลึก คลิกที่แต่ละข้อเพื่อเปิดดูแนวทางการตอบเชิงวิชาการ
+          </p>
+
+          <div class="space-y-3">
+            <!-- ข้อ 1 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(1)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">1. อุปกรณ์พกพา (Mobile Devices) แตกต่างจากคอมพิวเตอร์ตั้งโต๊ะอย่างไรในแง่การแก้ปัญหาธุรกิจ?</span>
+                <span id="faqIcon1" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns1" class="hidden p-4 pt-0 text-xs text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8]">
+                <strong>แนวคำตอบ:</strong> สมาร์ตโฟนมีความสามารถในการเข้าถึงได้ทันทีทุกที่ทุกเวลา (Instant Access / Portability) และที่สำคัญที่สุดคือมี <strong>ฮาร์ดแวร์เซนเซอร์เฉพาะในตัว</strong> เช่น กล้องสำหรับสแกนคิวอาร์โค้ด/บาร์โค้ด, พิกัดดาวเทียม GPS, หน้าจอสัมผัสสำหรับเซ็นลายมือชื่อดิจิทัล, และระบบส่งข้อความแจ้งเตือนทันที (Push Notifications) ซึ่งคอมพิวเตอร์ตั้งโต๊ะไม่สามารถพกพาไปปฏิบัติงานหน้างานจริงได้สะดวก
+              </div>
+            </div>
+
+            <!-- ข้อ 2 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(2)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">2. เพราะเหตุใดขั้นตอน Planning & Requirements Analysis ใน SDLC จึงสำคัญที่สุด?</span>
+                <span id="faqIcon2" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns2" class="hidden p-4 pt-0 text-xs text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8]">
+                <strong>แนวคำตอบ:</strong> เพราะเป็นขั้นตอนการกำหนดทิศทางทั้งหมดของโครงการ หากวิเคราะห์ปัญหาผิดพลาดตั้งแต่ต้น จะส่งผลให้ขั้นตอนการออกแบบ UI/UX ฐานข้อมูล และการเขียนโปรแกรมล้มเหลวตามไปด้วย กลายเป็นการ "สร้างสิ่งที่ไม่มีใครต้องการใช้งานจริง" ซึ่งสถิติชี้ว่าเป็นสาเหตุอันดับ 1 ที่ทำให้แอปพลิเคชันกว่า 90% ถูกลบทิ้งภายใน 30 วันแรก
+              </div>
+            </div>
+
+            <!-- ข้อ 3 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(3)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">3. จงอธิบายแนวคิด MVP (Minimum Viable Product) ในการพัฒนาโมบายล์แอปพลิเคชัน?</span>
+                <span id="faqIcon3" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns3" class="hidden p-4 pt-0 text-xs text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8]">
+                <strong>แนวคำตอบ:</strong> MVP คือการเลือกพัฒนาเฉพาะ "ฟังก์ชันแกนหลักที่ขาดไม่ได้ (Must-Have Features)" ในเวอร์ชันแรก เพื่อให้แอปสามารถนำไปแก้ปัญหาจริงให้กับผู้ใช้ได้รวดเร็วที่สุด โดยตัดฟังก์ชันเสริมที่ไม่จำเป็น (Nice-to-Have) ออกไปก่อน ช่วยประหยัดเวลา ลดความเสี่ยง ได้รับข้อเสนอแนะจากผู้ใช้จริง และทำให้ส่งมอบระบบได้ทันตามกำหนด
+              </div>
+            </div>
+
+            <!-- ข้อ 4 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(4)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">4. ในการออกแบบแอป เหตุใดการบอกว่ากลุ่มเป้าหมายคือ "ทุกคน (For Everyone)" จึงเป็นข้อผิดพลาดร้ายแรง?</span>
+                <span id="faqIcon4" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns4" class="hidden p-4 pt-0 text-xs text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8]">
+                <strong>แนวคำตอบ:</strong> เพราะคำว่า "ทุกคน" ไม่มีอยู่จริงในเชิงพฤติกรรมผู้ใช้ วัยรุ่นชอบความกระชับรวดเร็ว ในขณะที่ผู้สูงอายุต้องการตัวหนังสือขนาดใหญ่และขั้นตอนที่เรียบง่าย หากพยายามตอบโจทย์ทุกคน แอปจะเต็มไปด้วยเมนูที่ซับซ้อนและไม่มีจุดยืนที่ชัดเจน การสร้าง <strong>User Persona</strong> ช่วยให้นักพัฒนาเห็นหน้าตา อายุ พฤติกรรม และความต้องการที่แท้จริงของผู้ใช้ เพื่อใช้ตัดสินใจออกแบบฟังก์ชันได้อย่างแม่นยำ
+              </div>
+            </div>
+
+            <!-- ข้อ 5 -->
+            <div class="border border-[#E5E5E5] rounded-xl overflow-hidden bg-white shadow-sm">
+              <button onclick="toggleFaq(5)" class="w-full p-4 text-left flex items-center justify-between hover:bg-[#F8F8F8] transition">
+                <span class="font-bold text-sm text-[#0F0F0F]">5. จาก App Concept Canvas ทั้ง 9 ช่อง จงเลือก 2 ช่องที่คิดว่าสำคัญที่สุดพร้อมให้เหตุผลเชิงวิชาการ</span>
+                <span id="faqIcon5" class="text-lg font-mono text-[#606060]">+</span>
+              </button>
+              <div id="faqAns5" class="hidden p-4 pt-0 text-xs text-[#606060] leading-relaxed border-t border-[#E5E5E5] bg-[#F8F8F8]">
+                <strong>แนวคำตอบ:</strong> 2 ช่องที่สำคัญที่สุดคือ <strong>ช่อง 1: ปัญหาและโอกาส (Problems & Pain Points)</strong> และ <strong>ช่อง 3: คุณค่าที่ส่งมอบ (Value Proposition)</strong> เพราะหากไม่มีปัญหาจริง แอปพลิเคชันย่อมไม่มีเหตุผลในการดำรงอยู่ และหากไม่มีคุณค่าที่โดดเด่นใน 1 ประโยค ผู้ใช้ก็จะไม่ยอมเปิดใช้งานหรือยินยอมเปลี่ยนพฤติกรรมจากวิธีเดิม ส่วนฟีเจอร์ เทคโนโลยี หรือหน้าจอ ล้วนเป็นเพียงเครื่องมือสนับสนุนคุณค่าหลักทั้งสองช่องนี้เท่านั้น
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 9: ความคิดเห็นและการแลกเปลี่ยน (Comment & Discussion) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <section id="comments-section" class="border-t border-[#E5E5E5] pt-10 pb-6">
+          <div class="flex items-center gap-6 mb-6">
+            <h3 class="font-bold text-lg text-[#0F0F0F]">ความคิดเห็นและข้อซักถามประจำบท (<span id="commentTotalCount">2</span>)</h3>
+            <span class="text-xs text-[#606060]">จัดเรียงตาม: ยอดนิยม</span>
+          </div>
+
+          <!-- ช่องกรอกความคิดเห็น -->
+          <div class="flex items-start gap-3 mb-8">
+            <div class="w-9 h-9 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">
+              ME
+            </div>
+            <div class="flex-1">
+              <input 
+                type="text" 
+                id="commentInput"
+                placeholder="เพิ่มความคิดเห็นหรือข้อสงสัยเกี่ยวกับบทเรียนนี้..." 
+                class="w-full pb-2 bg-transparent border-b border-[#E5E5E5] text-sm text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#0F0F0F]"
+              />
+              <div class="flex justify-end gap-2 mt-2">
+                <button onclick="clearComment()" class="h-8 px-3 rounded-full text-xs font-medium text-[#606060] hover:bg-[#F2F2F2]">ยกเลิก</button>
+                <button onclick="postComment()" class="h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white hover:bg-black transition">แสดงความคิดเห็น</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- รายการความคิดเห็นตัวอย่าง -->
+          <div id="commentList" class="space-y-6">
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                NP
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-[#0F0F0F]">ณภัทร ปวส.1/1 (ธุรกิจดิจิทัล)</span>
+                  <span class="text-[11px] text-[#606060]">2 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-xs text-[#0F0F0F] leading-relaxed">
+                  ชอบการเปรียบเทียบ SDLC กับการเปิดร้านอาหารมากครับอาจารย์ เข้าใจง่ายขึ้นเยอะเลย ตอนแรกนึกว่าต้องเริ่มเขียนโค้ดเลย ตอนนี้เคลียร์แล้วครับว่าต้องทำ Canvas ให้ผ่านก่อน
+                </p>
+                <div class="flex items-center gap-3 pt-1 text-xs text-[#606060]">
+                  <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 18</button>
+                  <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                SW
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-[#0F0F0F]">สมหมาย เจ้าของธุรกิจชุมชน</span>
+                  <span class="text-[11px] text-[#606060]">เมื่อวานนี้</span>
+                </div>
+                <p class="text-xs text-[#0F0F0F] leading-relaxed">
+                  โมเดล Smart Borrow ตรงกับปัญหาที่คลังอุปกรณ์แผนกผมเป๊ะเลยครับ ของหายเพราะจดสมุดแล้วเปิดหาไม่เจอ อยากให้นักศึกษามาทดลองทำระบบจริงที่แผนกได้เลยครับ
+                </p>
+                <div class="flex items-center gap-3 pt-1 text-xs text-[#606060]">
+                  <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 14</button>
+                  <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 10: COURSE NAVIGATION (บทก่อนหน้า / สารบัญ / บทถัดไป) -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <nav class="border-t border-[#E5E5E5] pt-8 pb-16 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <!-- Previous Chapter: None (Chapter 1 is first) -->
+          <div class="w-full sm:w-auto">
+            <button disabled class="w-full sm:w-auto h-11 px-5 rounded-xl border border-zinc-200 bg-zinc-100 text-xs font-medium text-zinc-400 flex items-center justify-center gap-2 cursor-not-allowed">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              <span>จุดเริ่มต้นหลักสูตร (ไม่มีบทก่อนหน้า)</span>
+            </button>
+          </div>
+
+          <!-- Course Hub -->
+          <div class="w-full sm:w-auto">
+            <a href="index.html" class="w-full sm:w-auto h-11 px-6 rounded-xl border border-[#E5E5E5] bg-white hover:bg-[#F2F2F2] text-xs font-bold text-[#0F0F0F] flex items-center justify-center gap-2 transition shadow-sm">
+              <svg class="w-4 h-4 text-[#FF0000]" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              <span>🏠 สารบัญบทเรียนทั้งหมด</span>
+            </a>
+          </div>
+
+          <!-- Next Chapter: Chapter 2 -->
+          <div class="w-full sm:w-auto">
+            <a href="ch02-figma-wireframing.html" class="w-full sm:w-auto h-11 px-6 rounded-xl bg-[#0F0F0F] hover:bg-black text-xs font-bold text-white flex items-center justify-center gap-2 transition shadow-sm group">
+              <span>บทถัดไป: บทที่ 2 Wireframe ด้วย Figma</span>
+              <svg class="w-4 h-4 text-[#FF0000] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </nav>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-6 right-6 hidden bg-[#0F0F0F] text-white text-xs px-4 py-2.5 rounded-full shadow-lg items-center gap-2 z-[200]">
+    <svg class="w-4 h-4 text-[#2BA640]" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    <span id="toastMsg">คัดลอกข้อความแล้ว!</span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 7. JAVASCRIPT LOGIC (Interactive Widgets & State Management) -->
+  <!-- ========================================================================= -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. Reading Scroll Progress Bar
+    // -------------------------------------------------------------
+    const mainViewport = document.getElementById('mainViewport');
+    const scrollProgressBar = document.getElementById('scrollProgressBar');
+
+    mainViewport.addEventListener('scroll', () => {
+      const scrollTop = mainViewport.scrollTop;
+      const scrollHeight = mainViewport.scrollHeight - mainViewport.clientHeight;
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      scrollProgressBar.style.width = progress + '%';
+    });
+
+    // -------------------------------------------------------------
+    // 2. Sidebar Toggle
+    // -------------------------------------------------------------
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    toggleSidebarBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden');
+    });
+
+    // -------------------------------------------------------------
+    // Shared Standalone Micro-Interactions Engine (Web Audio + Confetti)
+    // -------------------------------------------------------------
+    const EduAudio = (function() {
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      try {
+        const saved = localStorage.getItem('edu_audio_sound_enabled');
+        if (saved !== null) soundEnabled = (saved === 'true');
+      } catch (e) {}
+
+      function getContext() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      function updateSoundUI() {
+        const iconEl = document.getElementById('soundIcon');
+        const textEl = document.getElementById('soundText');
+        const btnEl = document.getElementById('soundToggleBtn');
+        if (iconEl) iconEl.innerText = soundEnabled ? '🔊' : '🔇';
+        if (textEl) textEl.innerText = soundEnabled ? 'เสียงเปิด' : 'เสียงปิด';
+        if (btnEl) {
+          if (soundEnabled) btnEl.classList.remove('opacity-60');
+          else btnEl.classList.add('opacity-60');
+        }
+      }
+
+      return {
+        initUI: function() { updateSoundUI(); },
+        toggleSound: function() {
+          soundEnabled = !soundEnabled;
+          try { localStorage.setItem('edu_audio_sound_enabled', soundEnabled.toString()); } catch(e) {}
+          updateSoundUI();
+          if (soundEnabled) this.playClick();
+        },
+        playClick: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.06);
+          } catch(e) {}
+        },
+        playChime: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            [523.25, 659.25].forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+              gain.gain.setValueAtTime(0.15, now + idx * 0.06);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + idx * 0.06);
+              osc.stop(now + idx * 0.06 + 0.26);
+            });
+          } catch(e) {}
+        },
+        playFanfare: function() {
+          if (!soundEnabled) return;
+          try {
+            const ctx = getContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const notes = [440, 554.37, 659.25, 880];
+            notes.forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+              gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + (idx === 3 ? 0.6 : 0.25));
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + idx * 0.08);
+              osc.stop(now + idx * 0.08 + (idx === 3 ? 0.65 : 0.28));
+            });
+          } catch(e) {}
+        }
+      };
+    })();
+
+    const EduConfetti = (function() {
+      let canvas, ctx;
+      let particles = [];
+      let animationId = null;
+
+      function resize() {
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function init() {
+        canvas = document.getElementById('confettiCanvas');
+        if (!canvas) return;
+        ctx = canvas.getContext('2d');
+        window.addEventListener('resize', resize);
+        resize();
+      }
+
+      function createParticle(x, y) {
+        const colors = ['#FF0000', '#FF4D4D', '#2BA640', '#065FD4', '#FB8C00', '#FFD700', '#9C27B0'];
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 4;
+        return {
+          x: x, y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3,
+          radius: Math.random() * 4 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotationSpeed: (Math.random() - 0.5) * 12,
+          alpha: 1,
+          decay: Math.random() * 0.015 + 0.012
+        };
+      }
+
+      function update() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy; p.vy += 0.18;
+          p.rotation += p.rotationSpeed;
+          p.alpha -= p.decay;
+          if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.radius, -p.radius, p.radius * 2, p.radius * 1.5);
+          ctx.restore();
+        }
+        if (particles.length > 0) animationId = requestAnimationFrame(update);
+        else { cancelAnimationFrame(animationId); animationId = null; }
+      }
+
+      return {
+        fire: function(originX, originY, count = 75) {
+          if (!canvas) init();
+          const x = originX !== undefined ? originX : window.innerWidth / 2;
+          const y = originY !== undefined ? originY : window.innerHeight / 3;
+          for (let i = 0; i < count; i++) particles.push(createParticle(x, y));
+          if (!animationId) update();
+        }
+      };
+    })();
+
+    window.EduAudio = EduAudio;
+    window.EduConfetti = EduConfetti;
+
+    // -------------------------------------------------------------
+    // 3. SDLC Circular Stepper Logic & Auto-Cycle Engine
+    // -------------------------------------------------------------
+    let currentSdlcStep = 1;
+    let sdlcAutoPlayTimer = null;
+    const sdlcAngles = [-90, -30, 30, 90, 150, 210];
+    const sdlcStageMeta = {
+      1: { name: 'PLANNING', color: '#FF0000', input: 'Pain Points & ไอเดียธุรกิจ', output: 'App Concept Canvas & PRD' },
+      2: { name: 'DESIGN', color: '#8B5CF6', input: 'App Concept Canvas & PRD', output: 'Figma UI Mockup & DB Schema' },
+      3: { name: 'DEVELOP', color: '#065FD4', input: 'Figma Mockup & DB Schema', output: 'AppSheet Working Prototype' },
+      4: { name: 'TESTING', color: '#2BA640', input: 'AppSheet Working Prototype', output: 'UAT Test Report & Bug Fixes' },
+      5: { name: 'DEPLOY', color: '#FB8C00', input: 'Verified App (Zero P0 Bugs)', output: 'Production Live Release' },
+      6: { name: 'MAINTAIN', color: '#E11D48', input: 'Live Usage & User Analytics', output: 'New Feature Backlog (วนกลับขั้น 1)' }
+    };
+
+    function showSdlcStep(step) {
+      currentSdlcStep = step;
+      if (window.EduAudio) EduAudio.playClick();
+
+      // Rotate pointer needle in center hub
+      const pointer = document.getElementById('sdlcPointerGroup');
+      if (pointer) {
+        pointer.style.transform = `rotate(${sdlcAngles[step - 1]}deg)`;
+      }
+
+      // Update Center Hub Texts
+      const stepMeta = sdlcStageMeta[step];
+      const centerNum = document.getElementById('centerStepNum');
+      const centerTitle = document.getElementById('centerStepTitle');
+      if (centerNum) centerNum.innerText = `ขั้นที่ ${step}`;
+      if (centerTitle) {
+        centerTitle.innerText = stepMeta.name;
+        centerTitle.setAttribute('fill', stepMeta.color);
+      }
+
+      // Update Handoff bar
+      const inEl = document.getElementById('sdlcInputDesc');
+      const outEl = document.getElementById('sdlcOutputDesc');
+      if (inEl) inEl.innerText = stepMeta.input;
+      if (outEl) outEl.innerText = stepMeta.output;
+
+      // Update SVG Nodes styling
+      for (let i = 1; i <= 6; i++) {
+        const circle = document.getElementById(`sdlcCircle${i}`);
+        const aura = document.getElementById(`sdlcAura${i}`);
+        const text = document.getElementById(`sdlcText${i}`);
+        const icon = document.getElementById(`sdlcIcon${i}`);
+        const dot = document.getElementById(`sdlcDot${i}`);
+        const content = document.getElementById(`sdlcContent${i}`);
+        const meta = sdlcStageMeta[i];
+
+        if (i === step) {
+          if (circle) {
+            circle.setAttribute('fill', meta.color);
+            circle.setAttribute('r', '32');
+            circle.setAttribute('stroke', '#FFFFFF');
+            circle.setAttribute('stroke-width', '3');
+          }
+          if (aura) {
+            aura.setAttribute('opacity', '0.35');
+            aura.classList.add('animate-pulse');
+          }
+          if (text) text.setAttribute('fill', '#FFFFFF');
+          if (icon) icon.setAttribute('fill', '#FFFFFF');
+          if (dot) {
+            dot.className = 'w-7 h-7 rounded-lg text-white text-xs font-bold transition shadow-sm';
+            dot.style.backgroundColor = meta.color;
+          }
+          if (content) {
+            content.classList.remove('hidden');
+            content.classList.add('block');
+          }
+        } else {
+          if (circle) {
+            circle.setAttribute('fill', '#FFFFFF');
+            circle.setAttribute('r', '29');
+            circle.setAttribute('stroke', meta.color);
+            circle.setAttribute('stroke-width', '2.5');
+          }
+          if (aura) {
+            aura.setAttribute('opacity', '0');
+            aura.classList.remove('animate-pulse');
+          }
+          if (text) text.setAttribute('fill', '#0F0F0F');
+          if (icon) icon.setAttribute('fill', meta.color);
+          if (dot) {
+            dot.className = 'w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition';
+            dot.style.backgroundColor = '';
+          }
+          if (content) {
+            content.classList.add('hidden');
+            content.classList.remove('block');
+          }
+        }
+      }
+    }
+
+    function nextSdlcStep() {
+      const next = currentSdlcStep < 6 ? currentSdlcStep + 1 : 1;
+      showSdlcStep(next);
+    }
+
+    function prevSdlcStep() {
+      const prev = currentSdlcStep > 1 ? currentSdlcStep - 1 : 6;
+      showSdlcStep(prev);
+    }
+
+    function toggleSdlcAutoPlay() {
+      const autoIcon = document.getElementById('sdlcAutoIcon');
+      const autoText = document.getElementById('sdlcAutoText');
+      const autoBtn = document.getElementById('sdlcAutoPlayBtn');
+
+      if (sdlcAutoPlayTimer) {
+        clearInterval(sdlcAutoPlayTimer);
+        sdlcAutoPlayTimer = null;
+        if (autoIcon) autoIcon.innerText = '▶';
+        if (autoText) autoText.innerText = 'หมุนวงจรอัตโนมัติ';
+        if (autoBtn) autoBtn.classList.remove('bg-red-600', 'text-white');
+      } else {
+        if (autoIcon) autoIcon.innerText = '⏸';
+        if (autoText) autoText.innerText = 'พักการหมุน';
+        if (autoBtn) autoBtn.classList.add('bg-red-600', 'text-white');
+        nextSdlcStep();
+        sdlcAutoPlayTimer = setInterval(nextSdlcStep, 3200);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 4. Tri-Archetype Switcher (Section 4 + Sync to Phone Simulator)
+    // -------------------------------------------------------------
+    let currentArchetype = 'freshbrew';
+
+    function switchArchetype(arch) {
+      currentArchetype = arch;
+      const tabs = {
+        freshbrew: document.getElementById('archTabFreshbrew'),
+        happypaws: document.getElementById('archTabHappypaws'),
+        smartborrow: document.getElementById('archTabSmartborrow')
+      };
+      const contents = {
+        freshbrew: document.getElementById('archContentFreshbrew'),
+        happypaws: document.getElementById('archContentHappypaws'),
+        smartborrow: document.getElementById('archContentSmartborrow')
+      };
+
+      Object.keys(tabs).forEach(key => {
+        if (key === arch) {
+          tabs[key].className = 'arch-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition bg-white text-[#0F0F0F] elevation-1 flex items-center justify-center gap-1.5';
+          contents[key].classList.remove('hidden');
+        } else {
+          tabs[key].className = 'arch-tab flex-1 py-2 px-3 rounded-lg text-xs font-bold transition text-[#606060] hover:text-[#0F0F0F] flex items-center justify-center gap-1.5';
+          contents[key].classList.add('hidden');
+        }
+      });
+
+      // Update simulator as well
+      updateSimContent();
+    }
+
+    // -------------------------------------------------------------
+    // 5. Mobile Phone Simulator Logic (4 Steps × 3 Archetypes)
+    // -------------------------------------------------------------
+    let simCurrentStep = 1;
+
+    const simData = {
+      freshbrew: {
+        appTitle: '☕ Fresh Brew Cafe',
+        badgeColor: 'text-[#FF0000] bg-red-100',
+        screens: {
+          1: `
+            <div class="space-y-2.5">
+              <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">เมนูแนะนำวันนี้</div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-lg">☕</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">อเมริกาโน่เย็น</div>
+                  <div class="text-[10px] text-zinc-500">คั่วกลาง อาราบิก้า 100%</div>
+                </div>
+                <button onclick="simSetStep(2)" class="px-2.5 py-1 rounded-full bg-[#FF0000] text-white text-[10px] font-bold">฿60</button>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-lg">🧋</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">ชาไทยลาเต้เย็น</div>
+                  <div class="text-[10px] text-zinc-500">ชาหอมละมุนสูตรโบราณ</div>
+                </div>
+                <button onclick="simSetStep(2)" class="px-2.5 py-1 rounded-full bg-zinc-800 text-white text-[10px] font-bold">฿55</button>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center text-lg">🥐</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">ครัวซองต์เนยสด</div>
+                  <div class="text-[10px] text-zinc-500">อบร้อนหอมเนยฝรั่งเศส</div>
+                </div>
+                <button onclick="simSetStep(2)" class="px-2.5 py-1 rounded-full bg-zinc-800 text-white text-[10px] font-bold">฿85</button>
+              </div>
+            </div>
+          `,
+          2: `
+            <div class="space-y-3">
+              <div class="text-center pb-1">
+                <div class="text-2xl">☕</div>
+                <div class="font-bold text-xs text-[#0F0F0F] mt-1">อเมริกาโน่เย็น (Iced Americano)</div>
+                <div class="text-[10px] text-zinc-500">฿60 • แก้วขนาด 16 oz</div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 space-y-1.5 text-xs">
+                <div class="font-bold text-[10px] text-zinc-500 uppercase">เลือกระดับความหวาน:</div>
+                <div class="grid grid-cols-4 gap-1 text-[10px]">
+                  <span class="p-1 rounded bg-[#FF0000] text-white text-center font-bold">0%</span>
+                  <span class="p-1 rounded bg-zinc-100 text-zinc-600 text-center">25%</span>
+                  <span class="p-1 rounded bg-zinc-100 text-zinc-600 text-center">50%</span>
+                  <span class="p-1 rounded bg-zinc-100 text-zinc-600 text-center">100%</span>
+                </div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 space-y-1.5 text-xs">
+                <div class="font-bold text-[10px] text-zinc-500 uppercase">ท็อปปิ้งเพิ่มเติม (+฿15):</div>
+                <div class="flex items-center justify-between text-[11px]">
+                  <span>ช็อตกาแฟพิเศษ</span>
+                  <span class="text-zinc-400">+฿15</span>
+                </div>
+              </div>
+              <button onclick="simSetStep(3)" class="w-full py-2 rounded-xl bg-[#0F0F0F] text-white text-xs font-bold hover:bg-black transition">
+                หยิบใส่ตะกร้า (฿60)
+              </button>
+            </div>
+          `,
+          3: `
+            <div class="space-y-3">
+              <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">สรุปคำสั่งซื้อ</div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex justify-between items-center pb-1.5 border-b border-zinc-100">
+                  <div>
+                    <div class="font-bold text-[#0F0F0F]">อเมริกาโน่เย็น (หวาน 0%)</div>
+                    <div class="text-[10px] text-zinc-400">จำนวน: 1 แก้ว</div>
+                  </div>
+                  <span class="font-bold text-xs text-[#0F0F0F]">฿60</span>
+                </div>
+                <div class="flex justify-between text-[11px] text-zinc-500">
+                  <span>ยอดรวม</span>
+                  <span class="font-bold text-[#0F0F0F]">฿60</span>
+                </div>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 text-center space-y-2">
+                <div class="text-[10px] text-zinc-500">สแกนชำระผ่าน PromptPay QR</div>
+                <div class="w-24 h-24 mx-auto bg-zinc-900 rounded-lg flex items-center justify-center text-white text-[10px] font-mono">
+                  [QR CODE]
+                </div>
+                <div class="text-[9px] text-[#2BA640] font-bold">ยอดตรง ฿60.00 • มิตรภาพ คาเฟ่</div>
+              </div>
+              <button onclick="simSetStep(4)" class="w-full py-2 rounded-xl bg-[#FF0000] text-white text-xs font-bold hover:bg-[#CC0000] transition">
+                ชำระเงินเรียบร้อย
+              </button>
+            </div>
+          `,
+          4: `
+            <div class="space-y-3 text-center">
+              <div class="p-4 bg-white rounded-2xl border border-zinc-200 space-y-2 shadow-sm">
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-[#2BA640] text-[9px] font-bold">รับออร์เดอร์สำเร็จ</span>
+                <div class="text-3xl font-black font-mono text-[#0F0F0F] my-1">#FB-042</div>
+                <p class="text-[10px] text-zinc-500">อเมริกาโน่เย็น (หวาน 0%)</p>
+                <div class="pt-2 border-t border-zinc-100 space-y-1">
+                  <div class="flex justify-between text-[10px] font-medium text-zinc-600">
+                    <span>สถานะปัจจุบัน:</span>
+                    <span class="text-[#FF0000] font-bold animate-pulse">กำลังชงเครื่องดื่ม ☕</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-[#FF0000] w-2/3"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-2.5 bg-zinc-100 rounded-xl text-[10px] text-zinc-600">
+                🔔 ระบบจะแจ้งเตือนเมื่อเครื่องดื่มพร้อมรับที่เคาน์เตอร์
+              </div>
+              <button onclick="simSetStep(1)" class="text-xs text-[#065FD4] font-medium hover:underline">
+                ← สั่งเครื่องดื่มแก้วใหม่
+              </button>
+            </div>
+          `
+        }
+      },
+      happypaws: {
+        appTitle: '🐾 Happy Paws Care',
+        badgeColor: 'text-[#065FD4] bg-blue-100',
+        screens: {
+          1: `
+            <div class="space-y-2.5">
+              <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">บริการดูแลสัตว์เลี้ยง</div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-lg">✂️</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">สปาอาบน้ำ & ตัดแต่งขน</div>
+                  <div class="text-[10px] text-zinc-500">สุนัข/แมว ทุกสายพันธุ์</div>
+                </div>
+                <button onclick="simSetStep(2)" class="px-2.5 py-1 rounded-full bg-[#065FD4] text-white text-[10px] font-bold">฿350</button>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center text-lg">🛁</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">สปาแช่น้ำแร่โอโซน</div>
+                  <div class="text-[10px] text-zinc-500">บำรุงผิวหนังและเส้นขน</div>
+                </div>
+                <button onclick="simSetStep(2)" class="px-2.5 py-1 rounded-full bg-zinc-800 text-white text-[10px] font-bold">฿450</button>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-lg">💉</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">ตรวจสุขภาพ & วัคซีนรวม</div>
+                  <div class="text-[10px] text-zinc-500">โดยสัตวแพทย์ผู้เชี่ยวชาญ</div>
+                </div>
+                <button onclick="simSetStep(2)" class="px-2.5 py-1 rounded-full bg-zinc-800 text-white text-[10px] font-bold">฿500</button>
+              </div>
+            </div>
+          `,
+          2: `
+            <div class="space-y-3">
+              <div class="text-center pb-1">
+                <div class="text-2xl">🐶</div>
+                <div class="font-bold text-xs text-[#0F0F0F] mt-1">ข้อมูลนัดหมายบริการ</div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div>
+                  <label class="text-[10px] text-zinc-500 font-bold block mb-1">ชื่อสัตว์เลี้ยง & สายพันธุ์</label>
+                  <input type="text" value="น้องมอมแมม (ชิวาวา 3 ขวบ)" readonly class="w-full bg-zinc-50 border border-zinc-200 rounded px-2 py-1 text-xs font-medium text-[#0F0F0F]">
+                </div>
+                <div>
+                  <label class="text-[10px] text-zinc-500 font-bold block mb-1">เลือกรอบเวลา (วันนี้)</label>
+                  <div class="grid grid-cols-3 gap-1 text-[10px]">
+                    <span class="p-1 rounded bg-zinc-100 text-zinc-400 text-center line-through">10:00 (เต็ม)</span>
+                    <span class="p-1 rounded bg-[#065FD4] text-white text-center font-bold">13:00 (ว่าง)</span>
+                    <span class="p-1 rounded bg-zinc-100 text-zinc-600 text-center">15:30 (ว่าง)</span>
+                  </div>
+                </div>
+              </div>
+              <button onclick="simSetStep(3)" class="w-full py-2 rounded-xl bg-[#065FD4] text-white text-xs font-bold hover:bg-blue-700 transition">
+                ยืนยันเวลานัดหมาย
+              </button>
+            </div>
+          `,
+          3: `
+            <div class="space-y-3">
+              <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">ใบนัดหมายบริการ</div>
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="flex justify-between border-b border-zinc-100 pb-2">
+                  <span class="text-zinc-500">บริการ:</span>
+                  <span class="font-bold text-[#0F0F0F]">สปาอาบน้ำตัดขน</span>
+                </div>
+                <div class="flex justify-between border-b border-zinc-100 pb-2">
+                  <span class="text-zinc-500">สัตว์เลี้ยง:</span>
+                  <span class="font-bold text-[#0F0F0F]">น้องมอมแมม (ชิวาวา)</span>
+                </div>
+                <div class="flex justify-between border-b border-zinc-100 pb-2">
+                  <span class="text-zinc-500">วันเวลา:</span>
+                  <span class="font-bold text-[#065FD4]">วันนี้ เวลา 13:00 น.</span>
+                </div>
+                <div class="flex justify-between pt-1">
+                  <span class="font-bold">มัดจำล่วงหน้า:</span>
+                  <span class="font-bold text-[#2BA640]">฿100.00</span>
+                </div>
+              </div>
+              <button onclick="simSetStep(4)" class="w-full py-2 rounded-xl bg-[#0F0F0F] text-white text-xs font-bold hover:bg-black transition">
+                ยืนยันการจองคิว
+              </button>
+            </div>
+          `,
+          4: `
+            <div class="space-y-3 text-center">
+              <div class="p-4 bg-white rounded-2xl border border-zinc-200 space-y-2 shadow-sm">
+                <span class="px-2 py-0.5 rounded bg-blue-100 text-[#065FD4] text-[9px] font-bold">บัตรคิวนัดหมายดิจิทัล</span>
+                <div class="text-3xl font-black font-mono text-[#065FD4] my-1">#HP-014</div>
+                <p class="text-[10px] text-zinc-500">น้องมอมแมม • คุณหมอสมพร</p>
+                <div class="p-2 bg-zinc-50 rounded-lg border border-zinc-200 text-[10px] text-zinc-600 space-y-1">
+                  <div>เวลานัด: 13:00 น. (กรุณามาก่อน 10 นาที)</div>
+                  <div class="text-[#2BA640] font-bold">สถานะ: ยืนยันคิวเรียบร้อย ✓</div>
+                </div>
+              </div>
+              <button onclick="simSetStep(1)" class="text-xs text-[#065FD4] font-medium hover:underline">
+                ← กลับสู่หน้าหลัก
+              </button>
+            </div>
+          `
+        }
+      },
+      smartborrow: {
+        appTitle: '📦 Smart Borrow System',
+        badgeColor: 'text-[#2BA640] bg-emerald-100',
+        screens: {
+          1: `
+            <div class="space-y-2.5">
+              <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">ครุภัณฑ์แผนกวิชา</div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-lg">📷</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">กล้อง Sony Alpha A7 IV</div>
+                  <div class="text-[10px] text-emerald-600 font-bold">● พร้อมให้ยืม (คลังโสตฯ)</div>
+                </div>
+                <button onclick="simSetStep(2)" class="px-2.5 py-1 rounded-full bg-[#2BA640] text-white text-[10px] font-bold">ขอยืม</button>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-lg">🎙️</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">ไมโครโฟนไร้สาย DJI Mic 2</div>
+                  <div class="text-[10px] text-zinc-500">● ถูกยืม (คืนพรุ่งนี้ 16:00)</div>
+                </div>
+                <button disabled class="px-2 py-1 rounded-full bg-zinc-200 text-zinc-400 text-[10px] font-bold cursor-not-allowed">ไม่ว่าง</button>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 flex items-center gap-2.5 shadow-sm">
+                <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-lg">💡</div>
+                <div class="flex-1">
+                  <div class="font-bold text-xs text-[#0F0F0F]">ชุดไฟสตูดิโอ Nanlite 60W</div>
+                  <div class="text-[10px] text-emerald-600 font-bold">● พร้อมให้ยืม (คลังโสตฯ)</div>
+                </div>
+                <button onclick="simSetStep(2)" class="px-2.5 py-1 rounded-full bg-[#2BA640] text-white text-[10px] font-bold">ขอยืม</button>
+              </div>
+            </div>
+          `,
+          2: `
+            <div class="space-y-3">
+              <div class="text-center pb-1">
+                <div class="text-2xl">📷</div>
+                <div class="font-bold text-xs text-[#0F0F0F] mt-1">แบบฟอร์มขอยืมครุภัณฑ์</div>
+                <div class="text-[10px] text-zinc-500">รหัสพัสดุ: ASSET-SNY-0428</div>
+              </div>
+              <div class="p-2.5 bg-white rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div>
+                  <label class="text-[10px] text-zinc-500 font-bold block mb-1">ผู้ยืม: ณภัทร (ปวส.1/1)</label>
+                  <label class="text-[10px] text-zinc-500 font-bold block mb-1">วัตถุประสงค์การใช้งาน:</label>
+                  <input type="text" value="ถ่ายทำสื่อการสอนวิชาโมบายล์แอป" readonly class="w-full bg-zinc-50 border border-zinc-200 rounded px-2 py-1 text-xs">
+                </div>
+                <div>
+                  <label class="text-[10px] text-zinc-500 font-bold block mb-1">กำหนดส่งคืน:</label>
+                  <div class="p-1.5 bg-zinc-50 border border-zinc-200 rounded text-[11px] font-mono text-[#0F0F0F]">
+                    20 ต.ค. 2026 (ก่อน 16:30 น.)
+                  </div>
+                </div>
+              </div>
+              <button onclick="simSetStep(3)" class="w-full py-2 rounded-xl bg-[#2BA640] text-white text-xs font-bold hover:bg-emerald-700 transition">
+                ตรวจสอบและลงลายมือชื่อ
+              </button>
+            </div>
+          `,
+          3: `
+            <div class="space-y-3">
+              <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">เซ็นรับมอบพัสดุดิจิทัล</div>
+              <div class="p-3 bg-white rounded-xl border border-zinc-200 space-y-2 text-xs">
+                <div class="text-[10px] text-zinc-500">กรุณาเซ็นชื่อบนหน้าจอเพื่อยืนยันการรับมอบ:</div>
+                <div class="h-20 bg-zinc-50 border-2 border-dashed border-zinc-300 rounded-lg flex items-center justify-center font-mono text-zinc-400 text-xs italic">
+                  [ Digital Signature: Naphat.K ]
+                </div>
+                <div class="text-[9px] text-zinc-500 text-center">
+                  บันทึกพิกัด GPS: อาคารปฏิบัติการ 4 ชั้น 2
+                </div>
+              </div>
+              <button onclick="simSetStep(4)" class="w-full py-2 rounded-xl bg-[#0F0F0F] text-white text-xs font-bold hover:bg-black transition">
+                อนุมัติการเบิกจ่าย
+              </button>
+            </div>
+          `,
+          4: `
+            <div class="space-y-3 text-center">
+              <div class="p-4 bg-white rounded-2xl border border-zinc-200 space-y-2 shadow-sm">
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-[#2BA640] text-[9px] font-bold">บัตรยืมพัสดุดิจิทัล (Pass)</span>
+                <div class="text-3xl font-black font-mono text-[#2BA640] my-1">#SB-088</div>
+                <div class="w-28 h-12 mx-auto bg-zinc-900 rounded flex items-center justify-center text-white text-[9px] font-mono">
+                  ||| | |||| || ||| |
+                </div>
+                <div class="text-[10px] text-zinc-500">ใช้สแกนกับหัวหน้าคลังเมื่อนำอุปกรณ์มาคืน</div>
+                <div class="p-2 bg-emerald-50 rounded-lg border border-emerald-200 text-[10px] text-emerald-800 font-bold">
+                  กำหนดคืน: พรุ่งนี้ 16:30 น.
+                </div>
+              </div>
+              <button onclick="simSetStep(1)" class="text-xs text-[#065FD4] font-medium hover:underline">
+                ← กลับสู่รายการครุภัณฑ์
+              </button>
+            </div>
+          `
+        }
+      }
+    };
+
+    function updateSimContent() {
+      const data = simData[currentArchetype];
+      document.getElementById('simAppTitle').innerText = data.appTitle;
+      document.getElementById('simStepBadge').innerText = `${simCurrentStep} / 4`;
+      document.getElementById('simStepBadge').className = `text-[9px] font-mono px-2 py-0.5 rounded-full font-bold ${data.badgeColor}`;
+      document.getElementById('simScreenBody').innerHTML = data.screens[simCurrentStep];
+
+      // Update control buttons
+      for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById(`simStepBtn${i}`);
+        if (i === simCurrentStep) {
+          btn.className = 'sim-ctrl-btn w-full p-3 rounded-xl border border-[#FF0000] bg-red-50 text-left flex items-center justify-between text-xs font-bold transition';
+        } else {
+          btn.className = 'sim-ctrl-btn w-full p-3 rounded-xl border border-[#E5E5E5] bg-white text-left flex items-center justify-between text-xs font-medium text-[#606060] hover:bg-[#F2F2F2] transition';
+        }
+      }
+    }
+
+    function simSetStep(step) {
+      simCurrentStep = step;
+      updateSimContent();
+    }
+
+    function simNextStep() {
+      if (simCurrentStep < 4) {
+        simCurrentStep++;
+      } else {
+        simCurrentStep = 1;
+      }
+      updateSimContent();
+    }
+
+    function simPrevStep() {
+      if (simCurrentStep > 1) {
+        simCurrentStep--;
+      } else {
+        simCurrentStep = 4;
+      }
+      updateSimContent();
+    }
+
+    // Initialize Simulator on Load
+    updateSimContent();
+
+    // -------------------------------------------------------------
+    // 6. Interactive Self-Checklist (LocalStorage Persistence)
+    // -------------------------------------------------------------
+    const STORAGE_KEY = 'curriculum_ch01_checklist';
+
+    function initChecklist() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const checkedArr = JSON.parse(saved);
+          const checkboxes = document.querySelectorAll('.check-item');
+          checkboxes.forEach((cb, index) => {
+            cb.checked = !!checkedArr[index];
+          });
+        } catch (e) {}
+      }
+      calculateChecklist();
+    }
+
+    let lastChecklistPct = 0;
+
+    function updateChecklist() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const checkedArr = Array.from(checkboxes).map(cb => cb.checked);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedArr));
+      if (window.EduAudio) EduAudio.playChime();
+      calculateChecklist();
+    }
+
+    function calculateChecklist() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const total = checkboxes.length;
+      let checked = 0;
+      checkboxes.forEach(cb => {
+        if (cb.checked) checked++;
+      });
+
+      const pct = Math.round((checked / total) * 100);
+      document.getElementById('checklistPercentage').innerText = pct + '%';
+      document.getElementById('checklistProgressBar').style.width = pct + '%';
+      document.getElementById('checklistCount').innerText = `เสร็จสิ้น ${checked} จาก ${total} หัวข้อ`;
+
+      const badge = document.getElementById('checklistBadge');
+      if (pct === 100) {
+        badge.classList.remove('hidden');
+        if (lastChecklistPct < 100) {
+          if (window.EduConfetti) EduConfetti.fire();
+          if (window.EduAudio) EduAudio.playFanfare();
+        }
+      } else {
+        badge.classList.add('hidden');
+      }
+      lastChecklistPct = pct;
+    }
+
+    function resetChecklist() {
+      if (confirm('คุณต้องการรีเซ็ตสถานะการตรวจสอบทั้งหมดหรือไม่?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        const checkboxes = document.querySelectorAll('.check-item');
+        checkboxes.forEach(cb => cb.checked = false);
+        lastChecklistPct = 0;
+        calculateChecklist();
+      }
+    }
+
+    initChecklist();
+
+    // -------------------------------------------------------------
+    // 7. Interactive Rubric Calculator (10 Points)
+    // -------------------------------------------------------------
+    let lastRubricTotal = 0;
+
+    function calcRubric() {
+      if (window.EduAudio) EduAudio.playClick();
+      let total = 0;
+      for (let i = 1; i <= 5; i++) {
+        const val = parseInt(document.querySelector(`input[name="rc${i}"]:checked`).value);
+        total += val;
+        document.getElementById(`rubricC${i}Score`).innerText = `${val} คะแนน`;
+
+        // Update card styles
+        const labels = document.querySelectorAll(`input[name="rc${i}"]`);
+        labels.forEach(input => {
+          const parent = input.parentElement;
+          if (input.checked) {
+            parent.className = 'rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition';
+          } else {
+            parent.className = 'rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition';
+          }
+        });
+      }
+
+      document.getElementById('rubricTotal').innerText = total;
+
+      const badge = document.getElementById('rubricBadge');
+      const diagnostic = document.getElementById('rubricDiagnostic');
+
+      if (total >= 9) {
+        badge.className = 'px-4 py-2 rounded-xl bg-emerald-100 text-[#2BA640] font-bold text-sm border border-emerald-300';
+        badge.innerText = 'ระดับ: ดีเยี่ยม (Mastered / Grade A)';
+        diagnostic.className = 'p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-[#2BA640] leading-relaxed';
+        diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ผลงานของท่านมีความสมบูรณ์แบบในระดับวิศวกรซอฟต์แวร์ สามารถนำพิมพ์เขียวนี้ไปเริ่มเขียนตารางข้อมูลใน Google Sheets และวาด Wireframe บน Figma ได้ทันที';
+        if (total === 10 && lastRubricTotal < 10) {
+          if (window.EduConfetti) EduConfetti.fire();
+          if (window.EduAudio) EduAudio.playFanfare();
+        }
+      } else if (total >= 7) {
+        badge.className = 'px-4 py-2 rounded-xl bg-blue-100 text-[#065FD4] font-bold text-sm border border-blue-300';
+        badge.innerText = 'ระดับ: ดี (Proficient / Grade B)';
+        diagnostic.className = 'p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#065FD4] leading-relaxed';
+        diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> โครงสร้างแคนวาสมีความสมบูรณ์ดีมาก แนะนำให้ตรวจสอบความกระชับของ User Flow อีกครั้งเพื่อลดขั้นตอนการกดให้เหลือน้อยที่สุดก่อนเริ่มลงมือปฏิบัติ';
+      } else if (total >= 5) {
+        badge.className = 'px-4 py-2 rounded-xl bg-orange-100 text-[#FB8C00] font-bold text-sm border border-orange-300';
+        badge.innerText = 'ระดับ: พอใช้ (Developing / Grade C)';
+        diagnostic.className = 'p-4 rounded-xl bg-orange-50 border border-orange-200 text-xs text-[#FB8C00] leading-relaxed';
+        diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ข้อมูลบางช่องยังกว้างหรือซ้ำซ้อน ควรตัดฟังก์ชัน Nice-to-Have ออกเพื่อมุ่งเน้นเฉพาะ MVP ที่แก้ปัญหาหลักของกลุ่มผู้ใช้เป้าหมายเท่านั้น';
+      } else {
+        badge.className = 'px-4 py-2 rounded-xl bg-red-100 text-[#FF0000] font-bold text-sm border border-red-300';
+        badge.innerText = 'ระดับ: ควรปรับปรุง (Needs Revision)';
+        diagnostic.className = 'p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-[#FF0000] leading-relaxed';
+        diagnostic.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> กรอบปัญหาและกลุ่มเป้าหมายยังไม่ชัดเจน แนะนำให้ทบทวนกรณีศึกษาทั้ง 3 รูปแบบ และทำการวิเคราะห์ Pain Points 4 มิติใหม่อีกครั้ง';
+      }
+      lastRubricTotal = total;
+    }
+
+    // -------------------------------------------------------------
+    // 8. FAQ Accordion Logic
+    // -------------------------------------------------------------
+    function toggleFaq(num) {
+      const ans = document.getElementById(`faqAns${num}`);
+      const icon = document.getElementById(`faqIcon${num}`);
+      if (ans.classList.contains('hidden')) {
+        ans.classList.remove('hidden');
+        icon.innerText = '−';
+      } else {
+        ans.classList.add('hidden');
+        icon.innerText = '+';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 9. Horizontal Chip Filters
+    // -------------------------------------------------------------
+    function filterChip(targetId, btn) {
+      document.querySelectorAll('.chip-btn').forEach(b => {
+        b.className = 'chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0';
+      });
+      btn.className = 'chip-btn active h-8 px-4 rounded-full text-xs font-medium bg-[#0F0F0F] text-white transition shrink-0';
+
+      if (targetId === 'all') {
+        mainViewport.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 10. Copy to Clipboard Utility & Toast
+    // -------------------------------------------------------------
+    function copyText(str, btn) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(str).then(() => {
+          showToast('คัดลอกข้อความสำเร็จแล้ว!');
+        });
+      } else {
+        const input = document.createElement('textarea');
+        input.value = str;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('คัดลอกข้อความสำเร็จแล้ว!');
+      }
+
+      if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="text-[#2BA640] font-bold">คัดลอกแล้ว! ✓</span>';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex', 'toast-anim');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex', 'toast-anim');
+      }, 2000);
+    }
+
+    // -------------------------------------------------------------
+    // 11. Social Actions (Like, Subscribe, Comment)
+    // -------------------------------------------------------------
+    let isSubscribed = false;
+    function toggleSubscribe() {
+      const btn = document.getElementById('subBtn');
+      const text = document.getElementById('subBtnText');
+      if (!isSubscribed) {
+        btn.className = 'h-9 px-5 bg-[#F2F2F2] hover:bg-[#E5E5E5] text-[#0F0F0F] text-xs font-bold rounded-full flex items-center gap-1.5 transition';
+        text.innerText = 'ติดตามแล้ว (Subscribed) ✓';
+        isSubscribed = true;
+        showToast('ติดตามรายวิชาเรียบร้อยแล้ว');
+      } else {
+        btn.className = 'h-9 px-5 bg-[#0F0F0F] hover:bg-black text-white text-xs font-medium rounded-full flex items-center gap-1.5 transition';
+        text.innerText = 'ติดตามรายวิชา';
+        isSubscribed = false;
+      }
+    }
+
+    let isLiked = false;
+    function toggleLike() {
+      const countEl = document.getElementById('likeCount');
+      const iconEl = document.getElementById('likeIcon');
+      let count = parseInt(countEl.innerText);
+      if (!isLiked) {
+        countEl.innerText = count + 1;
+        iconEl.classList.remove('text-[#606060]');
+        iconEl.classList.add('text-[#FF0000]', 'fill-current');
+        isLiked = true;
+        showToast('ถูกใจบทเรียนนี้');
+      } else {
+        countEl.innerText = count - 1;
+        iconEl.classList.add('text-[#606060]');
+        iconEl.classList.remove('text-[#FF0000]', 'fill-current');
+        isLiked = false;
+      }
+    }
+
+    function shareLesson() {
+      copyText(window.location.href);
+    }
+
+    function postComment() {
+      const input = document.getElementById('commentInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const list = document.getElementById('commentList');
+      const newComment = document.createElement('div');
+      newComment.className = 'flex items-start gap-3 bg-red-50/30 p-3 rounded-xl border border-red-100';
+      newComment.innerHTML = `
+        <div class="w-9 h-9 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0">ME</div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-xs text-[#0F0F0F]">นักศึกษา (คุณ)</span>
+            <span class="text-[11px] text-[#606060]">เมื่อสักครู่</span>
+          </div>
+          <p class="text-xs text-[#0F0F0F] leading-relaxed">${escapeHtml(text)}</p>
+          <div class="flex items-center gap-3 pt-1 text-xs text-[#606060]">
+            <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 1</button>
+            <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+          </div>
+        </div>
+      `;
+      list.prepend(newComment);
+      input.value = '';
+
+      const totalCount = document.getElementById('commentTotalCount');
+      totalCount.innerText = parseInt(totalCount.innerText) + 1;
+      showToast('โพสต์ความคิดเห็นแล้ว');
+    }
+
+    function clearComment() {
+      document.getElementById('commentInput').value = '';
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Search Box Listener
+    function performSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (q && window.find) {
+        window.find(q);
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') performSearch();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+      }
+    });
+
+    // Real-Time Simulator Clock Updater
+    function updateSimLiveClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const clockEl = document.getElementById('simLiveClock');
+      if (clockEl) {
+        clockEl.innerText = `${hours}:${minutes}`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.EduAudio) EduAudio.initUI();
+      showSdlcStep(1);
+      updateSimLiveClock();
+      setInterval(updateSimLiveClock, 30000);
+    });
+  </script>
+</body>
+</html>

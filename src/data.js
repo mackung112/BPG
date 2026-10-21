@@ -5,6 +5,9 @@ import osMaintenanceCourse from './data/31910-0001_osMaintenanceCourse.js';
 import digitalTechCourse from './data/30001-1003_digitalTechCourse.js';
 import dataAnalyticsCourse from './data/31910-1003_dataAnalyticsCourse.js';
 import multimediaCourse from './data/31910-2018_multimediaCourse.js';
+import artCourse from './data/31910-0002_artCourse.js';
+import mobileAppCourse from './data/31910-2022_mobileAppCourse.js';
+import webDesignCourse from './data/31910-2026_webDesignCourse.js';
 
 const courses = [
     pyCourse,
@@ -13,7 +16,10 @@ const courses = [
     osMaintenanceCourse,
     digitalTechCourse,
     dataAnalyticsCourse,
-    multimediaCourse
+    multimediaCourse,
+    artCourse,
+    mobileAppCourse,
+    webDesignCourse
 ];
 
 export default courses;

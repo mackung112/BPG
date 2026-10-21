@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 3: การสร้างและตกแต่งกราฟิกสำหรับเว็บไซต์ (Logo, Icons, ไดคัท และ WebP) | 31910-2026</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'Inter', 'sans-serif'],
+            body: ['Sarabun', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            tech: ['Chakra Petch', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --bg-page: #f6f5ff;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1eeff;
+      --border-tint: #e2d9ff;
+      --text-main: #1e1b4b;
+      --text-muted: #5b5675;
+      --accent-pill-bg: #f3e8ff;
+      --accent-pill-text: #7e22ce;
+    }
+    html.dark {
+      --bg-page: #0b0916;
+      --bg-surface: #141126;
+      --bg-subtle: #1d1836;
+      --border-tint: #2d2552;
+      --text-main: #f5f3ff;
+      --text-muted: #a59ec4;
+      --accent-pill-bg: #2e1065;
+      --accent-pill-text: #e9d5ff;
+    }
+    html.theme-accent {
+      --bg-page: #f0fdfa;
+      --bg-surface: #ffffff;
+      --bg-subtle: #ccfbf1;
+      --border-tint: #99f6e4;
+      --text-main: #134e4a;
+      --text-muted: #0f766e;
+      --accent-pill-bg: #fce7f3;
+      --accent-pill-text: #be185d;
+    }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Prompt', sans-serif;
+      background-image:
+        radial-gradient(circle at 12% 10%, rgba(124, 58, 237, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 88% 22%, rgba(13, 148, 136, 0.08) 0%, transparent 35%),
+        linear-gradient(to right, rgba(124, 58, 237, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(124, 58, 237, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .surface-card {
+      background-color: var(--bg-surface);
+      border-color: var(--border-tint);
+    }
+    .subtle-box {
+      background-color: var(--bg-subtle);
+      border-color: var(--border-tint);
+    }
+    .code-pill {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--accent-pill-bg);
+      color: var(--accent-pill-text);
+    }
+    /* Checkerboard for transparent PNG/WebP die-cut previews */
+    .checkerboard {
+      background-color: #f8fafc;
+      background-image:
+        linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+        linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+        linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+    html.dark .checkerboard {
+      background-color: #1e293b;
+      background-image:
+        linear-gradient(45deg, #0f172a 25%, transparent 25%),
+        linear-gradient(-45deg, #0f172a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #0f172a 75%),
+        linear-gradient(-45deg, transparent 75%, #0f172a 75%);
+    }
+    .pixelated-preview {
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-purple-600 selection:text-white">
+
+  <!-- Sticky Navigation Header with Standard Comfortable Horizontal Margins -->
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/85 dark:bg-[#110e20]/85 border-b border-purple-200/70 dark:border-purple-900/50">
+    <div class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 h-16 flex items-center justify-between gap-3">
+      <a href="#top-hero" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 via-purple-600 to-pink-500 text-white font-bold flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition">
+          <span class="font-mono text-xs">31910</span>
+        </div>
+        <div>
+          <div class="text-[11px] font-mono uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold">
+            31910-2026 • UNIT 03
+          </div>
+          <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-tight">
+            การสร้างและตกแต่งกราฟิกสำหรับเว็บไซต์
+          </div>
+        </div>
+      </a>
+
+      <nav class="hidden xl:flex items-center gap-1 text-xs font-medium">
+        <a href="#sec-objectives" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">🎯 จุดประสงค์</a>
+        <a href="#sec-intro" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">บทนำ: Web Speed</a>
+        <a href="#sec-part1" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 1: Vector &amp; SVG</a>
+        <a href="#sec-part2" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 2: ไดคัท &amp; เงาสินค้า</a>
+        <a href="#sec-part3" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 3: WebP &amp; Squoosh</a>
+        <a href="#sec-workshops" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 4: ใบงาน &amp; Audit</a>
+      </nav>
+
+      <div class="flex items-center gap-1.5 bg-purple-100/80 dark:bg-purple-950/70 p-1.5 rounded-full border border-purple-200 dark:border-purple-800">
+        <button id="btn-theme-light" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white text-purple-700 shadow-sm transition" title="โหมดสว่าง (Light)">☀️</button>
+        <button id="btn-theme-dark" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition" title="โหมดมืด (Dark)">🌙</button>
+        <button id="btn-theme-accent" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition" title="โหมดสีเน้น (Accent)">🔮</button>
+      </div>
+    </div>
+
+    <div class="xl:hidden max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto px-6 sm:px-10 py-2 border-t border-purple-100 dark:border-purple-900/40 text-xs whitespace-nowrap">
+      <a href="#sec-objectives" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">🎯 จุดประสงค์</a>
+      <a href="#sec-intro" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">บทนำ: ความเร็วเว็บ</a>
+      <a href="#sec-part1" class="px-2.5 py-1 rounded-md bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-medium">ตอนที่ 1: Vector &amp; SVG</a>
+      <a href="#sec-part2" class="px-2.5 py-1 rounded-md bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 font-medium">ตอนที่ 2: ไดคัท &amp; เงาสินค้า</a>
+      <a href="#sec-part3" class="px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">ตอนที่ 3: WebP &amp; Squoosh</a>
+      <a href="#sec-workshops" class="px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-medium">ตอนที่ 4: ใบงาน 3.1–3.3</a>
+    </div>
+  </header>
+
+  <!-- Main Container with Standard Comfortable Margins (max-w-6xl mx-auto px-6 sm:px-10 lg:px-12) -->
+  <main class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 py-10 space-y-20 pb-28">
+
+    <!-- =================================================================== -->
+    <!-- HERO & LEARNING OBJECTIVES                                          -->
+    <!-- =================================================================== -->
+    <section id="top-hero" class="space-y-8">
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-10 shadow-xl space-y-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/90 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300 text-xs font-mono font-semibold">
+            <span>วิชา 31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์ (ท-ป-น: 2-2-3)</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+            <span>ปวส. ชั้นปีที่ 1 เทคโนโลยีธุรกิจดิจิทัล</span>
+          </div>
+          <div class="text-xs font-body text-slate-500 dark:text-slate-400">
+            อาจารย์ผู้สอน: <strong>ครูแม็ค</strong> (แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล วิทยาลัยการอาชีพบ้านโป่ง)
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">
+            UNIT 03 • WEBSITE GRAPHIC ASSETS PRODUCTION, VECTOR ICONS, IMAGE RETOUCHING &amp; WEBP OPTIMIZATION
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+            บทที่ 3: การสร้างและตกแต่งกราฟิกสำหรับเว็บไซต์<br class="hidden sm:inline">
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-purple-600 to-pink-600 dark:from-teal-400 dark:via-purple-400 dark:to-pink-400">
+              (Logo, ชุดไอคอน SVG, ไดคัทสร้างเงา และ WebP)
+            </span>
+          </h1>
+          <p class="max-w-3xl text-sm sm:text-base font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+            เปลี่ยนจากกล่องสี่เหลี่ยมสีเทากากบาท X ในขั้น Wireframe สู่การผลิต <strong>“สินทรัพย์กราฟิกของจริง (Production Graphic Assets)”</strong> ตั้งแต่การสร้างโลโก้และไอคอนเวกเตอร์บนตาราง 24px การไดคัทและสร้างเงาเสมือนจริง 2 ชั้นบน Photoshop ไปจนถึงการบีบอัดไฟล์ภาพเป็นฟอร์แมต WebP น้ำหนักเบาต่ำกว่า 150 KB
+          </p>
+        </div>
+
+        <!-- 🎯 จุดประสงค์การเรียนรู้ประจำหน่วยที่ 3 -->
+        <div id="sec-objectives" class="scroll-mt-24 pt-6 border-t border-purple-100 dark:border-purple-900/50 space-y-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🎯</span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+              จุดประสงค์การเรียนรู้ประจำหน่วยที่ 3
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- 1. ด้านความรู้ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-teal-600 text-white font-mono text-xs font-bold">1. ด้านความรู้ (Knowledge)</span>
+                <span class="text-lg">🧠</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-1.5 list-disc pl-4 leading-relaxed">
+                <li>อธิบายความแตกต่างระหว่างภาพแบบ <strong>Raster (Bitmap)</strong> และ <strong>Vector Graphic</strong> รวมถึงโครงสร้างโค้ดเชิงตรรกะของไฟล์ <strong>SVG (Scalable Vector Graphics)</strong> ได้อย่างถูกต้อง</li>
+                <li>อธิบายหลักการยศาสตร์และมาตรฐานการสร้างชุดไอคอนบนโครงตาราง <strong>24px Icon Grid</strong> และการควบคุมความหนาเส้น (<strong>Stroke Weight</strong>) ได้</li>
+                <li>อธิบายหลักทฤษฎีแสงเงาการตกแต่งภาพเชิงพาณิชย์ ได้แก่ เงาสัมผัสพื้น (<strong>Contact Shadow</strong>) และเงาทอดยาว (<strong>Cast Shadow</strong>) ได้อย่างสมจริง</li>
+                <li>เปรียบเทียบคุณสมบัติ ความคุ้มค่า และการกินแบนด์วิดท์ของฟอร์แมตไฟล์ภาพดิจิทัล (<strong>JPEG, PNG, WebP, AVIF, SVG</strong>) ได้</li>
+                <li>อธิบายความสัมพันธ์ระหว่างขนาดไฟล์ภาพ (File Size) กับค่าดัชนีความเร็วของเว็บไซต์ (<strong>Core Web Vitals: LCP</strong>) และผลกระทบต่อ SEO ได้</li>
+              </ul>
+            </div>
+
+            <!-- 2. ด้านทักษะปฏิบัติการ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">2. ด้านทักษะปฏิบัติการ (Skill)</span>
+                <span class="text-lg">🛠️</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-2 list-disc pl-4 leading-relaxed">
+                <li><strong>งานกราฟิกเวกเตอร์และไอคอน:</strong> ออกแบบโลโก้ร้านค้าและวาดชุดไอคอนเวกเตอร์บริการ 4 แบบ (จัดส่งฟรี, รับประกัน, ชำระเงินปลอดภัย, บริการ 24 ชม.) บนโครงตาราง 24px และส่งออกเป็นโค้ด SVG ที่สะอาดได้</li>
+                <li><strong>งานตัดต่อและรีทัชภาพสินค้า:</strong> ใช้เครื่องมือ Pen Tool และคำสั่ง Select and Mask ใน Adobe Photoshop ทำการตัดต่อ (ไดคัท) พื้นหลังสินค้า 4–6 รายการ พร้อมปรับแต่งสีและสร้างเงาเสมือนจริง แล้วนำไปประกอบลงในการ์ดสินค้าบน Figma ได้</li>
+                <li><strong>งานบีบอัดภาพและตรวจสอบขนาดไฟล์:</strong> ปรับขนาดมิติพิกเซลของภาพสินค้า บีบอัดเป็นฟอร์แมต <strong>WebP</strong> ให้มีขนาดไฟล์ต่ำกว่า <strong>150 KB</strong> โดยสายตามนุษย์ยังมองเห็นความคมชัด พร้อมจัดทำตารางบันทึกการลดขนาดไฟล์ (<strong>File Size Audit Table</strong>) ได้อย่างสมบูรณ์</li>
+              </ul>
+            </div>
+
+            <!-- 3. ด้านจิตพิสัยและจรรยาบรรณวิชาชีพ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-pink-600 text-white font-mono text-xs font-bold">3. ด้านจิตพิสัย (Attitude)</span>
+                <span class="text-lg">💎</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-2 list-disc pl-4 leading-relaxed">
+                <li>มีความประณีต อดทน และละเอียดรอบคอบในการควบคุมเส้นทางเดินของ Pen Tool เพื่อเก็บขอบชิ้นงานไม่ให้มีรอยแหว่งหรือขอบขาวหลุดลอย</li>
+                <li>มีจิตสำนึกในการเคารพกฎหมายลิขสิทธิ์รูปภาพและทรัพย์สินทางปัญญาในการนำภาพถ่ายสินค้ามาใช้งาน</li>
+                <li>คำนึงถึงผู้ใช้งานปลายทางที่มีอินเทอร์เน็ตความเร็วจำกัด ด้วยการบีบอัดไฟล์ภาพให้เล็กที่สุดก่อนนำขึ้นเว็บไซต์</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 🧭 แผนผังโครงสร้างการเรียนรู้ประจำหน่วย -->
+        <div class="pt-6 border-t border-purple-100 dark:border-purple-900/50 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🧭</span>
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                แผนผังโครงสร้างการเรียนรู้ประจำหน่วย
+              </h2>
+            </div>
+            <span class="text-xs font-mono text-purple-600 dark:text-purple-400">คลิกที่แต่ละตอนเพื่อข้ามไปยังหัวข้อที่ต้องการ</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="#sec-part1" class="p-5 rounded-2xl border-2 border-teal-500/40 bg-teal-50/40 dark:bg-teal-950/20 hover:border-teal-500 transition block space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-teal-600 text-white font-mono text-xs font-bold">ตอนที่ 1</span>
+                <span class="font-mono text-xs text-teal-600 dark:text-teal-400 font-bold">Vector &amp; SVG →</span>
+              </div>
+              <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                กราฟิกเวกเตอร์, โลโก้แบรนด์ &amp; ชุดไอคอน SVG
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>ทฤษฎีภาพ: Raster Pixels vs Vector Bezier</li>
+                <li>เจาะลึกโค้ด SVG &amp; สิทธิประโยชน์บนเบราว์เซอร์</li>
+                <li>มาตรฐาน 24px Icon Grid System &amp; 2px Stroke</li>
+                <li>ออกแบบโลโก้ &amp; ชุดไอคอนบริการ 4 รูป (Icons Kit)</li>
+              </ol>
+            </a>
+
+            <a href="#sec-part2" class="p-5 rounded-2xl border-2 border-pink-500/40 bg-pink-50/40 dark:bg-pink-950/20 hover:border-pink-500 transition block space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-pink-600 text-white font-mono text-xs font-bold">ตอนที่ 2</span>
+                <span class="font-mono text-xs text-pink-600 dark:text-pink-400 font-bold">Photoshop Retouching →</span>
+              </div>
+              <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                การตัดต่อ ไดคัท &amp; รีทัชภาพสินค้าบน Photoshop
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>ศาสตร์แห่งการตัดต่อ: Pen Tool vs Select and Mask</li>
+                <li>เทคนิคกำจัดขอบสีเดิม (Defringe &amp; Feather 0.5px)</li>
+                <li>ทฤษฎีแสงเงาเสมือนจริง: Contact Shadow vs Cast Shadow</li>
+                <li>ปรับสมดุลสี (Color Grading) ให้เข้ากับ Brand Palette</li>
+              </ol>
+            </a>
+
+            <a href="#sec-part3" class="p-5 rounded-2xl border-2 border-amber-500/40 bg-amber-50/40 dark:bg-amber-950/20 hover:border-amber-500 transition block space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-600 text-white font-mono text-xs font-bold">ตอนที่ 3 &amp; 4</span>
+                <span class="font-mono text-xs text-amber-600 dark:text-amber-400 font-bold">WebP &amp; Audit →</span>
+              </div>
+              <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                Image Optimization, นวัตกรรมไฟล์ WebP &amp; ใบงาน
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>ศึกชิงแชมป์ฟอร์แมตเว็บ: JPEG vs PNG vs WebP vs SVG</li>
+                <li>แก้ความเข้าใจผิด: 72 PPI vs Retina Display 2x</li>
+                <li>เทคนิคการบีบอัดภาพ: Lossy Sweet Spot (Quality 75–80%)</li>
+                <li>การส่งออกไฟล์ WebP (&lt;150KB), Squoosh &amp; ตาราง Audit</li>
+              </ol>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- บทนำ: สินทรัพย์กราฟิก (Graphic Assets) กับความเร็วของเว็บไซต์         -->
+    <!-- =================================================================== -->
+    <section id="sec-intro" class="scroll-mt-24 space-y-6">
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-9 shadow-xl space-y-6">
+        <div class="space-y-2">
+          <span class="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 font-mono text-xs font-bold uppercase">
+            INTRODUCTION • GRAPHIC ASSETS &amp; WEB PERFORMANCE (CORE WEB VITALS: LCP)
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            บทนำ: สินทรัพย์กราฟิก (Graphic Assets) กับความเร็วของเว็บไซต์ (Web Performance)
+          </h2>
+          <p class="text-sm sm:text-base font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+            ในหน่วยที่ 2 นักศึกษาได้สร้างโครงสร้างและพิมพ์เขียวหน้าแรกเว็บไซต์ (Wireframe) พร้อมระบบนำทางและการ์ดสินค้าบน Figma กันไปแล้ว แต่กล่องรูปภาพทั้งหมดยังคงเป็นเพียง “กล่องสี่เหลี่ยมสีเทาที่มีกากบาท X” เมื่อก้าวเข้าสู่ <strong>หน่วยที่ 3</strong> เราจะเริ่มต้นผลิต <strong>“สินทรัพย์กราฟิกของจริง (Production Graphic Assets)”</strong> โดยมีสถิติวิจัยพฤติกรรมผู้บริโภคบนเว็บไซต์จาก <strong>Google &amp; Akamai</strong> ที่ต้องตระหนักดังนี้:
+          </p>
+        </div>
+
+        <!-- 3 Consumer Behavior Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="p-5 rounded-2xl border-2 border-rose-400/60 bg-rose-50/50 dark:bg-rose-950/25 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-rose-600 dark:text-rose-400">STAT 01 • PATIENCE LIMIT</span>
+              <span class="text-2xl font-extrabold font-mono text-rose-600">&gt; 3 วินาที</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">1. ความอดทนของลูกค้า</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              หากหน้าเว็บโหลดช้าเกิน <strong>“3 วินาที”</strong> ลูกค้ากว่า <strong>40%</strong> จะกดปิดหนีทันทีโดยไม่รอให้ภาพแสดงผลครบ
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl border-2 border-amber-400/60 bg-amber-50/50 dark:bg-amber-950/25 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-amber-600 dark:text-amber-400">STAT 02 • CONVERSION LOSS</span>
+              <span class="text-2xl font-extrabold font-mono text-amber-600">-7% / วินาที</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">2. ผลกระทบต่อยอดขาย</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              ทุกๆ <strong>1 วินาที</strong> ที่เว็บโหลดช้าลง ยอดขายออนไลน์ (Conversion Rate) จะลดลงเฉลี่ย <strong>7%</strong>
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl border-2 border-purple-400/60 bg-purple-50/50 dark:bg-purple-950/25 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-purple-600 dark:text-purple-400">STAT 03 • BANDWIDTH CULPRIT</span>
+              <span class="text-2xl font-extrabold font-mono text-purple-600">65% – 70%</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">3. ตัวการที่ทำให้เว็บโหลดช้า</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              กว่า <strong>65% – 70%</strong> ของปริมาณข้อมูลทั้งหมดที่เว็บต้องดาวน์โหลด มาจาก <strong>“ไฟล์รูปภาพและกราฟิกที่ไม่ได้ผ่านการบีบอัดอย่างถูกวิธี”</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Interactive Load Time Impact Simulator -->
+        <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-mono text-teal-400 font-bold">⚡ INTERACTIVE LCP &amp; CONVERSION IMPACT SIMULATOR</span>
+              <h3 class="text-base sm:text-lg font-extrabold mt-0.5">
+                หน้าที่ของนักออกแบบกราฟิกสำหรับเว็บไซต์ยุคใหม่: สวยคมชัด + น้ำหนักเบาโหลดเร็วในระดับเสี้ยววินาที
+              </h3>
+            </div>
+            <span id="sim-load-badge" class="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 font-mono text-xs font-extrabold">
+              เวลาโหลด: 1.2 วินาที (LCP ดีเยี่ยม ✅)
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+            <div class="md:col-span-6 space-y-2">
+              <div class="flex justify-between text-xs font-mono">
+                <span>ทดลองเลื่อนน้ำหนักไฟล์ภาพรวมของหน้าแรก:</span>
+                <span id="sim-weight-label" class="text-amber-300 font-bold">450 KB (WebP + SVG)</span>
+              </div>
+              <input id="sim-weight-slider" type="range" min="1" max="4" step="1" value="1" class="w-full accent-teal-400 cursor-pointer">
+              <div class="flex justify-between text-[11px] font-mono text-slate-400">
+                <span>1. WebP (450KB)</span>
+                <span>2. JPEG (1.8MB)</span>
+                <span>3. PNG (6.5MB)</span>
+                <span>4. Raw (18MB)</span>
+              </div>
+            </div>
+
+            <div class="md:col-span-6 grid grid-cols-2 gap-3 text-center font-mono">
+              <div class="p-3 rounded-xl bg-white/10 border border-white/15">
+                <div class="text-[11px] text-slate-300">อัตราการกดปิดหนี (Bounce)</div>
+                <div id="sim-bounce-val" class="text-xl font-extrabold text-emerald-400 mt-0.5">ต่ำมาก (9%)</div>
+              </div>
+              <div class="p-3 rounded-xl bg-white/10 border border-white/15">
+                <div class="text-[11px] text-slate-300">ผลกระทบต่อยอดขาย &amp; SEO</div>
+                <div id="sim-sales-val" class="text-xl font-extrabold text-teal-300 mt-0.5">ยอดขาย 100% ⭐</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 1: งานกราฟิกเวกเตอร์ โลโก้ และชุดไอคอนบริการ (Vector & SVG)    -->
+    <!-- =================================================================== -->
+    <section id="sec-part1" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-teal-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-xs font-mono font-bold">
+          PART 01 • VECTOR LOGO, BÉZIER CURVES, SVG XML &amp; 24PX ICON GRID
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 1: งานกราฟิกเวกเตอร์ โลโก้ และชุดไอคอนบริการ (Vector Logo &amp; SVG Icons)
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          เข้าใจความแตกต่างเชิงโครงสร้างระหว่างภาพราสเตอร์ (Raster Pixels) กับภาพเวกเตอร์ (Vector Bézier) โครงสร้างโค้ด SVG กฎเหล็ก 24px Icon Grid และการออกแบบชุดไอคอนบริการ 4 รูป
+        </p>
+      </div>
+
+      <!-- 1.1 มหากาพย์ภาพราสเตอร์ (Raster Pixels) ปะทะ ภาพเวกเตอร์ (Vector Bezier) -->
+      <div id="sec-1-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-teal-600 dark:text-teal-400">TOPIC 1.1 • RASTER PIXELS VS VECTOR BÉZIER GRAPHICS</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            1.1 มหากาพย์ภาพราสเตอร์ (Raster Pixels) ปะทะ ภาพเวกเตอร์ (Vector Bezier)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            โลกของกราฟิกดิจิทัลถูกแบ่งออกเป็น 2 อารยธรรมใหญ่ที่มีกลไกการสร้างภาพแตกต่างกันอย่างสิ้นเชิง:
+          </p>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="overflow-x-auto rounded-2xl border-2 border-teal-200 dark:border-teal-900/60">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-teal-600 text-white">
+                <th class="p-3.5 sm:p-4 font-bold">ประเด็นการเปรียบเทียบ</th>
+                <th class="p-3.5 sm:p-4 font-bold bg-slate-700">🖼️ ภาพราสเตอร์ / บิตแมป (Raster)</th>
+                <th class="p-3.5 sm:p-4 font-bold bg-purple-700">✒️ ภาพเวกเตอร์ (Vector Graphics)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-teal-100 dark:divide-teal-900/40 font-body">
+              <tr class="hover:bg-teal-50/40 dark:hover:bg-teal-950/20">
+                <td class="p-3.5 font-sans font-bold">1. หน่วยโครงสร้างภาพ</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">เม็ดสีตารางพิกเซล (Grid Pixels)</td>
+                <td class="p-3.5 font-semibold text-purple-700 dark:text-purple-300">สูตรสมการคณิตศาสตร์เส้นโค้ง (Bezier)</td>
+              </tr>
+              <tr class="hover:bg-teal-50/40 dark:hover:bg-teal-950/20">
+                <td class="p-3.5 font-sans font-bold">2. เมื่อซูมขยายภาพ</td>
+                <td class="p-3.5 text-rose-600 dark:text-rose-400 font-semibold">ภาพแตกเป็นเม็ดฟันปลา (Pixelated)</td>
+                <td class="p-3.5 font-semibold text-emerald-600 dark:text-emerald-400">คมกริบ 100% ทุกระดับการซูมและทุกจอภาพ</td>
+              </tr>
+              <tr class="hover:bg-teal-50/40 dark:hover:bg-teal-950/20">
+                <td class="p-3.5 font-sans font-bold">3. ความเหมาะสมในการใช้งาน</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">ภาพถ่ายบุคคล, ภาพวิว, สินค้าจริง</td>
+                <td class="p-3.5 font-semibold text-purple-700 dark:text-purple-300">โลโก้, สัญลักษณ์, ไอคอน, ฟอนต์ตัวอักษร</td>
+              </tr>
+              <tr class="hover:bg-teal-50/40 dark:hover:bg-teal-950/20">
+                <td class="p-3.5 font-sans font-bold">4. นามสกุลไฟล์ยอดนิยม</td>
+                <td class="p-3.5 font-mono text-xs">.jpg, .png, .webp, .gif</td>
+                <td class="p-3.5 font-mono text-xs font-bold text-purple-700 dark:text-purple-300">.svg, .ai, .eps</td>
+              </tr>
+              <tr class="hover:bg-teal-50/40 dark:hover:bg-teal-950/20">
+                <td class="p-3.5 font-sans font-bold">5. ขนาดไฟล์ตามขนาดหน้าจอ</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">ยิ่งภาพกว้าง ขนาดไฟล์ยิ่งใหญ่</td>
+                <td class="p-3.5 font-semibold text-emerald-600 dark:text-emerald-400">ขนาดไฟล์คงที่ ไม่ว่าจะแสดงผลเล็กหรือใหญ่</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Interactive Zoom Microscope (1x, 4x, 8x) & Bézier Formula -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 p-5 rounded-2xl subtle-box border space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-mono font-bold text-purple-700 dark:text-purple-300">🔍 ทดลองซูมขยายภาพ (Zoom Loupe: 1x → 4x → 8x)</span>
+              <div class="flex gap-1.5">
+                <button type="button" data-zoom="1" class="zoom-btn px-3 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">100% (1x)</button>
+                <button type="button" data-zoom="4" class="zoom-btn px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border font-mono text-xs font-bold">400% (4x)</button>
+                <button type="button" data-zoom="8" class="zoom-btn px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border font-mono text-xs font-bold">800% (8x)</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Raster Zoom Box -->
+              <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border text-center space-y-2 overflow-hidden">
+                <div class="text-xs font-mono font-bold text-rose-600">Raster (Grid Pixels)</div>
+                <div class="h-28 flex items-center justify-center overflow-hidden">
+                  <div id="raster-zoom-target" class="transition-transform duration-300 grid grid-cols-6 gap-0.5 p-1 bg-slate-100 rounded">
+                    <span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-rose-400"></span><span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-rose-400"></span><span class="w-2.5 h-2.5 bg-transparent"></span>
+                    <span class="w-2.5 h-2.5 bg-rose-400"></span><span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-rose-400"></span>
+                    <span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-rose-600"></span>
+                    <span class="w-2.5 h-2.5 bg-rose-400"></span><span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-rose-400"></span>
+                    <span class="w-2.5 h-2.5 bg-transparent"></span><span class="w-2.5 h-2.5 bg-rose-400"></span><span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-rose-600"></span><span class="w-2.5 h-2.5 bg-rose-400"></span><span class="w-2.5 h-2.5 bg-transparent"></span>
+                  </div>
+                </div>
+                <div id="raster-zoom-caption" class="text-[11px] font-body text-slate-500">ซูมขยายจะเห็นเม็ดสีแตกเป็นขั้นบันได</div>
+              </div>
+
+              <!-- Vector Zoom Box -->
+              <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border text-center space-y-2 overflow-hidden">
+                <div class="text-xs font-mono font-bold text-emerald-600">Vector (Bézier Curve)</div>
+                <div class="h-28 flex items-center justify-center overflow-hidden">
+                  <svg id="vector-zoom-target" class="w-16 h-16 transition-transform duration-300" viewBox="0 0 64 64" fill="none">
+                    <circle cx="32" cy="32" r="22" stroke="#10b981" stroke-width="5"/>
+                    <circle cx="32" cy="10" r="3.5" fill="#7c3aed"/>
+                    <circle cx="54" cy="32" r="3.5" fill="#7c3aed"/>
+                  </svg>
+                </div>
+                <div class="text-[11px] font-body text-emerald-600 font-semibold">คมกริบ 100% ทุกการซูมเพราะคำนวณจากสมการ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bézier Curve Mathematics Box -->
+          <div class="lg:col-span-5 p-5 rounded-2xl bg-slate-900 text-white space-y-3">
+            <div class="text-xs font-mono font-bold text-amber-400">📐 สูตรสมการเส้นโค้งเบซิเยร์ (Bézier Curve Mathematics)</div>
+            <p class="text-xs font-body text-slate-300 leading-relaxed">
+              คอมพิวเตอร์ไม่ได้จำว่าเส้นโค้งมีสีกี่เม็ด แต่จำ <strong>“พิกัดจุดเริ่มต้น (P₀), จุดควบคุมทิศทาง (P₁), และจุดสิ้นสุด (P₂)”</strong> ผ่านสมการพหุนาม:
+            </p>
+            <div class="p-3.5 rounded-xl bg-slate-800 border border-slate-700 text-center font-mono text-xs sm:text-sm font-bold text-teal-300">
+              B(t) = (1 - t)²·P₀ + 2(1 - t)t·P₁ + t²·P₂ &nbsp; (0 ≤ t ≤ 1)
+            </div>
+            <svg class="w-full h-24 rounded-xl bg-slate-950 border border-slate-800 p-2" viewBox="0 0 260 80">
+              <line x1="25" y1="65" x2="130" y2="12" stroke="#64748b" stroke-dasharray="4 3" stroke-width="1.5"/>
+              <line x1="130" y1="12" x2="235" y2="65" stroke="#64748b" stroke-dasharray="4 3" stroke-width="1.5"/>
+              <path d="M 25 65 Q 130 12 235 65" fill="none" stroke="#2dd4bf" stroke-width="3"/>
+              <circle cx="25" cy="65" r="5" fill="#f43f5e"/>
+              <text x="15" y="53" fill="#fda4af" font-size="10" font-family="monospace">P₀</text>
+              <circle cx="130" cy="12" r="5" fill="#f59e0b"/>
+              <text x="140" y="16" fill="#fde68a" font-size="10" font-family="monospace">P₁ (Control)</text>
+              <circle cx="235" cy="65" r="5" fill="#a855f7"/>
+              <text x="220" y="53" fill="#d8b4fe" font-size="10" font-family="monospace">P₂</text>
+            </svg>
+            <p class="text-[11px] font-body text-slate-400">
+              นั่นคือเหตุผลที่ไฟล์เวกเตอร์มีขนาดเล็กมากเพียงไม่กี่กิโลไบต์ (KB) เพราะเก็บเฉพาะข้อมูลตัวเลขพิกัด ไม่ได้เก็บเม็ดสีนับล้านเม็ดเหมือนภาพถ่าย
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.2 เจาะลึกไฟล์ SVG (Scalable Vector Graphics) ทำไมเว็บยุคใหม่ถึงขาดไม่ได้? -->
+      <div id="sec-1-2" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-purple-600 dark:text-purple-400">TOPIC 1.2 • SCALABLE VECTOR GRAPHICS (SVG XML CODE)</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            1.2 เจาะลึกไฟล์ SVG (Scalable Vector Graphics) ทำไมเว็บยุคใหม่ถึงขาดไม่ได้?
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            <strong>SVG</strong> ไม่ใช่แค่ไฟล์รูปภาพธรรมดา แต่เป็น <strong>“โค้ดข้อความภาษา XML (eXtensible Markup Language)”</strong> ที่เว็บเบราว์เซอร์สามารถอ่าน เข้าใจ และประมวลผลเป็นภาพได้โดยตรง:
+          </p>
+        </div>
+
+        <!-- Interactive SVG XML Code & CSS Color Controller -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 p-5 rounded-2xl bg-slate-900 text-white font-mono text-xs space-y-3 overflow-x-auto">
+            <div class="flex items-center justify-between text-teal-400 font-bold border-b border-slate-700 pb-2">
+              <span>&lt;!-- ตัวอย่างโค้ด SVG ไอคอนรถส่งของ ที่เบราว์เซอร์อ่านจริง --&gt;</span>
+              <span class="px-2 py-0.5 rounded bg-teal-900/70 text-[10px]">Size: ~320 Bytes</span>
+            </div>
+            <pre class="leading-relaxed text-slate-200 whitespace-pre-wrap">&lt;<span class="text-pink-400">svg</span> xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+     fill="none" stroke="<span id="svg-code-color" class="text-amber-300 font-bold">#111827</span>" stroke-width="<span id="svg-code-width" class="text-emerald-300 font-bold">2</span>" stroke-linecap="round" stroke-linejoin="round"&gt;
+  &lt;<span class="text-teal-300">rect</span> x="1" y="3" width="15" height="13" rx="2" /&gt;
+  &lt;<span class="text-teal-300">polygon</span> points="16 8 20 8 23 11 23 16 16 16 16 8" /&gt;
+  &lt;<span class="text-teal-300">circle</span> cx="5.5" cy="18.5" r="2.5" /&gt;
+  &lt;<span class="text-teal-300">circle</span> cx="18.5" cy="18.5" r="2.5" /&gt;
+&lt;/<span class="text-pink-400">svg</span>&gt;</pre>
+          </div>
+
+          <!-- Live Rendered SVG & CSS Hover Tester -->
+          <div class="lg:col-span-5 p-5 rounded-2xl subtle-box border space-y-4 text-center">
+            <div class="text-xs font-mono font-bold text-purple-700 dark:text-purple-300">⚡ ทดลองเปลี่ยนสีไอคอนผ่าน CSS โดยไม่ต้องวาดรูปใหม่</div>
+            <div class="h-28 rounded-2xl bg-white dark:bg-slate-900 border flex items-center justify-center">
+              <svg id="live-truck-svg" xmlns="http://www.w3.org/2000/svg" width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-200">
+                <rect x="1" y="3" width="15" height="13" rx="2" />
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2">
+              <button type="button" data-stroke="#111827" class="svg-color-btn px-3 py-1.5 rounded-xl bg-[#111827] text-white font-mono text-xs font-bold">#111827</button>
+              <button type="button" data-stroke="#7C3AED" class="svg-color-btn px-3 py-1.5 rounded-xl bg-[#7C3AED] text-white font-mono text-xs font-bold">#7C3AED (Hover)</button>
+              <button type="button" data-stroke="#0D9488" class="svg-color-btn px-3 py-1.5 rounded-xl bg-[#0D9488] text-white font-mono text-xs font-bold">#0D9488</button>
+              <button type="button" data-stroke="#E11D48" class="svg-color-btn px-3 py-1.5 rounded-xl bg-[#E11D48] text-white font-mono text-xs font-bold">#E11D48</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Massive Benefits of SVG -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-body">
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-teal-600 dark:text-teal-400">1. Resolution Independence</div>
+            <div class="font-bold text-slate-900 dark:text-white">ความคมชัดระดับอินฟินิตี้</div>
+            <p class="text-slate-600 dark:text-slate-300">ไม่ว่าจะเปิดบนจอมือถือราคาประหยัด หรือจอ 5K Retina Display ภาพไอคอนจะคมกริบเสมอ ไม่มีวันแตกเบลอ</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-purple-600 dark:text-purple-400">2. Ultra-Tiny File Size</div>
+            <div class="font-bold text-slate-900 dark:text-white">ขนาดไฟล์เล็ก 500B – 1.5 KB</div>
+            <p class="text-slate-600 dark:text-slate-300">ไอคอน 1 ตัว มีขนาดโค้ดเพียง 500 ไบต์ ถึง 1.5 KB เท่านั้น (เล็กกว่าไฟล์ภาพ PNG ถึง 10–20 เท่า)</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-pink-600 dark:text-pink-400">3. CSS Styleable</div>
+            <div class="font-bold text-slate-900 dark:text-white">ควบคุมสีสันได้ผ่าน CSS</div>
+            <p class="text-slate-600 dark:text-slate-300">สั่งเปลี่ยนสีไอคอนเมื่อเมาส์ชี้ได้ทันที เช่น <code class="font-mono">svg:hover { stroke: #7C3AED; }</code> โดยไม่ต้องวาดรูปใหม่</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-emerald-600 dark:text-emerald-400">4. Zero HTTP Overhead</div>
+            <div class="font-bold text-slate-900 dark:text-white">ความเร็วในการโหลดสูงสุด</div>
+            <p class="text-slate-600 dark:text-slate-300">เบราว์เซอร์ประมวลผลโค้ด SVG ร่วมกับ HTML ได้ทันทีโดยไม่ต้องส่งคำขอไปดึงไฟล์ภาพแยกจากเซิร์ฟเวอร์</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.3 ระบบโครงตารางไอคอนมาตรฐาน (The 24px Icon Grid System) -->
+      <div id="sec-1-3" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-amber-600 dark:text-amber-400">TOPIC 1.3 • THE 24PX ICON GRID SYSTEM &amp; 2PX STROKE</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            1.3 ระบบโครงตารางไอคอนมาตรฐาน (The 24px Icon Grid System)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            ในอุตสาหกรรมระดับโลก (เช่น Google Material Symbols, Lucide Icons, Feather Icons) ได้กำหนดมาตรฐานกลางไว้คือ <strong>ระบบตาราง 24 × 24 พิกเซล</strong> เพื่อให้ไอคอนทุกตัวมีขนาดและน้ำหนักสายตาสม่ำเสมอกัน:
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Interactive 24x24px Grid Diagram (6 Cols) -->
+          <div class="lg:col-span-6 p-6 rounded-2xl bg-slate-900 text-white space-y-4">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-amber-400 font-bold">📐 โครงสร้างตารางไอคอนมาตรฐาน (24×24px Canvas)</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-600 text-white font-bold">Live Area: 20×20px</span>
+            </div>
+
+            <!-- Visual 24px Box with 2px Padding and 20px Live Area -->
+            <div class="relative w-56 h-56 mx-auto border-2 border-rose-500 bg-rose-500/15 rounded-lg p-4 flex items-center justify-center">
+              <span class="absolute top-0.5 left-1.5 font-mono text-[10px] text-rose-300 font-bold">Padding ปลอดภัย 2px รอบทิศ</span>
+              <div class="w-full h-full border-2 border-dashed border-emerald-400 bg-slate-950/90 rounded flex flex-col items-center justify-center relative p-3">
+                <span class="absolute top-1 left-2 font-mono text-[10px] text-emerald-300">Live Area (20 × 20 px)</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="84" height="84" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span class="font-mono text-[10px] text-sky-300 mt-1">Stroke Weight: 2px • Round Cap/Join</span>
+              </div>
+            </div>
+
+            <div class="text-center font-mono text-xs text-slate-300">
+              กรอบนอกสุด (สีแดง) = <strong>24 × 24 px</strong> &nbsp;|&nbsp; พื้นที่วาดจริง (สีเขียว) = <strong>20 × 20 px</strong>
+            </div>
+          </div>
+
+          <!-- 4 Iron Rules of Vector Icon Design (6 Cols) -->
+          <div class="lg:col-span-6 space-y-3 text-xs font-body">
+            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">🛠️ กฎเหล็ก 4 ข้อในการสร้างชุดไอคอนเวกเตอร์:</h4>
+            <div class="p-4 rounded-2xl subtle-box border space-y-1">
+              <div class="font-mono font-bold text-teal-600 dark:text-teal-400">1. ขนาดเฟรมตายตัว (24 × 24 px Frame)</div>
+              <p class="text-slate-700 dark:text-slate-200">ตั้งขนาด Frame เป็น <strong>24 × 24 px</strong> เสมอ เพื่อให้จัดวางเข้ากับระบบ 8-Point Grid บนหน้าเว็บได้พอดี</p>
+            </div>
+            <div class="p-4 rounded-2xl subtle-box border space-y-1">
+              <div class="font-mono font-bold text-rose-600 dark:text-rose-400">2. ขอบเขตปลอดภัย (Padding 2px รอบทิศ)</div>
+              <p class="text-slate-700 dark:text-slate-200">เนื้อหาของไอคอนต้องอยู่ภายในพื้นที่ <strong>20 × 20 px</strong> ห้ามวาดชนขอบ 24px สนิท เพื่อป้องกันไม่ให้ขอบของเส้นถูกตัดแหว่งเมื่อ Export</p>
+            </div>
+            <div class="p-4 rounded-2xl subtle-box border space-y-1">
+              <div class="font-mono font-bold text-purple-600 dark:text-purple-400">3. ความหนาเส้นสม่ำเสมอ (Consistent Stroke Weight = 2px)</div>
+              <p class="text-slate-700 dark:text-slate-200">ไอคอนทุกตัวในแบรนด์ต้องใช้ความหนาเส้นเท่ากันทั้งหมด โดยแนะนำที่ <strong>2px</strong> (หรือ 1.5px สำหรับสไตล์มินิมอล)</p>
+            </div>
+            <div class="p-4 rounded-2xl subtle-box border space-y-1">
+              <div class="font-mono font-bold text-emerald-600 dark:text-emerald-400">4. จุดมุมและปลายเส้นมน (Rounded Caps &amp; Joins)</div>
+              <p class="text-slate-700 dark:text-slate-200">ตั้งค่า <code class="font-mono font-bold">Stroke Cap = Round</code> และ <code class="font-mono font-bold">Stroke Join = Round</code> เพื่อให้เส้นโค้งมน นุ่มนวล สบายตา</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.4 ปฏิบัติการออกแบบชุดไอคอนบริการ 4 รูป (Service Trust Icons) -->
+      <div id="sec-1-4" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-indigo-600 dark:text-indigo-400">TOPIC 1.4 • 4 SERVICE TRUST ICONS KIT &amp; FIGMA WORKFLOW</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            1.4 ปฏิบัติการออกแบบชุดไอคอนบริการ 4 รูป (Service Trust Icons)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            ออกแบบชุดไอคอนประจำหมวด <strong>Trust Badges (โซนที่ 4 ของหน้าแรก)</strong> จำนวน 4 รูป บนโครงตาราง 24×24px (ความหนาเส้น 2px):
+          </p>
+        </div>
+
+        <!-- 4 SVG Trust Icons Showcase -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-5 rounded-2xl subtle-box border text-center space-y-3">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-white dark:bg-slate-900 border-2 border-teal-500 flex items-center justify-center shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-600 dark:text-teal-400">
+                <rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-bold text-sm text-slate-900 dark:text-white">1. ไอคอนจัดส่งสินค้า</div>
+              <div class="font-mono text-[11px] text-teal-600 dark:text-teal-400">Fast Delivery (ic-delivery.svg)</div>
+              <p class="text-xs font-body text-slate-500 mt-1">รถส่งของ / กล่องพัสดุ (Rect + Polygon + Circle)</p>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border text-center space-y-3">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-white dark:bg-slate-900 border-2 border-purple-500 flex items-center justify-center shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-600 dark:text-purple-400">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-bold text-sm text-slate-900 dark:text-white">2. ไอคอนการันตีสินค้า</div>
+              <div class="font-mono text-[11px] text-purple-600 dark:text-purple-400">Authentic Trust (ic-shield.svg)</div>
+              <p class="text-xs font-body text-slate-500 mt-1">ตราโล่ / ดาวการันตีของแท้ 100%</p>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border text-center space-y-3">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-white dark:bg-slate-900 border-2 border-pink-500 flex items-center justify-center shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-600 dark:text-pink-400">
+                <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-bold text-sm text-slate-900 dark:text-white">3. ไอคอนชำระเงิน</div>
+              <div class="font-mono text-[11px] text-pink-600 dark:text-pink-400">Secure Payment (ic-payment.svg)</div>
+              <p class="text-xs font-body text-slate-500 mt-1">บัตรเครดิต / แม่กุญแจนิรภัย</p>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border text-center space-y-3">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-white dark:bg-slate-900 border-2 border-emerald-500 flex items-center justify-center shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 dark:text-emerald-400">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-bold text-sm text-slate-900 dark:text-white">4. ไอคอนบริการลูกค้า</div>
+              <div class="font-mono text-[11px] text-emerald-600 dark:text-emerald-400">24/7 Support (ic-support.svg)</div>
+              <p class="text-xs font-body text-slate-500 mt-1">หูฟังคอลเซ็นเตอร์ / บับเบิ้ลแชต 24 ชม.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6-Step Figma Icon Creation Workflow -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-body">
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-teal-600 text-white font-mono font-bold">STEP 01 • สร้าง Frame 24×24px</span>
+            <p class="text-slate-700 dark:text-slate-200">กด <strong>F</strong> ลาก Frame สี่เหลี่ยมจัตุรัสขนาด <code class="font-mono font-bold">24 × 24 px</code></p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-purple-600 text-white font-mono font-bold">STEP 02 • ซูมเต็มจอ (Shift + 2)</span>
+            <p class="text-slate-700 dark:text-slate-200">คลิกเลือกเฟรมแล้วกดปุ่ม <strong>Shift + 2</strong> เพื่อขยายวัตถุที่เลือกให้เต็มหน้าจอทำงาน</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-pink-600 text-white font-mono font-bold">STEP 03 • Vector Edit Mode</span>
+            <p class="text-slate-700 dark:text-slate-200">กด <strong>O</strong> หรือ <strong>R</strong> วาดรูปทรงพื้นฐาน แล้วกดปุ่ม <strong>Enter</strong> เพื่อเข้าสู่โหมดแก้ไขจุดเวกเตอร์ ดัดแปลงส่วนปลายเส้น</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-amber-600 text-white font-mono font-bold">STEP 04 • Boolean Groups</span>
+            <p class="text-slate-700 dark:text-slate-200">รวมรูปทรงด้วยคำสั่ง Boolean ด้านบนกลางจอ: <strong>Union</strong> (รวมเป็นชิ้นเดียว) หรือ <strong>Subtract</strong> (เจาะตัดส่วนที่ทับซ้อนออก)</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-mono font-bold">STEP 05 • Outline Stroke</span>
+            <p class="text-slate-700 dark:text-slate-200">ก่อนส่งออก คลิกขวาที่เส้นเลือก <strong>Outline Stroke (<code class="font-mono">Ctrl + Shift + O</code>)</strong> เพื่อให้เส้นกลายเป็น Fill ป้องกันความหนาเส้นเพี้ยน</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-emerald-600 text-white font-mono font-bold">STEP 06 • Export เป็นไฟล์ .SVG</span>
+            <p class="text-slate-700 dark:text-slate-200">ที่แผงขวาล่างหัวข้อ <strong>Export</strong> เปลี่ยนจาก PNG เป็น <strong>SVG</strong> คลิก <code class="font-mono">...</code> ติ๊ก <em>“Include 'id' attribute”</em> แล้วกด Export</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 2: การตัดต่อ ไดคัท และตกแต่งภาพสินค้าสำหรับเว็บ (Photoshop)    -->
+    <!-- =================================================================== -->
+    <section id="sec-part2" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-pink-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300 text-xs font-mono font-bold">
+          PART 02 • DEEP ETCHING (DIE-CUT), DEFRINGE, 2-LAYER SHADOWS &amp; COLOR GRADING
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 2: การตัดต่อ ไดคัท และตกแต่งภาพสินค้าสำหรับเว็บ (Photoshop Retouching)
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          เรียนรู้ศาสตร์การไดคัทแยกวัตถุออกจากฉากหลังด้วย Pen Tool และ Select and Mask เทคนิคเดินเส้นกินเนื้อใน 1–2px กำจัดขอบสีเดิม การสร้างเงาเสมือนจริง 2 ชั้น (Contact &amp; Cast Shadow) และการปรับแสงสีด้วย Curves
+        </p>
+      </div>
+
+      <!-- 2.1 ศาสตร์แห่งการตัดต่อวัตถุ (Deep Etching & Background Removal) -->
+      <div id="sec-2-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-pink-600 dark:text-pink-400">TOPIC 2.1 • DEEP ETCHING &amp; TOOL SELECTION MATRIX</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            2.1 ศาสตร์แห่งการตัดต่อวัตถุ (Deep Etching &amp; Background Removal)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            <strong>การไดคัท (Die-cut หรือ Deep Etching)</strong> คือ “กระบวนการแยกวัตถุสินค้าออกจากฉากหลังเดิม” เพื่อนำไปวางลงบนพื้นหลังใหม่หรือทำเป็นภาพโปร่งใส (Transparent Background) สำหรับประกอบลงในการ์ดสินค้าบน Figma:
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="p-5 rounded-2xl border-2 border-pink-500 bg-pink-50/40 dark:bg-pink-950/25 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-lg bg-pink-600 text-white font-mono text-xs font-bold">1. Pen Tool (คีย์ P)</span>
+              <span class="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-mono text-[10px] font-extrabold">⭐ แนะนำอันดับ 1</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 dark:text-white">ลักษณะพื้นผิว: วัตถุขอบเรียบ แข็ง ชัดเจน</div>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              เช่น ขวดน้ำหอม, โทรศัพท์มือถือ, กระเป๋าหนัง, กล่องบรรจุภัณฑ์<br>
+              <strong class="text-pink-700 dark:text-pink-300">ผลลัพธ์:</strong> คมกริบ แม่นยำที่สุด 100% (มาตรฐานสูงสุดของมืออาชีพ)
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">2. Select Subject</span>
+              <span class="text-xs font-mono text-slate-500">AI Auto-Select</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 dark:text-white">ลักษณะพื้นผิว: วัตถุทั่วไปที่ตัดกับพื้นหลังชัดเจน</div>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              ใช้เป็นขั้นเริ่มต้นเพื่อความรวดเร็ว<br>
+              <strong class="text-purple-700 dark:text-purple-300">ผลลัพธ์:</strong> รวดเร็วมาก แต่ขอบอาจมีรอยหยัก ต้องนำมาแต่งขอบเพิ่มด้วย Pen Tool หรือ Layer Mask
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-lg bg-teal-600 text-white font-mono text-xs font-bold">3. Select and Mask</span>
+              <span class="text-xs font-mono text-slate-500">Refine Edge</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 dark:text-white">ลักษณะพื้นผิว: วัตถุขอบนุ่ม ฟุ้ง โปร่งแสง</div>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              เช่น เสื้อไหมพรมขนสัตว์, ช่อดอกไม้, ตุ๊กตาขนฟู, เส้นผมนางแบบ<br>
+              <strong class="text-teal-700 dark:text-teal-300">ผลลัพธ์:</strong> จัดการเส้นผมและขนสัตว์ได้ดีเยี่ยม เนียนตา ขอบไม่แข็งกระด้าง
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.2 เคล็ดลับการใช้ Pen Tool ไม่ให้เห็นขอบสีเดิม (Defringe & Inset Path) -->
+      <div id="sec-2-2" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-rose-600 dark:text-rose-400">TOPIC 2.2 • DEFRINGE, INSET PATH (1–2PX) &amp; FEATHER (0.3–0.5PX)</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              2.2 เคล็ดลับการใช้ Pen Tool ไม่ให้เห็นขอบสีเดิม (Defringe &amp; Inset Path)
+            </h3>
+            <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+              ข้อผิดพลาดที่ร้ายแรงที่สุดคือเมื่อไดคัทสินค้าจากพื้นหลังเดิม (เช่น ผ้าปูสีน้ำเงิน) แล้วนำมาวางบนการ์ดสีขาว จะเห็น <strong>“ขอบสีน้ำเงินเปื้อนเรื่อๆ ล้อมรอบตัวสินค้า (Color Fringe / Halo Effect)”</strong>
+            </p>
+          </div>
+
+          <div class="flex gap-2">
+            <button type="button" id="btn-fringe-bad" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white shadow-sm transition">
+              ❌ เดินเส้นนอกขอบ (ติดขอบสีน้ำเงิน)
+            </button>
+            <button type="button" id="btn-fringe-good" class="px-3.5 py-2 rounded-xl text-xs font-bold subtle-box border hover:border-emerald-500 transition">
+              ✅ เดินเส้นกินเนื้อใน 1–2px + Feather 0.5px
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Interactive Edge Microscope (6 Cols) -->
+          <div class="lg:col-span-6 p-6 rounded-2xl checkerboard border-2 border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center space-y-4">
+            <div id="fringe-status-badge" class="px-3 py-1 rounded-full bg-rose-600 text-white font-mono text-xs font-bold shadow">
+              ❌ พบขอบสีน้ำเงินเปื้อนรอบวัตถุ (Color Fringe / Halo Effect)
+            </div>
+
+            <!-- Simulated Product Bottle on White Card -->
+            <div class="w-48 h-48 rounded-2xl bg-white dark:bg-slate-900 border shadow-md flex flex-col items-center justify-center p-4">
+              <div id="fringe-product-demo" class="w-28 h-28 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex flex-col items-center justify-center text-white font-bold shadow-sm transition-all duration-300" style="box-shadow: 0 0 0 4px #3b82f6;">
+                <span class="text-3xl">🧴</span>
+                <span class="text-[11px] font-mono mt-1">Serum Bottle</span>
+              </div>
+            </div>
+
+            <div class="w-full p-3 rounded-xl bg-slate-900 text-white font-mono text-[11px] text-center">
+              <span class="text-amber-300">เทคนิคช่างภาพโฆษณา:</span> เดินเส้น Pen Tool <strong>“กินเนื้อในลึกเข้ามา 1–2px”</strong> เพื่อเฉือนขอบสีของฉากหลังเดิมทิ้งไปอย่างเด็ดขาด
+            </div>
+          </div>
+
+          <!-- 4-Step Selection Properties Formula (6 Cols) -->
+          <div class="lg:col-span-6 space-y-3 text-xs font-body">
+            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">📐 สูตรตั้งค่าการตัดขอบ (Selection Properties 4 ขั้นตอน):</h4>
+            <div class="p-3.5 rounded-2xl subtle-box border space-y-1">
+              <span class="font-mono font-bold text-purple-600 dark:text-purple-400">1. แปลง Path เป็นเส้นประ Selection (Ctrl + Enter)</span>
+              <p class="text-slate-700 dark:text-slate-200">เมื่อวาด Path ด้วย Pen Tool กินเนื้อในเข้ามา 1–2px จนบรรจบจุดเริ่มต้นแล้ว ให้กดปุ่ม <code class="font-mono font-bold">Ctrl + Enter</code></p>
+            </div>
+            <div class="p-3.5 rounded-2xl subtle-box border space-y-1">
+              <span class="font-mono font-bold text-pink-600 dark:text-pink-400">2. เปิดคำสั่ง Feather (Shift + F6)</span>
+              <p class="text-slate-700 dark:text-slate-200">ไปที่เมนู <strong>Select → Modify → Feather (<code class="font-mono font-bold">Shift + F6</code>)</strong></p>
+            </div>
+            <div class="p-3.5 rounded-2xl subtle-box border space-y-1">
+              <span class="font-mono font-bold text-teal-600 dark:text-teal-400">3. ป้อนค่า Feather Radius = 0.3 ถึง 0.5 px</span>
+              <p class="text-slate-700 dark:text-slate-200"><strong>ห้ามใส่ 0px</strong> เพราะขอบจะคมแข็งเหมือนเอากรรไกรตัดกระดาษ และ <strong>ห้ามใส่เกิน 1px</strong> เพราะขอบจะเบลอหลุดโฟกัส</p>
+            </div>
+            <div class="p-3.5 rounded-2xl subtle-box border space-y-1">
+              <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">4. กดปุ่ม Add Layer Mask (Non-Destructive Workflow)</span>
+              <p class="text-slate-700 dark:text-slate-200">คลิกไอคอนสี่เหลี่ยมมีวงกลมตรงกลางที่แผง Layers เพื่อซ่อนฉากหลัง <strong>โดยไม่ทำลายพิกเซลเดิม</strong> (สามารถกลับมาแก้ไขขอบภายหลังได้ตลอดเวลา)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.3 ทฤษฎีแสงเงาเสมือนจริงสำหรับสินค้าบนเว็บ (Commercial Shadow Crafting) -->
+      <div id="sec-2-3" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-amber-600 dark:text-amber-400">TOPIC 2.3 • 2-LAYER COMMERCIAL SHADOW CRAFTING</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              2.3 ทฤษฎีแสงเงาเสมือนจริงสำหรับสินค้าบนเว็บ (Commercial Shadow Crafting)
+            </h3>
+            <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+              หากนำภาพสินค้าที่ไดคัทแล้วมาวางบนพื้นขาวเฉยๆ สินค้าจะดู <strong>“ลอยอย่างไร้น้ำหนัก เหมือนภาพตัดแปะราคาถูก”</strong> นักออกแบบมืออาชีพต้องสร้างเงาเสมือนจริงขึ้นมา <strong>2 ชั้น</strong> เสมอ:
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-shadow="none" class="shadow-mode-btn px-3 py-1.5 rounded-xl text-xs font-bold subtle-box border transition">
+              ❌ ไม่มีเงา (ลอยหลอกตา)
+            </button>
+            <button type="button" data-shadow="contact" class="shadow-mode-btn px-3 py-1.5 rounded-xl text-xs font-bold subtle-box border transition">
+              1️⃣ เฉพาะ Contact Shadow
+            </button>
+            <button type="button" data-shadow="both" class="shadow-mode-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600 text-white shadow-sm transition">
+              ✅ ครบ 2 ชั้น (Contact + Cast Shadow)
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Interactive 2-Layer Shadow Visualizer (6 Cols) -->
+          <div class="lg:col-span-6 p-6 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center min-h-[270px] relative">
+            <div id="shadow-stage-label" class="absolute top-3 left-4 font-mono text-xs font-bold text-emerald-600">
+              ✅ เปิดเงาครบ 2 ชั้น: สินค้าวางติดพื้นระนาบอย่างมีน้ำหนักสมจริง
+            </div>
+
+            <div class="mt-6 flex flex-col items-center">
+              <!-- Product Object -->
+              <div class="w-28 h-36 rounded-2xl bg-gradient-to-b from-purple-500 via-indigo-600 to-indigo-800 text-white flex flex-col items-center justify-center shadow-inner relative z-20 border border-white/20">
+                <span class="text-3xl">📦</span>
+                <span class="font-mono text-[10px] font-bold mt-1">PRODUCT BOX</span>
+              </div>
+
+              <!-- Layer 1: Contact Shadow (Tight dark band right under the base) -->
+              <div id="vis-contact-shadow" class="w-24 h-2.5 rounded-full bg-black/85 blur-[2px] -mt-1 relative z-10 transition-all duration-300"></div>
+
+              <!-- Layer 2: Cast Shadow (Wide soft ambient ellipse) -->
+              <div id="vis-cast-shadow" class="w-44 h-6 rounded-full bg-black/25 blur-[10px] -mt-2 transition-all duration-300"></div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-3 w-full text-[11px] font-mono">
+              <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-center">
+                <strong>1. Contact Shadow:</strong> Opacity 80–90%, Blur 2–3px ชิดใต้ฐาน
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-center">
+                <strong>2. Cast Shadow:</strong> Opacity 20–30%, Gaussian Blur 15–25px
+              </div>
+            </div>
+          </div>
+
+          <!-- Step-by-Step Photoshop Shadow Creation Guide (6 Cols) -->
+          <div class="lg:col-span-6 space-y-4 text-xs font-body">
+            <div class="p-5 rounded-2xl subtle-box border space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded bg-slate-900 text-white font-mono font-bold">ชั้นที่ 1 • Contact Shadow (เงาสัมผัสพื้น)</span>
+                <span class="font-mono text-slate-500">Opacity 70%–85%</span>
+              </div>
+              <ul class="space-y-1.5 list-disc pl-4 text-slate-700 dark:text-slate-200 leading-relaxed">
+                <li>สร้าง Layer ว่างใหม่ไว้ <strong>“ใต้เลเยอร์สินค้า”</strong> ตั้งชื่อว่า <code class="font-mono font-bold">Contact_Shadow</code></li>
+                <li>เลือกแปรงพู่กัน <strong>Brush Tool (คีย์ B)</strong> หัวนุ่ม (<code class="font-mono">Hardness 0%</code>) สีดำสนิท</li>
+                <li>บีบหัวแปรงให้แบนลงในพาเนล Brush Settings ปรับความกว้างให้พอดีกับฐานของสินค้า</li>
+                <li>คลิกแตะเบาๆ 1–2 ครั้งตรงจุดที่ก้นสินค้าสัมผัสพื้น ปรับค่า Layer Opacity ประมาณ <code class="font-mono font-bold">70% – 85%</code></li>
+              </ul>
+            </div>
+
+            <div class="p-5 rounded-2xl subtle-box border space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded bg-amber-600 text-white font-mono font-bold">ชั้นที่ 2 • Cast Shadow (เงาทอดตัว)</span>
+                <span class="font-mono text-slate-500">Blur 15–25px • Opacity 20%–30%</span>
+              </div>
+              <ul class="space-y-1.5 list-disc pl-4 text-slate-700 dark:text-slate-200 leading-relaxed">
+                <li>สร้าง Layer ว่างใหม่อีกชั้นไว้ใต้ Contact Shadow ตั้งชื่อว่า <code class="font-mono font-bold">Cast_Shadow</code></li>
+                <li>ใช้เครื่องมือ <strong>Elliptical Marquee Tool</strong> วาดวงรีแนวนอนใต้ตัวสินค้า เทสีดำลงในวงรีแล้วกด <code class="font-mono">Ctrl + D</code></li>
+                <li>ไปที่เมนู <strong>Filter → Blur → Gaussian Blur</strong> ปรับค่ารัศมีความเบลอประมาณ <code class="font-mono font-bold">15px ถึง 25px</code></li>
+                <li>ปรับ Layer Opacity ลงเหลือเพียง <code class="font-mono font-bold">20% ถึง 30%</code> จะได้เงาทอดตัวที่นุ่มนวลเป็นธรรมชาติที่สุด</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.4 การเกรดสีและปรับแสง (Color Grading & Curves) -->
+      <div id="sec-2-4" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-5">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-indigo-600 dark:text-indigo-400">TOPIC 2.4 • COLOR GRADING, S-CURVE (CTRL + M) &amp; VIBRANCE</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            2.4 การเกรดสีและปรับแสง (Color Grading &amp; Curves)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            ก่อนนำภาพสินค้าไปใช้ ต้องปรับแต่งโทนภาพให้กลมกลืนกับ Mood &amp; Tone และ Palette สีประจำแบรนด์ที่กำหนดไว้ในหน่วยที่ 1:
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs font-body">
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm">1. ปรับความสว่างและคอนทราสต์ด้วย Curves (Ctrl + M)</span>
+              <span class="code-pill px-2.5 py-0.5 rounded font-bold">S-Curve</span>
+            </div>
+            <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+              ดึงเส้นกราฟเป็นรูปตัว <strong>S เล็กน้อย (S-Curve)</strong> โดยยกจุด Highlight ด้านบนขึ้นเล็กน้อย และกดจุด Shadow ด้านล่างลงเล็กน้อย เพื่อเพิ่มมิติความลึก จุดไฮไลต์สว่างคมชัด และเงามีน้ำหนักไม่แบนราบ
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-bold text-pink-600 dark:text-pink-400 text-sm">2. ปรับความสดของสี (Vibrance vs Saturation)</span>
+              <span class="code-pill px-2.5 py-0.5 rounded font-bold">Vibrance +10 ถึง +15</span>
+            </div>
+            <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+              แนะนำให้ปรับเฉพาะค่า <strong>Vibrance (+10 ถึง +15)</strong> ซึ่งจะเพิ่มความอิ่มตัวของสีที่ยังซีดอยู่โดยไม่ทำให้สีผิวหรือสีหลักของสินค้าเพี้ยนจัดจ้านจนแสบตาเหมือนการเร่ง Saturation
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 3: การเพิ่มประสิทธิภาพรูปภาพสำหรับเว็บ (Image Optimization & WebP)-->
+    <!-- =================================================================== -->
+    <section id="sec-part3" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-amber-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-xs font-mono font-bold">
+          PART 03 • IMAGE OPTIMIZATION, RETINA 2X, WEBP SWEET SPOT &amp; SQUOOSH.APP
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 3: การเพิ่มประสิทธิภาพรูปภาพสำหรับเว็บ (Image Optimization &amp; WebP)
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          เปรียบเทียบฟอร์แมตไฟล์ภาพดิจิทัลสำหรับเว็บไซต์ (JPEG vs PNG vs WebP vs SVG) แก้ความเข้าใจผิดเรื่อง 72 PPI vs หน้าจอ Retina 2x ค้นหาจุดสมดุลการบีบอัด (Quality 75–82%) และขั้นตอนใช้งาน Squoosh.app
+        </p>
+      </div>
+
+      <!-- 3.1 ศึกชิงแชมป์ฟอร์แมตไฟล์ภาพบนเว็บ (JPEG vs PNG vs WebP vs SVG) -->
+      <div id="sec-3-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-amber-600 dark:text-amber-400">TOPIC 3.1 • WEB IMAGE FORMATS SHOWDOWN</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            3.1 ศึกชิงแชมป์ฟอร์แมตไฟล์ภาพบนเว็บ (JPEG vs PNG vs WebP vs SVG)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            การเลือกใช้นามสกุลไฟล์ภาพผิดประเภท คือสาเหตุอันดับหนึ่งที่ทำให้เว็บไซต์โหลดช้าจนลูกค้าหนี:
+          </p>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border-2 border-amber-200 dark:border-amber-900/60">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-900 text-white">
+                <th class="p-3.5 sm:p-4 font-bold">ฟอร์แมตไฟล์</th>
+                <th class="p-3.5 sm:p-4 font-bold">พื้นหลังโปร่งใส (Transparency)</th>
+                <th class="p-3.5 sm:p-4 font-bold">ระดับการบีบอัด (Compression)</th>
+                <th class="p-3.5 sm:p-4 font-bold">การรองรับเบราว์เซอร์</th>
+                <th class="p-3.5 sm:p-4 font-bold">สถานการณ์การใช้งานที่ถูกต้อง</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-amber-100 dark:divide-amber-900/40 font-body">
+              <tr class="hover:bg-amber-50/40 dark:hover:bg-amber-950/20">
+                <td class="p-3.5 font-mono font-bold">1. JPEG (.jpg)</td>
+                <td class="p-3.5 text-rose-600 font-semibold">❌ ไม่รองรับ (พื้นหลังทึบขาว)</td>
+                <td class="p-3.5">ปานกลาง (Lossy)</td>
+                <td class="p-3.5 font-mono">100% (ทุกอุปกรณ์)</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">ภาพถ่ายวิวทิวทัศน์ทั่วไป (ยุคเก่า)</td>
+              </tr>
+              <tr class="hover:bg-amber-50/40 dark:hover:bg-amber-950/20">
+                <td class="p-3.5 font-mono font-bold">2. PNG (.png)</td>
+                <td class="p-3.5 text-emerald-600 font-semibold">✅ รองรับ (โปร่งใสเนียน)</td>
+                <td class="p-3.5 text-rose-600">ต่ำ (Lossless • ไฟล์มีขนาดใหญ่)</td>
+                <td class="p-3.5 font-mono">100% (ทุกอุปกรณ์)</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">ภาพไดคัทที่ต้องการความคมชัดสูงสุด (แต่ไฟล์หนักมาก ไม่เหมาะกับเว็บช้า)</td>
+              </tr>
+              <tr class="bg-emerald-50/70 dark:bg-emerald-950/35 border-l-4 border-emerald-500">
+                <td class="p-3.5 font-mono font-extrabold text-emerald-700 dark:text-emerald-300">3. WebP (.webp) ⭐ พระเอก</td>
+                <td class="p-3.5 text-emerald-700 dark:text-emerald-300 font-bold">✅ รองรับ (โปร่งใสสมบูรณ์)</td>
+                <td class="p-3.5 font-bold text-emerald-700 dark:text-emerald-300">สูงมาก (เล็กกว่า JPEG 30% / เล็กกว่า PNG 80%)</td>
+                <td class="p-3.5 font-mono font-bold">97%+ (Chrome, Safari, Edge, Firefox)</td>
+                <td class="p-3.5 font-bold text-emerald-800 dark:text-emerald-200">มาตรฐานสูงสุดของเว็บยุคปัจจุบัน ใช้กับภาพสินค้าไดคัทและแบนเนอร์ได้ดีเยี่ยม</td>
+              </tr>
+              <tr class="hover:bg-amber-50/40 dark:hover:bg-amber-950/20">
+                <td class="p-3.5 font-mono font-extrabold text-purple-700 dark:text-purple-300">4. SVG (.svg)</td>
+                <td class="p-3.5 text-emerald-600 font-semibold">✅ รองรับ (โปร่งใสในตัว)</td>
+                <td class="p-3.5 font-semibold text-purple-700 dark:text-purple-300">สูงที่สุด (เก็บเป็นโค้ด XML)</td>
+                <td class="p-3.5 font-mono">100% (ทุกเบราว์เซอร์)</td>
+                <td class="p-3.5 font-semibold text-purple-700 dark:text-purple-300">ใช้เฉพาะไอคอน โลโก้ ลายเส้นกราฟิก (ห้ามใช้กับภาพถ่ายสินค้าเด็ดขาด)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white space-y-1.5">
+          <div class="font-mono text-xs font-bold text-emerald-300">💡 ทำไม WebP (พัฒนาโดย Google) จึงชนะขาดลอย?</div>
+          <p class="text-xs sm:text-sm font-body text-slate-200 leading-relaxed">
+            WebP ใช้อัลกอริทึมการบีบอัดขั้นสูงที่เรียกว่า <strong>Predictive Coding (การทำนายค่าพิกเซลข้างเคียง)</strong> ทำให้สามารถลดขนาดไฟล์ลงได้มหาศาลโดยที่ตามนุษย์มองไม่เห็นความแตกต่างของเม็ดสี และยังรองรับความโปร่งใส (Alpha Transparency) เหมือน PNG แต่ขนาดไฟล์เบาเทียบเท่าหรือเบากว่า JPEG
+          </p>
+        </div>
+      </div>
+
+      <!-- 3.2 ความเข้าใจผิดเรื่อง Resolution: 72 PPI vs หน้าจอ Retina 2x -->
+      <div id="sec-3-2" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-purple-600 dark:text-purple-400">TOPIC 3.2 • 72 PPI MYTH VS RETINA DISPLAY 2X ASSET RULE</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            3.2 ความเข้าใจผิดเรื่อง Resolution: 72 PPI vs หน้าจอ Retina 2x
+          </h3>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 space-y-4 text-xs sm:text-sm font-body">
+            <div class="p-5 rounded-2xl subtle-box border space-y-1.5">
+              <div class="font-mono font-bold text-rose-600 dark:text-rose-400">ความจริงข้อที่ 1: 72 PPI vs 300 PPI บนหน้าจอเว็บ</div>
+              <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+                สำหรับเว็บเบราว์เซอร์ ค่าตัวเลข <strong>72 PPI หรือ 300 PPI ไม่มีผลต่อขนาดไฟล์หรือความคมชัดบนหน้าจอแม้แต่น้อย!</strong> (PPI ใช้สำหรับสั่งหัวพิมพ์ลงกระดาษเท่านั้น) สิ่งเดียวที่กำหนดขนาดและความคมชัดบนหน้าจอคือ <strong>มิติความกว้างคูณความสูง (Pixel Dimensions: Width × Height in Pixels)</strong>
+              </p>
+            </div>
+
+            <div class="p-5 rounded-2xl subtle-box border space-y-1.5">
+              <div class="font-mono font-bold text-purple-600 dark:text-purple-400">ความจริงข้อที่ 2: มาตรฐานจอเรตินา (Retina Display 2x)</div>
+              <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+                สมาร์ตโฟนและแล็ปท็อปยุคใหม่มีความหนาแน่นพิกเซลสูงกว่าปกติ <strong>2 เท่า (2x)</strong> หากการ์ดสินค้าบนหน้าเว็บแสดงผลที่ขนาด <code class="font-mono font-bold">280 × 280 px</code> แต่เราเตรียมภาพขนาด <code class="font-mono">280 × 280 px</code> มาแสดง ภาพบนจอมือถือจะดูเบลอแตกเล็กน้อย จึงต้องเตรียมภาพที่ขนาด <strong>2 เท่า (560 × 560 px)</strong> เสมอ
+              </p>
+            </div>
+          </div>
+
+          <!-- Interactive 2x Retina Asset Calculator (5 Cols) -->
+          <div class="lg:col-span-5 p-6 rounded-2xl bg-slate-900 text-white space-y-4">
+            <div class="text-xs font-mono font-bold text-amber-400">🧮 เครื่องคำนวณกฎทองขนาดภาพสินค้า (2x Asset Rule)</div>
+            <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+              <div>
+                <label class="text-slate-400 block mb-1">ความกว้างบนเว็บ (CSS px)</label>
+                <input id="retina-w-in" type="number" value="280" min="50" max="2000" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white font-bold">
+              </div>
+              <div>
+                <label class="text-slate-400 block mb-1">ความสูงบนเว็บ (CSS px)</label>
+                <input id="retina-h-in" type="number" value="280" min="50" max="2000" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white font-bold">
+              </div>
+            </div>
+            <div class="p-4 rounded-xl bg-emerald-950/90 border border-emerald-500/60 text-center space-y-1 font-mono">
+              <div class="text-[11px] text-emerald-300">ขนาดไฟล์ภาพจริงที่ต้อง Export (Retina 2x):</div>
+              <div id="retina-out-dim" class="text-xl font-extrabold text-white">560 × 560 px</div>
+              <div class="text-[11px] text-amber-300">เมื่อบีบอัดเป็น WebP จะหนักเพียง ~60 – 90 KB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.3 เทคนิคการบีบอัดระดับเซียน (Finding the Sweet Spot) -->
+      <div id="sec-3-3" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-teal-600 dark:text-teal-400">TOPIC 3.3 • LOSSY VS LOSSLESS &amp; THE COMPRESSION SWEET SPOT</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            3.3 เทคนิคการบีบอัดระดับเซียน (Finding the Sweet Spot)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            การบีบอัดภาพมี 2 รูปแบบคือ <strong>1. Lossless (ไม่สูญเสียข้อมูล ลดได้เพียง 10–20%)</strong> และ <strong>2. Lossy (ตัดทอนเฉดสีที่ตามนุษย์มองไม่เห็น ลดขนาดไฟล์ลงได้ถึง 70–85%)</strong> ลองคลิกเลือกค่า Quality ด้านล่างเพื่อดูจุดสมดุลที่คุ้มค่าที่สุด:
+          </p>
+        </div>
+
+        <!-- Interactive Sweet Spot Selector -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-2xl border border-rose-300 bg-rose-50/40 dark:bg-rose-950/20 space-y-1.5">
+            <div class="flex justify-between font-mono text-xs font-bold text-rose-600">
+              <span>Quality 100%</span>
+              <span>1,200 KB ❌</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 dark:text-white">เปลืองเน็ต โหลดช้ามาก</div>
+            <p class="text-[11px] font-body text-slate-600 dark:text-slate-300">เก็บข้อมูลเม็ดสีเกินความจำเป็นที่สายตามนุษย์แยกแยะได้</p>
+          </div>
+
+          <div class="p-4 rounded-2xl border border-amber-300 bg-amber-50/40 dark:bg-amber-950/20 space-y-1.5">
+            <div class="flex justify-between font-mono text-xs font-bold text-amber-600">
+              <span>Quality 90%</span>
+              <span>450 KB ❌</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 dark:text-white">ยังใหญ่เกินเกณฑ์การ์ด</div>
+            <p class="text-[11px] font-body text-slate-600 dark:text-slate-300">เกินเพดาน 150 KB ต่อภาพสินค้า เมื่อรวมหลายชิ้นหน้าเว็บจะอืด</p>
+          </div>
+
+          <div class="p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-md space-y-1.5">
+            <div class="flex justify-between font-mono text-xs font-extrabold text-emerald-700 dark:text-emerald-300">
+              <span>⭐ Quality 75%–82%</span>
+              <span>85 KB ✅</span>
+            </div>
+            <div class="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">The Sweet Spot (ลดลง 90%)</div>
+            <p class="text-[11px] font-body text-slate-700 dark:text-slate-200">สายตามนุษย์แยกความต่างไม่ออก แต่ขนาดไฟล์ลดลงกว่า 90%!</p>
+          </div>
+
+          <div class="p-4 rounded-2xl border border-rose-300 bg-rose-50/40 dark:bg-rose-950/20 space-y-1.5">
+            <div class="flex justify-between font-mono text-xs font-bold text-rose-600">
+              <span>Quality 50%</span>
+              <span>35 KB ❌</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 dark:text-white">บีบอัดหนักเกินไป</div>
+            <p class="text-[11px] font-body text-slate-600 dark:text-slate-300">ภาพเริ่มเป็นปื้นสีเพี้ยน แตกเป็นบล็อกสี่เหลี่ยม (Compression Artifacts)</p>
+          </div>
+        </div>
+
+        <!-- Weight Ceiling Callout Box -->
+        <div class="p-5 sm:p-6 rounded-2xl border-2 border-purple-500/60 bg-purple-50/50 dark:bg-purple-950/30 space-y-3">
+          <div class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+            <span>⚖️ เกณฑ์เพดานน้ำหนักไฟล์ภาพสำหรับเว็บไซต์ธุรกิจ (File Weight Ceilings)</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+            <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border flex items-center justify-between">
+              <span>1. ภาพไอคอนเวกเตอร์ (SVG)</span>
+              <span class="px-2.5 py-1 rounded bg-teal-600 text-white font-bold">&lt; 5 KB / ชิ้น</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border flex items-center justify-between">
+              <span>2. ภาพถ่ายสินค้าบนการ์ด (WebP)</span>
+              <span class="px-2.5 py-1 rounded bg-purple-600 text-white font-bold">&lt; 150 KB (เป้า 60–90KB)</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border flex items-center justify-between">
+              <span>3. ภาพแบนเนอร์ Hero (WebP)</span>
+              <span class="px-2.5 py-1 rounded bg-amber-600 text-white font-bold">&lt; 300 KB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.4 ขั้นตอนการส่งออกและบีบอัดภาพสินค้าเป็น WebP ด้วย Squoosh.app -->
+      <div id="sec-3-4" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">TOPIC 3.4 • GOOGLE SQUOOSH.APP STEP-BY-STEP GUIDE</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              3.4 ขั้นตอนการส่งออกและบีบอัดภาพสินค้าเป็น WebP ด้วย Squoosh.app
+            </h3>
+          </div>
+          <a href="https://squoosh.app" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-bold shadow transition">
+            🌐 เปิดใช้งาน Squoosh.app ↗
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3.5 text-xs font-body">
+          <div class="p-4 rounded-2xl subtle-box border space-y-1.5">
+            <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono font-bold">ขั้นที่ 1</span>
+            <div class="font-bold text-slate-900 dark:text-white">เปิดเว็บ Squoosh.app</div>
+            <p class="text-slate-600 dark:text-slate-300">เปิดเบราว์เซอร์ไปที่ <a href="https://squoosh.app" target="_blank" rel="noopener noreferrer" class="text-purple-600 underline font-mono">squoosh.app</a> แล้วลากไฟล์ภาพสินค้าไดคัท (PNG 2–5 MB) ลงในหน้าต่าง</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1.5">
+            <span class="px-2 py-0.5 rounded bg-purple-600 text-white font-mono font-bold">ขั้นที่ 2</span>
+            <div class="font-bold text-slate-900 dark:text-white">ตั้งค่า Resize (560px)</div>
+            <p class="text-slate-600 dark:text-slate-300">หากภาพต้นฉบับกว้าง 3,000px ให้ติ๊กเปิด <strong>Resize</strong> แล้วเปลี่ยน Width เป็น <code class="font-mono font-bold">560px</code> (หรือ 800px ตามขนาดจริง)</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1.5">
+            <span class="px-2 py-0.5 rounded bg-teal-600 text-white font-mono font-bold">ขั้นที่ 3</span>
+            <div class="font-bold text-slate-900 dark:text-white">เลือก Compress: WebP</div>
+            <p class="text-slate-600 dark:text-slate-300">เปลี่ยนฟอร์แมตจาก MozJPEG เป็น <strong>WebP</strong> และปรับค่า <strong>Effort = 6</strong> (บีบอัดละเอียดสูงสุด)</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1.5">
+            <span class="px-2 py-0.5 rounded bg-amber-600 text-white font-mono font-bold">ขั้นที่ 4</span>
+            <div class="font-bold text-slate-900 dark:text-white">ตั้ง Quality 75% – 80%</div>
+            <p class="text-slate-600 dark:text-slate-300">เลื่อนสไลเดอร์ Quality มาที่ <strong>75% ถึง 80%</strong> แล้วลากเส้นแบ่งกลางจอตรวจดูความคมชัด</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1.5">
+            <span class="px-2 py-0.5 rounded bg-emerald-600 text-white font-mono font-bold">ขั้นที่ 5</span>
+            <div class="font-bold text-slate-900 dark:text-white">ลดลงกว่า 97% → Download</div>
+            <p class="text-slate-600 dark:text-slate-300">ขนาดไฟล์ลดจาก <strong>3.4 MB เหลือเพียง 72 KB (-97%)</strong> คลิกปุ่ม Download มุมขวาล่างไปใช้งานทันที</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 4: ใบงานปฏิบัติการประจำหน่วยที่ 3 & ตาราง Audit & Checklist    -->
+    <!-- =================================================================== -->
+    <section id="sec-workshops" class="scroll-mt-24 space-y-10">
+      <div class="border-l-4 border-emerald-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-mono font-bold">
+          PART 04 • WORKSHOPS 3.1–3.3, FILE SIZE REDUCTION AUDIT TABLE &amp; SELF-CHECKLIST
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 4: ใบงานปฏิบัติการประจำหน่วยที่ 3 &amp; ตารางตรวจสอบขนาดไฟล์ (File Size Audit)
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          สรุปภารกิจการส่งงานประจำหน่วยที่ 3 (รวม 15 คะแนน แบ่งเป็น 3 ชิ้นงาน ชิ้นละ 5 คะแนน) พร้อมตารางคำนวณการลดขนาดไฟล์ภาพ WebP และแบบตรวจสอบตนเองก่อนส่งงาน
+        </p>
+      </div>
+
+      <!-- 3 Workshops Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Workshop 3.1 -->
+        <div class="surface-card border-2 border-teal-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-teal-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 3.1</span>
+              <span class="font-mono text-xs font-extrabold text-teal-600 dark:text-teal-400">5 คะแนน</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+              ออกแบบโลโก้เวกเตอร์และชุดไอคอนบริการ SVG
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-2 list-decimal pl-4 leading-relaxed">
+              <li>ออกแบบ <strong>โลโก้ประจำร้านค้า</strong> ธุรกิจดิจิทัลของกลุ่มตนเองในรูปแบบ Vector ชนิดข้อความผสานสัญลักษณ์ (Combination Mark)</li>
+              <li>สร้างชุดไอคอนบริการประจำโซน Trust Badges จำนวน <strong>4 รูป</strong> (จัดส่งด่วน, รับประกันสินค้า, ชำระเงินปลอดภัย, บริการ 24 ชม.)</li>
+              <li>ไอคอนทุกชิ้นต้องวาดขึ้นบนโครงตาราง <strong>24 × 24 px Grid</strong> โดยมีระยะเว้นขอบ (Padding) 2px และใช้ความหนาเส้น <strong>2px Stroke</strong> สม่ำเสมอกันทุกชิ้น</li>
+              <li>ทำการแปลงเส้นเป็นรูปร่างปิด (<strong>Outline Stroke</strong>) และส่งออก (Export) เป็นไฟล์ <strong>SVG</strong> ที่ถูกต้องตามมาตรฐาน</li>
+            </ol>
+          </div>
+          <div class="p-3 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-teal-700 dark:text-teal-300">
+            ชิ้นงานที่ 4: โลโก้แบรนด์ + ชุดไอคอนบริการ 4 รูป SVG
+          </div>
+        </div>
+
+        <!-- Workshop 3.2 -->
+        <div class="surface-card border-2 border-pink-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-pink-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 3.2</span>
+              <span class="font-mono text-xs font-extrabold text-pink-600 dark:text-pink-400">5 คะแนน</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+              การตัดต่อ ไดคัท และรีทัชภาพสินค้าลงการ์ด
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-2 list-decimal pl-4 leading-relaxed">
+              <li>คัดเลือกภาพถ่ายสินค้าจริงของร้านค้าตนเองจำนวน <strong>4 ถึง 6 ชิ้นงาน</strong> (ภาพความละเอียดสูง)</li>
+              <li>ทำการไดคัทแยกสินค้าออกจากฉากหลังเดิมด้วยโปรแกรม <strong>Adobe Photoshop</strong> โดยใช้เทคนิค Pen Tool ร่วมกับ Layer Mask ขอบของสินค้าต้องสะอาด ไม่มีขอบสีเดิมเปื้อน (Defringe &amp; Inset 1px)</li>
+              <li>สร้างเงาเสมือนจริงใต้สินค้าครบทั้ง 2 ชั้น (<strong>Contact Shadow</strong> ดำเข้มใต้ฐาน และ <strong>Cast Shadow</strong> ฟุ้งนุ่มนวลทอดตัว)</li>
+              <li>ปรับสมดุลแสงสีด้วย Curves และ Vibrance ให้เข้ากับจานสี (Color Palette) ของแบรนด์ แล้วนำภาพไปวางเสียบแทนกล่องสี่เหลี่ยมสีเทาบนการ์ดสินค้าใน Figma</li>
+            </ol>
+          </div>
+          <div class="p-3 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-pink-700 dark:text-pink-300">
+            ชิ้นงานที่ 5: ชุดภาพสินค้าไดคัทสมบูรณ์พร้อมเงา 4–6 ชิ้น
+          </div>
+        </div>
+
+        <!-- Workshop 3.3 -->
+        <div class="surface-card border-2 border-amber-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-amber-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 3.3</span>
+              <span class="font-mono text-xs font-extrabold text-amber-600 dark:text-amber-400">5 คะแนน</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+              การเพิ่มประสิทธิภาพภาพ WebP และทำตาราง File Size Audit
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-2 list-decimal pl-4 leading-relaxed">
+              <li>นำภาพสินค้าไดคัททั้งหมดมาทำการ Optimize ด้วยโปรแกรม Photoshop หรือ <a href="https://squoosh.app" target="_blank" rel="noopener noreferrer" class="underline text-amber-600">Squoosh.app</a></li>
+              <li>ปรับขนาดภาพตามเกณฑ์ Retina 2x (ขนาดกว้าง-ยาวไม่เกิน <strong>800 × 800 px</strong>) และแปลงเป็นฟอร์แมต <strong>WebP (Quality 75–80%)</strong></li>
+              <li>ควบคุมขนาดไฟล์ของสินค้าทุกชิ้นให้อยู่ในเกณฑ์มาตรฐาน: <strong>ต่ำกว่า 150 KB ต่อภาพ</strong> (และภาพ Hero แบนเนอร์ต่ำกว่า 300 KB)</li>
+              <li>จัดทำ <strong>ตารางบันทึกการลดขนาดไฟล์ (File Size Reduction Audit Table)</strong> ลงในไฟล์งาน Figma ตามแบบฟอร์มมาตรฐาน</li>
+            </ol>
+          </div>
+          <div class="p-3 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-amber-700 dark:text-amber-300">
+            ชิ้นงานที่ 6: แฟ้มภาพ WebP + ตาราง Audit การลดขนาด
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive File Size Reduction Audit Table -->
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase text-purple-600 dark:text-purple-400">INTERACTIVE AUDIT TABLE &amp; CALCULATOR</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              📊 ตารางบันทึกการตรวจสอบขนาดไฟล์ภาพ (File Size Reduction Audit Table)
+            </h3>
+            <p class="text-xs sm:text-sm font-body text-slate-600 dark:text-slate-300">
+              สามารถทดลองแก้ตัวเลขในช่อง <strong>ขนาดไฟล์เดิม (KB)</strong> และ <strong>ขนาดไฟล์ใหม่ WebP (KB)</strong> เพื่อคำนวณเปอร์เซ็นต์การลดขนาดและตรวจสอบเกณฑ์ผ่าน/ไม่ผ่านได้ทันที:
+            </p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border-2 border-purple-200 dark:border-purple-900/60">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-purple-700 text-white">
+                <th class="p-3.5 font-bold">ลำดับที่ / รายการสินค้า</th>
+                <th class="p-3.5 font-bold">ขนาดไฟล์เดิม (Original PNG)</th>
+                <th class="p-3.5 font-bold">ขนาดไฟล์ใหม่ (Optimized WebP)</th>
+                <th class="p-3.5 font-bold">เปอร์เซ็นต์การลดขนาดลง (%)</th>
+                <th class="p-3.5 font-bold">สถานะการตรวจสอบ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-purple-100 dark:divide-purple-900/40 font-mono">
+              <tr class="audit-row" data-limit="150">
+                <td class="p-3.5 font-sans font-bold">1. สินค้าชิ้นที่ 1 (เกณฑ์ &lt; 150 KB)</td>
+                <td class="p-3.5"><input type="number" value="3450" class="audit-orig w-24 px-2.5 py-1 rounded border subtle-box font-bold"> KB</td>
+                <td class="p-3.5"><input type="number" value="78" class="audit-new w-20 px-2.5 py-1 rounded border subtle-box font-bold text-purple-700 dark:text-purple-300"> KB</td>
+                <td class="p-3.5 font-bold text-emerald-600 audit-pct">ลดลง 97.7%</td>
+                <td class="p-3.5 font-sans font-bold text-emerald-600 audit-status">✅ ผ่านเกณฑ์มาตรฐาน</td>
+              </tr>
+              <tr class="audit-row" data-limit="150">
+                <td class="p-3.5 font-sans font-bold">2. สินค้าชิ้นที่ 2 (เกณฑ์ &lt; 150 KB)</td>
+                <td class="p-3.5"><input type="number" value="2890" class="audit-orig w-24 px-2.5 py-1 rounded border subtle-box font-bold"> KB</td>
+                <td class="p-3.5"><input type="number" value="85" class="audit-new w-20 px-2.5 py-1 rounded border subtle-box font-bold text-purple-700 dark:text-purple-300"> KB</td>
+                <td class="p-3.5 font-bold text-emerald-600 audit-pct">ลดลง 97.1%</td>
+                <td class="p-3.5 font-sans font-bold text-emerald-600 audit-status">✅ ผ่านเกณฑ์มาตรฐาน</td>
+              </tr>
+              <tr class="audit-row" data-limit="150">
+                <td class="p-3.5 font-sans font-bold">3. สินค้าชิ้นที่ 3 (เกณฑ์ &lt; 150 KB)</td>
+                <td class="p-3.5"><input type="number" value="4120" class="audit-orig w-24 px-2.5 py-1 rounded border subtle-box font-bold"> KB</td>
+                <td class="p-3.5"><input type="number" value="92" class="audit-new w-20 px-2.5 py-1 rounded border subtle-box font-bold text-purple-700 dark:text-purple-300"> KB</td>
+                <td class="p-3.5 font-bold text-emerald-600 audit-pct">ลดลง 97.8%</td>
+                <td class="p-3.5 font-sans font-bold text-emerald-600 audit-status">✅ ผ่านเกณฑ์มาตรฐาน</td>
+              </tr>
+              <tr class="audit-row" data-limit="150">
+                <td class="p-3.5 font-sans font-bold">4. สินค้าชิ้นที่ 4 (เกณฑ์ &lt; 150 KB)</td>
+                <td class="p-3.5"><input type="number" value="3100" class="audit-orig w-24 px-2.5 py-1 rounded border subtle-box font-bold"> KB</td>
+                <td class="p-3.5"><input type="number" value="69" class="audit-new w-20 px-2.5 py-1 rounded border subtle-box font-bold text-purple-700 dark:text-purple-300"> KB</td>
+                <td class="p-3.5 font-bold text-emerald-600 audit-pct">ลดลง 97.8%</td>
+                <td class="p-3.5 font-sans font-bold text-emerald-600 audit-status">✅ ผ่านเกณฑ์มาตรฐาน</td>
+              </tr>
+              <tr class="audit-row" data-limit="300">
+                <td class="p-3.5 font-sans font-bold">5. ภาพ Hero แบนเนอร์ (เกณฑ์ &lt; 300 KB)</td>
+                <td class="p-3.5"><input type="number" value="8200" class="audit-orig w-24 px-2.5 py-1 rounded border subtle-box font-bold"> KB</td>
+                <td class="p-3.5"><input type="number" value="240" class="audit-new w-20 px-2.5 py-1 rounded border subtle-box font-bold text-purple-700 dark:text-purple-300"> KB</td>
+                <td class="p-3.5 font-bold text-emerald-600 audit-pct">ลดลง 97.1%</td>
+                <td class="p-3.5 font-sans font-bold text-emerald-600 audit-status">✅ ผ่านเกณฑ์มาตรฐาน</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Interactive Student Self-Checklist (12 Items Grouped in 3 Categories) -->
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">PRE-SUBMISSION ASSET AUDIT</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              ✅ แบบตรวจสอบตนเองก่อนส่งงาน (Student Self-Checklist)
+            </h3>
+            <p class="text-xs sm:text-sm font-body text-slate-600 dark:text-slate-300">
+              คลิกติ๊กถูกเพื่อตรวจสอบความเรียบร้อยของสินทรัพย์กราฟิกทั้ง 3 หมวดก่อนส่งลิงก์ตรวจงาน:
+            </p>
+          </div>
+          <div class="text-right">
+            <div id="u3-chk-label" class="font-mono text-sm font-extrabold text-emerald-600 dark:text-emerald-400">0 / 12 รายการ (0%)</div>
+            <div class="w-44 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden mt-1">
+              <div id="u3-chk-bar" style="width: 0%;" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs font-body">
+          <!-- Group 1: Vector Logo & SVG Icons -->
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <div class="font-sans font-extrabold text-sm text-teal-700 dark:text-teal-300">
+              1. การตรวจสอบ Vector Logo &amp; SVG Icons
+            </div>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>โลโก้แบรนด์เป็นเวกเตอร์ 100% สามารถซูมขยายได้โดยไม่แตก</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ไอคอนบริการทั้ง 4 ตัว วาดบนตาราง 24 × 24 px โดยมีระยะขอบปลอดภัย 2px</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ไอคอนทุกตัวมีความหนาของเส้น (Stroke Weight) สม่ำเสมอกันเท่ากันทุกชิ้น</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ส่งออกเป็นไฟล์ <code class="font-mono font-bold">.svg</code> ที่เปิดดูในเบราว์เซอร์แล้วคมชัด ปราศจากขยะเลเยอร์</span>
+            </label>
+          </div>
+
+          <!-- Group 2: Retouching & Die-cut -->
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <div class="font-sans font-extrabold text-sm text-pink-700 dark:text-pink-300">
+              2. การตรวจสอบ Retouching &amp; Die-cut
+            </div>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ภาพสินค้าทั้ง 4–6 ชิ้น ตัดขอบเนียนเรียบ ไม่มีรอยแหว่งและไม่มีขอบสีเดิมติดมา</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>มีการสร้างเงาเสมือนจริง 2 ชั้น (Contact Shadow ติดฐาน และ Cast Shadow ฟุ้งนุ่ม)</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>สินค้าไม่ดูลอยหลอกตา และโทนสีเข้ากันได้ดีกับสีประจำแบรนด์ร้านค้า</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>นำภาพสินค้าไดคัทจริงไปใส่ลงในการ์ดสินค้าบน Figma ได้อย่างสมบูรณ์</span>
+            </label>
+          </div>
+
+          <!-- Group 3: WebP Optimization & Audit -->
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <div class="font-sans font-extrabold text-sm text-amber-700 dark:text-amber-300">
+              3. การตรวจสอบ WebP Optimization &amp; Audit
+            </div>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ภาพสินค้าทุกไฟล์ถูกแปลงเป็นนามสกุล <code class="font-mono font-bold">.webp</code> เรียบร้อยแล้ว</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ตรวจเช็กขนาดไฟล์ภาพสินค้าทุกชิ้น <strong>มีขนาดต่ำกว่า 150 KB</strong> (ไม่มีไฟล์หลุดเกินเกณฑ์)</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ภาพแบนเนอร์ใหญ่หน้าแรกมีขนาดต่ำกว่า 300 KB</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u3-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>มีตารางบันทึก File Size Audit เปรียบเทียบขนาดก่อนและหลังการบีบอัดครบถ้วน</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with Standard Comfortable Margins -->
+  <footer class="border-t border-purple-200/60 dark:border-purple-900/40 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+    <div class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>รายวิชา <strong>31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์</strong> • บทที่ 3 การสร้างและตกแต่งกราฟิกสำหรับเว็บไซต์</div>
+      <div class="font-mono">แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล วิทยาลัยการอาชีพบ้านโป่ง</div>
+    </div>
+  </footer>
+
+  <!-- Interactive JavaScript -->
+  <script>
+    (function () {
+      // 1. Theme Switcher (Light / Dark / Accent)
+      const htmlEl = document.documentElement;
+      const btnLight = document.getElementById('btn-theme-light');
+      const btnDark = document.getElementById('btn-theme-dark');
+      const btnAccent = document.getElementById('btn-theme-accent');
+
+      function setTheme(mode) {
+        htmlEl.classList.remove('dark', 'theme-accent');
+        [btnLight, btnDark, btnAccent].forEach(b => {
+          b.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition';
+        });
+        if (mode === 'dark') {
+          htmlEl.classList.add('dark');
+          btnDark.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-purple-600 text-white shadow-sm transition';
+        } else if (mode === 'accent') {
+          htmlEl.classList.add('theme-accent');
+          btnAccent.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-teal-600 text-white shadow-sm transition';
+        } else {
+          btnLight.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white text-purple-700 shadow-sm transition';
+        }
+      }
+      btnLight.addEventListener('click', () => setTheme('light'));
+      btnDark.addEventListener('click', () => setTheme('dark'));
+      btnAccent.addEventListener('click', () => setTheme('accent'));
+
+      // 2. Intro LCP & Conversion Load Time Simulator
+      const weightSlider = document.getElementById('sim-weight-slider');
+      const weightLabel = document.getElementById('sim-weight-label');
+      const loadBadge = document.getElementById('sim-load-badge');
+      const bounceVal = document.getElementById('sim-bounce-val');
+      const salesVal = document.getElementById('sim-sales-val');
+
+      const loadScenarios = {
+        1: { label: '450 KB (WebP + SVG)', badge: 'เวลาโหลด: 1.2 วินาที (LCP ดีเยี่ยม ✅)', badgeCls: 'px-3 py-1 rounded-full bg-emerald-500 text-slate-950 font-mono text-xs font-extrabold', bounce: 'ต่ำมาก (9%)', bounceCls: 'text-xl font-extrabold text-emerald-400 mt-0.5', sales: 'ยอดขาย 100% ⭐', salesCls: 'text-xl font-extrabold text-teal-300 mt-0.5' },
+        2: { label: '1.8 MB (JPEG ทั่วไป)', badge: 'เวลาโหลด: 2.6 วินาที (พอใช้ ⚠️)', badgeCls: 'px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-mono text-xs font-extrabold', bounce: 'เริ่มหนี (24%)', bounceCls: 'text-xl font-extrabold text-amber-300 mt-0.5', sales: 'ยอดขายลดลง -7%', salesCls: 'text-xl font-extrabold text-amber-300 mt-0.5' },
+        3: { label: '6.5 MB (PNG ไม่ได้บีบอัด)', badge: 'เวลาโหลด: 4.5 วินาที (ช้าเกิน 3 วินาที ❌)', badgeCls: 'px-3 py-1 rounded-full bg-rose-500 text-white font-mono text-xs font-extrabold', bounce: 'ลูกค้าหนี > 40%!', bounceCls: 'text-xl font-extrabold text-rose-400 mt-0.5', sales: 'ยอดขายลดลง -21%', salesCls: 'text-xl font-extrabold text-rose-400 mt-0.5' },
+        4: { label: '18.0 MB (ไฟล์ดิบจากกล้อง)', badge: 'เวลาโหลด: 9.2 วินาที (เว็บค้าง ❌)', badgeCls: 'px-3 py-1 rounded-full bg-rose-700 text-white font-mono text-xs font-extrabold', bounce: 'ลูกค้าปิดหนี 75%!', bounceCls: 'text-xl font-extrabold text-rose-500 mt-0.5', sales: 'ยอดขายพัง -49%', salesCls: 'text-xl font-extrabold text-rose-500 mt-0.5' }
+      };
+
+      if (weightSlider) {
+        weightSlider.addEventListener('input', () => {
+          const s = loadScenarios[weightSlider.value];
+          if (!s) return;
+          weightLabel.textContent = s.label;
+          loadBadge.textContent = s.badge;
+          loadBadge.className = s.badgeCls;
+          bounceVal.textContent = s.bounce;
+          bounceVal.className = s.bounceCls;
+          salesVal.textContent = s.sales;
+          salesVal.className = s.salesCls;
+        });
+      }
+
+      // 3. Topic 1.1 Raster vs Vector Zoom Loupe
+      const rasterTarget = document.getElementById('raster-zoom-target');
+      const vectorTarget = document.getElementById('vector-zoom-target');
+      document.querySelectorAll('.zoom-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const z = parseFloat(btn.getAttribute('data-zoom'));
+          document.querySelectorAll('.zoom-btn').forEach(b => {
+            b.className = 'zoom-btn px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border font-mono text-xs font-bold';
+          });
+          btn.className = 'zoom-btn px-3 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold';
+          const scaleVal = z === 1 ? 1 : (z === 4 ? 1.55 : 2.15);
+          if (rasterTarget) rasterTarget.style.transform = 'scale(' + scaleVal + ')';
+          if (vectorTarget) vectorTarget.style.transform = 'scale(' + scaleVal + ')';
+        });
+      });
+
+      // 4. Topic 1.2 SVG Live Color Switcher
+      const liveSvg = document.getElementById('live-truck-svg');
+      const svgCodeColor = document.getElementById('svg-code-color');
+      document.querySelectorAll('.svg-color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const hex = btn.getAttribute('data-stroke');
+          if (liveSvg) liveSvg.setAttribute('stroke', hex);
+          if (svgCodeColor) svgCodeColor.textContent = hex;
+        });
+      });
+
+      // 5. Topic 2.2 Pen Tool Defringe / Inset Path Switcher
+      const btnFringeBad = document.getElementById('btn-fringe-bad');
+      const btnFringeGood = document.getElementById('btn-fringe-good');
+      const fringeBadge = document.getElementById('fringe-status-badge');
+      const fringeDemo = document.getElementById('fringe-product-demo');
+      if (btnFringeBad && btnFringeGood) {
+        btnFringeBad.addEventListener('click', () => {
+          fringeDemo.style.boxShadow = '0 0 0 4px #3b82f6';
+          fringeBadge.textContent = '❌ พบขอบสีน้ำเงินเปื้อนรอบวัตถุ (Color Fringe / Halo Effect)';
+          fringeBadge.className = 'px-3 py-1 rounded-full bg-rose-600 text-white font-mono text-xs font-bold shadow';
+          btnFringeBad.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white shadow-sm transition';
+          btnFringeGood.className = 'px-3.5 py-2 rounded-xl text-xs font-bold subtle-box border hover:border-emerald-500 transition';
+        });
+        btnFringeGood.addEventListener('click', () => {
+          fringeDemo.style.boxShadow = '0 6px 16px rgba(0,0,0,0.12)';
+          fringeBadge.textContent = '✅ เดินเส้นกินเนื้อใน 1–2px + Feather 0.5px: ขอบสะอาดเนียนกริบ 100%';
+          fringeBadge.className = 'px-3 py-1 rounded-full bg-emerald-600 text-white font-mono text-xs font-bold shadow';
+          btnFringeGood.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm transition';
+          btnFringeBad.className = 'px-3.5 py-2 rounded-xl text-xs font-bold subtle-box border hover:border-rose-500 transition';
+        });
+      }
+
+      // 6. Topic 2.3 Commercial 2-Layer Shadow Studio
+      const visContact = document.getElementById('vis-contact-shadow');
+      const visCast = document.getElementById('vis-cast-shadow');
+      const shadowLabel = document.getElementById('shadow-stage-label');
+      document.querySelectorAll('.shadow-mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const mode = btn.getAttribute('data-shadow');
+          document.querySelectorAll('.shadow-mode-btn').forEach(b => {
+            b.className = 'shadow-mode-btn px-3 py-1.5 rounded-xl text-xs font-bold subtle-box border transition';
+          });
+          btn.className = 'shadow-mode-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600 text-white shadow-sm transition';
+
+          if (mode === 'none') {
+            visContact.style.opacity = '0';
+            visCast.style.opacity = '0';
+            shadowLabel.textContent = '❌ ไม่มีเงา: สินค้าดูลอยเคว้งอย่างไร้น้ำหนักเหมือนภาพตัดแปะ';
+            shadowLabel.className = 'absolute top-3 left-4 font-mono text-xs font-bold text-rose-600';
+          } else if (mode === 'contact') {
+            visContact.style.opacity = '1';
+            visCast.style.opacity = '0';
+            shadowLabel.textContent = '1️⃣ เฉพาะ Contact Shadow: วัตถุติดพื้นแต่ยังขาดมิติแสงธรรมชาติ';
+            shadowLabel.className = 'absolute top-3 left-4 font-mono text-xs font-bold text-amber-600';
+          } else {
+            visContact.style.opacity = '1';
+            visCast.style.opacity = '1';
+            shadowLabel.textContent = '✅ เปิดเงาครบ 2 ชั้น: สินค้าวางติดพื้นระนาบอย่างมีน้ำหนักสมจริง';
+            shadowLabel.className = 'absolute top-3 left-4 font-mono text-xs font-bold text-emerald-600';
+          }
+        });
+      });
+
+      // 7. Topic 3.2 Retina 2x Calculator
+      const retW = document.getElementById('retina-w-in');
+      const retH = document.getElementById('retina-h-in');
+      const retOut = document.getElementById('retina-out-dim');
+      function updateRetinaCalc() {
+        const w = parseInt(retW.value, 10) || 280;
+        const h = parseInt(retH.value, 10) || 280;
+        if (retOut) retOut.textContent = (w * 2) + ' × ' + (h * 2) + ' px';
+      }
+      if (retW && retH) {
+        retW.addEventListener('input', updateRetinaCalc);
+        retH.addEventListener('input', updateRetinaCalc);
+      }
+
+      // 8. Interactive File Size Reduction Audit Table Calculator
+      function recalcAuditRow(row) {
+        const limit = parseFloat(row.getAttribute('data-limit')) || 150;
+        const origIn = row.querySelector('.audit-orig');
+        const newIn = row.querySelector('.audit-new');
+        const pctCell = row.querySelector('.audit-pct');
+        const statusCell = row.querySelector('.audit-status');
+        const origVal = parseFloat(origIn.value) || 1;
+        const newVal = parseFloat(newIn.value) || 0;
+        const savedPct = Math.max(0, ((origVal - newVal) / origVal) * 100).toFixed(1);
+        pctCell.textContent = 'ลดลง ' + savedPct + '%';
+        if (newVal <= limit && newVal > 0) {
+          statusCell.textContent = '✅ ผ่านเกณฑ์มาตรฐาน';
+          statusCell.className = 'p-3.5 font-sans font-bold text-emerald-600 audit-status';
+        } else {
+          statusCell.textContent = '❌ เกินเกณฑ์ (' + limit + ' KB)';
+          statusCell.className = 'p-3.5 font-sans font-bold text-rose-600 audit-status';
+        }
+      }
+      document.querySelectorAll('.audit-row').forEach(row => {
+        row.querySelectorAll('input').forEach(inp => {
+          inp.addEventListener('input', () => recalcAuditRow(row));
+        });
+      });
+
+      // 9. Student Self-Checklist Progress Bar
+      const chks = document.querySelectorAll('.u3-chk');
+      const chkLabel = document.getElementById('u3-chk-label');
+      const chkBar = document.getElementById('u3-chk-bar');
+      function updateU3Checklist() {
+        const total = chks.length;
+        let done = 0;
+        chks.forEach(c => { if (c.checked) done++; });
+        const pct = Math.round((done / total) * 100);
+        if (chkLabel) chkLabel.textContent = done + ' / ' + total + ' รายการ (' + pct + '%)';
+        if (chkBar) chkBar.style.width = pct + '%';
+      }
+      chks.forEach(c => c.addEventListener('change', updateU3Checklist));
+    })();
+  </script>
+</body>
+</html>

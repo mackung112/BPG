@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 5: การประกอบแม่แบบเว็บไซต์และการทดสอบต้นแบบเชิงโต้ตอบ (Template Assembly &amp; Interactive Prototype) | 31910-2026</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'Inter', 'sans-serif'],
+            body: ['Sarabun', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            tech: ['Chakra Petch', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --bg-page: #f6f4ff;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1edff;
+      --border-tint: #e2d9ff;
+      --text-main: #1e1b4b;
+      --text-muted: #5b5675;
+      --accent-pill-bg: #f3e8ff;
+      --accent-pill-text: #7e22ce;
+    }
+    html.dark {
+      --bg-page: #0b0917;
+      --bg-surface: #141126;
+      --bg-subtle: #1d1836;
+      --border-tint: #2d2552;
+      --text-main: #f5f3ff;
+      --text-muted: #a59ec4;
+      --accent-pill-bg: #2e1065;
+      --accent-pill-text: #e9d5ff;
+    }
+    html.theme-accent {
+      --bg-page: #ecfdf5;
+      --bg-surface: #ffffff;
+      --bg-subtle: #d1fae5;
+      --border-tint: #a7f3d0;
+      --text-main: #064e3b;
+      --text-muted: #047857;
+      --accent-pill-bg: #ede9fe;
+      --accent-pill-text: #6d28d9;
+    }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Prompt', sans-serif;
+      background-image:
+        radial-gradient(circle at 12% 10%, rgba(124, 58, 237, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 88% 22%, rgba(16, 185, 129, 0.08) 0%, transparent 35%),
+        linear-gradient(to right, rgba(124, 58, 237, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(124, 58, 237, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .surface-card {
+      background-color: var(--bg-surface);
+      border-color: var(--border-tint);
+    }
+    .subtle-box {
+      background-color: var(--bg-subtle);
+      border-color: var(--border-tint);
+    }
+    .code-pill {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--accent-pill-bg);
+      color: var(--accent-pill-text);
+    }
+    .wf-cross {
+      background-image:
+        linear-gradient(to top right, transparent calc(50% - 1px), rgba(148, 163, 184, 0.45) calc(50% - 1px), rgba(148, 163, 184, 0.45) calc(50% + 1px), transparent calc(50% + 1px)),
+        linear-gradient(to bottom right, transparent calc(50% - 1px), rgba(148, 163, 184, 0.45) calc(50% - 1px), rgba(148, 163, 184, 0.45) calc(50% + 1px), transparent calc(50% + 1px));
+    }
+    @keyframes floatBadge {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .anim-float {
+      animation: floatBadge 2.4s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-purple-600 selection:text-white">
+
+  <!-- Sticky Navigation Header with Standard Comfortable Horizontal Margins -->
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/85 dark:bg-[#110e20]/85 border-b border-purple-200/70 dark:border-purple-900/50">
+    <div class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 h-16 flex items-center justify-between gap-3">
+      <a href="#top-hero" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 via-purple-600 to-indigo-600 text-white font-bold flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition">
+          <span class="font-mono text-xs">31910</span>
+        </div>
+        <div>
+          <div class="text-[11px] font-mono uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold">
+            31910-2026 • UNIT 05
+          </div>
+          <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-tight">
+            การประกอบแม่แบบเว็บไซต์และการทดสอบต้นแบบเชิงโต้ตอบ
+          </div>
+        </div>
+      </a>
+
+      <nav class="hidden xl:flex items-center gap-1 text-xs font-medium">
+        <a href="#sec-objectives" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">🎯 จุดประสงค์</a>
+        <a href="#sec-intro" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">บทนำ: ประกอบร่าง</a>
+        <a href="#sec-part1" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 1: Desktop Hi-Fi</a>
+        <a href="#sec-part2" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 2: Mobile 390px</a>
+        <a href="#sec-part3" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 3: PDP &amp; Prototype</a>
+        <a href="#sec-part4" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 4: Design QA</a>
+        <a href="#sec-workshops" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 5: ใบงาน &amp; Checklist</a>
+      </nav>
+
+      <div class="flex items-center gap-1.5 bg-purple-100/80 dark:bg-purple-950/70 p-1.5 rounded-full border border-purple-200 dark:border-purple-800">
+        <button id="btn-theme-light" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white text-purple-700 shadow-sm transition" title="โหมดสว่าง (Light)">☀️</button>
+        <button id="btn-theme-dark" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition" title="โหมดมืด (Dark)">🌙</button>
+        <button id="btn-theme-accent" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition" title="โหมดสีเน้น (Accent)">🔮</button>
+      </div>
+    </div>
+
+    <div class="xl:hidden max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto px-6 sm:px-10 py-2 border-t border-purple-100 dark:border-purple-900/40 text-xs whitespace-nowrap">
+      <a href="#sec-objectives" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">🎯 จุดประสงค์</a>
+      <a href="#sec-intro" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">บทนำ</a>
+      <a href="#sec-part1" class="px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium">ตอนที่ 1: Desktop 1440px</a>
+      <a href="#sec-part2" class="px-2.5 py-1 rounded-md bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-medium">ตอนที่ 2: Mobile 390px</a>
+      <a href="#sec-part3" class="px-2.5 py-1 rounded-md bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 font-medium">ตอนที่ 3: PDP &amp; Prototype</a>
+      <a href="#sec-part4" class="px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-medium">ตอนที่ 4: Design QA</a>
+      <a href="#sec-workshops" class="px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">ตอนที่ 5: ใบงาน 5.1–5.4</a>
+    </div>
+  </header>
+
+  <!-- Main Container with Standard Comfortable Margins (max-w-6xl mx-auto px-6 sm:px-10 lg:px-12) -->
+  <main class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 py-10 space-y-20 pb-28">
+
+    <!-- =================================================================== -->
+    <!-- HERO & LEARNING OBJECTIVES                                          -->
+    <!-- =================================================================== -->
+    <section id="top-hero" class="space-y-8">
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-10 shadow-xl space-y-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/90 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300 text-xs font-mono font-semibold">
+            <span>วิชา 31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์ (ท-ป-น: 2-2-3)</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span>ปวส. ชั้นปีที่ 1 เทคโนโลยีธุรกิจดิจิทัล</span>
+          </div>
+          <div class="text-xs font-body text-slate-500 dark:text-slate-400">
+            อาจารย์ผู้สอน: <strong>ครูแม็ค</strong> (แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล วิทยาลัยการอาชีพบ้านโป่ง)
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+            UNIT 05 • WEBSITE TEMPLATE ASSEMBLY, RESPONSIVE TRANSFORMATION &amp; INTERACTIVE PROTOTYPING
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+            บทที่ 5: การประกอบแม่แบบเว็บไซต์และการทดสอบต้นแบบเชิงโต้ตอบ<br class="hidden sm:inline">
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-purple-600 to-pink-600 dark:from-emerald-400 dark:via-purple-400 dark:to-pink-400">
+              (Template Assembly, Responsive &amp; Interactive Prototype)
+            </span>
+          </h1>
+          <p class="max-w-3xl text-sm sm:text-base font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+            หน่วยการเรียนรู้บทสุดท้ายที่เป็นจุดบรรจบของกระบวนการออกแบบ UI/UX ทั้งหมด นำสินทรัพย์กราฟิกจากบทที่ 1–4 มาประกอบร่างเป็นแม่แบบหน้าแรกความละเอียดสูง (Hi-Fi Desktop 1440px) แปลงเลย์เอาต์สู่จอมือถือ (Mobile Responsive 390px) ออกแบบหน้ารายละเอียดสินค้า (PDP) พร้อมเชื่อมโยง Interactive Prototype และตรวจสอบคุณภาพ Design QA ก่อนขึ้นเวทีนำเสนอผลงาน
+          </p>
+        </div>
+
+        <!-- 🎯 จุดประสงค์การเรียนรู้ประจำหน่วยที่ 5 -->
+        <div id="sec-objectives" class="scroll-mt-24 pt-6 border-t border-purple-100 dark:border-purple-900/50 space-y-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🎯</span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+              จุดประสงค์การเรียนรู้ประจำหน่วยที่ 5
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- 1. ด้านความรู้ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">1. ด้านความรู้ (Knowledge)</span>
+                <span class="text-lg">🧠</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-1.5 list-disc pl-4 leading-relaxed">
+                <li>อธิบายหลักการประกอบแม่แบบเว็บไซต์ความละเอียดสูง (<strong>High-Fidelity Website Template Assembly</strong>) โดยบูรณาการสินทรัพย์กราฟิกทั้งหมดจากหน่วยที่ 1–4 ได้อย่างเป็นระบบ</li>
+                <li>วิเคราะห์กลยุทธ์การปรับเปลี่ยนเลย์เอาต์สำหรับหน้าจอมือถือ (<strong>Responsive Transformation Patterns</strong>: Stacking, Wrapping, Off-Canvas) ตามมาตรฐานอุปกรณ์พกพาได้</li>
+                <li>อธิบายสถาปัตยกรรมหน้ารายละเอียดสินค้า (<strong>Product Detail Page: PDP Anatomy</strong>) และเส้นทางการเดินทางของผู้ใช้ (<strong>User Journey Flow</strong>) จากหน้าแรกสู่การสั่งซื้อได้</li>
+                <li>อธิบายกลไกการสร้างต้นแบบเชิงโต้ตอบ (<strong>Interactive Prototyping</strong>) ได้แก่ Hotspots, Triggers, Transitions, และการตรึงแถบตำแหน่งคงที่ (<strong>Fixed/Sticky Scroll Position</strong>) บน Figma ได้</li>
+                <li>อธิบายมาตรฐานการเข้าถึงสากล (<strong>Web Accessibility: WCAG 2.1 AA</strong>) โดยเฉพาะเรื่องอัตราส่วนความเปรียบต่างของสี (<strong>Contrast Ratio ≥ 4.5:1</strong>) ได้</li>
+              </ul>
+            </div>
+
+            <!-- 2. ด้านทักษะปฏิบัติการ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-pink-600 text-white font-mono text-xs font-bold">2. ด้านทักษะปฏิบัติการ (Skill)</span>
+                <span class="text-lg">🛠️</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-2 list-disc pl-4 leading-relaxed">
+                <li><strong>การประกอบแม่แบบคอมพิวเตอร์:</strong> ประกอบแม่แบบหน้าแรกคอมพิวเตอร์ (<strong>Hi-Fi Desktop Homepage Template 1440px</strong>) ครบทั้ง 5 โซนหลัก โดยใช้สินทรัพย์จริงทั้งหมดลงบน 12-Column Grid ได้อย่างประณีต</li>
+                <li><strong>การแปลงเลย์เอาต์มือถือ:</strong> ปรับแปลงเลย์เอาต์แม่แบบหน้าแรกสู่จอมือถือ (<strong>Hi-Fi Mobile Template 390px</strong>) โดยใช้ระบบ 4-Column Grid และปรับเปลี่ยนระบบนำทางเป็น Drawer Hamburger Menu ได้อย่างสมบูรณ์</li>
+                <li><strong>การออกแบบหน้ารองและผูก Prototype:</strong> ออกแบบหน้ารายละเอียดสินค้า (<strong>PDP</strong>) พร้อมเชื่อมต่อเส้นทางปฏิสัมพันธ์บนโหมด <strong>Figma Prototype</strong> ให้คลิกเปลี่ยนหน้า เปิดแผ่นเมนู และเลื่อนหน้าจอแบบ Sticky Bar ได้เสมือนเว็บไซต์จริง</li>
+                <li><strong>การตรวจสอบคุณภาพ Design QA:</strong> ปฏิบัติการตรวจสอบคุณภาพการออกแบบ (<strong>Design QA Audit</strong>), ตรวจวัดค่า Contrast Ratio, จัดระเบียบเลเยอร์ 100%, และทดสอบสัมผัสใช้งานจริงผ่านแอปพลิเคชัน <strong>Figma Mirror</strong> บนสมาร์ตโฟนได้</li>
+              </ul>
+            </div>
+
+            <!-- 3. ด้านจิตพิสัยและจรรยาบรรณวิชาชีพ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-emerald-600 text-white font-mono text-xs font-bold">3. ด้านจิตพิสัย (Attitude)</span>
+                <span class="text-lg">💎</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-2 list-disc pl-4 leading-relaxed">
+                <li>มีความประณีตในการจัดระยะช่องไฟแนวตั้ง (<strong>Vertical Rhythm</strong>) และรักษาความสม่ำเสมอของ Design System ตลอดทั้งเว็บไซต์</li>
+                <li>มีจิตสำนึกในการออกแบบที่คำนึงถึงผู้พิการทางสายตาและผู้สูงอายุ (<strong>Digital Inclusivity</strong>)</li>
+                <li>มีทักษะการทำงานเป็นทีม วินัยในการส่งมอบงาน และความพร้อมในการนำเสนอผลงานระดับมืออาชีพ</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 🧭 แผนผังโครงสร้างการเรียนรู้ประจำหน่วย -->
+        <div class="pt-6 border-t border-purple-100 dark:border-purple-900/50 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🧭</span>
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                แผนผังโครงสร้างการเรียนรู้ประจำหน่วย
+              </h2>
+            </div>
+            <span class="text-xs font-mono text-purple-600 dark:text-purple-400">คลิกที่แต่ละตอนเพื่อข้ามไปยังหัวข้อที่ต้องการ</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="#sec-part1" class="p-4 rounded-2xl border-2 border-indigo-500/40 bg-indigo-50/40 dark:bg-indigo-950/20 hover:border-indigo-500 transition block space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white font-mono text-xs font-bold">ตอนที่ 1</span>
+                <span class="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-bold">Hi-Fi 1440px →</span>
+              </div>
+              <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">
+                ประกอบแม่แบบ Desktop Version (Hi-Fi 1440px)
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>บูรณาการสินทรัพย์จริงทั้งหมด (บทที่ 1–4)</li>
+                <li>ประกอบ 5 โซนลงบน 12-Column Grid</li>
+                <li>คุมระยะช่องไฟแนวตั้ง (Vertical Rhythm 80–120px)</li>
+              </ol>
+            </a>
+
+            <a href="#sec-part2" class="p-4 rounded-2xl border-2 border-teal-500/40 bg-teal-50/40 dark:bg-teal-950/20 hover:border-teal-500 transition block space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-teal-600 text-white font-mono text-xs font-bold">ตอนที่ 2</span>
+                <span class="font-mono text-[11px] text-teal-600 dark:text-teal-400 font-bold">Mobile 390px →</span>
+              </div>
+              <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">
+                ปรับเลย์เอาต์สำหรับมือถือ (Mobile Responsive 390px)
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>ทฤษฎี Responsive: Breakpoints &amp; 4-Column Grid</li>
+                <li>กลยุทธ์การยุบเลย์เอาต์: Stacking &amp; Off-Canvas</li>
+                <li>ปรับขนาด Touch Target ≥ 48px บนมือถือ</li>
+              </ol>
+            </a>
+
+            <a href="#sec-part3" class="p-4 rounded-2xl border-2 border-pink-500/40 bg-pink-50/40 dark:bg-pink-950/20 hover:border-pink-500 transition block space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-pink-600 text-white font-mono text-xs font-bold">ตอนที่ 3</span>
+                <span class="font-mono text-[11px] text-pink-600 dark:text-pink-400 font-bold">PDP &amp; Prototype →</span>
+              </div>
+              <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">
+                ออกแบบหน้ารายละเอียดสินค้า &amp; Interactive Prototype
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>สถาปัตยกรรมหน้ารายละเอียดสินค้า (PDP Anatomy)</li>
+                <li>ลากเส้นเชื่อมต่อ Hotspots &amp; Transitions บน Figma</li>
+                <li>ตั้งค่า Sticky Navbar &amp; User Flow 4 ขั้นตอน</li>
+              </ol>
+            </a>
+
+            <a href="#sec-part4" class="p-4 rounded-2xl border-2 border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-950/20 hover:border-emerald-500 transition block space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-mono text-xs font-bold">ตอนที่ 4 &amp; 5</span>
+                <span class="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">QA &amp; Workshops →</span>
+              </div>
+              <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">
+                ตรวจสอบคุณภาพ Design QA, Figma Mirror &amp; ใบงาน
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>ตรวจวัดความเปรียบต่างสี (Contrast Ratio ≥ 4.5:1)</li>
+                <li>ล้างเลเยอร์ขยะ &amp; จัดแบ่ง 5 Pages มาตรฐาน</li>
+                <li>ซ้อมทดสอบบน Figma Mirror &amp; ใบงาน 5.1–5.4</li>
+              </ol>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- บทนำ: จุดบรรจบของกระบวนการออกแบบ UI/UX สู่ผลงานระดับมืออาชีพ        -->
+    <!-- =================================================================== -->
+    <section id="sec-intro" class="scroll-mt-24 space-y-6">
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-9 shadow-xl space-y-6">
+        <div class="space-y-2">
+          <span class="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-mono text-xs font-bold uppercase">
+            INTRODUCTION • THE CONVERGENCE OF UNITS 1–4 INTO FULL TEMPLATE ASSEMBLY
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            บทนำ: จุดบรรจบของกระบวนการออกแบบ UI/UX สู่ผลงานระดับมืออาชีพ
+          </h2>
+          <p class="text-sm sm:text-base font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+            ยินดีด้วยที่นักศึกษาได้เดินทางมาถึง <strong>หน่วยที่ 5</strong> ซึ่งเป็นหน่วยการเรียนรู้บทสุดท้ายและเป็นช่วงเวลาที่น่าตื่นเต้นที่สุดของวิชานี้! ตลอดหน่วยที่ 1–4 ที่ผ่านมา นักศึกษาได้สะสมชิ้นส่วนต่างๆ เปรียบเสมือนการผลิตอะไหล่ของรถยนต์ทีละชิ้น และในหน่วยนี้เราจะนำอะไหล่ทั้งหมดมา <strong>“ประกอบร่างเข้าด้วยกัน (Template Assembly)”</strong> เพื่อสร้างเว็บไซต์ธุรกิจจริงที่ตอบสนองทุกขนาดหน้าจอ (Responsive Web Design) และเชื่อมโยงให้คลิกสัมผัสได้จริง (Interactive Prototype):
+          </p>
+        </div>
+
+        <!-- 4 Units Assembly Pipeline Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded bg-purple-600 text-white font-mono text-xs font-bold">หน่วยที่ 1</span>
+              <span class="text-lg">🎨</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">รากฐานแบรนด์ &amp; ทฤษฎีสี</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300">วางแนวคิดแบรนด์ จานสีสัดส่วน 60-30-10 ตัวอักษรคู่หู (Typography) และการคัดกรองสื่อถูกลิขสิทธิ์</p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-mono text-xs font-bold">หน่วยที่ 2</span>
+              <span class="text-lg">📐</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">พิมพ์เขียว &amp; คอมโพเนนต์</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300">สร้างพิมพ์เขียวขาว-ดำ (Wireframe) บน 12-Column Grid ระบบนำทาง และการ์ดสินค้าด้วย Auto-layout</p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded bg-teal-600 text-white font-mono text-xs font-bold">หน่วยที่ 3</span>
+              <span class="text-lg">✒️</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">สินทรัพย์กราฟิกจริง</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300">ผลิตโลโก้เวกเตอร์ ชุดไอคอนบริการ SVG 4 รูป ภาพสินค้าไดคัทพร้อมเงา 2 ชั้น และการบีบอัดไฟล์ WebP</p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded bg-pink-600 text-white font-mono text-xs font-bold">หน่วยที่ 4</span>
+              <span class="text-lg">🎬</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">ภาพเคลื่อนไหว &amp; แบนเนอร์</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300">สร้างสตอรี่บอร์ด 4 คีย์เฟรม และแบนเนอร์ภาพเคลื่อนไหวเชิงโต้ตอบ (Hero Animation ด้วย Smart Animate)</p>
+          </div>
+        </div>
+
+        <!-- Final Convergence Banner -->
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-900 via-purple-900 to-emerald-900 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+          <div class="space-y-1">
+            <div class="text-xs font-mono text-emerald-300 font-bold">🚀 ผลลัพธ์ปลายทางในหน่วยที่ 5 (Final Deliverable Bundle)</div>
+            <div class="text-base sm:text-lg font-extrabold">
+              ประกอบร่างครบทั้ง Desktop (1440px) + Mobile Responsive (390px) + หน้ารายละเอียดสินค้า (PDP) + Interactive Prototype พร้อมนำเสนอในวัน Demo Day!
+            </div>
+          </div>
+          <a href="#sec-simulator" class="px-4 py-2.5 rounded-xl bg-emerald-400 text-slate-950 font-mono text-xs font-extrabold shrink-0 hover:bg-emerald-300 transition shadow">
+            ⚡ ทดลองเล่น Prototype 4 หน้าจอ →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 1: การประกอบแม่แบบหน้าแรกความละเอียดสูง (Hi-Fi Desktop 1440px) -->
+    <!-- =================================================================== -->
+    <section id="sec-part1" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-indigo-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-mono font-bold">
+          PART 01 • HIGH-FIDELITY DESKTOP HOMEPAGE TEMPLATE ASSEMBLY (1440PX)
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 1: การประกอบแม่แบบหน้าแรกความละเอียดสูง (Hi-Fi Desktop Template 1440px)
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          เปลี่ยนจากพิมพ์เขียวขาว-ดำ (Low-Fi Wireframe) ไปสู่แม่แบบความละเอียดสูง (High-Fidelity Mockup) ด้วยการแทนที่กล่องสี่เหลี่ยมสีเทาด้วยชิ้นส่วนจริงที่สมบูรณ์ 100% พร้อมควบคุมจังหวะช่องไฟแนวตั้ง (Vertical Rhythm)
+        </p>
+      </div>
+
+      <!-- 1.1 การบูรณาการสินทรัพย์จริงทั้งหมดเข้าสู่พิมพ์เขียว (From Low-Fi to Hi-Fi) -->
+      <div id="sec-1-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-indigo-600 dark:text-indigo-400">TOPIC 1.1 • FROM LOW-FI WIREFRAME TO HI-FI PRODUCTION TEMPLATE</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              1.1 การบูรณาการสินทรัพย์จริงทั้งหมดเข้าสู่พิมพ์เขียว (From Low-Fi to Hi-Fi)
+            </h3>
+            <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+              หัวใจสำคัญของการประกอบแม่แบบความละเอียดสูง คือ <strong>“การแทนที่กล่องสี่เหลี่ยมสีเทาด้วยชิ้นส่วนจริงที่สมบูรณ์ 100%”</strong> ทั้ง 5 โซนบนหน้าเว็บ:
+            </p>
+          </div>
+
+          <div class="flex gap-2">
+            <button type="button" id="btn-mode-lowfi" class="px-3.5 py-2 rounded-xl text-xs font-mono font-bold subtle-box border hover:border-indigo-500 transition">
+              📐 ดูพิมพ์เขียวเดิม (Low-Fi บทที่ 2)
+            </button>
+            <button type="button" id="btn-mode-hifi" class="px-3.5 py-2 rounded-xl text-xs font-mono font-bold bg-indigo-600 text-white shadow-sm transition">
+              ✨ ดูแม่แบบประกอบร่างจริง (Hi-Fi บทที่ 5)
+            </button>
+          </div>
+        </div>
+
+        <!-- Comparison Table: Low-Fi to Hi-Fi across 5 Zones -->
+        <div class="overflow-x-auto rounded-2xl border-2 border-indigo-200 dark:border-indigo-900/60">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-indigo-700 text-white">
+                <th class="p-3.5 font-bold">โซนบนหน้าเว็บ</th>
+                <th class="p-3.5 font-bold bg-slate-700">📐 ชิ้นงานเดิมใน Wireframe (บทที่ 2)</th>
+                <th class="p-3.5 font-bold bg-emerald-700">✨ สิ่งที่ต้องแทนที่ใน Hi-Fi (บทที่ 5)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-indigo-100 dark:divide-indigo-900/40 font-body">
+              <tr>
+                <td class="p-3.5 font-sans font-bold">1. Header Navbar</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">กล่องเทา พิมพ์ข้อความว่า <code class="font-mono">[LOGO]</code></td>
+                <td class="p-3.5 font-semibold text-emerald-700 dark:text-emerald-300">โลโก้เวกเตอร์จริง (SVG) + เมนูมีสีประจำแบรนด์</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-sans font-bold">2. Hero Section</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">กล่องสี่เหลี่ยมสีเทามีกากบาท X ข้อความสีเทากลาง</td>
+                <td class="p-3.5 font-semibold text-emerald-700 dark:text-emerald-300">Interactive Animated Hero Banner ที่สร้างจากบทที่ 4 (พร้อมแสงเงา)</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-sans font-bold">3. Product Grid</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">การ์ดสินค้ากล่องภาพสีเทา</td>
+                <td class="p-3.5 font-semibold text-emerald-700 dark:text-emerald-300">การ์ดสินค้าจริงที่ใส่ภาพไดคัท WebP + ป้ายลดราคา + ราคาจริง</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-sans font-bold">4. Trust Badges</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">ข้อความธรรมดาไม่มีไอคอน</td>
+                <td class="p-3.5 font-semibold text-emerald-700 dark:text-emerald-300">ชุดไอคอนบริการ 4 รูป (SVG) จากบทที่ 3</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-sans font-bold">5. Footer</td>
+                <td class="p-3.5 text-slate-600 dark:text-slate-300">กล่องสี่เหลี่ยมผืนผ้าสีเทา</td>
+                <td class="p-3.5 font-semibold text-emerald-700 dark:text-emerald-300">ส่วนท้ายสีแบรนด์เข้ม ลิงก์แผนผังเว็บไซต์และช่องทางติดต่อครบถ้วน</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Interactive 5-Zone Low-Fi vs Hi-Fi Live Canvas -->
+        <div id="assembly-preview-box" class="rounded-2xl border-2 border-indigo-400 bg-white dark:bg-slate-900 overflow-hidden shadow-lg transition-all">
+          <!-- Zone 1: Header -->
+          <div id="asm-z1" class="px-5 py-3.5 bg-indigo-900 text-white flex items-center justify-between text-xs font-mono">
+            <div class="flex items-center gap-2 font-bold">
+              <span class="px-2 py-0.5 rounded bg-emerald-400 text-slate-950">SVG LOGO</span>
+              <span>BANPONG LUXE WEAR</span>
+            </div>
+            <div class="hidden sm:flex gap-4 font-sans font-medium">
+              <span class="text-amber-300 font-bold underline">หน้าแรก</span>
+              <span>คอลเลกชันใหม่</span>
+              <span>เสื้อเชิ้ตบุรุษ</span>
+              <span>โปรโมชัน</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span>🔍</span>
+              <span>🛒 (2)</span>
+              <span class="px-2.5 py-1 rounded bg-pink-600 text-white font-bold">สมาชิก</span>
+            </div>
+          </div>
+
+          <!-- Zone 2: Hero Banner -->
+          <div id="asm-z2" class="p-6 bg-gradient-to-r from-indigo-950 via-purple-900 to-slate-900 text-white grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            <div class="md:col-span-7 space-y-2 text-left">
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 font-mono text-[10px] font-bold">✨ NEW ARRIVAL 2026 • SMART ANIMATE HERO</span>
+              <h4 class="text-xl sm:text-2xl font-extrabold">เสื้อเชิ้ต Oxford Slim-Fit นุ่มสบายระบายอากาศ 100%</h4>
+              <p class="text-xs text-purple-200 font-body">ตัดเย็บประณีต พร้อมส่งตรงถึงบ้านคุณวันนี้ ลดทันที 25%</p>
+              <div class="pt-1 flex gap-2">
+                <span class="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs shadow">🛒 สั่งซื้อทันที</span>
+                <span class="px-4 py-2 rounded-xl border border-white/30 text-white text-xs">ดูแคตตาล็อก</span>
+              </div>
+            </div>
+            <div class="md:col-span-5 flex flex-col items-center justify-center p-4 rounded-2xl bg-white/10 border border-white/20">
+              <span class="text-5xl anim-float">👔</span>
+              <span class="font-mono text-[10px] text-emerald-300 mt-1">Hero_Shirt_Diecut.webp (เงา 2 ชั้น)</span>
+            </div>
+          </div>
+
+          <!-- Zone 3: Product Grid (4 Cards) -->
+          <div id="asm-z3" class="p-6 bg-slate-50 dark:bg-slate-900 space-y-3">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <span class="font-bold text-indigo-600 dark:text-indigo-400">3. PRODUCT GRID (4 ชิ้นบน 12-Column Grid • ภาพ WebP &lt; 150KB)</span>
+              <span>Gutter: 24px</span>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border shadow-sm space-y-1.5">
+                <div class="h-20 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-2xl relative">
+                  <span class="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-rose-600 text-white font-mono text-[9px] font-bold">-25%</span>
+                  👔
+                </div>
+                <div class="font-bold text-slate-900 dark:text-white">เสื้อเชิ้ต Oxford สีขาว</div>
+                <div class="text-amber-500 text-[11px] font-bold">⭐ 4.9 (142)</div>
+                <div class="flex justify-between items-center pt-1">
+                  <span class="font-extrabold text-indigo-600 dark:text-indigo-300">฿ 490</span>
+                  <span class="px-2 py-1 rounded bg-indigo-600 text-white text-[10px] font-bold">+ ซื้อ</span>
+                </div>
+              </div>
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border shadow-sm space-y-1.5">
+                <div class="h-20 rounded-lg bg-sky-50 dark:bg-sky-950/60 flex items-center justify-center text-2xl">👕</div>
+                <div class="font-bold text-slate-900 dark:text-white">เสื้อโปโล Pique สีกรมท่า</div>
+                <div class="text-amber-500 text-[11px] font-bold">⭐ 4.8 (98)</div>
+                <div class="flex justify-between items-center pt-1">
+                  <span class="font-extrabold text-indigo-600 dark:text-indigo-300">฿ 390</span>
+                  <span class="px-2 py-1 rounded bg-indigo-600 text-white text-[10px] font-bold">+ ซื้อ</span>
+                </div>
+              </div>
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border shadow-sm space-y-1.5">
+                <div class="h-20 rounded-lg bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-2xl">👖</div>
+                <div class="font-bold text-slate-900 dark:text-white">กางเกงชิโน่ทรง Slim</div>
+                <div class="text-amber-500 text-[11px] font-bold">⭐ 4.9 (215)</div>
+                <div class="flex justify-between items-center pt-1">
+                  <span class="font-extrabold text-indigo-600 dark:text-indigo-300">฿ 590</span>
+                  <span class="px-2 py-1 rounded bg-indigo-600 text-white text-[10px] font-bold">+ ซื้อ</span>
+                </div>
+              </div>
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border shadow-sm space-y-1.5">
+                <div class="h-20 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-2xl">🧥</div>
+                <div class="font-bold text-slate-900 dark:text-white">แจ็กเก็ตยีนส์พรีเมียม</div>
+                <div class="text-amber-500 text-[11px] font-bold">⭐ 5.0 (64)</div>
+                <div class="flex justify-between items-center pt-1">
+                  <span class="font-extrabold text-indigo-600 dark:text-indigo-300">฿ 890</span>
+                  <span class="px-2 py-1 rounded bg-indigo-600 text-white text-[10px] font-bold">+ ซื้อ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zone 4: Trust Badges (4 SVG Icons) -->
+          <div id="asm-z4" class="px-6 py-4 bg-white dark:bg-slate-800 border-t grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+            <div class="p-2.5 rounded-xl subtle-box border flex items-center gap-2"><span class="text-lg">🚚</span><span>จัดส่งฟรีทั่วไทย (SVG)</span></div>
+            <div class="p-2.5 rounded-xl subtle-box border flex items-center gap-2"><span class="text-lg">🛡️</span><span>รับประกันของแท้ 100%</span></div>
+            <div class="p-2.5 rounded-xl subtle-box border flex items-center gap-2"><span class="text-lg">💳</span><span>ชำระเงินปลอดภัย</span></div>
+            <div class="p-2.5 rounded-xl subtle-box border flex items-center gap-2"><span class="text-lg">💬</span><span>ดูแลลูกค้า 24 ชม.</span></div>
+          </div>
+
+          <!-- Zone 5: Footer -->
+          <div id="asm-z5" class="px-6 py-4 bg-slate-950 text-slate-300 text-[11px] font-mono flex flex-wrap items-center justify-between gap-2">
+            <span>5. FOOTER • © 2026 Banpong Luxe Wear Digital Store</span>
+            <span>แผนผังเว็บไซต์ | นโยบายการคืนสินค้า | ติดต่อเรา</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.2 กฎการคุมจังหวะช่องไฟแนวตั้ง (Vertical Rhythm & Section Spacing) -->
+      <div id="sec-1-2" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-purple-600 dark:text-purple-400">TOPIC 1.2 • VERTICAL RHYTHM &amp; 8PX BASE UNIT SPACING</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              1.2 กฎการคุมจังหวะช่องไฟแนวตั้ง (Vertical Rhythm &amp; Section Spacing)
+            </h3>
+            <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+              ข้อผิดพลาดที่ทำให้หน้าเว็บดูอึดอัดหรือกระจัดกระจาย คือการเว้นระยะห่างระหว่างแต่ละโซนไม่เท่ากัน ในการออกแบบระดับมืออาชีพ เราใช้ระบบ <strong>Base Unit 8px</strong> ควบคุมระยะห่างแนวตั้ง 4 ระดับ:
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-vr="24" class="vr-btn px-3 py-1.5 rounded-xl subtle-box border font-mono text-xs font-bold transition">❌ แคบอึดอัด (24px)</button>
+            <button type="button" data-vr="80" class="vr-btn px-3 py-1.5 rounded-xl bg-purple-600 text-white font-mono text-xs font-bold shadow transition">✅ มาตรฐาน 80px</button>
+            <button type="button" data-vr="112" class="vr-btn px-3 py-1.5 rounded-xl subtle-box border font-mono text-xs font-bold transition">✨ พรีเมียม 96–120px</button>
+          </div>
+        </div>
+
+        <!-- 4 Levels of Vertical Rhythm Table -->
+        <div class="overflow-x-auto rounded-2xl border-2 border-purple-200 dark:border-purple-900/60">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-purple-700 text-white">
+                <th class="p-3.5 font-bold">ระดับช่องไฟ (Vertical Rhythm Hierarchy)</th>
+                <th class="p-3.5 font-bold">ขนาดพิกเซลแนะนำ (Base 8px)</th>
+                <th class="p-3.5 font-bold">ตำแหน่งการใช้งานบนหน้าเว็บไซต์</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-purple-100 dark:divide-purple-900/40 font-body">
+              <tr>
+                <td class="p-3.5 font-mono font-bold text-purple-700 dark:text-purple-300">1. Micro Spacing</td>
+                <td class="p-3.5 font-mono font-bold">8px ถึง 16px</td>
+                <td class="p-3.5">ภายใน Component เดียวกัน (เช่น ระยะห่างระหว่างชื่อสินค้ากับราคาในการ์ด)</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-mono font-bold text-indigo-700 dark:text-indigo-300">2. Component Spacing</td>
+                <td class="p-3.5 font-mono font-bold">24px ถึง 32px</td>
+                <td class="p-3.5">ระหว่างการ์ดสินค้าแต่ละใบในแถวเดียวกัน หรือระหว่างแถวการ์ด</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-mono font-bold text-teal-700 dark:text-teal-300">3. Sub-section Spacing</td>
+                <td class="p-3.5 font-mono font-bold">40px ถึง 48px</td>
+                <td class="p-3.5">ระหว่างหัวข้อหมวดหมู่ (H2) กับแผงการ์ดสินค้าด้านล่าง</td>
+              </tr>
+              <tr class="bg-emerald-50/70 dark:bg-emerald-950/30">
+                <td class="p-3.5 font-mono font-extrabold text-emerald-700 dark:text-emerald-300">4. Major Section Spacing ⭐</td>
+                <td class="p-3.5 font-mono font-extrabold text-emerald-700 dark:text-emerald-300">80px ถึง 120px</td>
+                <td class="p-3.5 font-bold text-emerald-900 dark:text-emerald-200">ระยะห่างระหว่างแต่ละโซนใหญ่ (เช่น ระหว่างโซน Hero กับโซน Product Grid)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Interactive Vertical Rhythm Visualizer + Tip Box -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 p-5 rounded-2xl bg-slate-900 text-white font-mono text-xs space-y-2">
+            <div class="flex justify-between text-amber-300 font-bold">
+              <span>จำลองระยะห่างระหว่างโซนใหญ่ (Major Section Spacing)</span>
+              <span id="vr-live-label">Padding แนวตั้ง: 80px ✅</span>
+            </div>
+            <div class="p-3 rounded-xl bg-indigo-600 text-center font-bold">โซนที่ 2: HERO SECTION</div>
+            <div id="vr-gap-bar" style="height: 56px;" class="rounded-xl border-2 border-dashed border-emerald-400 bg-emerald-500/20 flex items-center justify-center text-emerald-300 font-bold transition-all duration-300">
+              ↕ Major Section Spacing = 80px (โปร่งสบายตา 200%)
+            </div>
+            <div class="p-3 rounded-xl bg-purple-600 text-center font-bold">โซนที่ 3: FEATURED PRODUCTS GRID</div>
+          </div>
+
+          <div class="lg:col-span-5 p-5 rounded-2xl border-2 border-emerald-500/60 bg-emerald-50/60 dark:bg-emerald-950/30 space-y-2 text-xs font-body">
+            <div class="font-sans font-extrabold text-sm text-emerald-800 dark:text-emerald-300">
+              💡 เคล็ดลับความโปร่งสบายตา (White Space Mastery)
+            </div>
+            <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+              ระหว่างโซนที่ 2 (Hero) กับโซนที่ 3 (Products) และระหว่างโซนที่ 3 กับโซนที่ 4 (Trust Badges) ให้ตั้งค่า Padding แนวตั้งอย่างน้อย <strong><code class="font-mono">80px</code> หรือ <code class="font-mono">96px</code></strong> เสมอ หน้าเว็บจะดูพรีเมียม สบายตา และอ่านง่ายขึ้นทันที 200%
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 2: การแปลงเลย์เอาต์แม่แบบสำหรับมือถือ (Mobile Responsive 390px)-->
+    <!-- =================================================================== -->
+    <section id="sec-part2" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-teal-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-xs font-mono font-bold">
+          PART 02 • MOBILE RESPONSIVE TRANSFORMATION (390PX &amp; 4-COLUMN GRID)
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 2: การแปลงเลย์เอาต์แม่แบบสำหรับมือถือ (Mobile Responsive 390px)
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          เรียนรู้จุดตัดหน้าจอ (Responsive Breakpoints) ตารางเปรียบเทียบโครงตาราง Desktop 1440px vs Mobile 390px และ 4 กลยุทธ์การแปลงเลย์เอาต์สู่หน้าจอสมาร์ตโฟน
+        </p>
+      </div>
+
+      <!-- 2.1 ทฤษฎีจุดตัดหน้าจอ (Responsive Breakpoints) และระบบตารางมือถือ -->
+      <div id="sec-2-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-teal-600 dark:text-teal-400">TOPIC 2.1 • RESPONSIVE BREAKPOINTS &amp; 12-COL VS 4-COL GRID</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            2.1 ทฤษฎีจุดตัดหน้าจอ (Responsive Breakpoints) และระบบตารางมือถือ
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            ในการพัฒนาเว็บไซต์จริง หน้าจอจะถูกแบ่งออกเป็น 3 ช่วงขนาดหลักตามจุดตัด (Breakpoints):
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-body">
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-mono font-bold">1. Desktop Breakpoint</span>
+            <div class="text-base font-extrabold text-slate-900 dark:text-white pt-1">กว้างตั้งแต่ 1024px ขึ้นไป</div>
+            <p class="text-slate-600 dark:text-slate-300">เราใช้ขนาดเฟรมมาตรฐานยอดนิยมที่ <strong>1440px</strong> บนโครงตาราง 12 คอลัมน์</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-purple-600 text-white font-mono font-bold">2. Tablet Breakpoint</span>
+            <div class="text-base font-extrabold text-slate-900 dark:text-white pt-1">กว้างระหว่าง 768px – 1023px</div>
+            <p class="text-slate-600 dark:text-slate-300">หน้าจอแท็บเล็ตและไอแพด มักใช้โครงตาราง 8 คอลัมน์</p>
+          </div>
+          <div class="p-4 rounded-2xl border-2 border-teal-500 bg-teal-50/50 dark:bg-teal-950/30 space-y-1">
+            <span class="px-2.5 py-0.5 rounded bg-teal-600 text-white font-mono font-bold">3. Mobile Breakpoint ⭐</span>
+            <div class="text-base font-extrabold text-slate-900 dark:text-white pt-1">กว้างระหว่าง 320px – 480px</div>
+            <p class="text-slate-600 dark:text-slate-300">เราใช้ขนาดมาตรฐาน <strong>390px</strong> (อิงตาม iPhone 13/14/15/16) บนโครงตาราง 4 คอลัมน์</p>
+          </div>
+        </div>
+
+        <!-- Comparison Table: Desktop 1440px vs Mobile 390px Grid -->
+        <div class="overflow-x-auto rounded-2xl border-2 border-teal-200 dark:border-teal-900/60">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-teal-700 text-white">
+                <th class="p-3.5 font-bold">พารามิเตอร์โครงตาราง</th>
+                <th class="p-3.5 font-bold bg-indigo-800">💻 หน้าจอคอมพิวเตอร์ (Desktop 1440px)</th>
+                <th class="p-3.5 font-bold bg-teal-800">📱 หน้าจอมือถือ (Mobile 390px)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-teal-100 dark:divide-teal-900/40 font-mono">
+              <tr>
+                <td class="p-3.5 font-sans font-bold">1. จำนวนเสาคอลัมน์ (Columns)</td>
+                <td class="p-3.5 font-bold text-indigo-700 dark:text-indigo-300">12 คอลัมน์ (Type: Stretch)</td>
+                <td class="p-3.5 font-bold text-teal-700 dark:text-teal-300">4 คอลัมน์ (Type: Stretch)</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-sans font-bold">2. ระยะขอบซ้าย-ขวา (Margin)</td>
+                <td class="p-3.5">80px</td>
+                <td class="p-3.5 font-bold text-teal-700 dark:text-teal-300">16px ถึง 20px</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-sans font-bold">3. ช่องไฟระหว่างเสา (Gutter)</td>
+                <td class="p-3.5">24px</td>
+                <td class="p-3.5 font-bold text-teal-700 dark:text-teal-300">12px ถึง 16px</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-sans font-bold">4. พื้นที่แสดงเนื้อหาจริง (Content Area)</td>
+                <td class="p-3.5">1280px</td>
+                <td class="p-3.5 font-bold text-teal-700 dark:text-teal-300">350px – 358px</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2.2 4 กลยุทธ์การปรับเปลี่ยนเลย์เอาต์ (Responsive Layout Transformation Patterns) -->
+      <div id="sec-2-2" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-pink-600 dark:text-pink-400">TOPIC 2.2 • 4 RESPONSIVE LAYOUT TRANSFORMATION PATTERNS</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              2.2 4 กลยุทธ์การปรับเปลี่ยนเลย์เอาต์ (Responsive Layout Transformation Patterns)
+            </h3>
+            <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+              เมื่อย่อจากหน้าจอคอมพิวเตอร์ 1440px ลงมาเหลือเพียง 390px บนมือถือ เราไม่สามารถ “ย่อสเกลภาพให้เล็กลงเฉยๆ” ได้ เพราะตัวหนังสือจะเล็กจิ๋วจนอ่านไม่ออก นักศึกษาต้องใช้ <strong>4 กลยุทธ์การแปลงเลย์เอาต์</strong>:
+            </p>
+          </div>
+
+          <button type="button" id="btn-toggle-resp-view" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-teal-600 to-indigo-600 text-white font-mono text-xs font-bold shadow-md hover:opacity-95 transition">
+            📱 กดสลับเปรียบเทียบ Desktop 1440px ⇄ Mobile 390px!
+          </button>
+        </div>
+
+        <!-- 4 Transformation Strategy Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-body">
+          <div class="p-5 rounded-2xl subtle-box border space-y-1.5">
+            <div class="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm">1. Stacking (การซ้อนแถวดิ่ง)</div>
+            <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+              จากเดิมใน Hero Section ที่ข้อความอยู่ซ้าย–รูปสินค้าอยู่ขวา (2 คอลัมน์คู่กัน) ──► <strong>จับรูปภาพขึ้นด้านบน และดันข้อความตกลงมาซ้อนด้านล่าง</strong>
+            </p>
+          </div>
+          <div class="p-5 rounded-2xl subtle-box border space-y-1.5">
+            <div class="font-mono font-bold text-teal-600 dark:text-teal-400 text-sm">2. Wrapping / Grid Reduction (การลดจำนวนคอลัมน์การ์ด)</div>
+            <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+              จากเดิมการ์ดสินค้าเรียงแถวละ 4 ชิ้น ──► <strong>ยุบเหลือเรียงแถวละ 1 ชิ้น หรือ 2 ชิ้นต่อแถว</strong> เพื่อให้ภาพและชื่อสินค้ายังอ่านชัดเจน
+            </p>
+          </div>
+          <div class="p-5 rounded-2xl subtle-box border space-y-1.5">
+            <div class="font-mono font-bold text-pink-600 dark:text-pink-400 text-sm">3. Off-Canvas Drawer (การซ่อนเมนูลงลิ้นชัก)</div>
+            <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+              แถบเมนู 5 ปุ่มแนวนอนบนคอมพิวเตอร์ ──► <strong>ซ่อนไว้ใต้ปุ่มแฮมเบอร์เกอร์ (☰)</strong> เมื่อแตะจึงสไลด์แผ่นลิ้นชักออกมา
+            </p>
+          </div>
+          <div class="p-5 rounded-2xl subtle-box border space-y-1.5">
+            <div class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">4. Touch Target Enlargement (การขยายพื้นที่แตะ)</div>
+            <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+              ปุ่มคลิกด้วยเมาส์ขนาดพอดีคำ ──► <strong>ขยายความกว้างเต็มจอ (Full Width) และมีความสูงขั้นต่ำ ≥ 48px</strong> เพื่อให้นิ้วโป้งกดง่าย
+            </p>
+          </div>
+        </div>
+
+        <!-- Visual Side-by-Side Comparison: Desktop 1440px vs Mobile 390px -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Left: Desktop 1440px Layout (7 Cols) -->
+          <div id="resp-desktop-card" class="lg:col-span-7 p-5 rounded-2xl border-2 border-indigo-500 bg-white dark:bg-slate-900 space-y-3 shadow-md transition-all">
+            <div class="flex justify-between items-center font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">
+              <span>💻 [Desktop Version 1440px • 12-Column Grid]</span>
+              <span>Margin 80px • Gutter 24px</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex justify-between items-center font-mono text-xs">
+              <span class="font-bold">[LOGO]</span>
+              <span>เมนู 1 &nbsp; เมนู 2 &nbsp; เมนู 3 &nbsp; เมนู 4</span>
+              <span class="px-2.5 py-1 rounded bg-indigo-600 text-white font-bold">[ปุ่มสมาชิก]</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 items-center text-xs">
+              <div class="space-y-2">
+                <div class="font-bold text-slate-900 dark:text-white">ข้อความพาดหัวฝั่งซ้าย (6 Cols)</div>
+                <span class="inline-block px-3 py-1.5 rounded bg-indigo-600 text-white font-mono text-[11px] font-bold">[ ปุ่มสั่งซื้อ ]</span>
+              </div>
+              <div class="h-24 rounded-lg bg-white dark:bg-slate-800 border flex items-center justify-center font-mono font-bold text-indigo-600">
+                👔 รูปสินค้าฝั่งขวา (6 Cols)
+              </div>
+            </div>
+            <div class="grid grid-cols-4 gap-2 text-center font-mono text-[11px]">
+              <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border font-bold">การ์ด 1</div>
+              <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border font-bold">การ์ด 2</div>
+              <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border font-bold">การ์ด 3</div>
+              <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border font-bold">การ์ด 4</div>
+            </div>
+          </div>
+
+          <!-- Right: Mobile 390px Layout (5 Cols) -->
+          <div id="resp-mobile-card" class="lg:col-span-5 p-5 rounded-3xl border-4 border-teal-500 bg-white dark:bg-slate-900 space-y-3 shadow-xl max-w-sm mx-auto w-full transition-all">
+            <div class="flex justify-between items-center font-mono text-xs text-teal-600 dark:text-teal-400 font-bold">
+              <span>📱 [Mobile 390px • 4-Col Grid]</span>
+              <span>Margin 16px</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex justify-between items-center font-mono text-xs">
+              <span class="font-bold">[LOGO]</span>
+              <span class="px-2.5 py-1 rounded bg-teal-600 text-white font-bold">[☰ Off-Canvas]</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 space-y-2 text-xs">
+              <div class="h-20 rounded-lg bg-white dark:bg-slate-800 border flex items-center justify-center font-mono font-bold text-teal-600">
+                👔 1. รูปสินค้าขึ้นด้านบน (Stacking)
+              </div>
+              <div class="font-bold text-center text-slate-900 dark:text-white">ข้อความพาดหัวตกลงมาด้านล่าง</div>
+              <div class="py-2.5 rounded-lg bg-teal-600 text-white text-center font-mono font-bold">
+                [ 4. ปุ่มสั่งซื้อเต็มจอ สูง ≥ 48px ]
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-center font-mono text-xs">
+              <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border font-bold">การ์ด 1 (2 Cols)</div>
+              <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border font-bold">การ์ด 2 (2 Cols)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 3: หน้ารายละเอียดสินค้า (PDP) และการสร้าง Interactive Prototype -->
+    <!-- =================================================================== -->
+    <section id="sec-part3" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-pink-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300 text-xs font-mono font-bold">
+          PART 03 • PRODUCT DETAIL PAGE (PDP ANATOMY) &amp; INTERACTIVE PROTOTYPING
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 3: หน้ารายละเอียดสินค้า (PDP) และการสร้าง Interactive Prototype
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          หน้าแรกมีหน้าที่ “ดึงดูดความสนใจ” แต่หน้าที่จะ <strong>“ปิดการขายและสร้างรายได้จริง”</strong> คือหน้ารายละเอียดสินค้า (PDP) เรียนรู้กายวิภาค PDP การผูก Prototype 3 เสาหลัก การตั้งค่า Sticky Position และแผนผังเส้นทางผู้ใช้ 4 ขั้นตอน
+        </p>
+      </div>
+
+      <!-- 3.1 สถาปัตยกรรมหน้ารายละเอียดสินค้า (Product Detail Page: PDP Anatomy) -->
+      <div id="sec-3-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-pink-600 dark:text-pink-400">TOPIC 3.1 • PRODUCT DETAIL PAGE (PDP LAYOUT BLUEPRINT)</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            3.1 สถาปัตยกรรมหน้ารายละเอียดสินค้า (Product Detail Page: PDP Anatomy)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            ทดลองคลิกสลับรูปย่อย (Thumbnails), เลือกสี (ขาว/ยีนส์/ดำ), เลือกขนาด (S/M/L/XL), ปรับจำนวน และกดปุ่มสั่งซื้อบนหน้า PDP จำลองด้านล่าง:
+          </p>
+        </div>
+
+        <!-- Interactive PDP Blueprint Mockup -->
+        <div class="rounded-3xl border-2 border-pink-300 dark:border-pink-800 bg-white dark:bg-[#151226] p-5 sm:p-8 shadow-inner space-y-5">
+          <!-- Breadcrumbs -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-500 dark:text-slate-400">
+            <div>
+              <span>[Breadcrumbs]: หน้าแรก</span> &gt; <span>เสื้อผ้าบุรุษ</span> &gt; <strong id="pdp-bc-name" class="text-pink-600 dark:text-pink-400">เสื้อเชิ้ต Oxford Slim-Fit (สีขาว)</strong>
+            </div>
+            <span class="px-2.5 py-0.5 rounded bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300 font-bold">12-Column Grid (ซ้าย 6 : ขวา 6)</span>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left 6 Columns: Product Image Gallery (1:1 Main + 4 Thumbnails) -->
+            <div class="lg:col-span-6 space-y-3">
+              <div class="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">[ฝั่งซ้าย: แกลเลอรีรูปภาพสินค้า 6 คอลัมน์]</div>
+              <div id="pdp-main-img" class="h-64 sm:h-72 rounded-2xl bg-gradient-to-br from-slate-100 to-indigo-50 dark:from-slate-800 dark:to-indigo-950 border-2 border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center relative transition-all">
+                <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-rose-600 text-white font-mono text-xs font-bold shadow">🔥 ลด 25%</span>
+                <div id="pdp-main-emoji" class="text-7xl transition-transform duration-300">👔</div>
+                <div id="pdp-main-caption" class="mt-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-200">
+                  รูปภาพหลักความละเอียดสูง (1:1) • มุมด้านหน้า (สีขาว)
+                </div>
+              </div>
+
+              <!-- 4 Thumbnails -->
+              <div class="grid grid-cols-4 gap-2.5 font-mono text-xs">
+                <button type="button" data-thumb="มุมด้านหน้า" class="pdp-thumb-btn p-2.5 rounded-xl border-2 border-pink-600 bg-pink-50/50 dark:bg-pink-950/40 font-bold text-center transition">
+                  🖼️ 1<div class="text-[10px] font-sans">ด้านหน้า</div>
+                </button>
+                <button type="button" data-thumb="มุมด้านข้าง Slim-Fit" class="pdp-thumb-btn p-2.5 rounded-xl border subtle-box font-bold text-center hover:border-pink-500 transition">
+                  🖼️ 2<div class="text-[10px] font-sans">ด้านข้าง</div>
+                </button>
+                <button type="button" data-thumb="ซูมเนื้อผ้า Oxford" class="pdp-thumb-btn p-2.5 rounded-xl border subtle-box font-bold text-center hover:border-pink-500 transition">
+                  🖼️ 3<div class="text-[10px] font-sans">เนื้อผ้า</div>
+                </button>
+                <button type="button" data-thumb="ตารางขนาดสัดส่วน" class="pdp-thumb-btn p-2.5 rounded-xl border subtle-box font-bold text-center hover:border-pink-500 transition">
+                  🖼️ 4<div class="text-[10px] font-sans">ขนาด</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Right 6 Columns: Product Details & Purchase Controls -->
+            <div class="lg:col-span-6 space-y-4 text-left">
+              <div class="text-xs font-mono font-bold text-pink-600 dark:text-pink-400">[ฝั่งขวา: รายละเอียดและการสั่งซื้อ 6 คอลัมน์]</div>
+              <div class="space-y-1">
+                <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">เสื้อผ้าแฟชั่นบุรุษเกรดพรีเมียม</div>
+                <h4 id="pdp-title-text" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                  เสื้อเชิ้ตแขนยาว Oxford Slim-Fit (สีขาว)
+                </h4>
+                <div class="text-xs font-bold text-amber-500">
+                  ⭐ 4.9 (142 รีวิว) • ขายแล้ว 1.5k ชิ้น
+                </div>
+              </div>
+
+              <!-- Price Box -->
+              <div class="p-3.5 rounded-2xl subtle-box border flex items-baseline gap-3">
+                <span id="pdp-price-val" class="text-2xl sm:text-3xl font-extrabold text-pink-600 dark:text-pink-400">฿ 490.00</span>
+                <span class="text-sm text-slate-400 line-through">฿ 650.00</span>
+                <span class="px-2 py-0.5 rounded bg-rose-600 text-white font-mono text-xs font-bold">-25%</span>
+              </div>
+
+              <!-- Color Swatches -->
+              <div class="space-y-1.5 text-xs">
+                <div class="font-bold text-slate-700 dark:text-slate-200">ตัวเลือกสี:</div>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" data-color="สีขาว" class="pdp-color-btn px-3.5 py-2 rounded-xl border-2 border-pink-600 bg-pink-50 dark:bg-pink-950/50 font-bold">⚪ ขาว</button>
+                  <button type="button" data-color="สียีนส์" class="pdp-color-btn px-3.5 py-2 rounded-xl border subtle-box font-bold">🔵 ยีนส์</button>
+                  <button type="button" data-color="สีดำ" class="pdp-color-btn px-3.5 py-2 rounded-xl border subtle-box font-bold">⚫ ดำ</button>
+                </div>
+              </div>
+
+              <!-- Size Selector -->
+              <div class="space-y-1.5 text-xs">
+                <div class="font-bold text-slate-700 dark:text-slate-200">ขนาด (Size):</div>
+                <div class="flex flex-wrap gap-2 font-mono">
+                  <button type="button" data-size="S" class="pdp-size-btn w-11 h-11 rounded-xl border subtle-box font-bold">S</button>
+                  <button type="button" data-size="M" class="pdp-size-btn w-11 h-11 rounded-xl border-2 border-pink-600 bg-pink-600 text-white font-bold shadow">M</button>
+                  <button type="button" data-size="L" class="pdp-size-btn w-11 h-11 rounded-xl border subtle-box font-bold">L</button>
+                  <button type="button" data-size="XL" class="pdp-size-btn w-11 h-11 rounded-xl border subtle-box font-bold">XL</button>
+                </div>
+              </div>
+
+              <!-- Quantity Stepper -->
+              <div class="flex items-center gap-4 text-xs pt-1">
+                <span class="font-bold text-slate-700 dark:text-slate-200">จำนวน:</span>
+                <div class="inline-flex items-center rounded-xl border-2 border-slate-300 dark:border-slate-700 overflow-hidden font-mono font-bold">
+                  <button type="button" id="pdp-qty-minus" class="w-10 h-10 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">-</button>
+                  <span id="pdp-qty-val" class="w-12 text-center text-sm">1</span>
+                  <button type="button" id="pdp-qty-plus" class="w-10 h-10 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">+</button>
+                </div>
+                <span id="pdp-total-label" class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">รวม: ฿ 490.00</span>
+              </div>
+
+              <!-- Action CTA Buttons -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <button type="button" id="pdp-btn-cart" class="py-3.5 px-4 rounded-xl border-2 border-indigo-600 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs sm:text-sm hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition">
+                  [ + เพิ่มลงในตะกร้าสินค้า ]
+                </button>
+                <button type="button" id="pdp-btn-buy" class="py-3.5 px-4 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-extrabold text-xs sm:text-sm shadow-lg hover:opacity-95 transition">
+                  [ ซื้อสินค้าทันที (Buy Now) ]
+                </button>
+              </div>
+              <div id="pdp-action-feedback" class="hidden p-3 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-400 text-emerald-800 dark:text-emerald-200 text-xs font-bold text-center">
+                ✅ เพิ่มสินค้าเข้าสู่ตะกร้าเรียบร้อยแล้ว!
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.2 ศาสตร์แห่งการสร้างต้นแบบเชิงโต้ตอบ (Interactive Prototyping) -->
+      <div id="sec-3-2" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-purple-600 dark:text-purple-400">TOPIC 3.2 • 3 PILLARS OF FIGMA PROTOTYPING &amp; STICKY POSITION</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            3.2 ศาสตร์แห่งการสร้างต้นแบบเชิงโต้ตอบ (Interactive Prototyping)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            ต้นแบบ (Prototype) คือสิ่งที่ทำให้นักศึกษาแตกต่างจากช่างวาดรูปทั่วไป เพราะมันคือ <strong>“การจำลองซอฟต์แวร์ที่เหมือนจริงโดยไม่ต้องเขียนโค้ดแม้แต่บรรทัดเดียว”</strong> ประกอบด้วย 3 เสาหลัก:
+          </p>
+        </div>
+
+        <!-- 3 Pillars Table -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">1. Trigger (ตัวกระตุ้น)</span>
+            <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">ผู้ใช้ทำกริยาอะไร?</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              เช่น <code class="font-mono font-bold">On Click</code> (คลิกเมาส์/แตะนิ้ว), <code class="font-mono font-bold">While Hovering</code> (เมาส์ชี้), <code class="font-mono font-bold">After Delay</code> (รอเวลาอัตโนมัติ), <code class="font-mono font-bold">On Drag</code> (ลากนิ้วสไลด์)
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <span class="px-2.5 py-1 rounded-lg bg-pink-600 text-white font-mono text-xs font-bold">2. Action (การกระทำ)</span>
+            <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">เกิดผลลัพธ์อะไรขึ้น?</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              เช่น <code class="font-mono font-bold">Navigate to</code> (เปิดเปลี่ยนหน้าใหม่), <code class="font-mono font-bold">Open Overlay</code> (เปิดหน้าต่างลิ้นชักเมนูลอยทับ), <code class="font-mono font-bold">Scroll to</code> (เลื่อนไปยังโซนเป้าหมาย)
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <span class="px-2.5 py-1 rounded-lg bg-teal-600 text-white font-mono text-xs font-bold">3. Animation (รูปแบบการเปลี่ยน)</span>
+            <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">ขยับเปลี่ยนฉากแบบไหน?</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              เช่น <code class="font-mono font-bold">Instant</code> (เปลี่ยนทันที), <code class="font-mono font-bold">Dissolve</code> (จางหายข้ามหน้า), <code class="font-mono font-bold">Smart Animate</code> (วัตถุเดิมขยับแปลงร่าง), <code class="font-mono font-bold">Slide In</code> (สไลด์จากขอบจอ)
+            </p>
+          </div>
+        </div>
+
+        <!-- Sticky / Fixed Position Guide Box -->
+        <div class="p-5 sm:p-6 rounded-2xl bg-slate-900 text-white space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-mono font-bold text-amber-400">📌 ขั้นตอนการตั้งค่าแถบเมนูคงที่เมื่อเลื่อนจอ (Sticky / Fixed Scroll Position)</span>
+            <span class="px-2.5 py-0.5 rounded bg-emerald-600 text-white font-mono text-[11px] font-bold">Scroll Behavior: Fixed (stay in place)</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-body text-slate-200">
+            <div class="p-3.5 rounded-xl bg-slate-800 border border-slate-700">
+              <strong class="text-amber-300 font-mono block mb-1">ขั้นที่ 1 • คลิกเลือกแถบเมนู</strong>
+              คลิกเลือกแถบ Navbar ด้านบนสุด หรือแถบปุ่มสั่งซื้อด้านล่างสุด (Bottom Action Bar)
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-800 border border-slate-700">
+              <strong class="text-teal-300 font-mono block mb-1">ขั้นที่ 2 • ตรวจสอบ Constraints</strong>
+              มองที่แผงขวามือ หัวข้อ <strong>Constraints</strong> ตรวจสอบว่าตรึงอยู่กับขอบบน (<code class="font-mono">Top</code>) หรือขอบล่าง (<code class="font-mono">Bottom</code>)
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-800 border border-slate-700">
+              <strong class="text-pink-300 font-mono block mb-1">ขั้นที่ 3 • เปลี่ยน Scroll Behavior</strong>
+              ในหัวข้อ <strong>Scroll Behavior</strong> เปลี่ยนจาก <em>Scroll with parent</em> ให้เป็น <strong><code class="font-mono">Fixed (stay in place)</code></strong> แถบจะลอยค้างอยู่กับที่แม้เลื่อนอ่านเนื้อหายาวลงมา
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.3 แผนผังเส้นทางผู้ใช้ (Complete User Flow Mapping) & 4-Screen Prototype Simulator -->
+      <div id="sec-simulator" class="scroll-mt-24 surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="px-3 py-1 rounded-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-mono text-xs font-bold">
+              TOPIC 3.3 • COMPLETE USER FLOW MAPPING &amp; INTERACTIVE PROTOTYPE PLAYER
+            </span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-2">
+              3.3 แผนผังเส้นทางผู้ใช้ (Complete User Flow Mapping 4 ขั้นตอน)
+            </h3>
+            <p class="text-xs sm:text-sm font-body text-slate-600 dark:text-slate-300">
+              คลิกที่ปุ่มแต่ละขั้นตอน หรือกดปุ่มสีเขียวในหน้าจอจำลองด้านล่าง เพื่อทดสอบเส้นทางปฏิสัมพันธ์ตั้งแต่หน้าแรกจนสั่งซื้อสำเร็จ:
+            </p>
+          </div>
+        </div>
+
+        <!-- 4-Step Flow Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
+          <button type="button" data-flow="1" class="flow-step-btn p-3.5 rounded-2xl border-2 border-purple-600 bg-purple-600 text-white text-left space-y-1 shadow transition">
+            <div class="font-bold">1. หน้าแรก (Home)</div>
+            <div class="text-[10px] opacity-90">On Click • Smart Animate →</div>
+          </button>
+          <button type="button" data-flow="2" class="flow-step-btn p-3.5 rounded-2xl border subtle-box text-left space-y-1 transition">
+            <div class="font-bold">2. หน้ารายละเอียด (PDP)</div>
+            <div class="text-[10px] text-slate-500">On Click • Open Overlay →</div>
+          </button>
+          <button type="button" data-flow="3" class="flow-step-btn p-3.5 rounded-2xl border subtle-box text-left space-y-1 transition">
+            <div class="font-bold">3. ตะกร้าสินค้า (Cart Drawer)</div>
+            <div class="text-[10px] text-slate-500">On Click • Navigate to →</div>
+          </button>
+          <button type="button" data-flow="4" class="flow-step-btn p-3.5 rounded-2xl border subtle-box text-left space-y-1 transition">
+            <div class="font-bold">4. สั่งซื้อสำเร็จ (Success)</div>
+            <div class="text-[10px] text-slate-500">เสร็จสมบูรณ์ 100% ✅</div>
+          </button>
+        </div>
+
+        <!-- Interactive 4-Screen Prototype Stage -->
+        <div class="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 border-2 border-purple-500/50 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3 text-xs font-mono">
+            <span id="proto-screen-title" class="text-emerald-400 font-bold">📱 Frame ปัจจุบัน: 01_Homepage (คลิกที่การ์ดสินค้าเพื่อไปหน้า PDP)</span>
+            <span id="proto-transition-badge" class="px-3 py-1 rounded-full bg-purple-600 text-white font-bold">Trigger: On Click → Smart Animate (400ms)</span>
+          </div>
+
+          <div id="proto-stage-body" class="p-6 rounded-2xl bg-slate-800 border border-slate-700 min-h-[210px] flex flex-col items-center justify-center text-center space-y-4">
+            <div class="text-4xl">🏠 ➔ 👔</div>
+            <div class="text-lg font-extrabold">หน้าแรก (Homepage): ลูกค้าสนใจ “เสื้อเชิ้ต Oxford Slim-Fit”</div>
+            <p class="text-xs font-body text-slate-300 max-w-lg">
+              เมื่อผู้ใช้คลิกที่การ์ดสินค้า ระบบ Figma Prototype จะทำงานด้วยคำสั่ง <code class="font-mono text-amber-300">On Click → Navigate to: 03_Product_Detail_Page (Smart Animate)</code>
+            </p>
+            <button type="button" id="proto-next-action" class="px-5 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-mono text-xs font-extrabold shadow hover:bg-emerald-400 transition">
+              👆 คลิกการ์ดสินค้าเพื่อเปิดหน้า PDP (Step 2) →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 4: การตรวจสอบคุณภาพการออกแบบ (Design QA) และเตรียม Demo Day   -->
+    <!-- =================================================================== -->
+    <section id="sec-part4" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-emerald-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-mono font-bold">
+          PART 04 • DESIGN QA AUDIT, WCAG 2.1 AA CONTRAST RATIO &amp; FIGMA MIRROR
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 4: การตรวจสอบคุณภาพการออกแบบ (Design QA) และเตรียม Demo Day
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          ตรวจสอบการเข้าถึงตามมาตรฐานสากล W3C WCAG 2.1 Level AA (Contrast Ratio ≥ 4.5:1) การจัดระเบียบหน้า Pages และเลเยอร์ขั้นสุดท้าย และการทดสอบสัมผัสจริงบนสมาร์ตโฟนผ่านแอปพลิเคชัน Figma Mirror
+        </p>
+      </div>
+
+      <!-- 4.1 การตรวจสอบการเข้าถึง (Web Accessibility Audit & Contrast Ratio) -->
+      <div id="sec-4-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">TOPIC 4.1 • WCAG 2.1 LEVEL AA CONTRAST RATIO AUDIT</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            4.1 การตรวจสอบการเข้าถึง (Web Accessibility Audit &amp; Contrast Ratio)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            การออกแบบที่ดีต้องไม่ทอดทิ้งผู้ใช้งานที่มีปัญหาด้านสายตาหรือผู้สูงอายุ มาตรฐานสากล <strong>W3C Web Content Accessibility Guidelines (WCAG 2.1 Level AA)</strong> กำหนดเกณฑ์ <strong>อัตราส่วนความเปรียบต่างของสี (Contrast Ratio)</strong> ระหว่าง “สีตัวอักษร” กับ “สีพื้นหลัง” ไว้ 3 ระดับ:
+          </p>
+        </div>
+
+        <!-- 3 WCAG Contrast Benchmarks -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="p-5 rounded-2xl border-2 border-emerald-500/70 bg-emerald-50/50 dark:bg-emerald-950/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-300">1. Body Text (&lt; 18px)</span>
+              <span class="px-2.5 py-0.5 rounded bg-emerald-600 text-white font-mono text-xs font-extrabold">★★★ ≥ 4.5 : 1</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-900 dark:text-white">ข้อความทั่วไปขนาดเล็ก</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300">ต้องมีอัตราส่วนความเปรียบต่างไม่ต่ำกว่า <strong>4.5 : 1</strong> เพื่อให้ผู้สูงอายุอ่านเนื้อหารายละเอียดได้ชัดเจน</p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-purple-700 dark:text-purple-300">2. Large Headings</span>
+              <span class="px-2.5 py-0.5 rounded bg-purple-600 text-white font-mono text-xs font-extrabold">★★☆ ≥ 3.0 : 1</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-900 dark:text-white">หัวข้อใหญ่ (≥18px Bold / ≥24px)</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300">ข้อความหัวข้อขนาดใหญ่ ต้องมีอัตราส่วนความเปรียบต่างไม่ต่ำกว่า <strong>3.0 : 1</strong></p>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-teal-700 dark:text-teal-300">3. UI Components &amp; Icons</span>
+              <span class="px-2.5 py-0.5 rounded bg-teal-600 text-white font-mono text-xs font-extrabold">★★☆ ≥ 3.0 : 1</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-900 dark:text-white">เส้นขอบฟอร์มและไอคอนสำคัญ</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300">กรอบช่องกรอกข้อมูลและไอคอนนำทาง ต้องมีอัตราส่วนความเปรียบต่างไม่ต่ำกว่า <strong>3.0 : 1</strong></p>
+          </div>
+        </div>
+
+        <!-- Failed AA vs Passed AA Interactive Tester -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="p-5 rounded-2xl border-2 border-rose-400 bg-white text-center space-y-3">
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-rose-600">
+              <span>❌ ตัวอย่างที่สอบตก (Failed AA - ห้ามทำเด็ดขาด!)</span>
+              <span class="px-2.5 py-0.5 rounded bg-rose-600 text-white">Contrast 1.8 : 1</span>
+            </div>
+            <div class="p-5 rounded-xl bg-white border border-slate-200 text-[#CBD5E1] font-bold text-base">
+              ข้อความสีเทาอ่อน (#CBD5E1) บนพื้นหลังขาว
+            </div>
+            <p class="text-xs font-body text-slate-600">อ่านยากมาก ผู้สูงอายุและผู้มีปัญหาทางสายตาอ่านไม่ออก</p>
+          </div>
+
+          <div class="p-5 rounded-2xl border-2 border-emerald-500 bg-white text-center space-y-3">
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-emerald-700">
+              <span>✅ ตัวอย่างที่สอบผ่าน (Passed AA - มาตรฐานสากล)</span>
+              <span class="px-2.5 py-0.5 rounded bg-emerald-600 text-white">Contrast 7.2 : 1</span>
+            </div>
+            <div class="p-5 rounded-xl bg-white border border-slate-200 text-[#374151] font-bold text-base">
+              ข้อความสีเทาเข้ม #374151 บนพื้นหลังขาว
+            </div>
+            <p class="text-xs font-body text-slate-600">คมชัด สบายตา อ่านง่ายทุกวัย ผ่านทั้งเกณฑ์ AA และ AAA</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.2 การทำความสะอาดไฟล์งานขั้นสุดท้าย & 4.3 การทดสอบผ่าน Figma Mirror -->
+      <div id="sec-4-2" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 4.2 Layer Hygiene & 5 Standard Pages -->
+        <div class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-4">
+          <span class="text-xs font-mono font-bold uppercase text-indigo-600 dark:text-indigo-400">TOPIC 4.2 • LAYER HYGIENE &amp; 5-PAGE FILE ORGANIZATION</span>
+          <h3 class="text-xl font-extrabold text-slate-900 dark:text-white">
+            4.2 การทำความสะอาดไฟล์งานขั้นสุดท้าย (Layer Hygiene)
+          </h3>
+          <p class="text-xs sm:text-sm font-body text-slate-600 dark:text-slate-300">
+            ก่อนส่งมอบงานระดับ Final หรือนำเสนอต่อหน้าคณะกรรมการ ไฟล์ Figma ต้องจัดแบ่งหน้า <strong>Pages ฝั่งซ้ายสุด</strong> เป็นสัดส่วนชัดเจน 5 หน้า:
+          </p>
+          <div class="p-4 rounded-2xl bg-slate-900 text-white font-mono text-xs space-y-2">
+            <div class="p-2 rounded bg-slate-800 border border-slate-700">💻 01_Desktop_Homepage <span class="text-emerald-400 float-right">(1440px)</span></div>
+            <div class="p-2 rounded bg-slate-800 border border-slate-700">📱 02_Mobile_Homepage <span class="text-teal-400 float-right">(390px)</span></div>
+            <div class="p-2 rounded bg-slate-800 border border-slate-700">🛍️ 03_Product_Detail_Page <span class="text-pink-400 float-right">(PDP Desktop &amp; Mobile)</span></div>
+            <div class="p-2 rounded bg-slate-800 border border-slate-700">🎨 04_UI_Component_Library <span class="text-purple-400 float-right">(Design System)</span></div>
+            <div class="p-2 rounded bg-slate-800 border border-slate-700">🎬 05_Hero_Animation_Storyboard <span class="text-amber-400 float-right">(4 Keyframes)</span></div>
+          </div>
+          <ul class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1.5 list-disc pl-4">
+            <li><strong>ลบล้างเลเยอร์ขยะ (No Garbage Layers):</strong> ต้องไม่มีเลเยอร์ที่ถูกซ่อนตาไว้แล้วลืมลบ ไม่มี Frame ว่างเปล่าลอยอยู่นอกพื้นที่ทำงาน</li>
+            <li><strong>การล็อก Styles:</strong> ฟอนต์ทุกจุดต้องผูกกับ Text Styles และสีทุกจุดต้องผูกกับ Color Styles ครบถ้วน</li>
+          </ul>
+        </div>
+
+        <!-- 4.3 Figma Mirror Real-Device Testing -->
+        <div class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-4">
+          <span class="text-xs font-mono font-bold uppercase text-pink-600 dark:text-pink-400">TOPIC 4.3 • REAL-DEVICE TESTING VIA FIGMA MIRROR</span>
+          <h3 class="text-xl font-extrabold text-slate-900 dark:text-white">
+            4.3 การทดสอบสัมผัสบนมือถือจริงผ่าน Figma Mirror
+          </h3>
+          <p class="text-xs sm:text-sm font-body text-slate-600 dark:text-slate-300">
+            ห้ามเชื่อสายตาตัวเองบนจอคอมพิวเตอร์เพียงอย่างเดียว! นักศึกษาทุกคนต้องดาวน์โหลดแอปพลิเคชัน <strong>Figma (iOS / Android)</strong> เพื่อทดสอบขนาดจริง 1:1 ตาม 5 ขั้นตอนนี้:
+          </p>
+          <ol class="space-y-2 text-xs font-body text-slate-700 dark:text-slate-200 list-decimal pl-4">
+            <li class="p-2.5 rounded-xl subtle-box border">เปิดแอป <strong>Figma</strong> บนโทรศัพท์สมาร์ตโฟน ล็อกอินด้วยบัญชีเดียวกับบนคอมพิวเตอร์</li>
+            <li class="p-2.5 rounded-xl subtle-box border">แตะที่แท็บ <strong>Mirror</strong> ด้านล่างของแอปพลิเคชัน</li>
+            <li class="p-2.5 rounded-xl subtle-box border">บนจอคอมพิวเตอร์ ให้คลิกเลือกที่กรอบเฟรม <code class="font-mono font-bold">Mobile_Homepage (390px)</code></li>
+            <li class="p-2.5 rounded-xl subtle-box border">หน้าจอสมาร์ตโฟนจะแสดงผลขนาดจริง <strong>1:1</strong> ทันทีแบบเรียลไทม์</li>
+            <li class="p-2.5 rounded-xl subtle-box border"><strong>ใช้นิ้วหัวแม่มือทดลองแตะจริง:</strong> ตรวจดูว่าปุ่มกดสั่งซื้อแตะง่ายหรือไม่ ตัวหนังสือเล็กเกินไปหรือไม่ และเมนูลิ้นชักเปิดออกมาราบรื่นหรือไม่</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 5: ใบงานปฏิบัติการประจำหน่วยที่ 5 & แบบตรวจสอบตนเองขั้นสุดท้าย -->
+    <!-- =================================================================== -->
+    <section id="sec-workshops" class="scroll-mt-24 space-y-10">
+      <div class="border-l-4 border-amber-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-xs font-mono font-bold">
+          PART 05 • WORKSHOPS 5.1–5.4 &amp; FINAL COMPREHENSIVE SELF-CHECKLIST
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 5: ใบงานปฏิบัติการประจำหน่วยที่ 5 &amp; แบบตรวจสอบตนเองขั้นสุดท้าย
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          สรุปภารกิจการส่งงานและคะแนนเก็บประจำหน่วยที่ 5 (รวม 10 คะแนน + แฟ้มผลงาน Final Master Project File) พร้อมรายการตรวจสอบความสมบูรณ์ 100% ก่อนนำเสนอผลงานในวัน Demo Day
+        </p>
+      </div>
+
+      <!-- 4 Workshops Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Workshop 5.1 -->
+        <div class="surface-card border-2 border-indigo-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-indigo-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 5.1</span>
+              <span class="font-mono text-xs font-extrabold text-indigo-600 dark:text-indigo-400">3 คะแนน</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+              ประกอบแม่แบบ Desktop Version (Hi-Fi 1440px)
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1.5 list-decimal pl-4 leading-relaxed">
+              <li>สร้าง Frame Desktop ขนาด <strong>1440 × 1024 px</strong> (ยืดความยาวลงมาได้ตามเนื้อหา) บน 12-Column Grid</li>
+              <li>ประกอบ 5 โซนหลักโดยใช้สินทรัพย์จริงทั้งหมด: Navbar โลโก้เวกเตอร์, Hero Section ภาพเคลื่อนไหว, Product Grid การ์ดสินค้าจริง, Trust Badges ไอคอน SVG 4 ชิ้น, และ Footer</li>
+              <li>คุมระยะห่างแนวตั้งระหว่างแต่ละโซนใหญ่ (Section Spacing) ให้ได้ระยะระหว่าง <strong>80px ถึง 120px</strong> อย่างสม่ำเสมอ</li>
+            </ol>
+          </div>
+          <div class="p-2.5 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-indigo-700 dark:text-indigo-300">
+            ชิ้นงานที่ 9: Hi-Fi Desktop Homepage Template (3 คะแนน)
+          </div>
+        </div>
+
+        <!-- Workshop 5.2 -->
+        <div class="surface-card border-2 border-teal-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-teal-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 5.2</span>
+              <span class="font-mono text-xs font-extrabold text-teal-600 dark:text-teal-400">3 คะแนน</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+              ปรับเลย์เอาต์แม่แบบสำหรับมือถือ (Mobile Responsive 390px)
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1.5 list-decimal pl-4 leading-relaxed">
+              <li>สร้าง Frame Mobile ขนาด <strong>390 × 844 px</strong> (สามารถยืดความยาวลงมาได้) บน 4-Column Grid</li>
+              <li>ปรับแปลงเลย์เอาต์จากหน้า Desktop ตามหลัก Stacking, Wrapping, และ Off-Canvas</li>
+              <li>เปลี่ยนระบบนำทางเป็น Mobile Header พร้อมหน้าต่าง Drawer Menu ลอยออกมาเมื่อกด</li>
+              <li>ปรับขนาดพื้นที่สัมผัส Touch Target บนมือถือให้มีขนาดไม่ต่ำกว่า <strong>48 × 48 px</strong> ทุกจุด</li>
+            </ol>
+          </div>
+          <div class="p-2.5 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-teal-700 dark:text-teal-300">
+            ชิ้นงานที่ 10: Hi-Fi Mobile Homepage Template (3 คะแนน)
+          </div>
+        </div>
+
+        <!-- Workshop 5.3 -->
+        <div class="surface-card border-2 border-pink-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-pink-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 5.3</span>
+              <span class="font-mono text-xs font-extrabold text-pink-600 dark:text-pink-400">4 คะแนน</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+              ออกแบบหน้ารายละเอียดสินค้า &amp; ทำ Interactive Prototype
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1.5 list-decimal pl-4 leading-relaxed">
+              <li>ออกแบบหน้ารายละเอียดสินค้า (<strong>PDP</strong>) ทั้งเวอร์ชัน Desktop และ Mobile ประกอบด้วยแกลเลอรีรูปภาพ, ข้อมูลสินค้า, ตัวเลือกสี/ขนาด, ราคา, และปุ่มสั่งซื้อ</li>
+              <li>ผูกปฏิสัมพันธ์ในโหมด <strong>Figma Prototype</strong> ครบตาม User Flow: <code class="font-mono">Home → PDP → Cart Drawer → Success</code></li>
+              <li>ตั้งค่าแถบ Navbar และปุ่มสั่งซื้อด้านล่างให้เป็น <strong>Sticky / Fixed Position</strong> ลอยค้างเมื่อเลื่อนหน้าจอ</li>
+            </ol>
+          </div>
+          <div class="p-2.5 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-pink-700 dark:text-pink-300">
+            ชิ้นงานที่ 11: ลิงก์ Interactive Figma Prototype (4 คะแนน)
+          </div>
+        </div>
+
+        <!-- Workshop 5.4 -->
+        <div class="surface-card border-2 border-emerald-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-emerald-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 5.4</span>
+              <span class="font-mono text-xs font-extrabold text-emerald-600 dark:text-emerald-400">Final Master File</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+              ตรวจสอบคุณภาพ Design QA &amp; แฟ้มผลงาน Final Master File
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1.5 list-decimal pl-4 leading-relaxed">
+              <li>ติดตั้งและรันปลั๊กอิน <strong>Contrast Checker</strong> บน Figma ตรวจสอบตัวอักษรทุกจุดให้ผ่านเกณฑ์ <strong>WCAG 2.1 AA (≥ 4.5:1)</strong></li>
+              <li>ทำความสะอาดเลเยอร์ทั้งหมด จัดแบ่งหน้า Pages ทั้ง 5 หน้า และผูก Color/Text Styles ครบถ้วน</li>
+              <li>ทดสอบการกดจริงผ่านแอป <strong>Figma Mirror</strong> บนโทรศัพท์มือถือ และส่งลิงก์ตรวจ Final Master Project ก่อนขึ้นเวทีนำเสนอ Demo Day</li>
+            </ol>
+          </div>
+          <div class="p-2.5 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-emerald-700 dark:text-emerald-300">
+            ชิ้นงานที่ 12: Final Project Master File ฉบับสมบูรณ์
+          </div>
+        </div>
+      </div>
+
+      <!-- Final Comprehensive Self-Checklist (12 Items in 3 Categories) -->
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">FINAL COMPREHENSIVE SELF-CHECKLIST</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              ✅ แบบตรวจสอบตนเองขั้นสุดท้าย (Final Comprehensive Self-Checklist)
+            </h3>
+            <p class="text-xs sm:text-sm font-body text-slate-600 dark:text-slate-300">
+              ก่อนส่งลิงก์ Final Project ตรวจสอบความสมบูรณ์ระดับ 100% ตามรายการทั้ง 3 หมวดนี้:
+            </p>
+          </div>
+          <div class="text-right">
+            <div id="u5-chk-label" class="font-mono text-sm font-extrabold text-emerald-600 dark:text-emerald-400">0 / 12 รายการ (0%)</div>
+            <div class="w-44 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden mt-1">
+              <div id="u5-chk-bar" style="width: 0%;" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs font-body">
+          <!-- Category 1: Completeness -->
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <div class="font-sans font-extrabold text-sm text-indigo-700 dark:text-indigo-300">
+              1. ความสมบูรณ์ของหน้าจอ (Completeness)
+            </div>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>มีหน้าแรก Desktop (1440px) สมบูรณ์ ครบ 5 โซน</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>มีหน้าแรก Mobile (390px) แบบ Responsive ถูกต้องบน 4-Column Grid</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>มีหน้ารายละเอียดสินค้า (PDP) ทั้ง Desktop และ Mobile</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>มีหน้าต่างแผ่นเมนูลิ้นชัก (Drawer Menu) บนมือถือ</span>
+            </label>
+          </div>
+
+          <!-- Category 2: Prototype Interactivity -->
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <div class="font-sans font-extrabold text-sm text-pink-700 dark:text-pink-300">
+              2. ระบบปฏิสัมพันธ์ (Prototype Interactivity)
+            </div>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>กดคลิกจากการ์ดสินค้าหน้าแรกแล้วเปิดเข้าหน้ารายละเอียดสินค้าได้จริง</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>กดเปิด-ปิดเมนูลิ้นชักบนมือถือได้อย่างลื่นไหล</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>แถบเมนูด้านบนถูกล็อกแบบ Fixed Scroll ลอยค้างไม่เลื่อนหาย</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>แอนิเมชัน Hero Banner เล่นลูปขยับนุ่มนวล ไม่กระตุก</span>
+            </label>
+          </div>
+
+          <!-- Category 3: Engineering & Accessibility -->
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <div class="font-sans font-extrabold text-sm text-emerald-700 dark:text-emerald-300">
+              3. คุณภาพเชิงวิศวกรรม (Engineering &amp; Accessibility)
+            </div>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>สีตัวอักษรและปุ่มผ่านเกณฑ์ความเปรียบต่าง Contrast Ratio ≥ 4.5:1</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ปุ่มกดบนมือถือทุกปุ่มมีขนาดพื้นที่แตะไม่ต่ำกว่า 48 × 48 px</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>เลเยอร์ทุกตัวในแผงซ้ายมือเปลี่ยนชื่อเป็นภาษาอังกฤษเรียบร้อย ปราศจากชื่อขยะ</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u5-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ลิงก์ไฟล์ Figma ตั้งค่าการแชร์เป็น <code class="font-mono font-bold">Anyone with the link can view</code> พร้อมนำเสนอในวัน Demo Day</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with Standard Comfortable Margins -->
+  <footer class="border-t border-purple-200/60 dark:border-purple-900/40 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+    <div class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>รายวิชา <strong>31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์</strong> • บทที่ 5 การประกอบแม่แบบเว็บไซต์และการทดสอบต้นแบบเชิงโต้ตอบ</div>
+      <div class="font-mono">แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล วิทยาลัยการอาชีพบ้านโป่ง</div>
+    </div>
+  </footer>
+
+  <!-- Interactive JavaScript -->
+  <script>
+    (function () {
+      // 1. Theme Switcher (Light / Dark / Accent)
+      const htmlEl = document.documentElement;
+      const btnLight = document.getElementById('btn-theme-light');
+      const btnDark = document.getElementById('btn-theme-dark');
+      const btnAccent = document.getElementById('btn-theme-accent');
+
+      function setTheme(mode) {
+        htmlEl.classList.remove('dark', 'theme-accent');
+        [btnLight, btnDark, btnAccent].forEach(b => {
+          b.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition';
+        });
+        if (mode === 'dark') {
+          htmlEl.classList.add('dark');
+          btnDark.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-purple-600 text-white shadow-sm transition';
+        } else if (mode === 'accent') {
+          htmlEl.classList.add('theme-accent');
+          btnAccent.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-emerald-600 text-white shadow-sm transition';
+        } else {
+          btnLight.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white text-purple-700 shadow-sm transition';
+        }
+      }
+      btnLight.addEventListener('click', () => setTheme('light'));
+      btnDark.addEventListener('click', () => setTheme('dark'));
+      btnAccent.addEventListener('click', () => setTheme('accent'));
+
+      // 2. Topic 1.1 Low-Fi vs Hi-Fi Template Assembly Switcher
+      const btnLowFi = document.getElementById('btn-mode-lowfi');
+      const btnHiFi = document.getElementById('btn-mode-hifi');
+      const previewBox = document.getElementById('assembly-preview-box');
+      if (btnLowFi && btnHiFi && previewBox) {
+        btnLowFi.addEventListener('click', () => {
+          previewBox.style.filter = 'grayscale(100%) contrast(95%)';
+          btnLowFi.className = 'px-3.5 py-2 rounded-xl text-xs font-mono font-bold bg-slate-800 text-white shadow-sm transition';
+          btnHiFi.className = 'px-3.5 py-2 rounded-xl text-xs font-mono font-bold subtle-box border hover:border-indigo-500 transition';
+        });
+        btnHiFi.addEventListener('click', () => {
+          previewBox.style.filter = 'none';
+          btnHiFi.className = 'px-3.5 py-2 rounded-xl text-xs font-mono font-bold bg-indigo-600 text-white shadow-sm transition';
+          btnLowFi.className = 'px-3.5 py-2 rounded-xl text-xs font-mono font-bold subtle-box border hover:border-indigo-500 transition';
+        });
+      }
+
+      // 3. Topic 1.2 Vertical Rhythm Spacing Tuner
+      const vrGapBar = document.getElementById('vr-gap-bar');
+      const vrLiveLabel = document.getElementById('vr-live-label');
+      document.querySelectorAll('.vr-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const px = parseInt(btn.getAttribute('data-vr'), 10);
+          document.querySelectorAll('.vr-btn').forEach(b => {
+            b.className = 'vr-btn px-3 py-1.5 rounded-xl subtle-box border font-mono text-xs font-bold transition';
+          });
+          btn.className = 'vr-btn px-3 py-1.5 rounded-xl bg-purple-600 text-white font-mono text-xs font-bold shadow transition';
+          if (px === 24) {
+            vrGapBar.style.height = '24px';
+            vrGapBar.textContent = '↕ 24px (❌ แคบอึดอัด โซนชนกัน)';
+            vrLiveLabel.textContent = 'Padding แนวตั้ง: 24px ❌';
+          } else if (px === 80) {
+            vrGapBar.style.height = '56px';
+            vrGapBar.textContent = '↕ Major Section Spacing = 80px (โปร่งสบายตา 200%)';
+            vrLiveLabel.textContent = 'Padding แนวตั้ง: 80px ✅';
+          } else {
+            vrGapBar.style.height = '84px';
+            vrGapBar.textContent = '↕ Major Section Spacing = 96px – 120px (พรีเมียมหรูหรา ✨)';
+            vrLiveLabel.textContent = 'Padding แนวตั้ง: 112px ✨';
+          }
+        });
+      });
+
+      // 4. Topic 2.2 Desktop vs Mobile Highlight Toggle
+      const btnRespToggle = document.getElementById('btn-toggle-resp-view');
+      const deskCard = document.getElementById('resp-desktop-card');
+      const mobCard = document.getElementById('resp-mobile-card');
+      let focusMobile = false;
+      if (btnRespToggle && deskCard && mobCard) {
+        btnRespToggle.addEventListener('click', () => {
+          focusMobile = !focusMobile;
+          if (focusMobile) {
+            deskCard.style.opacity = '0.45';
+            mobCard.style.transform = 'scale(1.03)';
+          } else {
+            deskCard.style.opacity = '1';
+            mobCard.style.transform = 'scale(1)';
+          }
+        });
+      }
+
+      // 5. Topic 3.1 Interactive Product Detail Page (PDP)
+      let currentColor = 'สีขาว';
+      let currentAngle = 'มุมด้านหน้า';
+      let currentQty = 1;
+      const pdpCaption = document.getElementById('pdp-main-caption');
+      const pdpTitle = document.getElementById('pdp-title-text');
+      const pdpBc = document.getElementById('pdp-bc-name');
+      const pdpQtyVal = document.getElementById('pdp-qty-val');
+      const pdpTotal = document.getElementById('pdp-total-label');
+      const pdpFeedback = document.getElementById('pdp-action-feedback');
+
+      function updatePdpDisplay() {
+        const titleStr = 'เสื้อเชิ้ตแขนยาว Oxford Slim-Fit (' + currentColor + ')';
+        if (pdpTitle) pdpTitle.textContent = titleStr;
+        if (pdpBc) pdpBc.textContent = titleStr;
+        if (pdpCaption) pdpCaption.textContent = 'รูปภาพหลักความละเอียดสูง (1:1) • ' + currentAngle + ' (' + currentColor + ')';
+        if (pdpQtyVal) pdpQtyVal.textContent = String(currentQty);
+        if (pdpTotal) pdpTotal.textContent = 'รวม: ฿ ' + (currentQty * 490).toLocaleString() + '.00';
+      }
+
+      document.querySelectorAll('.pdp-thumb-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentAngle = btn.getAttribute('data-thumb');
+          document.querySelectorAll('.pdp-thumb-btn').forEach(b => {
+            b.className = 'pdp-thumb-btn p-2.5 rounded-xl border subtle-box font-bold text-center hover:border-pink-500 transition';
+          });
+          btn.className = 'pdp-thumb-btn p-2.5 rounded-xl border-2 border-pink-600 bg-pink-50/50 dark:bg-pink-950/40 font-bold text-center transition';
+          updatePdpDisplay();
+        });
+      });
+
+      document.querySelectorAll('.pdp-color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentColor = btn.getAttribute('data-color');
+          document.querySelectorAll('.pdp-color-btn').forEach(b => {
+            b.className = 'pdp-color-btn px-3.5 py-2 rounded-xl border subtle-box font-bold';
+          });
+          btn.className = 'pdp-color-btn px-3.5 py-2 rounded-xl border-2 border-pink-600 bg-pink-50 dark:bg-pink-950/50 font-bold';
+          updatePdpDisplay();
+        });
+      });
+
+      document.querySelectorAll('.pdp-size-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.pdp-size-btn').forEach(b => {
+            b.className = 'pdp-size-btn w-11 h-11 rounded-xl border subtle-box font-bold';
+          });
+          btn.className = 'pdp-size-btn w-11 h-11 rounded-xl border-2 border-pink-600 bg-pink-600 text-white font-bold shadow';
+        });
+      });
+
+      const btnMinus = document.getElementById('pdp-qty-minus');
+      const btnPlus = document.getElementById('pdp-qty-plus');
+      if (btnMinus && btnPlus) {
+        btnMinus.addEventListener('click', () => {
+          currentQty = Math.max(1, currentQty - 1);
+          updatePdpDisplay();
+        });
+        btnPlus.addEventListener('click', () => {
+          currentQty = Math.min(20, currentQty + 1);
+          updatePdpDisplay();
+        });
+      }
+
+      const btnCart = document.getElementById('pdp-btn-cart');
+      const btnBuy = document.getElementById('pdp-btn-buy');
+      if (btnCart && btnBuy && pdpFeedback) {
+        btnCart.addEventListener('click', () => {
+          pdpFeedback.textContent = '✅ เปิด Overlay ตะกร้าสินค้า (Cart Drawer): เพิ่ม ' + currentColor + ' จำนวน ' + currentQty + ' ชิ้นเรียบร้อย!';
+          pdpFeedback.classList.remove('hidden');
+        });
+        btnBuy.addEventListener('click', () => {
+          pdpFeedback.textContent = '🚀 Navigate to หน้าสั่งซื้อสำเร็จ (Success Page): ยอดชำระรวม ฿ ' + (currentQty * 490).toLocaleString() + '.00';
+          pdpFeedback.classList.remove('hidden');
+        });
+      }
+
+      // 6. Topic 3.3 4-Screen Prototype User Flow Simulator
+      const protoTitle = document.getElementById('proto-screen-title');
+      const protoBadge = document.getElementById('proto-transition-badge');
+      const protoBody = document.getElementById('proto-stage-body');
+      let currentFlowStep = 1;
+
+      const flowScreens = {
+        1: {
+          title: '📱 Frame ปัจจุบัน: 01_Homepage (คลิกการ์ดสินค้า)',
+          badge: 'Trigger: On Click → Smart Animate (400ms)',
+          emoji: '🏠 ➔ 👔',
+          heading: 'ขั้นตอนที่ 1: หน้าแรก (Home) — คลิกเลือกการ์ดสินค้า',
+          desc: 'ผู้ใช้เลื่อนดูสินค้าบนหน้าแรกแล้วคลิกที่การ์ด “เสื้อเชิ้ต Oxford Slim-Fit” เส้น Prototype จะพาไปยังหน้ารายละเอียดสินค้า (PDP)',
+          btnText: '👆 คลิกการ์ดสินค้าเพื่อเปิดหน้า PDP (ไปขั้นตอนที่ 2) →',
+          next: 2
+        },
+        2: {
+          title: '🛍️ Frame ปัจจุบัน: 03_Product_Detail_Page (PDP)',
+          badge: 'Trigger: On Click → Open Overlay (Slide In Right)',
+          emoji: '👔 ➔ 🛒',
+          heading: 'ขั้นตอนที่ 2: หน้ารายละเอียดสินค้า (PDP) — เลือกสี/ขนาด แล้วกดเพิ่มลงตะกร้า',
+          desc: 'ผู้ใช้เลือกสีขาว ขนาด M และกดปุ่ม “+ เพิ่มลงในตะกร้าสินค้า” ระบบจะสั่ง Open Overlay เปิดลิ้นชักตะกร้าสไลด์ออกมาจากขอบขวา',
+          btnText: '👆 กดปุ่มเพิ่มลงตะกร้าเพื่อเปิด Cart Drawer (ไปขั้นตอนที่ 3) →',
+          next: 3
+        },
+        3: {
+          title: '🧾 Overlay ปัจจุบัน: Cart_Drawer_Overlay (สไลด์จากขอบขวา)',
+          badge: 'Trigger: On Click → Navigate to: Order_Success',
+          emoji: '🛒 ➔ 💳',
+          heading: 'ขั้นตอนที่ 3: ตะกร้าสินค้า (Cart Drawer) — ตรวจสอบรายการและกดชำระเงิน',
+          desc: 'แผ่นลิ้นชักแสดงรายการสินค้า ยอดรวม ฿ 490.00 และปุ่มยืนยันการสั่งซื้อ เมื่อกดปุ่มจะ Navigate ไปยังหน้าสั่งซื้อสำเร็จ',
+          btnText: '👆 กดปุ่มยืนยันการสั่งซื้อ (ไปขั้นตอนที่ 4) →',
+          next: 4
+        },
+        4: {
+          title: '🎉 Frame ปัจจุบัน: 04_Order_Success (เสร็จสมบูรณ์)',
+          badge: 'Complete User Journey Flow ✅',
+          emoji: '✅ 🎉 📦',
+          heading: 'ขั้นตอนที่ 4: หน้าสั่งซื้อสำเร็จ (Success) — แสดงข้อความขอบคุณลูกค้า',
+          desc: 'แสดงหมายเลขคำสั่งซื้อ #BP-202688 พร้อมปุ่มกลับสู่หน้าแรก (ครบสมบูรณ์ทั้ง 4 ขั้นตอนของ Interactive Prototype)',
+          btnText: '🔄 กดเริ่มทดสอบลูปตั้งแต่หน้าแรกใหม่ (กลับสู่ขั้นตอนที่ 1)',
+          next: 1
+        }
+      };
+
+      function setFlowStep(step) {
+        currentFlowStep = step;
+        const s = flowScreens[step];
+        if (!s) return;
+        document.querySelectorAll('.flow-step-btn').forEach(b => {
+          if (parseInt(b.getAttribute('data-flow'), 10) === step) {
+            b.className = 'flow-step-btn p-3.5 rounded-2xl border-2 border-purple-600 bg-purple-600 text-white text-left space-y-1 shadow transition';
+          } else {
+            b.className = 'flow-step-btn p-3.5 rounded-2xl border subtle-box text-left space-y-1 transition';
+          }
+        });
+        protoTitle.textContent = s.title;
+        protoBadge.textContent = s.badge;
+        protoBody.innerHTML =
+          '<div class="text-4xl">' + s.emoji + '</div>' +
+          '<div class="text-lg font-extrabold">' + s.heading + '</div>' +
+          '<p class="text-xs font-body text-slate-300 max-w-lg">' + s.desc + '</p>' +
+          '<button type="button" id="proto-next-action" class="px-5 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-mono text-xs font-extrabold shadow hover:bg-emerald-400 transition">' + s.btnText + '</button>';
+        const nextBtn = document.getElementById('proto-next-action');
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => setFlowStep(s.next));
+        }
+      }
+
+      document.querySelectorAll('.flow-step-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setFlowStep(parseInt(btn.getAttribute('data-flow'), 10));
+        });
+      });
+      const initNextBtn = document.getElementById('proto-next-action');
+      if (initNextBtn) {
+        initNextBtn.addEventListener('click', () => setFlowStep(2));
+      }
+
+      // 7. Final Comprehensive Self-Checklist Progress Bar
+      const chks = document.querySelectorAll('.u5-chk');
+      const chkLabel = document.getElementById('u5-chk-label');
+      const chkBar = document.getElementById('u5-chk-bar');
+      function updateU5Checklist() {
+        const total = chks.length;
+        let done = 0;
+        chks.forEach(c => { if (c.checked) done++; });
+        const pct = Math.round((done / total) * 100);
+        if (chkLabel) chkLabel.textContent = done + ' / ' + total + ' รายการ (' + pct + '%)';
+        if (chkBar) chkBar.style.width = pct + '%';
+      }
+      chks.forEach(c => c.addEventListener('change', updateU5Checklist));
+    })();
+  </script>
+</body>
+</html>

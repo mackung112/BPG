@@ -153,6 +153,13 @@ export default function ExamControl() {
       showToast('success', `เพิ่มเวลาสอบ +${extraMinutes} นาที สำเร็จ! (เวลารวม ${newMinutes} นาที)`);
       setActiveSession(prev => ({ ...prev, time_limit_minutes: newMinutes }));
       fetchSessions();
+
+      const channel = supabase.channel(`room:exam_${activeSession.id}`);
+      channel.send({
+        type: 'broadcast',
+        event: 'room_time_adjusted',
+        payload: { newTimeLimitMinutes: newMinutes, additionalMinutes: Number(extraMinutes) }
+      }).catch(() => {});
     } catch (err) {
       showToast('error', 'เพิ่มเวลาไม่สำเร็จ: ' + err.message);
     }
@@ -175,6 +182,13 @@ export default function ExamControl() {
       setActiveSession(prev => ({ ...prev, time_limit_minutes: val }));
       setIsTimeModalOpen(false);
       fetchSessions();
+
+      const channel = supabase.channel(`room:exam_${activeSession.id}`);
+      channel.send({
+        type: 'broadcast',
+        event: 'room_time_adjusted',
+        payload: { newTimeLimitMinutes: val }
+      }).catch(() => {});
     } catch (err) {
       showToast('error', 'ปรับเวลาไม่สำเร็จ: ' + err.message);
     }
@@ -207,7 +221,7 @@ export default function ExamControl() {
         secret_code: secretCode,
         time_limit_minutes: timeLimit,
         exam_mode: examMode,
-        max_attempts: examMode === 'online' ? maxAttempts : 1,
+        max_attempts: parseInt(maxAttempts, 10) || 1,
         retake_until_pass: retakeUntilPass,
         passing_percentage: passingPercentage,
         question_count: examConfig.questionCount || examConfig.questions.length,
@@ -252,12 +266,21 @@ export default function ExamControl() {
         title: editSessionTitle.trim(),
         time_limit_minutes: parseInt(editTimeLimit, 10),
         exam_mode: editExamMode,
-        max_attempts: editExamMode === 'online' ? parseInt(editMaxAttempts, 10) : 1,
+        max_attempts: parseInt(editMaxAttempts, 10) || 1,
         retake_until_pass: editRetakeUntilPass,
         passing_percentage: parseInt(editPassingPercentage, 10) || 50,
         secret_code: editSecretCode.trim().toUpperCase(),
         status: editStatus
       });
+
+      if (parseInt(editTimeLimit, 10) !== editingSession.time_limit_minutes) {
+        const channel = supabase.channel(`room:exam_${editingSession.id}`);
+        channel.send({
+          type: 'broadcast',
+          event: 'room_time_adjusted',
+          payload: { newTimeLimitMinutes: parseInt(editTimeLimit, 10) }
+        }).catch(() => {});
+      }
 
       showToast('success', 'บันทึกการแก้ไขห้องสอบสำเร็จ!');
       setEditingSession(null);
@@ -572,20 +595,18 @@ export default function ExamControl() {
                     <option value="online">ออนไลน์ (เริ่มได้ทันที)</option>
                   </select>
                 </div>
-                {examMode === 'online' && (
-                  <div>
-                    <label className="block font-semibold text-zinc-600 mb-1">จำนวนครั้งสูงสุด</label>
-                    <input 
-                      required 
-                      value={maxAttempts} 
-                      onChange={e => setMaxAttempts(e.target.value)} 
-                      type="number" 
-                      min="1"
-                      disabled={retakeUntilPass}
-                      className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:border-indigo-500 text-xs disabled:bg-zinc-100 disabled:text-zinc-400" 
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="block font-semibold text-zinc-600 mb-1">จำนวนครั้งสูงสุด</label>
+                  <input 
+                    required 
+                    value={maxAttempts} 
+                    onChange={e => setMaxAttempts(e.target.value)} 
+                    type="number" 
+                    min="1"
+                    disabled={retakeUntilPass}
+                    className="w-full px-3 py-2 border border-zinc-200 rounded-xl focus:border-indigo-500 text-xs disabled:bg-zinc-100 disabled:text-zinc-400" 
+                  />
+                </div>
 
                 <div className="col-span-2 pt-1 border-t border-zinc-100">
                   <label className="flex items-center gap-2 cursor-pointer mb-2">
@@ -1214,20 +1235,18 @@ export default function ExamControl() {
                     <option value="online">ออนไลน์</option>
                   </select>
                 </div>
-                {editExamMode === 'online' && (
-                  <div>
-                    <label className="block font-semibold text-zinc-700 mb-1">จำนวนครั้งสูงสุด</label>
-                    <input
-                      required
-                      type="number"
-                      min="1"
-                      value={editMaxAttempts}
-                      onChange={e => setEditMaxAttempts(e.target.value)}
-                      disabled={editRetakeUntilPass}
-                      className="w-full px-3.5 py-2 text-xs border border-zinc-200 rounded-xl focus:border-indigo-500 disabled:bg-zinc-100 disabled:text-zinc-400"
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="block font-semibold text-zinc-700 mb-1">จำนวนครั้งสูงสุด</label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    value={editMaxAttempts}
+                    onChange={e => setEditMaxAttempts(e.target.value)}
+                    disabled={editRetakeUntilPass}
+                    className="w-full px-3.5 py-2 text-xs border border-zinc-200 rounded-xl focus:border-indigo-500 disabled:bg-zinc-100 disabled:text-zinc-400"
+                  />
+                </div>
 
                 <div className="col-span-2 pt-1 border-t border-zinc-100">
                   <label className="flex items-center gap-2 cursor-pointer mb-2">

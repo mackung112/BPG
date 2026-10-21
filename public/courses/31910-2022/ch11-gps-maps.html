@@ -1,0 +1,3148 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 11: การระบุพิกัดดาวเทียม GPS และแผนที่นำทางด้วย Google Maps | ห้องเรียนครูแม็ค BROADCAST</title>
+  
+  <!-- Google Fonts: Roboto, Roboto Mono, Sarabun ตามข้อกำหนด Red Broadcast -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN พร้อม inline config ตาม Design Tokens -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#FF0000',
+              redHover: '#CC0000',
+              blue: '#065FD4',
+              neutral: '#606060',
+              dark: '#0F0F0F',
+              surface: '#F2F2F2',
+              surfaceHover: '#E5E5E5',
+              border: '#E5E5E5',
+              success: '#2BA640',
+              warning: '#FB8C00'
+            }
+          },
+          fontFamily: {
+            sans: ['Roboto', 'Sarabun', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Roboto', 'Sarabun', sans-serif;
+      color: #0F0F0F;
+      background-color: #FFFFFF;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Scrollbar Styling */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Red Broadcast Elevation tokens */
+    .elevation-0 { box-shadow: none; }
+    .elevation-1 { box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .elevation-2 { box-shadow: 0 4px 32px rgba(0,0,0,0.1); }
+    .elevation-3 { box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+
+    /* Mobile Phone Simulator 320x640 */
+    .phone-mockup {
+      width: 320px;
+      height: 640px;
+      border: 10px solid #0F0F0F;
+      border-radius: 40px;
+      position: relative;
+      background: #FFFFFF;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -15px rgba(0,0,0,0.35);
+      display: flex;
+      flex-direction: column;
+      margin: 0 auto;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 124px;
+      height: 20px;
+      background: #0F0F0F;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .phone-speaker {
+      width: 38px;
+      height: 4px;
+      background: #333333;
+      border-radius: 2px;
+    }
+    .phone-screen {
+      flex: 1;
+      overflow-y: auto;
+      padding-top: 24px;
+      display: flex;
+      flex-direction: column;
+      background-color: #FAFAFA;
+      position: relative;
+    }
+
+    /* GPS Beacon Radar Pulse */
+    @keyframes gpsPulse {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+    .gps-beacon-ring {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 0, 0, 0.35);
+      border: 2px solid #FF0000;
+      animation: gpsPulse 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+
+    /* Orbiting Satellite Animation */
+    @keyframes satelliteOrbit {
+      from { transform: rotate(0deg) translateX(42px) rotate(0deg); }
+      to { transform: rotate(360deg) translateX(42px) rotate(-360deg); }
+    }
+    .satellite-orbit {
+      animation: satelliteOrbit 6s linear infinite;
+    }
+
+    /* Map Pin Bounce */
+    @keyframes pinBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .pin-bounce {
+      animation: pinBounce 1.5s ease-in-out infinite;
+    }
+
+    /* Toast Animation */
+    .toast-anim {
+      animation: fadeInOut 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(12px) scale(0.96); }
+      15% { opacity: 1; transform: translateY(0) scale(1); }
+      85% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    }
+  </style>
+</head>
+<body class="bg-white text-[#0F0F0F] min-h-screen flex flex-col selection:bg-red-100 selection:text-[#FF0000]">
+
+  <!-- ========================================================================= -->
+  <!-- 1. READING SCROLL PROGRESS BAR (Fixed Top, Red Line 0-100%) -->
+  <!-- ========================================================================= -->
+  <div id="scrollProgressBar" class="fixed top-0 left-0 h-1 bg-[#FF0000] z-[100] transition-all duration-75" style="width: 0%;"></div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. STICKY TOP BAR (56px Height, Level 1 Shadow on Scroll, NO PRINT BUTTON) -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 h-14 bg-white border-b border-[#E5E5E5] px-4 flex items-center justify-between elevation-1">
+    <!-- ฝั่งซ้าย: ปุ่มสลับแถบเมนูข้าง + แบรนด์ Broadcast -->
+    <div class="flex items-center gap-3">
+      <button id="toggleSidebarBtn" onclick="toggleSidebar()" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] transition text-[#606060]" title="สลับแถบสารบัญ">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      
+      <a href="index.html" class="flex items-center gap-2 group">
+        <div class="w-8 h-6 bg-[#FF0000] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+          <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="flex items-center">
+          <span class="font-bold text-lg tracking-tight text-[#0F0F0F]">ห้องเรียนครูแม็ค</span>
+          <span class="text-[10px] ml-1.5 font-bold uppercase tracking-wider text-[#FF0000] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">BROADCAST</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- ส่วนกลาง: ช่องค้นหาอัจฉริยะ (Search Bar 44px) -->
+    <div class="hidden sm:flex items-center flex-1 max-w-[620px] mx-6">
+      <div class="flex w-full items-center">
+        <div class="relative flex-1">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="ค้นหาในบทเรียน (กด / เพื่อค้นหา เช่น LatLong, =HERE(), Map View, Deep Link, Geotagged)..." 
+            class="w-full h-10 pl-4 pr-3 bg-white border border-[#E5E5E5] rounded-l-full text-sm text-[#0F0F0F] placeholder-[#606060] focus:outline-none focus:border-[#065FD4]"
+          />
+        </div>
+        <button 
+          id="searchBtn"
+          onclick="performSearch()"
+          class="h-10 px-5 bg-[#F8F8F8] border border-l-0 border-[#E5E5E5] rounded-r-full hover:bg-[#F2F2F2] text-[#606060] flex items-center justify-center transition" 
+          title="ค้นหา">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </button>
+        <button onclick="triggerVoiceSearch()" class="w-10 h-10 ml-2 rounded-full bg-[#F2F2F2] hover:bg-[#E5E5E5] flex items-center justify-center text-[#0F0F0F] transition shrink-0" title="ค้นหาด้วยเสียง">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: เมนูสารบัญ, การแจ้งเตือน และโปรไฟล์ผู้สอน (NO PRINT BUTTON EXPLICITLY) -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Hub Link Button -->
+      <a href="index.html" class="hidden md:flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E5E5E5] text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition" title="กลับสู่สารบัญรายวิชา">
+        <svg class="w-4 h-4 text-[#606060]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span>สารบัญหลัก</span>
+      </a>
+
+      <!-- Notification Bell with Red Dot -->
+      <div class="relative">
+        <button id="notifBtn" onclick="toggleNotifPopover()" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#F2F2F2] text-[#606060] transition relative" title="การแจ้งเตือนบทเรียน">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+          <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-[#FF0000] rounded-full ring-2 ring-white"></span>
+        </button>
+
+        <!-- Notification Popover -->
+        <div id="notifPopover" class="hidden absolute right-0 mt-2 w-80 bg-white border border-[#E5E5E5] rounded-2xl shadow-xl p-4 z-50 text-xs">
+          <div class="font-bold text-[#0F0F0F] border-b border-[#E5E5E5] pb-2 flex items-center justify-between">
+            <span>การแจ้งเตือนสัปดาห์ที่ 11</span>
+            <span class="text-[10px] bg-red-100 text-[#FF0000] px-2 py-0.5 rounded-full font-bold">ใหม่ 2 รายการ</span>
+          </div>
+          <div class="mt-3 space-y-2.5">
+            <div class="p-2.5 rounded-xl bg-red-50/50 border border-red-100">
+              <div class="font-bold text-[#FF0000]">🛰️ ตรวจสอบสิทธิ์ Location Permission</div>
+              <p class="text-[#606060] text-[11px] mt-0.5">อย่าลืมแตะอนุญาตการเข้าถึงตำแหน่ง GPS (Allow Location) บนเว็บเบราว์เซอร์หรือแอป AppSheet ก่อนทดสอบสูตร =HERE()</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-blue-50/50 border border-blue-100">
+              <div class="font-bold text-[#065FD4]">🧭 สูตร Deep Linking มาตรฐาน</div>
+              <p class="text-[#606060] text-[11px] mt-0.5">ต้องครอบพิกัดด้วย ENCODEURL(TEXT([Location])) เสมอเพื่อป้องกันข้อผิดพลาดในการเปิดแอป Google Maps นำทาง</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teacher Avatar Profile -->
+      <div class="flex items-center gap-2 pl-1">
+        <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#FF0000]">
+          MK
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN LAYOUT WRAPPER (SIDEBAR + MAIN CONTENT VIEWPORT) -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- 3. COLLAPSIBLE 240px SIDEBAR (With Sections + Course Metadata) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <aside id="sidebar" class="w-60 bg-white border-r border-[#E5E5E5] shrink-0 hidden lg:flex flex-col justify-between overflow-y-auto transition-all duration-200">
+      <div class="p-3 space-y-1">
+        <div class="text-[11px] font-bold text-[#606060] px-3 py-2 uppercase tracking-wider">สารบัญบทที่ 11</div>
+
+        <a href="#learning-plan" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-[#FF0000]"></span>
+          <span class="truncate">จุดประสงค์ & ผัง 4 ชั่วโมง</span>
+        </a>
+
+        <a href="#spatial-architecture" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">1. ข้อมูลเชิงพื้นที่ Spatial Data</span>
+        </a>
+
+        <a href="#formula-here" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">2. ฟังก์ชัน =HERE() & LatLong</span>
+        </a>
+
+        <a href="#map-ux" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">3. การสร้างมุมมอง Map View</span>
+        </a>
+
+        <a href="#deep-linking" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">4. Deep Linking Google Maps</span>
+        </a>
+
+        <a href="#geotagged-proof" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">5. Geotagged Proof ส่งของ</span>
+        </a>
+
+        <a href="#archetypes-workshop" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">6. เวิร์กช็อป 3 Archetypes</span>
+        </a>
+
+        <a href="#interactive-simulators" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">7. Simulator แผนที่ & มือถือ</span>
+        </a>
+
+        <a href="#agile-triad" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">8. บทบาททีม Agile Triad</span>
+        </a>
+
+        <a href="#troubleshooting" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">9. คู่มือแก้บั๊ก GPS & แผนที่</span>
+        </a>
+
+        <a href="#self-checklist" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">10. แบบตรวจสอบตนเอง</span>
+        </a>
+
+        <a href="#rubric-calculator" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">11. เกณฑ์การประเมิน 10 คะแนน</span>
+        </a>
+
+        <a href="#faq-section" class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#0F0F0F] hover:bg-[#F2F2F2] transition">
+          <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+          <span class="truncate">12. FAQ & นำทางบทเรียน</span>
+        </a>
+      </div>
+
+      <!-- ข้อมูลรายวิชา (Course Metadata Card) -->
+      <div class="p-3 m-3 bg-[#F8F8F8] border border-[#E5E5E5] rounded-xl text-xs space-y-2">
+        <div class="flex items-center gap-1.5 text-[#FF0000] font-bold">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+          <span>ข้อมูลหลักสูตร</span>
+        </div>
+        <div class="text-[11px] text-[#606060] leading-relaxed">
+          <strong>รหัสวิชา:</strong> 31910-2022<br>
+          <strong>ชื่อวิชา:</strong> การพัฒนาโปรแกรมบนอุปกรณ์สื่อสารแบบพกพา<br>
+          <strong>ระดับ:</strong> ปวส. เทคโนโลยีสารสนเทศ<br>
+          <strong>สัปดาห์:</strong> 11 จาก 15 สัปดาห์
+        </div>
+        <div class="pt-1 border-t border-[#E5E5E5] flex items-center justify-between text-[10px] text-[#606060]">
+          <span>สถานะ: คลาสเรียนเปิด</span>
+          <span class="font-bold text-[#2BA640]">4 คาบ (240 น.)</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <!-- MAIN CONTENT VIEWPORT (SCROLLABLE) -->
+    <!-- ───────────────────────────────────────────────────────────────────── -->
+    <main id="mainViewport" class="flex-1 overflow-y-auto flex flex-col bg-white">
+
+      <!-- =================================================================== -->
+      <!-- 4. STICKY HORIZONTAL PILL CHIP FILTER BAR -->
+      <!-- =================================================================== -->
+      <div class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-[#E5E5E5] px-4 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <button onclick="filterChip('all', this)" class="chip-btn active h-8 px-4 rounded-full text-xs font-bold bg-[#0F0F0F] text-white transition shrink-0">
+          ทั้งหมด
+        </button>
+        <button onclick="filterChip('spatial-architecture', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">
+          สถาปัตยกรรม Spatial Data
+        </button>
+        <button onclick="filterChip('formula-here', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">
+          สูตร =HERE() & LatLong
+        </button>
+        <button onclick="filterChip('map-ux', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">
+          การสร้างมุมมอง Map View
+        </button>
+        <button onclick="filterChip('deep-linking', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">
+          Deep Linking Google Maps
+        </button>
+        <button onclick="filterChip('geotagged-proof', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">
+          Geotagged Proof ส่งของ
+        </button>
+        <button onclick="filterChip('archetypes-workshop', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">
+          เวิร์กช็อป 3 Archetypes
+        </button>
+        <button onclick="filterChip('interactive-simulators', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">
+          ห้องทดลอง GPS & แผนที่จำลอง
+        </button>
+        <button onclick="filterChip('rubric-calculator', this)" class="chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0">
+          รูบริกประเมิน 10 คะแนน
+        </button>
+      </div>
+
+
+      <!-- =================================================================== -->
+      <!-- 5. BROADCAST LECTURE THEATER HERO STAGE (Dark Container) -->
+      <!-- =================================================================== -->
+      <section class="bg-[#0F0F0F] text-white px-4 sm:px-8 py-8 sm:py-12 border-b border-zinc-800 relative overflow-hidden">
+        <!-- Background Glowing Ambient Accents -->
+        <div class="absolute -top-32 -right-32 w-96 h-96 bg-red-600/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-5xl mx-auto relative z-10 space-y-6">
+          <!-- Live Episode Badges -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF0000] text-white text-xs font-black tracking-wide uppercase shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+              LIVE BROADCAST
+            </span>
+            <span class="px-3 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-bold border border-zinc-700">
+              บทที่ 11 / 15
+            </span>
+            <span class="px-3 py-1 rounded-full bg-zinc-800/80 text-zinc-300 text-xs font-mono border border-zinc-700">
+              SPATIAL DATA & GPS NAVIGATION
+            </span>
+            <span class="px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 text-xs font-bold border border-emerald-800">
+              คะแนนเก็บ 10 คะแนน
+            </span>
+          </div>
+
+          <!-- Hero Main Title -->
+          <div class="space-y-2">
+            <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
+              การระบุพิกัดดาวเทียม GPS และแผนที่นำทางด้วย Google Maps
+            </h1>
+            <p class="text-sm sm:text-lg text-zinc-400 font-normal leading-relaxed">
+              (Spatial Data, Deep Linking Navigation & Geotagged Proof-of-Delivery Patterns)
+            </p>
+          </div>
+
+          <!-- Instructor Metadata Card + Key Stat Metrics -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-800 text-xs">
+            <!-- Instructor Info -->
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-zinc-800 border-2 border-[#FF0000] flex items-center justify-center font-black text-sm text-white shrink-0">
+                MK
+              </div>
+              <div>
+                <div class="font-bold text-white text-sm">ครูแม็ค (อัครพล แดงเพ็ง)</div>
+                <div class="text-zinc-400 text-[11px]">สาขาวิชาเทคโนโลยีสารสนเทศ</div>
+                <div class="text-[#FF0000] text-[10px] font-bold">เชี่ยวชาญ: Mobile Architecture & Cloud Database</div>
+              </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="flex items-center gap-6 text-zinc-300">
+              <div>
+                <div class="text-zinc-400 text-[10px] uppercase font-bold">ระยะเวลาเรียน</div>
+                <div class="text-base font-black text-white font-mono">4 คาบ (240 นาที)</div>
+              </div>
+              <div class="border-l border-zinc-800 pl-6">
+                <div class="text-zinc-400 text-[10px] uppercase font-bold">เซ็นเซอร์เป้าหมาย</div>
+                <div class="text-base font-black text-white font-mono">ดาวเทียม GPS & เสาสัญญาณ</div>
+              </div>
+            </div>
+
+            <!-- Quick Jump to Interactive Sandboxes -->
+            <div class="flex items-center md:justify-end gap-2">
+              <a href="#interactive-simulators" class="h-9 px-4 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-bold flex items-center gap-1.5 transition shadow-lg shadow-red-900/30">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>เปิดห้องทดลอง GPS & แผนที่</span>
+              </a>
+              <a href="#self-checklist" class="h-9 px-3.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium flex items-center gap-1 transition">
+                <span>เช็คลิสต์</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Social Engagement Simulation Bar (Like / Share / Subscribe) -->
+          <div class="flex items-center justify-between pt-3 border-t border-zinc-800/80 text-xs">
+            <div class="flex items-center gap-2">
+              <button id="likeBtn" onclick="toggleLike()" class="h-8 px-3.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center gap-1.5 transition">
+                <svg id="likeIcon" class="w-4 h-4 text-zinc-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/></svg>
+                <span>ถูกใจ</span>
+                <span id="likeCount" class="font-mono font-bold text-white ml-0.5">412</span>
+              </button>
+
+              <button onclick="shareLesson()" class="h-8 px-3.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center gap-1.5 transition">
+                <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                <span>แชร์บทเรียน</span>
+              </button>
+
+              <button id="subBtn" onclick="toggleSubscribe()" class="h-8 px-4 rounded-full bg-white hover:bg-zinc-200 text-[#0F0F0F] font-bold flex items-center gap-1.5 transition">
+                <span id="subBtnText">ติดตามรายวิชา</span>
+              </button>
+            </div>
+
+            <a href="#comments-section" class="text-zinc-400 hover:text-white flex items-center gap-1 text-[11px] transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+              <span>ความคิดเห็น (<span id="commentTotalCount">34</span>)</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- MAIN BODY CONTAINER -->
+      <!-- =================================================================== -->
+      <div class="max-w-5xl mx-auto px-4 sm:px-8 py-10 space-y-16">
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- LEARNING OBJECTIVES & 4-HOUR ROADMAP -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="learning-plan" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>เป้าหมายและแผนผังการเรียนรู้สัปดาห์ที่ 11</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              🎯 จุดประสงค์การเรียนรู้ประจำบท (Learning Objectives)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              เมื่อศึกษาบทเรียนนี้และปฏิบัติการตามขั้นตอนเสร็จสิ้น ผู้เรียนจะมีสมรรถนะเชิงวิชาชีพครบถ้วนทั้ง 8 มิติ:
+            </p>
+          </div>
+
+          <!-- 8 Objectives Grid Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-[#E5E5E5] flex items-start gap-3 hover:border-red-300 transition group">
+              <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-[#FF0000] transition">1</span>
+              <div>
+                <div class="font-bold text-[#0F0F0F] text-sm mb-1">Spatial Data Pattern Architecture</div>
+                <p class="text-[#606060] leading-relaxed">อธิบายสถาปัตยกรรมข้อมูลเชิงพื้นที่ <strong>Spatial Data Pattern</strong> และความแตกต่างเชิงลึกระหว่างข้อมูลที่อยู่ข้อความ (<code class="font-mono bg-zinc-200 px-1 rounded text-[#0F0F0F]">Address</code>) กับรหัสคู่พิกัดละติจูด-ลองจิจูด (<code class="font-mono bg-red-50 text-[#FF0000] font-bold px-1 rounded">LatLong</code>) ได้อย่างถูกต้อง</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-[#E5E5E5] flex items-start gap-3 hover:border-red-300 transition group">
+              <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-[#FF0000] transition">2</span>
+              <div>
+                <div class="font-bold text-[#0F0F0F] text-sm mb-1">LatLong Column & =HERE() Formula</div>
+                <p class="text-[#606060] leading-relaxed">กำหนดชนิดข้อมูล <code class="bg-red-50 text-[#FF0000] px-1.5 py-0.5 rounded font-mono font-bold">LatLong</code> และประยุกต์ใช้ฟังก์ชัน <code class="bg-blue-50 text-[#065FD4] px-1.5 py-0.5 rounded font-mono font-bold">=HERE()</code> บน AppSheet เพื่อดึงพิกัดดาวเทียม GPS จากสมาร์ตโฟนของผู้ใช้งานแบบเรียลไทม์</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-[#E5E5E5] flex items-start gap-3 hover:border-red-300 transition group">
+              <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-[#FF0000] transition">3</span>
+              <div>
+                <div class="font-bold text-[#0F0F0F] text-sm mb-1">Map View UX & Pin Styling</div>
+                <p class="text-[#606060] leading-relaxed">ออกแบบและสร้างมุมมองแผนที่ <strong>Map View</strong> เพื่อแสดงหมุดตำแหน่งร้านค้า ลูกค้า หรืออุปกรณ์ พร้อมปรับแต่งไอคอนและสีของหมุดตามสถานะของงานด้วย <strong>Format Rules</strong></p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-[#E5E5E5] flex items-start gap-3 hover:border-red-300 transition group">
+              <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-[#FF0000] transition">4</span>
+              <div>
+                <div class="font-bold text-[#0F0F0F] text-sm mb-1">Deep Linking Navigation Action</div>
+                <p class="text-[#606060] leading-relaxed">ประยุกต์ใช้เทคนิค <strong>Deep Linking Pattern</strong> สร้างปุ่ม Action ส่งต่อพิกัดไปยังแอปพลิเคชัน Google Maps เริ่มระบบนำทางเลี้ยวต่อเลี้ยว (Turn-by-turn Navigation) ได้อย่างไร้รอยต่อ</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-[#E5E5E5] flex items-start gap-3 hover:border-red-300 transition group">
+              <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-[#FF0000] transition">5</span>
+              <div>
+                <div class="font-bold text-[#0F0F0F] text-sm mb-1">Geotagged Proof-of-Delivery Pattern</div>
+                <p class="text-[#606060] leading-relaxed">สร้างระบบยืนยันการจัดส่งสินค้าด้วยพิกัดดาวเทียม <strong>Geotagged Proof-of-Delivery</strong> เพื่อป้องกันการทุจริต ยืนยันระยะห่างจริงด้วยสูตร <code class="font-mono bg-zinc-200 text-[#0F0F0F] px-1 rounded">DISTANCE()</code></p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-[#E5E5E5] flex items-start gap-3 hover:border-red-300 transition group">
+              <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-[#FF0000] transition">6</span>
+              <div>
+                <div class="font-bold text-[#0F0F0F] text-sm mb-1">Tri-Archetype Implementation</div>
+                <p class="text-[#606060] leading-relaxed">พัฒนาระบบแผนที่และนำทางจัดส่งที่สมบูรณ์ตามบริบทของ <strong>3 รูปแบบธุรกิจ</strong>: Fresh Brew (Food Delivery), Happy Paws (Pet Shuttle), Smart Borrow (Equipment Return Drop Points)</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-[#E5E5E5] flex items-start gap-3 hover:border-red-300 transition group">
+              <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-[#FF0000] transition">7</span>
+              <div>
+                <div class="font-bold text-[#0F0F0F] text-sm mb-1">Permission Handling & Troubleshooting</div>
+                <p class="text-[#606060] leading-relaxed">แก้ไขปัญหาการขอสิทธิ์เข้าถึงตำแหน่ง (Location Permission Denied), ปัญหาเกาะ Null Island (พิกัด 0,0) และการเข้ารหัสพิกัดด้วย <code class="font-mono bg-amber-50 text-amber-900 px-1 rounded">ENCODEURL()</code></p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-zinc-50 border border-[#E5E5E5] flex items-start gap-3 hover:border-red-300 transition group">
+              <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-[#FF0000] transition">8</span>
+              <div>
+                <div class="font-bold text-[#0F0F0F] text-sm mb-1">Agile Triad Collaboration</div>
+                <p class="text-[#606060] leading-relaxed">ร่วมมือกันในทีม 3 คน แบ่งหน้าที่จัดการพิกัด ออกแบบ Map View และทดสอบระบบนำทางบนถนนจริง พร้อมประเมินเกณฑ์รูบริก 10 คะแนนได้อย่างสมบูรณ์</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4-Hour Roadmap Section -->
+          <div class="p-6 rounded-3xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-5">
+            <div class="flex items-center justify-between border-b border-[#E5E5E5] pb-3">
+              <div>
+                <h3 class="font-extrabold text-base text-[#0F0F0F] flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-[#FF0000]"></span>
+                  <span>🧭 แผนผังการเรียนรู้ประจำสัปดาห์ที่ 11 (4 ชั่วโมง / 240 นาที)</span>
+                </h3>
+                <p class="text-xs text-[#606060] mt-0.5">กระบวนการเรียนรู้เชิงปฏิบัติการตั้งแต่สถาปัตยกรรมข้อมูลจนถึงการทดสอบขับขี่นำทางจริง</p>
+              </div>
+              <span class="hidden sm:inline-block px-3 py-1 rounded-full bg-zinc-200 text-zinc-700 text-xs font-mono font-bold">4 Hours Agenda</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+              <!-- Hour 1 -->
+              <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-2 shadow-sm relative">
+                <div class="w-6 h-6 rounded-full bg-[#FF0000] text-white font-mono font-bold text-xs flex items-center justify-center mb-1">1</div>
+                <div class="font-bold text-[#0F0F0F] text-sm">ชั่วโมงที่ 1: Spatial Data & =HERE()</div>
+                <p class="text-[#606060] leading-relaxed">ทำความเข้าใจพิกัดดาวเทียม LatLong, เปรียบเทียบกับ Address, ตั้งค่า Schema และดึงพิกัดอุปกรณ์อัตโนมัติด้วยสูตร =HERE()</p>
+                <div class="text-[10px] text-[#065FD4] font-bold font-mono">00:00 - 01:00 น.</div>
+              </div>
+
+              <!-- Hour 2 -->
+              <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-2 shadow-sm relative">
+                <div class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white font-mono font-bold text-xs flex items-center justify-center mb-1">2</div>
+                <div class="font-bold text-[#0F0F0F] text-sm">ชั่วโมงที่ 2: Map View Architecture</div>
+                <p class="text-[#606060] leading-relaxed">สร้างมุมมองประเภท Map ใน UX, กำหนด Map Column & Secondary Column, ปรับแต่งสีและสัญลักษณ์หมุดตามสถานะด้วย Format Rules</p>
+                <div class="text-[10px] text-[#065FD4] font-bold font-mono">01:00 - 02:00 น.</div>
+              </div>
+
+              <!-- Hour 3 -->
+              <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-2 shadow-sm relative">
+                <div class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white font-mono font-bold text-xs flex items-center justify-center mb-1">3</div>
+                <div class="font-bold text-[#0F0F0F] text-sm">ชั่วโมงที่ 3: Deep Linking Google Maps</div>
+                <p class="text-[#606060] leading-relaxed">ทำความเข้าใจโครงสร้าง URL Scheme, สร้าง Action เปิด Google Maps นำทางเลี้ยวต่อเลี้ยว และสร้างระบบประทับตราพิกัดจัดส่ง Geotagged Proof</p>
+                <div class="text-[10px] text-[#065FD4] font-bold font-mono">02:00 - 03:00 น.</div>
+              </div>
+
+              <!-- Hour 4 -->
+              <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-2 shadow-sm relative">
+                <div class="w-6 h-6 rounded-full bg-[#2BA640] text-white font-mono font-bold text-xs flex items-center justify-center mb-1">4</div>
+                <div class="font-bold text-[#0F0F0F] text-sm">ชั่วโมงที่ 4: เวิร์กช็อป 3 Archetypes</div>
+                <p class="text-[#606060] leading-relaxed">ติดตั้งระบบแผนที่ของ Fresh Brew, Happy Paws, Smart Borrow, ทดสอบนำทางบนสมาร์ตโฟนจริง ตรวจ Checklist และประเมินรูบริก 10 คะแนน</p>
+                <div class="text-[10px] text-[#2BA640] font-bold font-mono">03:00 - 04:00 น.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+) หรือช่องว่างในพิกัดให้เป็นรหัส URL เปอร์เซ็นต์ (<code class="font-mono">%2C</code>) ป้องกันปัญหาเบราว์เซอร์หรือแอปแผนที่ตัดข้อความผิดพลาด
+              </p>
+              <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200 font-mono text-[10px] text-purple-700 break-all">
+                ENCODEURL(TEXT([Delivery_Location]))
+              </div>
+              <div class="pt-2 flex items-center justify-between">
+                <span class="text-[10px] text-zinc-400">ป้องกันบั๊ก URL บน iOS / Android</span>
+                <button onclick="copyFormula('ENCODEURL(TEXT([Delivery_Location]))', this)" class="px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-[#0F0F0F] text-xs font-bold transition flex items-center gap-1">
+                  <span>คัดลอกสูตร</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 3: MAP VIEW ARCHITECTURE & PIN UX -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="map-ux" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>หมวดการออกแบบหน้าจอแผนที่ (Cartography & UX Design)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              3. การสร้างมุมมองแผนที่ (Map View Architecture)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              เมื่อเรามีคอลัมน์ชนิด <code class="font-mono text-[#FF0000] font-bold">LatLong</code> ในตารางข้อมูลแล้ว AppSheet สามารถแปลงคู่อันดับตัวเลขเหล่านั้นมาพล็อตเป็นหมุดแบบ Interactive บนแผนที่ดาวเทียมของ <strong>Google Maps</strong> ได้ทันที
+            </p>
+          </div>
+
+          <!-- Click-by-Click Guide for Map View -->
+          <div class="p-6 rounded-3xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-6">
+            <div class="flex items-center justify-between border-b border-[#E5E5E5] pb-3">
+              <div>
+                <h3 class="font-extrabold text-base text-[#0F0F0F] flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-[#0F0F0F]"></span>
+                  <span>ขั้นตอนการสร้าง Map View ใน AppSheet (Click-by-Click)</span>
+                </h3>
+                <p class="text-xs text-[#606060] mt-0.5">ปฏิบัติตามลำดับเพื่อสร้างหน้าจอแผนที่แสดงจุดส่งสินค้าหรือตำแหน่งอุปกรณ์</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-red-100 text-[#FF0000] text-xs font-mono font-bold">UX ➔ Views</span>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-2">
+                <div class="flex items-center gap-2 font-bold text-[#0F0F0F]">
+                  <span class="w-5 h-5 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-[11px]">1</span>
+                  <span>สร้าง View ใหม่:</span>
+                </div>
+                <p class="text-[#606060] pl-7">
+                  ไปที่เมนู <strong>Views</strong> ทางซ้ายมือ ➔ แตะปุ่ม <strong>[+] Add View</strong> ➔ ตั้งชื่อมุมมอง เช่น <code class="font-bold text-[#0F0F0F]">แผนที่จัดส่งสินค้า (Delivery Map)</code>
+                </p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-2">
+                <div class="flex items-center gap-2 font-bold text-[#0F0F0F]">
+                  <span class="w-5 h-5 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-[11px]">2</span>
+                  <span>เลือกประเภทมุมมอง (View type):</span>
+                </div>
+                <p class="text-[#606060] pl-7">
+                  ที่หัวข้อ View type เลือกไอคอน <strong>map</strong> (รูปแผนที่พับ) และเลือกตารางข้อมูล เช่น <code class="font-bold text-[#0F0F0F]">Orders</code>
+                </p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-2">
+                <div class="flex items-center gap-2 font-bold text-[#0F0F0F]">
+                  <span class="w-5 h-5 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-[11px]">3</span>
+                  <span>กำหนด Map Column & Secondary Column:</span>
+                </div>
+                <div class="pl-7 space-y-2 text-[#606060]">
+                  <div>• <strong>Map column:</strong> เลือกคอลัมน์พิกัดหลัก เช่น <code class="font-mono text-[#FF0000] font-bold">[Customer_Location]</code></div>
+                  <div>• <strong>Secondary column (เสริม):</strong> เลือกคอลัมน์ตำแหน่งร้านค้า เช่น <code class="font-mono text-[#065FD4] font-bold">[Shop_Location]</code> (เพื่อแสดงทั้งร้านและบ้านลูกค้าพร้อมกันบนจอเดียว)</div>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-2">
+                <div class="flex items-center gap-2 font-bold text-[#0F0F0F]">
+                  <span class="w-5 h-5 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-[11px]">4</span>
+                  <span>กำหนดการจัดกลุ่มหมุด (Pin Clustering):</span>
+                </div>
+                <p class="text-[#606060] pl-7">
+                  ในกรณีที่มีออร์เดอร์หนาแน่นในย่านเดียวกัน ให้เปิดคุณสมบัติ <strong>Cluster Pins [✓]</strong> ระบบจะยุบหมุดใกล้กันให้กลายเป็นวงกลมตัวเลขรวม เช่น <span class="px-2 py-0.5 rounded-full bg-blue-100 text-[#065FD4] font-bold">5</span> เพื่อไม่ให้หมุดซ้อนทับกันจนมองไม่เห็น
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Format Rules for Pin Styling -->
+          <div class="p-6 rounded-3xl bg-white border border-[#E5E5E5] shadow-sm space-y-4 text-xs">
+            <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 class="font-bold text-base text-[#0F0F0F] flex items-center gap-2">
+                <span class="text-lg">🎨</span>
+                <span>การเปลี่ยนสีหมุดแผนที่ตามสถานะของงานด้วย Format Rules</span>
+              </h3>
+              <span class="text-[10px] bg-zinc-100 text-[#606060] px-2 py-1 rounded font-mono">AppSheet UX ➔ Format Rules</span>
+            </div>
+
+            <p class="text-[#606060] leading-relaxed">
+              เพื่อให้ไรเดอร์หรือผู้จัดการแยกแยะได้ทันทีว่าออร์เดอร์ไหนต้องรีบส่ง หรือออร์เดอร์ไหนส่งเสร็จแล้ว เราจะใช้ Format Rules ในการเปลี่ยนสีและไอคอนของหมุด:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- Pin Red -->
+              <div class="p-3.5 rounded-2xl bg-red-50 border border-red-200 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-red-700 flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-[#FF0000]"></span>
+                    <span>หมุดสีแดง (รอส่งด่วน)</span>
+                  </span>
+                  <span class="font-mono text-[10px] text-red-600">📍 Pending</span>
+                </div>
+                <div class="font-mono text-[10px] text-zinc-600 bg-white p-2 rounded border border-red-100">
+                  [Order_Status] = "Paid"
+                </div>
+                <div class="text-[10px] text-zinc-500">ออร์เดอร์ที่ชำระเงินแล้วแต่ยังไม่ได้ส่งมอบ ให้แสดงหมุดสีแดงเด่นชัด</div>
+              </div>
+
+              <!-- Pin Amber -->
+              <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-amber-800 flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-[#FB8C00]"></span>
+                    <span>หมุดสีส้ม (กำลังนำส่ง)</span>
+                  </span>
+                  <span class="font-mono text-[10px] text-amber-700">🚚 In Transit</span>
+                </div>
+                <div class="font-mono text-[10px] text-zinc-600 bg-white p-2 rounded border border-amber-100">
+                  [Order_Status] = "Brewing"
+                </div>
+                <div class="text-[10px] text-zinc-500">ไรเดอร์รับอาหารออกจากร้านแล้ว กำลังขับมุ่งหน้าไปบ้านลูกค้า</div>
+              </div>
+
+              <!-- Pin Green -->
+              <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-emerald-800 flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-[#2BA640]"></span>
+                    <span>หมุดสีเขียว (ส่งสำเร็จ)</span>
+                  </span>
+                  <span class="font-mono text-[10px] text-emerald-700">✅ Completed</span>
+                </div>
+                <div class="font-mono text-[10px] text-zinc-600 bg-white p-2 rounded border border-emerald-100">
+                  [Order_Status] = "Completed"
+                </div>
+                <div class="text-[10px] text-zinc-500">ส่งมอบเรียบร้อยพร้อมประทับตรา Geotagged Proof แล้ว</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 4: DEEP LINKING TO GOOGLE MAPS -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="deep-linking" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>หมวดการเชื่อมต่อภายนอก (Deep Linking & Navigation Integration)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              4. Deep Linking เชื่อมต่อ Google Maps นำทาง
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              แม้ว่า AppSheet จะสามารถพล็อตหมุดบนแผนที่ได้ แต่สำหรับการขับขี่ยานพาหนะจริง ไรเดอร์ต้องการระบบนำทางแบบเลี้ยวต่อเลี้ยว (Turn-by-turn Navigation) ที่มีเสียงบอกทางและรายงานสภาพการจราจรติดขัดแบบสดๆ เราจึงต้องใช้เทคนิค <strong>Deep Linking Pattern</strong> เพื่อส่งต่อพิกัดไปยังแอปเนทีฟของ Google Maps
+            </p>
+          </div>
+
+          <!-- Deep Linking URL Scheme Anatomy -->
+          <div class="p-6 rounded-3xl bg-[#0F0F0F] text-white space-y-4 text-xs border border-zinc-800">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <span class="font-mono font-bold text-sm text-[#FF0000] flex items-center gap-2">
+                <span>🧭</span>
+                <span>โครงสร้าง URL Scheme สำหรับเปิด Google Maps นำทาง</span>
+              </span>
+              <span class="text-[10px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded font-mono">Google Maps Directions API</span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 font-mono text-xs text-emerald-400 break-all leading-relaxed">
+              https://www.google.com/maps/dir/?api=1&destination=<span class="text-[#FF0000] font-bold">[Customer_Location]</span>&travelmode=driving
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-zinc-300 text-[11px] pt-1">
+              <div class="p-3 rounded-xl bg-zinc-800/60 border border-zinc-700/60">
+                <div class="font-mono font-bold text-white mb-1">/dir/?api=1</div>
+                <div>บอกระบบปฏิบัติการว่าต้องการเปิดโหมดนำทาง (Directions Mode) แบบเป็นทางการ</div>
+              </div>
+              <div class="p-3 rounded-xl bg-zinc-800/60 border border-zinc-700/60">
+                <div class="font-mono font-bold text-white mb-1">&destination=...</div>
+                <div>พิกัดปลายทางที่ต้องการให้พาไป (ละติจูด,ลองจิจูด ที่ผ่านการ ENCODEURL)</div>
+              </div>
+              <div class="p-3 rounded-xl bg-zinc-800/60 border border-zinc-700/60">
+                <div class="font-mono font-bold text-white mb-1">&travelmode=driving</div>
+                <div>ระบุโหมดการเดินทางเป็น ขับขี่รถยนต์/มอเตอร์ไซค์ (หรือ bicycling, walking)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sequence Diagram -->
+          <div class="p-6 rounded-3xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-4 text-xs">
+            <h3 class="font-extrabold text-base text-[#0F0F0F] flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-[#065FD4]"></span>
+              <span>ลำดับการทำงานของระบบนำทาง (Sequence Flow Diagram)</span>
+            </h3>
+
+            <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-3 font-mono text-xs">
+              <div class="flex items-center gap-3 p-2 rounded-xl bg-zinc-50 border border-zinc-200">
+                <span class="px-2 py-1 rounded bg-[#FF0000] text-white font-bold text-[10px]">Step 1</span>
+                <span>ไรเดอร์แตะปุ่ม Action <strong>[🧭 เริ่มนำทาง Google Maps]</strong> ในหน้ารายการออร์เดอร์</span>
+              </div>
+              <div class="flex items-center gap-3 p-2 rounded-xl bg-zinc-50 border border-zinc-200">
+                <span class="px-2 py-1 rounded bg-[#065FD4] text-white font-bold text-[10px]">Step 2</span>
+                <span>AppSheet ประกอบ URL Scheme ด้วยฟังก์ชัน <strong>ENCODEURL(TEXT([Customer_Location]))</strong></span>
+              </div>
+              <div class="flex items-center gap-3 p-2 rounded-xl bg-zinc-50 border border-zinc-200">
+                <span class="px-2 py-1 rounded bg-purple-700 text-white font-bold text-[10px]">Step 3</span>
+                <span>ระบบปฏิบัติการมือถือ (Android Intent / iOS Universal Link) ตรวจพบคำสั่ง URL Scheme</span>
+              </div>
+              <div class="flex items-center gap-3 p-2 rounded-xl bg-zinc-50 border border-zinc-200">
+                <span class="px-2 py-1 rounded bg-[#2BA640] text-white font-bold text-[10px]">Step 4</span>
+                <span>แอป Google Maps เปิดขึ้นมาอัตโนมัติพร้อมคำนวณเส้นทางและเริ่ม Turn-by-turn Navigation ทันที!</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Click-by-Click Guide -->
+          <div class="p-6 rounded-3xl bg-white border border-[#E5E5E5] shadow-sm space-y-4 text-xs">
+            <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 class="font-bold text-base text-[#0F0F0F]">
+                🛠️ ขั้นตอนการสร้าง Action นำทาง (Click-by-Click Configuration)
+              </h3>
+              <span class="px-2.5 py-1 rounded-full bg-blue-100 text-[#065FD4] font-bold font-mono">AppSheet Actions</span>
+            </div>
+
+            <ol class="list-decimal pl-5 space-y-2 text-[#606060] leading-relaxed">
+              <li>ไปที่เมนู <strong>Actions</strong> ➔ แตะปุ่ม <strong>[+] Add Action</strong></li>
+              <li>ตั้งชื่อ Action Name: <code class="font-bold text-[#0F0F0F]">นำทางด้วย Google Maps</code></li>
+              <li>สำหรับตารางข้อมูล (For a record of this table): <code class="font-bold text-[#0F0F0F]">Orders</code></li>
+              <li>หัวข้อ <strong>Do this:</strong> เลือกคำสั่ง <strong>External: go to a website</strong></li>
+              <li>
+                ช่อง <strong>Target:</strong> คัดลอกสูตรมาตรฐานไปวาง:
+                <div class="my-2 p-3 rounded-xl bg-zinc-900 text-emerald-400 font-mono text-xs flex items-center justify-between break-all">
+                  <span>="https://www.google.com/maps/dir/?api=1&destination=" & ENCODEURL(TEXT([Customer_Location]))</span>
+                  <button onclick="copyFormula('=&quot;https://www.google.com/maps/dir/?api=1&amp;destination=&quot; &amp; ENCODEURL(TEXT([Customer_Location]))', this)" class="ml-2 px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-white text-[11px] shrink-0 font-sans font-bold">
+                    คัดลอก
+                  </button>
+                </div>
+              </li>
+              <li>หัวข้อ <strong>Appearance:</strong> เลือกไอคอน <code class="font-mono text-[#065FD4]">directions</code> หรือ <code class="font-mono text-[#065FD4]">navigation</code> และตั้ง Prominence เป็น <strong>Display prominently</strong></li>
+              <li>กด <strong>Save</strong> ➔ ทดสอบกดปุ่มบนสมาร์ตโฟนจริง ระบบจะสลับจอเปิดแอป Google Maps นำทางทันที!</li>
+            </ol>
+          </div>
+        </article>
+
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 5: GEOTAGGED PROOF-OF-DELIVERY PATTERN -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="geotagged-proof" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>หมวดความปลอดภัยและการตรวจสอบ (Audit & Anti-Fraud Pattern)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              5. ระบบยืนยันการจัดส่งด้วยพิกัดดาวเทียม (Geotagged Proof-of-Delivery)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              หนึ่งในปัญหาคลาสสิกของธุรกิจขนส่งและเดลิเวอรี่ คือการที่พนักงานจัดส่งแอบกดยืนยันว่า "ส่งของสำเร็จ" ทั้งที่ยังเดินทางไปไม่ถึง หรือไปส่งผิดบ้าน เราสามารถแก้ปัญหานี้ได้ด้วย <strong>Double-Pin Geotagged Verification Pattern</strong> ซึ่งเป็นการเปรียบเทียบพิกัดจุดสั่งซื้อ กับพิกัดดาวเทียมจริงในวินาทีที่แตะปุ่มส่งมอบ!
+            </p>
+          </div>
+
+          <!-- Comparison Flow Table -->
+          <div class="p-6 rounded-3xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-4 text-xs">
+            <h3 class="font-extrabold text-base text-[#0F0F0F] flex items-center gap-2">
+              <span>🛡️</span>
+              <span>กลไกการทำงานของระบบตรวจสอบพิกัดสองชั้น (Double-Pin Verification)</span>
+            </h3>
+
+            <div class="overflow-x-auto rounded-2xl border border-[#E5E5E5]">
+              <table class="w-full text-left text-xs border-collapse bg-white">
+                <thead>
+                  <tr class="bg-[#F8F8F8] border-b border-[#E5E5E5] text-[#0F0F0F]">
+                    <th class="p-3.5 font-bold">ขั้นตอน</th>
+                    <th class="p-3.5 font-bold">คอลัมน์ใน AppSheet</th>
+                    <th class="p-3.5 font-bold">ค่าพิกัดที่บันทึก</th>
+                    <th class="p-3.5 font-bold">บทบาททางธุรกิจ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E5E5E5]">
+                  <tr class="hover:bg-zinc-50 transition">
+                    <td class="p-3.5 font-bold text-[#0F0F0F]">1. ตอนลูกค้าสั่งซื้อ</td>
+                    <td class="p-3.5 font-mono text-[#065FD4]">[Customer_Location]</td>
+                    <td class="p-3.5 font-mono text-zinc-600">13.756331, 100.501765</td>
+                    <td class="p-3.5 text-[#606060]">หมุดเป้าหมายที่ลูกค้าปักไว้ตอนสั่ง</td>
+                  </tr>
+                  <tr class="hover:bg-zinc-50 transition">
+                    <td class="p-3.5 font-bold text-[#0F0F0F]">2. ตอนไรเดอร์กดส่งมอบ</td>
+                    <td class="p-3.5 font-mono text-[#FF0000]">[Delivered_At_Location]</td>
+                    <td class="p-3.5 font-mono text-zinc-600">13.756328, 100.501769</td>
+                    <td class="p-3.5 text-[#606060]">แอบดึงพิกัดจาก GPS เครื่องไรเดอร์ด้วย =HERE()</td>
+                  </tr>
+                  <tr class="hover:bg-zinc-50 transition bg-emerald-50/50">
+                    <td class="p-3.5 font-bold text-[#2BA640]">3. การตรวจสอบ Geofence</td>
+                    <td class="p-3.5 font-mono text-[#2BA640]">[Delivery_Accuracy_Delta]</td>
+                    <td class="p-3.5 font-mono font-bold text-[#2BA640]">ระยะห่าง 0.54 เมตร</td>
+                    <td class="p-3.5 text-[#2BA640] font-bold">✓ ยืนยันส่งมอบของถึงมือลูกค้าจริง 100%!</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Action Setup Click-by-Click -->
+            <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-3">
+              <div class="font-bold text-sm text-[#0F0F0F] flex items-center justify-between">
+                <span>การตั้งค่า Action "ส่งมอบสินค้าสำเร็จ" (Geotagged Proof Action)</span>
+                <span class="text-[10px] bg-red-100 text-[#FF0000] px-2 py-0.5 rounded-full font-bold">AppSheet Data Action</span>
+              </div>
+              <p class="text-[#606060]">
+                สร้าง Action สำหรับให้พนักงานแตะเมื่อนำของไปถึงมือลูกค้า โดยมีพารามิเตอร์ดังนี้:
+              </p>
+              <ul class="list-disc pl-5 space-y-1 text-[#0F0F0F]">
+                <li><strong>Do this:</strong> <code class="font-bold">Data: set the values of some columns in this row</code></li>
+                <li>ตั้งค่า <code class="font-mono text-[#0F0F0F]">[Order_Status]</code> = <code class="font-mono text-emerald-700">"Completed"</code></li>
+                <li>ตั้งค่า <code class="font-mono text-[#FF0000]">[Delivered_Location]</code> = <code class="font-mono text-[#FF0000]">=HERE()</code> (ดึงพิกัดดาวเทียมขณะนั้นทันที)</li>
+                <li>ตั้งค่า <code class="font-mono text-[#065FD4]">[Delivered_Time]</code> = <code class="font-mono text-[#065FD4]">=NOW()</code> (ประทับเวลาสากล)</li>
+                <li><strong>Behavior (Only if this condition is true):</strong> <code class="font-mono text-zinc-600">[Order_Status] = "Brewing"</code></li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 6: TRI-ARCHETYPE WORKSHOP -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="archetypes-workshop" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>เวิร์กช็อปปฏิบัติการ 3 รูปแบบธุรกิจ (Click-by-Click Implementation)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              6. ปฏิบัติการติดตั้งระบบแผนที่ 3 รูปแบบธุรกิจ (Tri-Archetype Workshop)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              เลือกรูปแบบธุรกิจของกลุ่มตนเองเพื่อดูขั้นตอนการเพิ่มคอลัมน์พิกัดใน Google Sheets, การตั้งค่า Schema ใน AppSheet และสูตร Deep Linking นำทางที่ตรงกับโจทย์จริง:
+            </p>
+          </div>
+
+          <!-- Tri-Archetype Switcher Navigation Tabs -->
+          <div class="flex items-center gap-2 border-b border-[#E5E5E5] pb-3 overflow-x-auto no-scrollbar text-xs">
+            <button id="wsTab-freshbrew" onclick="switchWsTab('freshbrew')" class="ws-tab active px-4 py-2.5 rounded-xl font-bold bg-[#FF0000] text-white flex items-center gap-2 transition shrink-0 shadow-sm">
+              <span>☕</span>
+              <span>Fresh Brew & Bakery (Retail & Food)</span>
+            </button>
+            <button id="wsTab-happypaws" onclick="switchWsTab('happypaws')" class="ws-tab px-4 py-2.5 rounded-xl font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] flex items-center gap-2 transition shrink-0">
+              <span>🐾</span>
+              <span>Happy Paws Care (Pet Ambulance & Shuttle)</span>
+            </button>
+            <button id="wsTab-smartborrow" onclick="switchWsTab('smartborrow')" class="ws-tab px-4 py-2.5 rounded-xl font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] flex items-center gap-2 transition shrink-0">
+              <span>📦</span>
+              <span>Smart Equipment Borrow (Multi-Campus Drop Points)</span>
+            </button>
+          </div>
+
+          <!-- Archetype 1: Fresh Brew & Bakery -->
+          <div id="wsContent-freshbrew" class="ws-content space-y-6">
+            <div class="p-4 rounded-2xl bg-red-50/60 border border-red-200 flex items-start gap-3">
+              <span class="text-2xl">☕</span>
+              <div class="space-y-1">
+                <div class="font-bold text-[#0F0F0F] text-sm">บริบทธุรกิจ: ร้านกาแฟและเบเกอรี่ Fresh Brew & Bakery (Retail & Food Ordering)</div>
+                <p class="text-xs text-[#606060] leading-relaxed">
+                  <strong>ภารกิจ:</strong> สร้างระบบติดตามพิกัดส่งกาแฟเดลิเวอรี่ ลูกค้าสั่งซื้อพร้อมปักหมุดบ้าน ไรเดอร์กดเปิดแผนที่ดูหมุดออร์เดอร์รอส่ง แตะเริ่มนำทางด้วย Google Maps และประทับตราพิกัด Geotagged Proof ตอนส่งถึงคอนโดลูกค้า
+                </p>
+              </div>
+            </div>
+
+            <!-- Steps for Fresh Brew -->
+            <div class="space-y-4">
+              <!-- Step 1 -->
+              <div class="p-5 rounded-2xl bg-white border border-[#E5E5E5] shadow-sm space-y-3 text-xs">
+                <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                  <span class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs">1</span>
+                    <span>เพิ่มคอลัมน์พิกัดในตาราง Orders</span>
+                  </span>
+                  <span class="text-[10px] bg-red-100 text-[#FF0000] px-2 py-0.5 rounded-full font-bold">Google Sheets ➔ AppSheet</span>
+                </div>
+
+                <div class="space-y-2 leading-relaxed text-[#606060]">
+                  <ol class="list-decimal pl-5 space-y-1.5">
+                    <li>ในชีต <code class="bg-zinc-100 px-1 rounded font-bold text-[#0F0F0F]">Orders</code> เพิ่ม 3 คอลัมน์ใหม่:
+                      <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                        <li><code class="font-mono text-[#0F0F0F]">Customer_Address</code> (Text: เช่น "สุขุมวิท 39 คอนโดเดอะมาสเตอร์ ห้อง 1204")</li>
+                        <li><code class="font-mono text-[#FF0000] font-bold">Delivery_Location</code> (LatLong: พิกัดบ้านลูกค้า)</li>
+                        <li><code class="font-mono text-[#2BA640] font-bold">Delivered_GPS_Proof</code> (LatLong: พิกัดตอนไรเดอร์กดส่งของจริง)</li>
+                      </ul>
+                    </li>
+                    <li>ใน AppSheet กดปุ่ม <strong>Regenerate Schema</strong> ตาราง <code>Orders</code></li>
+                    <li>ตั้งค่าคอลัมน์ <strong>Delivery_Location</strong>:
+                      <ul class="list-disc pl-5 mt-1">
+                        <li>Type: <code class="font-mono font-bold text-[#FF0000]">LatLong</code></li>
+                        <li>ช่อง <strong>Initial value:</strong> ใส่สูตร <code class="font-mono bg-red-50 text-[#FF0000] font-bold px-1 rounded">=HERE()</code></li>
+                      </ul>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div class="p-5 rounded-2xl bg-white border border-[#E5E5E5] shadow-sm space-y-3 text-xs">
+                <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                  <span class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs">2</span>
+                    <span>สร้างมุมมองแผนที่ "ออร์เดอร์รอจัดส่ง" (Delivery Map View)</span>
+                  </span>
+                  <span class="text-[10px] bg-blue-100 text-[#065FD4] px-2 py-0.5 rounded-full font-bold">AppSheet UX</span>
+                </div>
+
+                <div class="space-y-2 leading-relaxed text-[#606060]">
+                  <ol class="list-decimal pl-5 space-y-1.5">
+                    <li>สร้าง View ใหม่ชื่อ: <code class="font-bold text-[#0F0F0F]">แผนที่ออร์เดอร์รอจัดส่ง</code></li>
+                    <li>View type: <code class="font-bold text-[#0F0F0F]">map</code> ➔ For this data: <code class="font-bold text-[#0F0F0F]">Orders</code></li>
+                    <li>Map column: เลือก <code class="font-mono text-[#FF0000] font-bold">Delivery_Location</code></li>
+                    <li>Show if: <code class="font-mono bg-zinc-100 px-1 rounded text-[#0F0F0F]">OR([Order_Status] = "Paid", [Order_Status] = "Brewing")</code> (แสดงเฉพาะออร์เดอร์ที่ต้องส่ง)</li>
+                  </ol>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div class="p-5 rounded-2xl bg-white border border-[#E5E5E5] shadow-sm space-y-3 text-xs">
+                <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                  <span class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs">3</span>
+                    <span>สร้าง Action "นำทางส่งอาหาร" ด้วย Google Maps</span>
+                  </span>
+                  <span class="text-[10px] bg-emerald-100 text-[#2BA640] px-2 py-0.5 rounded-full font-bold">Deep Linking Action</span>
+                </div>
+
+                <div class="space-y-2 leading-relaxed text-[#606060]">
+                  <div class="p-3 rounded-xl bg-zinc-900 text-emerald-400 font-mono text-xs break-all">
+                    ="https://www.google.com/maps/dir/?api=1&destination=" & ENCODEURL(TEXT([Delivery_Location]))
+                  </div>
+                  <p>เมื่อไรเดอร์แตะปุ่มนี้ ระบบจะเปิด Google Maps นำทางมอเตอร์ไซค์ไปยังพิกัดบ้านลูกค้าทันที!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Archetype 2: Happy Paws Care -->
+          <div id="wsContent-happypaws" class="ws-content hidden space-y-6">
+            <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 flex items-start gap-3">
+              <span class="text-2xl">🐾</span>
+              <div class="space-y-1">
+                <div class="font-bold text-[#0F0F0F] text-sm">บริบทธุรกิจ: คลินิกสัตว์เลี้ยง Happy Paws Care (Service & Booking)</div>
+                <p class="text-xs text-[#606060] leading-relaxed">
+                  <strong>ภารกิจ:</strong> ระบบรถตู้รับ-ส่งสัตว์เลี้ยง (Pet Ambulance & Shuttle Service) สำหรับไปรับสุนัข/แมวมารักษาหรือตัดขนที่คลินิก โดยมีระบบนำทางไปยังบ้านเจ้าของสัตว์เลี้ยง พร้อมคำนวณจุดรับ-ส่ง (Pickup/Dropoff Points)
+                </p>
+              </div>
+            </div>
+
+            <!-- Steps for Happy Paws -->
+            <div class="space-y-4">
+              <div class="p-5 rounded-2xl bg-white border border-[#E5E5E5] shadow-sm space-y-3 text-xs">
+                <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                  <span class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs">1</span>
+                    <span>เพิ่มคอลัมน์พิกัดจุดรับ-ส่งสัตว์เลี้ยงในชีต Appointments</span>
+                  </span>
+                  <span class="text-[10px] bg-blue-100 text-[#065FD4] px-2 py-0.5 rounded-full font-bold">ตาราง Appointments</span>
+                </div>
+
+                <div class="space-y-2 leading-relaxed text-[#606060]">
+                  <ol class="list-decimal pl-5 space-y-1.5">
+                    <li>ในชีต <code class="bg-zinc-100 px-1 rounded font-bold text-[#0F0F0F]">Appointments</code> เพิ่ม 2 คอลัมน์พิกัด:
+                      <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                        <li><code class="font-mono text-[#065FD4] font-bold">Pickup_Location</code> (LatLong: พิกัดบ้านลูกค้าสำหรับไปรับสัตว์เลี้ยง)</li>
+                        <li><code class="font-mono text-[#2BA640] font-bold">Dropoff_Location</code> (LatLong: พิกัดส่งสัตว์เลี้ยงกลับบ้าน)</li>
+                      </ul>
+                    </li>
+                    <li>ตั้งค่าใน AppSheet: กำหนด Type เป็น <strong>LatLong</strong> ทั้ง 2 คอลัมน์</li>
+                    <li>สร้าง Map View ชื่อ <code class="font-bold text-[#0F0F0F]">แผนที่เส้นทางรับส่งสัตว์เลี้ยง</code>:
+                      <ul class="list-disc pl-5 mt-1">
+                        <li>Map column: <code class="font-mono text-[#065FD4]">Pickup_Location</code></li>
+                        <li>Secondary column: <code class="font-mono text-[#2BA640]">Dropoff_Location</code></li>
+                      </ul>
+                    </li>
+                    <li>สร้าง Action <code class="font-bold text-[#0F0F0F]">นำทางไปรับสัตว์เลี้ยง</code> ด้วยสูตร:
+                      <div class="my-1.5 p-2.5 rounded-xl bg-zinc-900 text-emerald-400 font-mono text-[11px] break-all">
+                        ="https://www.google.com/maps/dir/?api=1&destination=" & ENCODEURL(TEXT([Pickup_Location]))
+                      </div>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Archetype 3: Smart Borrow -->
+          <div id="wsContent-smartborrow" class="ws-content hidden space-y-6">
+            <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 flex items-start gap-3">
+              <span class="text-2xl">📦</span>
+              <div class="space-y-1">
+                <div class="font-bold text-[#0F0F0F] text-sm">บริบทธุรกิจ: ระบบยืม-คืนอุปกรณ์ Smart Equipment Borrow (Asset Tracking)</div>
+                <p class="text-xs text-[#606060] leading-relaxed">
+                  <strong>ภารกิจ:</strong> ตรวจสอบพิกัดอุปกรณ์ที่ถูกยืมไปติดตั้งนอกสถานที่ (Field Equipment Site Tracking) และระบบจุดดรอปคืนอุปกรณ์ข้ามวิทยาเขต (Multi-Campus Equipment Return Drop Points)
+                </p>
+              </div>
+            </div>
+
+            <!-- Steps for Smart Borrow -->
+            <div class="space-y-4">
+              <div class="p-5 rounded-2xl bg-white border border-[#E5E5E5] shadow-sm space-y-3 text-xs">
+                <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                  <span class="font-bold text-sm text-[#0F0F0F] flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center text-xs">1</span>
+                    <span>ติดตั้งพิกัดไซต์งานและจุดส่งคืนข้ามวิทยาเขต</span>
+                  </span>
+                  <span class="text-[10px] bg-emerald-100 text-[#2BA640] px-2 py-0.5 rounded-full font-bold">ตาราง Borrow_Requests</span>
+                </div>
+
+                <div class="space-y-2 leading-relaxed text-[#606060]">
+                  <ol class="list-decimal pl-5 space-y-1.5">
+                    <li>ในชีต <code class="bg-zinc-100 px-1 rounded font-bold text-[#0F0F0F]">Borrow_Requests</code> เพิ่มคอลัมน์:
+                      <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                        <li><code class="font-mono text-[#0F0F0F] font-bold">Deployment_Site_Location</code> (LatLong: พิกัดหน้างานที่นำกล้อง/อุปกรณ์ไปติดตั้ง)</li>
+                        <li><code class="font-mono text-[#065FD4] font-bold">Checkout_GPS_Location</code> (LatLong: พิกัดจุดรับมอบของ)</li>
+                        <li><code class="font-mono text-[#2BA640] font-bold">Return_Drop_Point</code> (Enum: เช่น "ศูนย์นวัตกรรม อาคาร 4", "แล็บหุ่นยนต์ แคมปัสบางนา", "ตู้ล็อกเกอร์ดรอปคืนอุปกรณ์ 24 ชม.")</li>
+                      </ul>
+                    </li>
+                    <li>สร้าง Map View ชื่อ <code class="font-bold text-[#0F0F0F]">แผนที่กระจายตัวครุภัณฑ์</code> แสดงตำแหน่งอุปกรณ์ทั้งหมดที่อยู่ภาคสนาม</li>
+                    <li>สร้าง Action <code class="font-bold text-[#0F0F0F]">นำทางไปตรวจสอบอุปกรณ์ที่ไซต์งาน</code>:
+                      <div class="my-1.5 p-2.5 rounded-xl bg-zinc-900 text-emerald-400 font-mono text-[11px] break-all">
+                        ="https://www.google.com/maps/dir/?api=1&destination=" & ENCODEURL(TEXT([Deployment_Site_Location]))
+                      </div>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 7: INTERACTIVE SIMULATORS & MAP SANDBOX -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="interactive-simulators" class="scroll-mt-20 space-y-12">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>ห้องปฏิบัติการจำลองเสมือนจริง (Interactive GPS & Map Sandbox)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              7. ห้องทดลองจำลองระบบแผนที่และสมาร์ตโฟน (Live Simulators)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              ทดสอบการทำงานจริงของระบบพิกัดดาวเทียม การปักหมุดแผนที่ การเรียกใช้ Google Maps นำทางเลี้ยวต่อเลี้ยว และการประทับตราพิกัดจัดส่ง Geotagged Proof เสมือนถือสมาร์ตโฟนอยู่บนท้องถนนจริง:
+            </p>
+          </div>
+
+          <!-- ============================================================= -->
+          <!-- WIDGET 1: INTERACTIVE MOBILE PHONE SIMULATOR (320x640) -->
+          <!-- ============================================================= -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E5E5] pb-4">
+              <div>
+                <span class="inline-block px-2.5 py-0.5 rounded bg-red-100 text-[#FF0000] text-[10px] font-bold uppercase tracking-wider mb-1">
+                  WIDGET 1 • MOBILE TESTBED
+                </span>
+                <h3 class="text-lg font-black text-[#0F0F0F]">
+                  📱 โปรแกรมจำลองสมาร์ตโฟน (Mobile Phone Simulator 320×640)
+                </h3>
+                <p class="text-xs text-[#606060]">
+                  ทดสอบวงจรชีวิตของพิกัดตั้งแต่สั่งซื้อ ➔ ดูแผนที่ ➔ กดนำทาง Google Maps ➔ ยืนยันพิกัดจัดส่ง
+                </p>
+              </div>
+
+              <!-- Simulator Step Indicator Pills -->
+              <div class="flex items-center gap-1.5 self-start sm:self-auto bg-white p-1 rounded-2xl border border-[#E5E5E5] text-xs">
+                <button onclick="simSetStep(1)" id="stepPill1" class="h-8 px-3 rounded-xl font-bold bg-[#FF0000] text-white transition">1. รับพิกัด</button>
+                <button onclick="simSetStep(2)" id="stepPill2" class="h-8 px-3 rounded-xl font-medium text-[#606060] hover:bg-zinc-100 transition">2. ปักหมุด</button>
+                <button onclick="simSetStep(3)" id="stepPill3" class="h-8 px-3 rounded-xl font-medium text-[#606060] hover:bg-zinc-100 transition">3. ดูแผนที่</button>
+                <button onclick="simSetStep(4)" id="stepPill4" class="h-8 px-3 rounded-xl font-medium text-[#606060] hover:bg-zinc-100 transition">4. นำทาง</button>
+                <button onclick="simSetStep(5)" id="stepPill5" class="h-8 px-3 rounded-xl font-medium text-[#606060] hover:bg-zinc-100 transition">5. Geotag</button>
+              </div>
+            </div>
+
+            <!-- Simulator Outer Grid: Controls on Left, Phone on Right -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <!-- Left Column: Step Details & Interactive Triggers -->
+              <div class="lg:col-span-6 space-y-4 text-xs">
+                <div class="p-4 rounded-2xl bg-white border border-[#E5E5E5] space-y-3">
+                  <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                    <span id="simStepTitle" class="font-bold text-sm text-[#0F0F0F]">
+                      ขั้นตอนที่ 1: ตรวจจับพิกัดดาวเทียม =HERE()
+                    </span>
+                    <span id="simStepBadge" class="px-2 py-0.5 rounded bg-red-100 text-[#FF0000] text-[10px] font-bold">
+                      INITIAL VALUE
+                    </span>
+                  </div>
+                  <p id="simStepDesc" class="text-[#606060] leading-relaxed">
+                    เมื่อลูกค้าหรือพนักงานเปิดฟอร์มคำสั่งซื้อ ระบบ AppSheet จะเรียกใช้สูตร <code class="bg-red-50 text-[#FF0000] px-1 rounded font-bold font-mono">=HERE()</code> เพื่อดึงพิกัดจากชิป GPS มากรอกลงในช่อง Delivery_Location อัตโนมัติ
+                  </p>
+
+                  <!-- Preset Location Choosers -->
+                  <div class="space-y-1.5 pt-2 border-t border-zinc-100">
+                    <div class="text-[11px] font-bold text-[#0F0F0F]">เลือกสถานที่ทดสอบพิกัดในกรุงเทพฯ:</div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button onclick="selectSimPreset('siam')" class="p-2 rounded-xl border border-zinc-200 hover:border-red-400 bg-zinc-50 hover:bg-red-50/50 text-left transition">
+                        <div class="font-bold text-[#0F0F0F]">🛍️ สยามสแควร์วัน</div>
+                        <div class="text-[10px] text-zinc-500 font-mono">13.7462, 100.5347</div>
+                      </button>
+                      <button onclick="selectSimPreset('asok')" class="p-2 rounded-xl border border-zinc-200 hover:border-red-400 bg-zinc-50 hover:bg-red-50/50 text-left transition">
+                        <div class="font-bold text-[#0F0F0F]">🏢 อโศก สุขุมวิท 21</div>
+                        <div class="text-[10px] text-zinc-500 font-mono">13.7367, 100.5608</div>
+                      </button>
+                      <button onclick="selectSimPreset('ari')" class="p-2 rounded-xl border border-zinc-200 hover:border-red-400 bg-zinc-50 hover:bg-red-50/50 text-left transition">
+                        <div class="font-bold text-[#0F0F0F]">🌿 อารีย์ พหลโยธิน 7</div>
+                        <div class="text-[10px] text-zinc-500 font-mono">13.7797, 100.5448</div>
+                      </button>
+                      <button onclick="selectSimPreset('ladkrabang')" class="p-2 rounded-xl border border-zinc-200 hover:border-red-400 bg-zinc-50 hover:bg-red-50/50 text-left transition">
+                        <div class="font-bold text-[#0F0F0F]">✈️ ลาดกระบัง-สุวรรณภูมิ</div>
+                        <div class="text-[10px] text-zinc-500 font-mono">13.7279, 100.7783</div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Simulation Action Controls -->
+                <div class="flex items-center gap-2">
+                  <button onclick="simPrevStep()" class="flex-1 py-2.5 rounded-xl bg-white border border-[#E5E5E5] hover:bg-zinc-50 font-bold text-[#0F0F0F] transition shadow-sm">
+                    ← ขั้นตอนก่อนหน้า
+                  </button>
+                  <button onclick="simNextStep()" class="flex-1 py-2.5 rounded-xl bg-[#0F0F0F] hover:bg-black text-white font-bold transition shadow-sm">
+                    ขั้นตอนถัดไป ➔
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right Column: Mobile Phone Mockup (320x640) -->
+              <div class="lg:col-span-6 flex justify-center">
+                <div class="phone-mockup">
+                  <!-- Phone Notch -->
+                  <div class="phone-notch">
+                    <div class="phone-speaker"></div>
+                  </div>
+
+                  <!-- Phone Screen Viewport -->
+                  <div class="phone-screen" id="phoneScreen">
+                    <!-- Dynamic Phone Screen Content Injected via JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================================= -->
+          <!-- WIDGET 2: INTERACTIVE BANGKOK MAP VIEWPORT SIMULATOR -->
+          <!-- ============================================================= -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-[#E5E5E5] shadow-sm space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 pb-4">
+              <div>
+                <span class="inline-block px-2.5 py-0.5 rounded bg-blue-100 text-[#065FD4] text-[10px] font-bold uppercase tracking-wider mb-1">
+                  WIDGET 2 • METRO MAP CARTOGRAPHY
+                </span>
+                <h3 class="text-lg font-black text-[#0F0F0F]">
+                  🗺️ โปรแกรมจำลองแผนที่เมืองกรุงเทพฯ แบบโต้ตอบ (Interactive Map Viewport)
+                </h3>
+                <p class="text-xs text-[#606060]">
+                  แตะบนผืนแผนที่เพื่อปักหมุดพิกัดใหม่ คำนวณระยะห่างด้วยสูตร DISTANCE และทดสอบ URL Scheme สดๆ
+                </p>
+              </div>
+
+              <!-- Map Layer Modes Switcher -->
+              <div class="flex items-center gap-1.5 bg-zinc-100 p-1 rounded-2xl text-xs">
+                <button onclick="setMapMode('pins')" id="modeBtn-pins" class="h-8 px-3 rounded-xl font-bold bg-white text-[#0F0F0F] shadow-sm transition">
+                  📍 โหมดปักหมุด (Pins)
+                </button>
+                <button onclick="setMapMode('heatmap')" id="modeBtn-heatmap" class="h-8 px-3 rounded-xl font-medium text-[#606060] hover:text-[#0F0F0F] transition">
+                  🌡️ โหมดความหนาแน่น (Heatmap)
+                </button>
+                <button onclick="setMapMode('route')" id="modeBtn-route" class="h-8 px-3 rounded-xl font-medium text-[#606060] hover:text-[#0F0F0F] transition">
+                  🛣️ โหมดเส้นทาง (Route)
+                </button>
+              </div>
+            </div>
+
+            <!-- Map Display + Dynamic Stats Bar -->
+            <div class="space-y-4">
+              <!-- SVG Map Canvas Container -->
+              <div class="relative w-full h-[400px] rounded-2xl bg-zinc-900 border border-zinc-800 overflow-hidden select-none cursor-crosshair group" id="mapContainer" onclick="handleMapCanvasClick(event)">
+                <!-- SVG Map Layout -->
+                <svg id="interactiveSvgMap" class="w-full h-full" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice">
+                  <!-- Background Grid Lines -->
+                  <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#222222" stroke-width="0.75"/>
+                    </pattern>
+                    <!-- Heatmap Gradient Filters -->
+                    <radialGradient id="heatCentral" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#FF0000" stop-opacity="0.8"/>
+                      <stop offset="40%" stop-color="#FB8C00" stop-opacity="0.5"/>
+                      <stop offset="80%" stop-color="#FFEB3B" stop-opacity="0.2"/>
+                      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+                    </radialGradient>
+                    <radialGradient id="heatSathorn" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#FF0000" stop-opacity="0.7"/>
+                      <stop offset="50%" stop-color="#FB8C00" stop-opacity="0.4"/>
+                      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+                    </radialGradient>
+                  </defs>
+
+                  <rect width="800" height="450" fill="#18181B" />
+                  <rect width="800" height="450" fill="url(#grid)" />
+
+                  <!-- Chao Phraya River -->
+                  <path d="M 320 -10 C 340 80, 260 140, 290 220 C 310 270, 280 340, 250 460" fill="none" stroke="#0284C7" stroke-width="18" stroke-linecap="round" opacity="0.6"/>
+                  <path d="M 320 -10 C 340 80, 260 140, 290 220 C 310 270, 280 340, 250 460" fill="none" stroke="#38BDF8" stroke-width="4" stroke-dasharray="4 8" opacity="0.8"/>
+
+                  <!-- Major Expressways & Rings -->
+                  <path d="M 100 180 L 720 180" fill="none" stroke="#3F3F46" stroke-width="6" />
+                  <path d="M 420 50 L 420 400" fill="none" stroke="#3F3F46" stroke-width="6" />
+                  <path d="M 180 320 L 680 120" fill="none" stroke="#52525B" stroke-width="4" stroke-dasharray="6 4" />
+
+                  <!-- Heatmap Overlays Layer (Toggleable) -->
+                  <g id="heatmapLayer" class="hidden">
+                    <circle cx="420" cy="200" r="140" fill="url(#heatCentral)" pointer-events="none" />
+                    <circle cx="360" cy="280" r="100" fill="url(#heatSathorn)" pointer-events="none" />
+                    <circle cx="560" cy="180" r="90" fill="url(#heatCentral)" opacity="0.6" pointer-events="none" />
+                  </g>
+
+                  <!-- Central Hub (Fresh Brew Central Kitchen / Store HQ) -->
+                  <g transform="translate(420, 200)">
+                    <circle cx="0" cy="0" r="16" fill="#FF0000" fill-opacity="0.3" class="animate-ping" />
+                    <circle cx="0" cy="0" r="8" fill="#FF0000" stroke="#FFFFFF" stroke-width="2" />
+                    <text x="12" y="4" fill="#FFFFFF" font-size="11" font-weight="bold" font-family="Roboto, sans-serif">ศูนย์กลาง Fresh Brew HQ (สยาม)</text>
+                  </g>
+
+                  <!-- Route Polyline Layer (Toggleable) -->
+                  <g id="routeLayer" class="hidden">
+                    <path id="routeLineSvg" d="M 420 200 L 480 200 L 530 250 L 620 270" fill="none" stroke="#22C55E" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 6" class="animate-pulse" />
+                  </g>
+
+                  <!-- Fixed Order Pins -->
+                  <g id="staticPinsLayer">
+                    <!-- Pin 1: Ari -->
+                    <g transform="translate(410, 110)" class="cursor-pointer" onclick="inspectPin(event, 'อารีย์ พหลโยธิน 7', '13.7797, 100.5448', 'Brewing', '4.2 กม.', '12 นาที')">
+                      <circle cx="0" cy="0" r="6" fill="#FB8C00" stroke="#FFFFFF" stroke-width="1.5" />
+                      <text x="10" y="4" fill="#E4E4E7" font-size="10" font-family="Roboto, sans-serif">อารีย์ (กำลังชง)</text>
+                    </g>
+
+                    <!-- Pin 2: Asok -->
+                    <g transform="translate(510, 215)" class="cursor-pointer" onclick="inspectPin(event, 'อโศก สุขุมวิท 21', '13.7367, 100.5608', 'Paid', '2.8 กม.', '8 นาที')">
+                      <circle cx="0" cy="0" r="6" fill="#FF0000" stroke="#FFFFFF" stroke-width="1.5" />
+                      <text x="10" y="4" fill="#E4E4E7" font-size="10" font-family="Roboto, sans-serif">อโศก (รอส่งด่วน)</text>
+                    </g>
+
+                    <!-- Pin 3: Sathorn -->
+                    <g transform="translate(360, 280)" class="cursor-pointer" onclick="inspectPin(event, 'สาทรใต้ สวนพลู', '13.7225, 100.5361', 'Completed', '3.5 กม.', '10 นาที')">
+                      <circle cx="0" cy="0" r="6" fill="#2BA640" stroke="#FFFFFF" stroke-width="1.5" />
+                      <text x="10" y="4" fill="#E4E4E7" font-size="10" font-family="Roboto, sans-serif">สาทร (ส่งสำเร็จแล้ว)</text>
+                    </g>
+                  </g>
+
+                  <!-- Dynamic Clicked User Pin Marker -->
+                  <g id="userPinMarker" transform="translate(620, 270)">
+                    <circle cx="0" cy="0" r="14" fill="#065FD4" fill-opacity="0.3" class="animate-ping" />
+                    <circle cx="0" cy="0" r="7" fill="#065FD4" stroke="#FFFFFF" stroke-width="2" />
+                    <text x="12" y="4" fill="#60A5FA" font-size="11" font-weight="bold" font-family="Roboto, sans-serif" id="userPinLabel">จุดที่ผู้ใช้เลือก (คลิกแผนที่เพื่อย้าย)</text>
+                  </g>
+                </svg>
+
+                <!-- Map Viewport Overlay Badges -->
+                <div class="absolute top-3 left-3 bg-zinc-900/90 backdrop-blur border border-zinc-700/80 rounded-xl px-3 py-1.5 text-[11px] text-zinc-300 font-mono">
+                  <span>📐 BANGKOK METRO VIEWPORT • EPSG:4326</span>
+                </div>
+
+                <div class="absolute bottom-3 right-3 bg-zinc-900/90 backdrop-blur border border-zinc-700/80 rounded-xl px-3 py-1.5 text-[11px] text-zinc-400">
+                  <span>💡 คลิกตรงไหนก็ได้บนแผนที่เพื่อทดสอบปักหมุด</span>
+                </div>
+              </div>
+
+              <!-- Interactive Dynamic Calculation Inspector Card -->
+              <div class="p-5 rounded-2xl bg-[#F8F8F8] border border-[#E5E5E5] grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <!-- Point 1 -->
+                <div class="space-y-1">
+                  <div class="text-[10px] text-zinc-500 uppercase font-bold">พิกัดจุดที่เลือก (Selected Coordinates)</div>
+                  <div class="font-mono font-bold text-sm text-[#FF0000]" id="inspCoords">13.731422, 100.581512</div>
+                  <div class="text-zinc-600" id="inspAddress">ทองหล่อ ซอย 10 (สุขุมวิท 55)</div>
+                </div>
+
+                <!-- Distance Calc -->
+                <div class="space-y-1 md:border-l md:border-zinc-200 md:pl-4">
+                  <div class="text-[10px] text-zinc-500 uppercase font-bold">สูตร =DISTANCE(HQ, จุดหมาย)</div>
+                  <div class="font-mono font-bold text-sm text-[#065FD4]" id="inspDistance">4.82 กิโลเมตร</div>
+                  <div class="text-zinc-600" id="inspEta">เวลาขับขี่โดยประมาณ: 14 นาที</div>
+                </div>
+
+                <!-- Deep Link Trigger Test -->
+                <div class="space-y-2 md:border-l md:border-zinc-200 md:pl-4 flex flex-col justify-center">
+                  <button onclick="testLaunchGoogleMaps()" class="h-9 px-4 rounded-xl bg-[#065FD4] hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    <span>ทดสอบเปิด Google Maps จริง</span>
+                  </button>
+                  <div class="text-[10px] text-zinc-500 text-center">ทดสอบ URL Scheme ในแท็บใหม่</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================================= -->
+          <!-- WIDGET 3: LIVE HARDWARE GPS ACQUISITION PLAYGROUND -->
+          <!-- ============================================================= -->
+          <div class="p-6 rounded-3xl bg-zinc-900 text-white border border-zinc-800 space-y-4 text-xs">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div>
+                <span class="inline-block px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                  WIDGET 3 • SENSOR HARNESS
+                </span>
+                <h3 class="font-bold text-base text-white">
+                  🛰️ ทดสอบเชื่อมต่อชิป GPS บนอุปกรณ์ของคุณจริง (HTML5 Geolocation API)
+                </h3>
+              </div>
+              <span class="text-emerald-400 font-mono text-xs">navigator.geolocation</span>
+            </div>
+
+            <p class="text-zinc-400 leading-relaxed">
+              กดปุ่มด้านล่างเพื่อทดสอบว่าเบราว์เซอร์หรือสมาร์ตโฟนของคุณสามารถส่งพิกัดดาวเทียมจริงให้เว็บแอปพลิเคชันได้หรือไม่ (เสมือนตอนเปิดแอป AppSheet ครั้งแรก):
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+              <button onclick="acquireRealDeviceGps()" id="btnAcquireGps" class="w-full sm:w-auto h-10 px-5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold flex items-center justify-center gap-2 transition shadow-lg shadow-red-950">
+                <svg class="w-4 h-4 animate-spin hidden" id="gpsSpinner" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span id="btnAcquireGpsText">ดึงพิกัด GPS ปัจจุบันจากเครื่องคุณ</span>
+              </button>
+
+              <div id="realGpsResult" class="flex-1 p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[11px] truncate">
+                สถานะ: ยังไม่ได้กดดึงพิกัด (แตะปุ่มสีแดงเพื่อทดสอบ)
+              </div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 8: AGILE TRIAD COLLABORATION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="agile-triad" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>หมวดการทำงานร่วมกันเป็นทีม (Agile Triad Collaboration Matrix)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              8. การแบ่งบทบาทหน้าที่ของสมาชิก 3 คนในทีม (Agile Triad Collaboration)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              การพัฒนาระบบข้อมูลเชิงพื้นที่และแผนที่นำทางจำเป็นต้องอาศัยการบูรณาการระหว่างสถาปัตยกรรมฐานข้อมูล การออกแบบหน้าจอแผนที่ (Cartography UX) และวิศวกรรมการเชื่อมต่อระบบปฏิบัติการ สมาชิกทั้ง 3 คนในทีมจึงต้องแบ่งภาระงานอย่างชัดเจน:
+            </p>
+          </div>
+
+          <!-- Team Matrix Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+            <!-- Role 1 -->
+            <div class="p-5 rounded-2xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-3 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-center gap-2.5 border-b border-[#E5E5E5] pb-2.5">
+                  <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold font-mono">1</div>
+                  <div>
+                    <div class="font-bold text-[#0F0F0F] text-sm">Spatial Data Architect</div>
+                    <div class="text-[10px] text-[#FF0000] font-bold">สถาปนิกข้อมูลเชิงพื้นที่</div>
+                  </div>
+                </div>
+                <ul class="space-y-2 text-[#606060]">
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#FF0000] font-bold">✓</span>
+                    <span>ออกแบบคอลัมน์ชนิด <code class="font-mono text-[#0F0F0F]">LatLong</code> และ <code class="font-mono text-[#0F0F0F]">Address</code> ใน Google Sheets</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#FF0000] font-bold">✓</span>
+                    <span>กำหนดสูตรเริ่มต้น <code class="font-mono text-[#0F0F0F]">=HERE()</code> ในช่อง Initial Value</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#FF0000] font-bold">✓</span>
+                    <span>จัดการนโยบายสิทธิ์การเข้าถึงพิกัด (Location Permissions) บนอุปกรณ์</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#FF0000] font-bold">✓</span>
+                    <span>ตรวจสอบความถูกต้องของพิกัดในตาราง ป้องกันค่าว่างหรือพิกัดศูนย์</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white border border-[#E5E5E5] text-[10px] font-mono text-zinc-500">
+                Deliverable: ตาราง Orders พร้อมคอลัมน์ LatLong และสูตร =HERE()
+              </div>
+            </div>
+
+            <!-- Role 2 -->
+            <div class="p-5 rounded-2xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-3 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-center gap-2.5 border-b border-[#E5E5E5] pb-2.5">
+                  <div class="w-8 h-8 rounded-full bg-[#065FD4] text-white flex items-center justify-center font-bold font-mono">2</div>
+                  <div>
+                    <div class="font-bold text-[#0F0F0F] text-sm">Map UX & Cartography Specialist</div>
+                    <div class="text-[10px] text-[#065FD4] font-bold">ผู้ออกแบบแผนที่และหมุด</div>
+                  </div>
+                </div>
+                <ul class="space-y-2 text-[#606060]">
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#065FD4] font-bold">✓</span>
+                    <span>สร้างมุมมองประเภท Map ใน AppSheet UX ให้ซูมเข้าสู่บริเวณจริง</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#065FD4] font-bold">✓</span>
+                    <span>กำหนด Map Column หลักและ Secondary Column แสดงคู่จุด</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#065FD4] font-bold">✓</span>
+                    <span>เขียนเงื่อนไข <strong>Format Rules</strong> เพื่อเปลี่ยนสีหมุดตามสถานะ (แดง/ส้ม/เขียว)</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#065FD4] font-bold">✓</span>
+                    <span>ออกแบบการจัดกลุ่มหมุด (Pin Clustering) และการ์ดสรุปใต้แผนที่</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white border border-[#E5E5E5] text-[10px] font-mono text-zinc-500">
+                Deliverable: หน้าจอ Map View พร้อม Format Rules สีสันสวยงาม
+              </div>
+            </div>
+
+            <!-- Role 3 -->
+            <div class="p-5 rounded-2xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-3 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-center gap-2.5 border-b border-[#E5E5E5] pb-2.5">
+                  <div class="w-8 h-8 rounded-full bg-[#2BA640] text-white flex items-center justify-center font-bold font-mono">3</div>
+                  <div>
+                    <div class="font-bold text-[#0F0F0F] text-sm">Deep Link & Field Lead</div>
+                    <div class="text-[10px] text-[#2BA640] font-bold">วิศวกรระบบนำทางและทดสอบสนาม</div>
+                  </div>
+                </div>
+                <ul class="space-y-2 text-[#606060]">
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#2BA640] font-bold">✓</span>
+                    <span>เขียนสูตร Deep Linking URL Scheme เรียกแอป Google Maps นำทาง</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#2BA640] font-bold">✓</span>
+                    <span>ทดสอบการแตะปุ่ม Action เพื่อเด้งเปิดระบบ Turn-by-Turn บนมือถือจริง</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#2BA640] font-bold">✓</span>
+                    <span>สร้างกลไก Geotagged Proof บันทึกพิกัดจริงตอนแตะปุ่มส่งมอบสินค้า</span>
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <span class="text-[#2BA640] font-bold">✓</span>
+                    <span>รันเกณฑ์ตรวจสอบตนเอง Self-Checklist และประเมินรูบริก 10 คะแนน</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white border border-[#E5E5E5] text-[10px] font-mono text-zinc-500">
+                Deliverable: Action นำทางที่เปิด Google Maps ได้จริง และระบบ Geotagged Proof
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 9: TROUBLESHOOTING & COMMON PITFALLS -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="troubleshooting" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>คู่มือการแก้ปัญหาหน้างาน (Field Troubleshooting Matrix)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              9. ข้อผิดพลาดที่พบบ่อยและแนวทางแก้ไข (Troubleshooting & Pitfalls)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              รวมข้อผิดพลาดที่มักเกิดขึ้นเมื่อนำระบบแผนที่และ GPS ไปใช้งานจริงบนสมาร์ตโฟน พร้อมขั้นตอนการแก้ไขเชิงลึก:
+            </p>
+          </div>
+
+          <!-- Troubleshooting Table -->
+          <div class="overflow-x-auto rounded-2xl border border-[#E5E5E5]">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-[#F8F8F8] border-b border-[#E5E5E5] text-[#0F0F0F]">
+                  <th class="p-3.5 font-bold w-1/3">ปัญหาที่พบ (Error Symptoms)</th>
+                  <th class="p-3.5 font-bold">สาเหตุและวิธีแก้ไข (Root Cause & Fix)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E5E5E5]">
+                <tr class="hover:bg-zinc-50 transition">
+                  <td class="p-3.5 font-bold text-[#FF0000] flex items-start gap-2">
+                    <span>❌</span>
+                    <span>1. พิกัด =HERE() ขึ้นค่าว่าง หรือฟ้อง Location Permission Denied</span>
+                  </td>
+                  <td class="p-3.5 text-[#606060] leading-relaxed">
+                    <strong>สาเหตุ:</strong> เว็บเบราว์เซอร์หรือระบบปฏิบัติการมือถือบล็อกสิทธิ์การเข้าถึงตำแหน่ง<br>
+                    <strong>วิธีแก้:</strong> แตะที่ไอคอนรูป <strong>แม่กุญแจ</strong> หรือ <strong>ไอคอนการตั้งค่าหน้าเว็บ</strong> ที่แถบ URL ด้านบน ➔ เลือก <strong>Permissions (สิทธิ์)</strong> ➔ ปรับ <strong>Location (ตำแหน่ง)</strong> ให้เป็น <strong>Allow (อนุญาต)</strong> แล้วทำการรีเฟรชหน้าจอ
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-zinc-50 transition">
+                  <td class="p-3.5 font-bold text-amber-700 flex items-start gap-2">
+                    <span>🌊</span>
+                    <span>2. หมุดแผนที่ไปปักกลางมหาสมุทรแอตแลนติก (เกาะ Null Island พิกัด 0,0)</span>
+                  </td>
+                  <td class="p-3.5 text-[#606060] leading-relaxed">
+                    <strong>สาเหตุ:</strong> พิมพ์พิกัดสลับที่กัน หรือกรอกค่าผิดพลาดเป็น 0,0 หรือนำค่าลองจิจูดมาไว้ข้างหน้า<br>
+                    <strong>วิธีแก้:</strong> รูปแบบของ AppSheet ต้องเป็น <code class="font-mono text-[#0F0F0F] font-bold">ละติจูด, ลองจิจูด</code> เสมอ และสำหรับประเทศไทย ค่าละติจูดต้องอยู่ระหว่าง <strong>13 ถึง 20</strong> และลองจิจูดต้องอยู่ระหว่าง <strong>98 ถึง 105</strong>
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-zinc-50 transition">
+                  <td class="p-3.5 font-bold text-[#065FD4] flex items-start gap-2">
+                    <span>⚠️</span>
+                    <span>3. กดปุ่มนำทางแล้วหน้าจอขาว หรือแจ้งว่า Invalid URL Address</span>
+                  </td>
+                  <td class="p-3.5 text-[#606060] leading-relaxed">
+                    <strong>สาเหตุ:</strong> ลืมใส่ฟังก์ชัน <code class="font-mono text-[#065FD4] font-bold">ENCODEURL()</code> ในสูตร ทำให้เครื่องหมายจุลภาค (Comma) ในพิกัดไปรบกวนโครงสร้าง Query String<br>
+                    <strong>วิธีแก้:</strong> ใช้สูตรมาตรฐานที่รัดกุม: <code class="font-mono text-[#065FD4] font-bold">="https://www.google.com/maps/dir/?api=1&destination=" & ENCODEURL(TEXT([Customer_Location]))</code>
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-zinc-50 transition">
+                  <td class="p-3.5 font-bold text-zinc-700 flex items-start gap-2">
+                    <span>💻</span>
+                    <span>4. แผนที่ในคอมพิวเตอร์ตั้งโต๊ะชี้ตำแหน่งไม่ตรงกับสถานที่จริง</span>
+                  </td>
+                  <td class="p-3.5 text-[#606060] leading-relaxed">
+                    <strong>คำชี้แจง:</strong> พฤติกรรมปกติตามหลักวิศวกรรม เนื่องจากคอมพิวเตอร์ PC ไม่มีชิปเสาอากาศ GPS จึงอ้างอิงตำแหน่งจากเกตเวย์ของผู้ให้บริการอินเทอร์เน็ต (ISP Gateway IP) ซึ่งอาจคลาดเคลื่อน 10-30 กิโลเมตร <strong>ให้ทดสอบบนสมาร์ตโฟนจริงที่มีชิป GPS</strong>
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-zinc-50 transition">
+                  <td class="p-3.5 font-bold text-purple-700 flex items-start gap-2">
+                    <span>🔋</span>
+                    <span>5. ความเข้าใจผิดเรื่องการติดตามสดแบบ Live Background Stream</span>
+                  </td>
+                  <td class="p-3.5 text-[#606060] leading-relaxed">
+                    <strong>คำชี้แจง:</strong> AppSheet และ No-Code Framework ทำงานแบบ Event-Driven (ดึงพิกัดเมื่อมีการแตะปุ่มหรือบันทึกฟอร์ม) ไม่สามารถรันโปรเซสแอบดึงพิกัดสดตลอดเวลาเบื้องหลังได้ เพราะข้อจำกัดด้านความปลอดภัยและการประหยัดแบตเตอรี่ ให้ใช้รูปแบบการเช็คอินตามจุดสำคัญ (Checkpoint Geotagging) แทน
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 10: INTERACTIVE SELF-CHECKLIST -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="self-checklist" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>การตรวจสอบตนเองก่อนส่งงาน (Self-Checklist Verification)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              10. แบบตรวจสอบตนเองก่อนส่งงาน (Self-Checklist ประจำบทที่ 11)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              ให้นักศึกษาตรวจสอบความพร้อมและความสมบูรณ์ของระบบพิกัดและแผนที่นำทางให้ครบทั้ง 6 ข้อก่อนส่งให้อาจารย์ผู้สอนประเมินผลงาน (ระบบจะบันทึกสถานะลงใน LocalStorage ของเครื่องท่านอัตโนมัติ):
+            </p>
+          </div>
+
+          <!-- Checklist Container -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-6">
+            <!-- Progress Bar & Count -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span id="checklistCount" class="font-bold text-[#0F0F0F]">เสร็จสิ้น 0 จาก 6 ข้อกำหนด</span>
+                <span id="checklistPercentage" class="font-mono font-bold text-[#FF0000]">0%</span>
+              </div>
+              <div class="w-full h-3 bg-zinc-200 rounded-full overflow-hidden">
+                <div id="checklistProgressBar" class="h-full bg-[#FF0000] transition-all duration-300" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- 6 Checklist Items -->
+            <div class="space-y-3 text-xs">
+              <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-[#E5E5E5] hover:border-red-200 transition cursor-pointer select-none">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#FF0000] focus:ring-[#FF0000]" onchange="updateChecklist()">
+                <div class="space-y-0.5">
+                  <div class="font-bold text-[#0F0F0F]">1. คอลัมน์พิกัดดาวเทียม (LatLong Column)</div>
+                  <div class="text-[#606060]">กำหนดคอลัมน์ชนิด <code class="font-mono text-[#0F0F0F]">LatLong</code> พร้อมสูตรเริ่มต้น <code class="font-mono text-[#FF0000]">=HERE()</code> ดึงพิกัด GPS อัตโนมัติจากชิปมือถือได้สำเร็จ</div>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-[#E5E5E5] hover:border-red-200 transition cursor-pointer select-none">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#FF0000] focus:ring-[#FF0000]" onchange="updateChecklist()">
+                <div class="space-y-0.5">
+                  <div class="font-bold text-[#0F0F0F]">2. การแสดงผลมุมมองแผนที่ (Map View)</div>
+                  <div class="text-[#606060]">สร้างมุมมองประเภท <code class="font-mono text-[#0F0F0F]">map</code> ที่แสดงหมุดตำแหน่งได้อย่างถูกต้องแม่นยำบนแผนที่ Google Maps โดยไม่หลุดไปเกาะ Null Island</div>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-[#E5E5E5] hover:border-red-200 transition cursor-pointer select-none">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#FF0000] focus:ring-[#FF0000]" onchange="updateChecklist()">
+                <div class="space-y-0.5">
+                  <div class="font-bold text-[#0F0F0F]">3. การปรับแต่งหมุดและสี (Pin UX & Format Rules)</div>
+                  <div class="text-[#606060]">หมุดแผนที่มีการเปลี่ยนสีตามสถานะของงาน (แดง/ส้ม/เขียว) และแสดงชื่อหรือข้อมูลสรุปที่อ่านง่ายเมื่อผู้ใช้แตะที่หมุด</div>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-[#E5E5E5] hover:border-red-200 transition cursor-pointer select-none">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#FF0000] focus:ring-[#FF0000]" onchange="updateChecklist()">
+                <div class="space-y-0.5">
+                  <div class="font-bold text-[#0F0F0F]">4. ปุ่มนำทางภายนอก (Deep Linking Action)</div>
+                  <div class="text-[#606060]">สร้างปุ่ม Action ชนิด <code class="font-mono text-[#0F0F0F]">External: go to a website</code> ครอบด้วยสูตร <code class="font-mono text-[#065FD4]">ENCODEURL()</code> ที่สามารถเปิดแอป Google Maps นำทางเลี้ยวต่อเลี้ยวได้จริง</div>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-[#E5E5E5] hover:border-red-200 transition cursor-pointer select-none">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#FF0000] focus:ring-[#FF0000]" onchange="updateChecklist()">
+                <div class="space-y-0.5">
+                  <div class="font-bold text-[#0F0F0F]">5. การประทับตราพิกัดจัดส่ง (Geotagged Proof-of-Delivery)</div>
+                  <div class="text-[#606060]">มีกลไกบันทึกพิกัดดาวเทียมขณะทำการส่งมอบหรือรับของสำเร็จด้วย <code class="font-mono text-[#FF0000]">=HERE()</code> คู่กับ <code class="font-mono text-[#065FD4]">=NOW()</code> เพื่อป้องกันการทุจริต</div>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-[#E5E5E5] hover:border-red-200 transition cursor-pointer select-none">
+                <input type="checkbox" class="check-item w-4 h-4 mt-0.5 rounded text-[#FF0000] focus:ring-[#FF0000]" onchange="updateChecklist()">
+                <div class="space-y-0.5">
+                  <div class="font-bold text-[#0F0F0F]">6. การทดสอบบนมือถือจริง (Live Mobile Verification)</div>
+                  <div class="text-[#606060]">ทดสอบเปิดแผนที่และกดเริ่มนำทางบนสมาร์ตโฟนจริงผ่านระบบเครือข่ายมือถือสำเร็จ 100% พร้อมจัดการสิทธิ์ Location Permission เรียบร้อย</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Completion Banner & Reset Button -->
+            <div class="flex items-center justify-between pt-2 border-t border-zinc-200 text-xs">
+              <div id="checklistBadge" class="hidden font-bold text-[#2BA640] flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                <span>ยินดีด้วย! คุณผ่านเกณฑ์ตรวจสอบตนเองครบทั้ง 6 ข้อแล้ว</span>
+              </div>
+              <button onclick="resetChecklist()" class="text-zinc-500 hover:text-red-600 transition underline ml-auto text-[11px]">
+                รีเซ็ตสถานะเช็คลิสต์
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 11: RUBRIC ASSESSMENT CALCULATOR -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="rubric-calculator" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>เกณฑ์การให้คะแนนรูบริก 10 คะแนน (Interactive Rubric Matrix)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              11. เกณฑ์การประเมินผลงาน 10 คะแนน (Rubric Assessment Matrix)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              คำนวณคะแนนประเมินผลงานตามเกณฑ์รูบริก 5 มิติ (มิติละ 2 คะแนน รวมเต็ม 10 คะแนน) พร้อมรับรายงานผลการวินิจฉัยเชิงวิชาการแบบทันที:
+            </p>
+          </div>
+
+          <!-- Rubric Calculator Card -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-white border border-[#E5E5E5] shadow-sm space-y-8 text-xs">
+            <!-- Criterion 1 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                <span class="font-bold text-sm text-[#0F0F0F]">1. การจัดการพิกัด Spatial Data & LatLong (=HERE())</span>
+                <span id="rubricC1Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ดีมาก (2 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">ใช้ชนิดข้อมูล LatLong ได้ถูกต้อง สูตร =HERE() ดึงพิกัดดาวเทียมบนมือถือได้แม่นยำ 100% พิกัดถูกต้องในประเทศไทย</p>
+                  </div>
+                  <input type="radio" name="rc1" value="2" checked class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ผ่านเกณฑ์ (1 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">ใช้ LatLong ได้ แต่ยังต้องพิมพ์ตัวเลขเองในบางจุด หรือสูตร =HERE() มีปัญหาเรื่องสิทธิ์การเข้าถึงพิกัด</p>
+                  </div>
+                  <input type="radio" name="rc1" value="1" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ต้องปรับปรุง (0 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">ใช้ชนิดข้อมูลผิดประเภท หรือไม่สามารถบันทึกพิกัดละติจูด-ลองจิจูดได้</p>
+                  </div>
+                  <input type="radio" name="rc1" value="0" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+              </div>
+            </div>
+
+            <!-- Criterion 2 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                <span class="font-bold text-sm text-[#0F0F0F]">2. การออกแบบมุมมอง Map View & Format Rules</span>
+                <span id="rubricC2Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ดีมาก (2 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">สร้าง Map View สวยงาม ซูมเข้าหาหมุดได้พอดี มีการใช้ Format Rules เปลี่ยนสีหมุดตามสถานะงานชัดเจน</p>
+                  </div>
+                  <input type="radio" name="rc2" value="2" checked class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ผ่านเกณฑ์ (1 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">สร้าง Map View ได้ แต่หมุดยังเป็นสีเดียวกันทั้งหมด หรือไม่ได้กำหนด Secondary Column</p>
+                  </div>
+                  <input type="radio" name="rc2" value="1" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ต้องปรับปรุง (0 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">ไม่มีหน้าจอแผนที่ หรือหมุดปักหลุดออกนอกแผนที่ประเทศไทย (Null Island)</p>
+                  </div>
+                  <input type="radio" name="rc2" value="0" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+              </div>
+            </div>
+
+            <!-- Criterion 3 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                <span class="font-bold text-sm text-[#0F0F0F]">3. Deep Linking Google Maps นำทางเลี้ยวต่อเลี้ยว</span>
+                <span id="rubricC3Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ดีมาก (2 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">เขียนสูตร URL Scheme ถูกต้อง ครอบด้วย ENCODEURL() ปุ่ม Action เด้งเปิด Google Maps นำทางบนมือถือได้ลื่นไหล</p>
+                  </div>
+                  <input type="radio" name="rc3" value="2" checked class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ผ่านเกณฑ์ (1 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">มีปุ่ม Action แต่นำทางได้เฉพาะเปิดเบราว์เซอร์ ไม่สามารถเด้งเข้าแอป Google Maps แบบเนทีฟ</p>
+                  </div>
+                  <input type="radio" name="rc3" value="1" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ต้องปรับปรุง (0 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">ไม่มีปุ่มนำทาง หรือกดแล้วฟ้อง Error ลิงก์ไม่ถูกต้อง</p>
+                  </div>
+                  <input type="radio" name="rc3" value="0" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+              </div>
+            </div>
+
+            <!-- Criterion 4 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                <span class="font-bold text-sm text-[#0F0F0F]">4. ระบบ Geotagged Proof-of-Delivery ตรวจสอบการส่งจริง</span>
+                <span id="rubricC4Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ดีมาก (2 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">มีกลไกบันทึกพิกัดตอนแตะส่งของสำเร็จ พร้อมตรวจสอบระยะห่างจริงเพื่อป้องกันการทุจริตอย่างสมบูรณ์แบบ</p>
+                  </div>
+                  <input type="radio" name="rc4" value="2" checked class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ผ่านเกณฑ์ (1 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">มีระบบบันทึกสถานะและเวลาตอนส่ง แต่ยังไม่ได้ประทับตราพิกัด GPS ณ วินาทีส่งมอบ</p>
+                  </div>
+                  <input type="radio" name="rc4" value="1" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ต้องปรับปรุง (0 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">ไม่มีการบันทึกหลักฐานพิกัดดาวเทียมตอนส่งมอบสินค้า</p>
+                  </div>
+                  <input type="radio" name="rc4" value="0" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+              </div>
+            </div>
+
+            <!-- Criterion 5 -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+                <span class="font-bold text-sm text-[#0F0F0F]">5. การประยุกต์ใช้ในโมเดลธุรกิจ & การทดสอบสนามจริง</span>
+                <span id="rubricC5Score" class="font-mono font-bold text-[#FF0000]">2 คะแนน</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ดีมาก (2 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">สอดคล้องกับโมเดลธุรกิจของกลุ่มตนเองอย่างลึกซึ้ง สาธิตการเปิดแผนที่และนำทางบนมือถือจริงคล่องแคล่ว สมาชิก 3 คนประสานงานชัดเจน</p>
+                  </div>
+                  <input type="radio" name="rc5" value="2" checked class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ผ่านเกณฑ์ (1 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">สาธิตบนสมาร์ตโฟนได้ แต่ยังติดขัดเรื่องความเร็วการจับสัญญาณดาวเทียมหรือการตอบคำถามในทีม</p>
+                  </div>
+                  <input type="radio" name="rc5" value="1" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+                <label class="rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition">
+                  <div class="space-y-1">
+                    <div class="font-bold text-[#0F0F0F]">ต้องปรับปรุง (0 คะแนน)</div>
+                    <p class="text-[#606060] text-[11px]">ไม่สามารถสาธิตการทำงานของระบบแผนที่บนสมาร์ตโฟนจริงได้</p>
+                  </div>
+                  <input type="radio" name="rc5" value="0" class="mt-2 text-[#FF0000]" onchange="calcRubric()">
+                </label>
+              </div>
+            </div>
+
+            <!-- Score Summary Dashboard -->
+            <div class="p-6 rounded-2xl bg-[#F8F8F8] border border-[#E5E5E5] space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div class="text-[11px] text-zinc-500 uppercase font-bold tracking-wider">คะแนนรวมที่ได้จากการประเมิน</div>
+                  <div class="flex items-baseline gap-2">
+                    <span id="rubricTotal" class="text-4xl font-black text-[#FF0000] font-mono">10</span>
+                    <span class="text-zinc-500 font-bold">/ 10 คะแนน</span>
+                  </div>
+                </div>
+
+                <div id="rubricBadge" class="px-4 py-2 rounded-xl bg-emerald-100 text-[#2BA640] font-bold text-xs border border-emerald-300 self-start sm:self-auto">
+                  ระดับ: ดีเยี่ยม (Mastered / Grade A)
+                </div>
+              </div>
+
+              <!-- Diagnostic Feedback Report -->
+              <div id="rubricDiagnostic" class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-[#2BA640] leading-relaxed">
+                <strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ยอดเยี่ยมมาก! ระบบแผนที่และระบบนำทาง Google Maps ของทีมท่านมีความสมบูรณ์แบบระดับแอปพลิเคชันเชิงพาณิชย์ พร้อมเข้าสู่บทที่ 12 เรื่องระบบ Automation Bots และการออกใบเสร็จรับเงิน PDF อัตโนมัติ
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- SECTION 12: FAQ ACCORDION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="faq-section" class="scroll-mt-20 space-y-8">
+          <!-- Section Badge -->
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF0000]">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></span>
+            <span>คำถามที่พบบ่อยเชิงวิศวกรรม (Frequently Asked Questions)</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">
+              12. คำถามที่พบบ่อยเกี่ยวกับ GPS และ Google Maps (FAQ)
+            </h2>
+            <p class="text-sm sm:text-base text-[#606060] leading-relaxed">
+              ไขข้อข้องใจและเจาะลึกข้อจำกัดเชิงเทคนิคสำหรับการประยุกต์ใช้งานระบบพิกัดดาวเทียมในระดับอุตสาหกรรม:
+            </p>
+          </div>
+
+          <!-- Accordion Items -->
+          <div class="space-y-3 text-xs">
+            <!-- FAQ 1 -->
+            <div class="rounded-2xl border border-[#E5E5E5] bg-white overflow-hidden transition">
+              <button onclick="toggleFaq(1)" class="w-full p-4 text-left font-bold text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>1. ทำไมใช้สูตร =HERE() บนคอมพิวเตอร์ตั้งโต๊ะแล้วพิกัดเพี้ยนไปหลายสิบกิโลเมตร?</span>
+                <span id="faqIcon1" class="text-base font-mono text-[#FF0000]">+</span>
+              </button>
+              <div id="faqAns1" class="hidden p-4 pt-0 text-[#606060] leading-relaxed border-t border-zinc-100 bg-zinc-50/50">
+                เนื่องจากคอมพิวเตอร์ตั้งโต๊ะ (PC/Laptop) ส่วนใหญ่ไม่มีชิปเสาอากาศรับสัญญาณดาวเทียม GPS เบราว์เซอร์จึงใช้การประเมินตำแหน่งจาก IP Geolocation และเครือข่าย Wi-Fi ที่เชื่อมต่อ ซึ่งมักชี้ไปยังสถานีชุมสายอินเทอร์เน็ตของผู้ให้บริการ (ISP Gateway) ดังนั้น ในการทดสอบความแม่นยำระดับเมตร จะต้องเปิดแอป AppSheet บน <strong>สมาร์ตโฟนจริงที่มีชิป GPS</strong> และอยู่ในพื้นที่โล่งแจ้ง
+              </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="rounded-2xl border border-[#E5E5E5] bg-white overflow-hidden transition">
+              <button onclick="toggleFaq(2)" class="w-full p-4 text-left font-bold text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>2. การเรียกใช้ Google Maps ผ่าน Deep Link URL Scheme มีค่าใช้จ่ายหรือไม่?</span>
+                <span id="faqIcon2" class="text-base font-mono text-[#FF0000]">+</span>
+              </button>
+              <div id="faqAns2" class="hidden p-4 pt-0 text-[#606060] leading-relaxed border-t border-zinc-100 bg-zinc-50/50">
+                <strong>ไม่มีค่าใช้จ่ายแม้แต่บาทเดียว!</strong> การใช้ URL Scheme เช่น <code class="font-mono text-[#065FD4]">https://www.google.com/maps/dir/?api=1&destination=...</code> เป็นการส่งต่อหน้าที่นำทางไปยังแอปเนทีฟของ Google Maps ที่ติดตั้งอยู่บนเครื่องของผู้ใช้ (App-to-App Handover) แตกต่างจากการเรียกใช้ Google Maps Platform API แบบฝังบนเว็บเซิร์ฟเวอร์ซึ่งมีโควตาจำกัดและคิดเงินต่อ Request
+              </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="rounded-2xl border border-[#E5E5E5] bg-white overflow-hidden transition">
+              <button onclick="toggleFaq(3)" class="w-full p-4 text-left font-bold text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>3. AppSheet สามารถติดตามพิกัดไรเดอร์แบบเรียลไทม์สดๆ ขยับตามถนนตลอดเวลา (Live Background Tracking) ได้หรือไม่?</span>
+                <span id="faqIcon3" class="text-base font-mono text-[#FF0000]">+</span>
+              </button>
+              <div id="faqAns3" class="hidden p-4 pt-0 text-[#606060] leading-relaxed border-t border-zinc-100 bg-zinc-50/50">
+                <strong>ไม่สามารถทำได้โดยตรงในระดับ No-Code</strong> เนื่องจาก AppSheet ถูกออกแบบมาสำหรับงาน Business Process แบบ Event-Driven (บันทึกข้อมูลเมื่อมีการแตะปุ่มหรือแก้ไขข้อมูล) ไม่ใช่แอป Real-time Telemetry การรัน GPS ต่อเนื่องใน Background จะถูกระบบปฏิบัติการ iOS/Android บล็อกเพื่อประหยัดแบตเตอรี่ หากต้องการทำ Live Tracking ตลอดเวลา จะต้องพัฒนาด้วย Native Code (เช่น Swift, Kotlin, Flutter) และเปิด Location Service แบบ Foreground Service
+              </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="rounded-2xl border border-[#E5E5E5] bg-white overflow-hidden transition">
+              <button onclick="toggleFaq(4)" class="w-full p-4 text-left font-bold text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>4. กฎหมายคุ้มครองข้อมูลส่วนบุคคล (PDPA) กับการบันทึกพิกัด GPS มีข้อพึงระวังอย่างไร?</span>
+                <span id="faqIcon4" class="text-base font-mono text-[#FF0000]">+</span>
+              </button>
+              <div id="faqAns4" class="hidden p-4 pt-0 text-[#606060] leading-relaxed border-t border-zinc-100 bg-zinc-50/50">
+                พิกัดทางภูมิศาสตร์จัดเป็นข้อมูลส่วนบุคคล (Personal Data) ที่สามารถชี้ถึงที่อยู่อาศัยหรือการดำเนินชีวิตของบุคคลได้ ดังนั้นในระบบธุรกิจจริง:
+                <ul class="list-disc pl-5 mt-1 space-y-1">
+                  <li>ต้องมีข้อความแจ้งเตือนความยินยอม (Consent Banner) แก่ลูกค้าก่อนเข้าถึงตำแหน่ง</li>
+                  <li>การบันทึกพิกัดของพนักงานจัดส่งต้องจำกัดเฉพาะในเวลางานและเพื่อวัตถุประสงค์ในการปฏิบัติงานเท่านั้น (Legitimate Interests) ห้ามติดตามนอกเวลางานเด็ดขาด</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- FAQ 5 -->
+            <div class="rounded-2xl border border-[#E5E5E5] bg-white overflow-hidden transition">
+              <button onclick="toggleFaq(5)" class="w-full p-4 text-left font-bold text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>5. ทำไมต้องใช้ฟังก์ชัน ENCODEURL() ครอบพิกัดในสูตร Deep Linking เสมอ?</span>
+                <span id="faqIcon5" class="text-base font-mono text-[#FF0000]">+</span>
+              </button>
+              <div id="faqAns5" class="hidden p-4 pt-0 text-[#606060] leading-relaxed border-t border-zinc-100 bg-zinc-50/50">
+                พิกัด LatLong จะมีเครื่องหมายจุลภาคคั่นระหว่างละติจูดและลองจิจูด เช่น <code class="font-mono text-[#0F0F0F]">13.75, 100.50</code> ซึ่งเครื่องหมายจุลภาคและช่องว่างเป็นอักขระพิเศษในมาตรฐาน URL หากไม่แปลงด้วย ENCODEURL() เบราว์เซอร์หรือแอปบางรุ่นจะตัดข้อความตรงเครื่องหมายจุลภาคทิ้ง ทำให้ Google Maps รับได้เฉพาะละติจูดตัวเดียวและเกิดข้อผิดพลาด "Destination not found"
+              </div>
+            </div>
+
+            <!-- FAQ 6 -->
+            <div class="rounded-2xl border border-[#E5E5E5] bg-white overflow-hidden transition">
+              <button onclick="toggleFaq(6)" class="w-full p-4 text-left font-bold text-[#0F0F0F] flex items-center justify-between hover:bg-zinc-50 transition">
+                <span>6. หากลูกค้าปักหมุดในจุดที่ไม่มีสัญญาณอินเทอร์เน็ต ระบบจะทำงานได้หรือไม่?</span>
+                <span id="faqIcon6" class="text-base font-mono text-[#FF0000]">+</span>
+              </button>
+              <div id="faqAns6" class="hidden p-4 pt-0 text-[#606060] leading-relaxed border-t border-zinc-100 bg-zinc-50/50">
+                ชิปดาวเทียม GPS บนสมาร์ตโฟนสามารถรับสัญญาณจากดาวเทียมในอวกาศได้แม้ไม่มีคลื่นโทรศัพท์หรืออินเทอร์เน็ต ดังนั้นสูตร =HERE() จะยังคงดึงตัวเลขละติจูดและลองจิจูดได้ตามปกติ และเมื่อเชื่อมต่ออินเทอร์เน็ตได้ในภายหลัง AppSheet จะทำการซิงก์พิกัดนั้นกลับสู่ Google Sheets โดยอัตโนมัติ (Offline-First Architecture)
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- COMMUNITY & COMMENTS SECTION -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <article id="comments-section" class="scroll-mt-20 space-y-6 pt-6 border-t border-zinc-200">
+          <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-base text-[#0F0F0F] flex items-center gap-2">
+              <span>💬</span>
+              <span>ชุมชนถาม-ตอบประจำบทเรียน (Community & Discussion)</span>
+            </h3>
+            <span class="text-xs text-zinc-500"><span id="commentBadgeCount">34</span> ความคิดเห็น</span>
+          </div>
+
+          <!-- Add Comment Input Box -->
+          <div class="flex items-start gap-3 bg-zinc-50 p-4 rounded-2xl border border-[#E5E5E5] text-xs">
+            <div class="w-9 h-9 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-xs shrink-0 ring-2 ring-red-500">
+              ME
+            </div>
+            <div class="flex-1 space-y-2">
+              <input 
+                type="text" 
+                id="commentInput" 
+                placeholder="พิมพ์ข้อความสอบถามปัญหาเรื่อง GPS, สูตร =HERE() หรือการสร้าง Map View ที่นี่..." 
+                class="w-full h-10 px-3.5 bg-white border border-[#E5E5E5] rounded-xl text-xs text-[#0F0F0F] placeholder-zinc-400 focus:outline-none focus:border-[#065FD4]"
+              />
+              <div class="flex items-center justify-end gap-2">
+                <button onclick="clearComment()" class="px-3 py-1.5 rounded-lg text-zinc-500 hover:text-[#0F0F0F] transition">
+                  ยกเลิก
+                </button>
+                <button onclick="postComment()" class="px-4 py-1.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold transition shadow-sm">
+                  โพสต์คำถาม
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comment List -->
+          <div id="commentList" class="space-y-3 text-xs">
+            <!-- Comment 1 -->
+            <div class="flex items-start gap-3 bg-white p-4 rounded-2xl border border-[#E5E5E5]">
+              <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                PT
+              </div>
+              <div class="space-y-1 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#0F0F0F]">ภูริชญ์ (กลุ่ม Fresh Brew)</span>
+                  <span class="text-[10px] text-zinc-400">2 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-[#606060] leading-relaxed">
+                  ทดสอบ Action นำทางบนมือถือ Android แล้วครับ เด้งเปิด Google Maps นำทางมอเตอร์ไซค์ได้เป๊ะมากครับครู สะดวกกว่าพิมพ์ที่อยู่เองเยอะเลย!
+                </p>
+                <div class="flex items-center gap-3 pt-1 text-zinc-500 text-[11px]">
+                  <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 6</button>
+                  <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comment 2 -->
+            <div class="flex items-start gap-3 bg-white p-4 rounded-2xl border border-[#E5E5E5]">
+              <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                KS
+              </div>
+              <div class="space-y-1 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-[#0F0F0F]">กมลวรรณ (กลุ่ม Smart Borrow)</span>
+                  <span class="text-[10px] text-zinc-400">5 ชั่วโมงที่แล้ว</span>
+                </div>
+                <p class="text-[#606060] leading-relaxed">
+                  ระบบ Geotagged Proof ที่ใช้ DISTANCE(HERE(), [Location]) * 1000 เช็คระยะห่างนี่เจ๋งมากค่ะ ป้องกันเพื่อนแอบกดคืนของตอนยังไม่ได้เอามาส่งที่แล็บได้ 100% เลย
+                </p>
+                <div class="flex items-center gap-3 pt-1 text-zinc-500 text-[11px]">
+                  <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 9</button>
+                  <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- COURSE NAVIGATION BAR -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <nav class="pt-8 pb-12 border-t border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <!-- Previous Chapter -->
+          <a href="ch10-barcode-qr-signature.html" class="w-full sm:w-auto h-12 px-5 rounded-2xl border border-[#E5E5E5] bg-white hover:bg-zinc-50 flex items-center gap-3 text-[#0F0F0F] font-bold transition shadow-sm group">
+            <svg class="w-4 h-4 text-zinc-400 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <div class="text-left">
+              <div class="text-[10px] text-zinc-400 font-normal">บทก่อนหน้า</div>
+              <div class="truncate max-w-[200px]">บทที่ 10: Barcode & ลายเซ็นดิจิทัล</div>
+            </div>
+          </a>
+
+          <!-- Hub Index -->
+          <a href="index.html" class="h-10 px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-[#0F0F0F] font-medium flex items-center gap-1.5 transition">
+            <svg class="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>สารบัญรายวิชา</span>
+          </a>
+
+          <!-- Next Chapter -->
+          <a href="ch12-automation-bots-pdf.html" class="w-full sm:w-auto h-12 px-5 rounded-2xl bg-[#0F0F0F] hover:bg-black text-white flex items-center justify-between sm:justify-start gap-3 font-bold transition shadow-md group">
+            <div class="text-right">
+              <div class="text-[10px] text-zinc-400 font-normal">บทถัดไป</div>
+              <div class="truncate max-w-[200px]">บทที่ 12: Automation Bots & PDF</div>
+            </div>
+            <svg class="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </a>
+        </nav>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Bubble -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 z-[120] bg-[#0F0F0F] text-white px-4 py-3 rounded-2xl shadow-2xl border border-zinc-800 items-center gap-3 text-xs">
+    <div class="w-2 h-2 rounded-full bg-[#2BA640] animate-ping"></div>
+    <span id="toastMsg" class="font-medium">คัดลอกข้อความสำเร็จแล้ว!</span>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC & INTERACTION ENGINE -->
+  <!-- ========================================================================= -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. Reading Scroll Progress Bar
+    // -------------------------------------------------------------
+    const mainViewport = document.getElementById('mainViewport');
+    const progressBar = document.getElementById('scrollProgressBar');
+
+    mainViewport.addEventListener('scroll', () => {
+      const scrollTop = mainViewport.scrollTop;
+      const scrollHeight = mainViewport.scrollHeight - mainViewport.clientHeight;
+      const scrollPct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      progressBar.style.width = scrollPct + '%';
+    });
+
+    // -------------------------------------------------------------
+    // 2. Sidebar Toggle (Mobile / Desktop)
+    // -------------------------------------------------------------
+    let isSidebarOpen = true;
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar.classList.contains('hidden')) {
+        sidebar.classList.remove('hidden');
+        sidebar.classList.add('flex');
+        isSidebarOpen = true;
+      } else {
+        sidebar.classList.add('hidden');
+        sidebar.classList.remove('flex');
+        isSidebarOpen = false;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 3. Notification Popover Toggle
+    // -------------------------------------------------------------
+    function toggleNotifPopover() {
+      const popover = document.getElementById('notifPopover');
+      popover.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const notifBtn = document.getElementById('notifBtn');
+      const popover = document.getElementById('notifPopover');
+      if (!notifBtn.contains(e.target) && !popover.contains(e.target)) {
+        popover.classList.add('hidden');
+      }
+    });
+
+    // -------------------------------------------------------------
+    // 4. Sticky Pill Chip Filter
+    // -------------------------------------------------------------
+    function filterChip(sectionId, btn) {
+      document.querySelectorAll('.chip-btn').forEach(b => {
+        b.className = 'chip-btn h-8 px-3.5 rounded-full text-xs font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] transition shrink-0';
+      });
+      btn.className = 'chip-btn active h-8 px-4 rounded-full text-xs font-bold bg-[#0F0F0F] text-white transition shrink-0';
+
+      if (sectionId === 'all') {
+        mainViewport.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const target = document.getElementById(sectionId);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 5. Tri-Archetype Workshop Switcher
+    // -------------------------------------------------------------
+    function switchWsTab(archetype) {
+      document.querySelectorAll('.ws-tab').forEach(t => {
+        t.className = 'ws-tab px-4 py-2.5 rounded-xl font-medium bg-[#F2F2F2] text-[#0F0F0F] hover:bg-[#E5E5E5] flex items-center gap-2 transition shrink-0';
+      });
+      document.querySelectorAll('.ws-content').forEach(c => c.classList.add('hidden'));
+
+      const activeTab = document.getElementById('wsTab-' + archetype);
+      const activeContent = document.getElementById('wsContent-' + archetype);
+
+      if (activeTab && activeContent) {
+        activeTab.className = 'ws-tab active px-4 py-2.5 rounded-xl font-bold bg-[#FF0000] text-white flex items-center gap-2 transition shrink-0 shadow-sm';
+        activeContent.classList.remove('hidden');
+      }
+
+      // Sync simulator preset archetype if applicable
+      if (archetype === 'freshbrew') {
+        selectSimPreset('asok');
+      } else if (archetype === 'happypaws') {
+        selectSimPreset('ari');
+      } else if (archetype === 'smartborrow') {
+        selectSimPreset('ladkrabang');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 6. Interactive Mobile Phone Simulator (320x640) Engine
+    // -------------------------------------------------------------
+    let simCurrentStep = 1;
+    let simSelectedPreset = {
+      name: 'อโศก สุขุมวิท 21',
+      address: 'อาคารเสริมมิตรทาวเวอร์ ชั้น 18',
+      coords: '13.736712, 100.560845',
+      lat: 13.736712,
+      long: 100.560845,
+      distKm: 2.8,
+      etaMins: 8,
+      orderCode: 'FB-9024',
+      customer: 'คุณธนภัทร',
+      status: 'Paid'
+    };
+
+    function selectSimPreset(key) {
+      if (key === 'siam') {
+        simSelectedPreset = {
+          name: 'สยามสแควร์วัน',
+          address: 'ชั้น 3 โซน Winter, สยามสแควร์',
+          coords: '13.746211, 100.534720',
+          lat: 13.746211,
+          long: 100.534720,
+          distKm: 0.9,
+          etaMins: 4,
+          orderCode: 'FB-8812',
+          customer: 'คุณกานดา',
+          status: 'Paid'
+        };
+      } else if (key === 'asok') {
+        simSelectedPreset = {
+          name: 'อโศก สุขุมวิท 21',
+          address: 'อาคารเสริมมิตรทาวเวอร์ ชั้น 18',
+          coords: '13.736712, 100.560845',
+          lat: 13.736712,
+          long: 100.560845,
+          distKm: 2.8,
+          etaMins: 8,
+          orderCode: 'FB-9024',
+          customer: 'คุณธนภัทร',
+          status: 'Brewing'
+        };
+      } else if (key === 'ari') {
+        simSelectedPreset = {
+          name: 'อารีย์ พหลโยธิน 7',
+          address: 'โนเบิลรีเฟล็กซ์ คอนโดมิเนียม',
+          coords: '13.779745, 100.544812',
+          lat: 13.779745,
+          long: 100.544812,
+          distKm: 4.2,
+          etaMins: 12,
+          orderCode: 'HP-3310',
+          customer: 'คุณศิริพร (รับน้องแมว)',
+          status: 'Brewing'
+        };
+      } else if (key === 'ladkrabang') {
+        simSelectedPreset = {
+          name: 'ลาดกระบัง-สุวรรณภูมิ',
+          address: 'ศูนย์กระจายอุปกรณ์ ไอทีแคมปัส อาคาร 2',
+          coords: '13.727910, 100.778320',
+          lat: 13.727910,
+          long: 100.778320,
+          distKm: 24.5,
+          etaMins: 35,
+          orderCode: 'SB-1105',
+          customer: 'อ.ดร.วิชัย (ยืมกล้อง Field Survey)',
+          status: 'Pending'
+        };
+      }
+      updateSimContent();
+      showToast('เลือกพิกัดจำลอง: ' + simSelectedPreset.name);
+    }
+
+    function simSetStep(step) {
+      simCurrentStep = step;
+      updateSimContent();
+    }
+
+    function simNextStep() {
+      if (simCurrentStep < 5) simCurrentStep++;
+      else simCurrentStep = 1;
+      updateSimContent();
+    }
+
+    function simPrevStep() {
+      if (simCurrentStep > 1) simCurrentStep--;
+      else simCurrentStep = 5;
+      updateSimContent();
+    }
+
+    function updateSimContent() {
+      // Update pills
+      for (let i = 1; i <= 5; i++) {
+        const pill = document.getElementById('stepPill' + i);
+        if (pill) {
+          if (i === simCurrentStep) {
+            pill.className = 'h-8 px-3 rounded-xl font-bold bg-[#FF0000] text-white transition';
+          } else {
+            pill.className = 'h-8 px-3 rounded-xl font-medium text-[#606060] hover:bg-zinc-100 transition';
+          }
+        }
+      }
+
+      // Update left explanations
+      const titleEl = document.getElementById('simStepTitle');
+      const badgeEl = document.getElementById('simStepBadge');
+      const descEl = document.getElementById('simStepDesc');
+
+      if (simCurrentStep === 1) {
+        titleEl.innerText = 'ขั้นตอนที่ 1: ตรวจจับพิกัดดาวเทียม =HERE()';
+        badgeEl.className = 'px-2 py-0.5 rounded bg-red-100 text-[#FF0000] text-[10px] font-bold';
+        badgeEl.innerText = 'INITIAL VALUE: =HERE()';
+        descEl.innerText = 'เมื่อลูกค้าหรือพนักงานเปิดฟอร์มคำสั่งซื้อ AppSheet จะร้องขอพิกัดดาวเทียมจากชิป GPS บนอุปกรณ์ และบันทึกพิกัดอัตโนมัติลงในช่อง Delivery_Location';
+      } else if (simCurrentStep === 2) {
+        titleEl.innerText = 'ขั้นตอนที่ 2: ปักหมุดบนแผนที่ Interactive Pin Drop';
+        badgeEl.className = 'px-2 py-0.5 rounded bg-blue-100 text-[#065FD4] text-[10px] font-bold';
+        badgeEl.innerText = 'LATLONG VISUALIZER';
+        descEl.innerText = 'ผู้ใช้สามารถแตะหมุดเพื่อขยับจุดส่งของให้ตรงกับประตูบ้านจริง พิกัดละติจูดและลองจิจูดจะอัปเดตแบบเรียลไทม์ พร้อมคำนวณรัศมีความแม่นยำ';
+      } else if (simCurrentStep === 3) {
+        titleEl.innerText = 'ขั้นตอนที่ 3: มุมมองแผนที่ AppSheet Map View';
+        badgeEl.className = 'px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-bold';
+        badgeEl.innerText = 'UX MAP VIEW';
+        descEl.innerText = 'ไรเดอร์หรือผู้จัดการสาขาเปิดหน้าจอแผนที่รวม จะเห็นหมุดออร์เดอร์ทั้งหมดพร้อมแถบสี Format Rules (แดง=รอส่ง, ส้ม=กำลังชง, เขียว=ส่งสำเร็จ)';
+      } else if (simCurrentStep === 4) {
+        titleEl.innerText = 'ขั้นตอนที่ 4: Deep Linking เปิด Google Maps นำทาง';
+        badgeEl.className = 'px-2 py-0.5 rounded bg-amber-100 text-[#FB8C00] text-[10px] font-bold';
+        badgeEl.innerText = 'TURN-BY-TURN NAVIGATION';
+        descEl.innerText = 'แตะปุ่ม Action [เริ่มนำทาง Google Maps] ระบบจะสลับไปเปิดแอป Google Maps นำทางเลี้ยวต่อเลี้ยว พร้อมรายงานจราจรสดและเสียงเตือน';
+      } else if (simCurrentStep === 5) {
+        titleEl.innerText = 'ขั้นตอนที่ 5: ประทับตราพิกัดจัดส่ง Geotagged Proof';
+        badgeEl.className = 'px-2 py-0.5 rounded bg-emerald-100 text-[#2BA640] text-[10px] font-bold';
+        badgeEl.innerText = 'GEOTAGGED PROOF-OF-DELIVERY';
+        descEl.innerText = 'เมื่อไรเดอร์ถึงบ้านลูกค้า แตะปุ่ม [ส่งของสำเร็จ] ระบบจะแอบดึงพิกัดจริง =HERE() และคำนวณระยะห่าง DISTANCE หากห่างไม่เกิน 50 เมตร ถือว่าผ่านเกณฑ์ 100%';
+      }
+
+      renderPhoneScreen();
+    }
+
+    function renderPhoneScreen() {
+      const screen = document.getElementById('phoneScreen');
+      const p = simSelectedPreset;
+
+      if (simCurrentStep === 1) {
+        screen.innerHTML = `
+          <!-- AppSheet Mobile Top Header -->
+          <div class="px-4 py-2 bg-white border-b border-zinc-200 flex items-center justify-between shadow-xs">
+            <span class="font-bold text-xs text-[#0F0F0F]">สร้างคำสั่งซื้อใหม่</span>
+            <span class="font-mono text-[10px] text-zinc-400">#${p.orderCode}</span>
+          </div>
+
+          <div class="p-4 space-y-4 flex-1">
+            <div class="space-y-1">
+              <label class="text-[11px] font-bold text-zinc-700">ชื่อลูกค้า / ผู้สั่งซื้อ</label>
+              <input type="text" value="${p.customer}" readonly class="w-full h-8 px-2.5 rounded-lg bg-zinc-100 border border-zinc-200 text-xs text-[#0F0F0F]">
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[11px] font-bold text-zinc-700">ที่อยู่จัดส่ง (Address Text)</label>
+              <input type="text" value="${p.address}" readonly class="w-full h-8 px-2.5 rounded-lg bg-zinc-100 border border-zinc-200 text-xs text-[#0F0F0F]">
+            </div>
+
+            <!-- LatLong Field with GPS Detection Pulse -->
+            <div class="p-3.5 rounded-2xl bg-white border-2 border-red-500 shadow-sm space-y-2 relative overflow-hidden">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-[#FF0000] flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#FF0000] animate-ping"></span>
+                  <span>Delivery_Location (=HERE())</span>
+                </span>
+                <span class="font-mono text-[9px] bg-red-50 text-[#FF0000] px-1.5 py-0.5 rounded font-bold">ชิป GPS ตรวจจับแล้ว</span>
+              </div>
+
+              <div class="font-mono font-black text-xs text-[#0F0F0F] bg-zinc-50 p-2 rounded-lg border border-zinc-200">
+                ${p.coords}
+              </div>
+
+              <div class="text-[10px] text-zinc-500 flex items-center justify-between">
+                <span>ความแม่นยำรัศมี: ±3.4 เมตร</span>
+                <span class="text-emerald-600 font-bold">✓ สัญญาณดาวเทียมดี</span>
+              </div>
+            </div>
+
+            <button onclick="simSetStep(2)" class="w-full py-2.5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+              <span>ไปขั้นตอนตรวจพิกัดบนแผนที่ ➔</span>
+            </button>
+          </div>
+        `;
+      } else if (simCurrentStep === 2) {
+        screen.innerHTML = `
+          <!-- Map Pin Drop Visualizer -->
+          <div class="px-4 py-2 bg-white border-b border-zinc-200 flex items-center justify-between">
+            <span class="font-bold text-xs text-[#0F0F0F]">ตำแหน่งจัดส่งบนแผนที่</span>
+            <button onclick="simSetStep(1)" class="text-[10px] text-[#065FD4] font-bold">แก้ไข</button>
+          </div>
+
+          <div class="h-64 bg-zinc-800 relative overflow-hidden flex items-center justify-center">
+            <!-- Simulated Street Map Grid Background -->
+            <div class="absolute inset-0 opacity-40" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
+            
+            <!-- Road Vector Lines -->
+            <div class="absolute w-full h-8 bg-zinc-700/80 top-24 transform -rotate-12 border-y border-zinc-600"></div>
+            <div class="absolute h-full w-8 bg-zinc-700/80 left-20 transform rotate-6 border-x border-zinc-600"></div>
+
+            <!-- GPS Radar Wave -->
+            <div class="gps-beacon-ring"></div>
+
+            <!-- Center Pin -->
+            <div class="relative z-10 flex flex-col items-center pin-bounce">
+              <svg class="w-10 h-10 text-[#FF0000] drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            </div>
+
+            <!-- Crosshair / Reticle Marks -->
+            <div class="absolute bottom-2 left-2 bg-black/70 backdrop-blur text-white text-[9px] font-mono px-2 py-1 rounded">
+              LAT: ${p.lat.toFixed(4)} | LONG: ${p.long.toFixed(4)}
+            </div>
+          </div>
+
+          <div class="p-3.5 space-y-3 flex-1 bg-white">
+            <div class="space-y-0.5">
+              <div class="font-bold text-xs text-[#0F0F0F]">${p.name}</div>
+              <div class="text-[11px] text-zinc-500 truncate">${p.address}</div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200 text-[10px] space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-zinc-500">ระยะห่างจากร้าน:</span>
+                <span class="font-mono font-bold text-[#065FD4]">${p.distKm} กม.</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-zinc-500">เวลาจัดส่งประเมิน:</span>
+                <span class="font-mono font-bold text-[#2BA640]">${p.etaMins} นาที</span>
+              </div>
+            </div>
+
+            <button onclick="simSetStep(3)" class="w-full py-2.5 rounded-xl bg-[#0F0F0F] hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+              <span>เปิดดูมุมมองแผนที่รวม (Map View) ➔</span>
+            </button>
+          </div>
+        `;
+      } else if (simCurrentStep === 3) {
+        screen.innerHTML = `
+          <!-- AppSheet Map View Mode -->
+          <div class="px-4 py-2 bg-white border-b border-zinc-200 flex items-center justify-between">
+            <span class="font-bold text-xs text-[#0F0F0F]">แผนที่ออร์เดอร์รอจัดส่ง</span>
+            <span class="text-[10px] bg-red-100 text-[#FF0000] px-1.5 py-0.5 rounded font-bold">3 หมุด</span>
+          </div>
+
+          <div class="h-60 bg-zinc-900 relative overflow-hidden">
+            <!-- Simulated Map -->
+            <div class="absolute inset-0 opacity-30" style="background-image: linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+            <!-- Simulated Pins on Map -->
+            <div class="absolute top-8 left-16 flex items-center gap-1 cursor-pointer">
+              <span class="w-4 h-4 rounded-full bg-[#FF0000] border-2 border-white flex items-center justify-center text-[8px] text-white font-bold">1</span>
+              <span class="text-[9px] bg-black/80 text-white px-1 rounded">อโศก (ด่วน)</span>
+            </div>
+
+            <div class="absolute top-28 left-40 flex items-center gap-1 cursor-pointer">
+              <span class="w-4 h-4 rounded-full bg-[#FB8C00] border-2 border-white flex items-center justify-center text-[8px] text-white font-bold">2</span>
+              <span class="text-[9px] bg-black/80 text-white px-1 rounded">สยาม</span>
+            </div>
+
+            <div class="absolute bottom-10 right-10 flex items-center gap-1 cursor-pointer">
+              <span class="w-4 h-4 rounded-full bg-[#2BA640] border-2 border-white flex items-center justify-center text-[8px] text-white font-bold">3</span>
+              <span class="text-[9px] bg-black/80 text-white px-1 rounded">สาทร (ส่งแล้ว)</span>
+            </div>
+          </div>
+
+          <!-- Bottom Card Detail for Selected Order -->
+          <div class="p-3.5 space-y-3 bg-white flex-1 border-t border-zinc-200">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">ออร์เดอร์ #${p.orderCode}</span>
+              <span class="text-[11px] font-bold text-[#FF0000]">฿180.00</span>
+            </div>
+
+            <div>
+              <div class="font-bold text-xs text-[#0F0F0F]">${p.customer} • ${p.name}</div>
+              <div class="text-[10px] text-zinc-500 truncate">${p.address}</div>
+            </div>
+
+            <!-- Big Deep Link Action Button -->
+            <button onclick="simSetStep(4)" class="w-full py-2.5 rounded-xl bg-[#065FD4] hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>🧭 เริ่มนำทาง Google Maps</span>
+            </button>
+          </div>
+        `;
+      } else if (simCurrentStep === 4) {
+        screen.innerHTML = `
+          <!-- Simulated Google Maps Turn-by-Turn Navigation Screen -->
+          <div class="px-4 py-2 bg-[#1A73E8] text-white flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+              <span class="font-bold text-xs">Google Maps นำทาง</span>
+            </div>
+            <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold font-mono">LIVE GPS</span>
+          </div>
+
+          <!-- Turn-by-turn Green HUD Bar -->
+          <div class="p-3 bg-[#0F9D58] text-white flex items-center gap-3 shadow-md">
+            <div class="w-8 h-8 rounded-full bg-white text-[#0F9D58] flex items-center justify-center font-black text-sm shrink-0">
+              ↱
+            </div>
+            <div class="space-y-0.5">
+              <div class="text-[10px] opacity-90">ในอีก 200 เมตร</div>
+              <div class="font-bold text-xs">เลี้ยวขวาเข้าสู่ ถ.สุขุมวิท 21</div>
+            </div>
+          </div>
+
+          <!-- Live Driving Map View -->
+          <div class="h-56 bg-zinc-800 relative overflow-hidden flex items-center justify-center">
+            <!-- Simulated 3D Perspective Road -->
+            <div class="w-24 h-full bg-zinc-700 transform perspective-500 rotateX-45 border-x-2 border-white/40 flex justify-center">
+              <div class="w-1 h-full border-l-2 border-dashed border-amber-300"></div>
+            </div>
+
+            <!-- Driving Cursor Icon -->
+            <div class="absolute bottom-8 w-6 h-6 rounded-full bg-[#065FD4] border-2 border-white shadow-lg flex items-center justify-center">
+              <div class="w-2 h-2 rounded-full bg-white"></div>
+            </div>
+
+            <!-- Speed Badge -->
+            <div class="absolute top-3 left-3 bg-white text-[#0F0F0F] rounded-xl p-2 border-2 border-red-500 text-center shadow">
+              <div class="text-[9px] text-zinc-500 font-bold">ความเร็ว</div>
+              <div class="font-mono font-black text-sm text-[#0F0F0F]">45</div>
+              <div class="text-[8px] text-zinc-400">km/h</div>
+            </div>
+          </div>
+
+          <!-- Navigation Footer Bar -->
+          <div class="p-3 bg-white border-t border-zinc-200 space-y-2 flex-1">
+            <div class="flex items-center justify-between text-xs">
+              <div>
+                <span class="text-base font-black text-[#0F9D58] font-mono">${p.etaMins} นาที</span>
+                <span class="text-[11px] text-zinc-400 ml-1">(${p.distKm} กม.)</span>
+              </div>
+              <span class="text-[11px] text-zinc-500">ถึงปลายทาง: 14:35 น.</span>
+            </div>
+
+            <button onclick="simSetStep(5)" class="w-full py-2.5 rounded-xl bg-[#2BA640] hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              <span>ถึงจุดหมายแล้ว: ยืนยันส่งของ ➔</span>
+            </button>
+          </div>
+        `;
+      } else if (simCurrentStep === 5) {
+        screen.innerHTML = `
+          <!-- Geotagged Proof Verification Screen -->
+          <div class="px-4 py-2 bg-white border-b border-zinc-200 flex items-center justify-between">
+            <span class="font-bold text-xs text-[#0F0F0F]">ยืนยันการจัดส่งสินค้า</span>
+            <span class="text-[10px] bg-emerald-100 text-[#2BA640] px-1.5 py-0.5 rounded font-bold">PROOF-OF-DELIVERY</span>
+          </div>
+
+          <div class="p-4 space-y-3.5 flex-1 bg-white text-xs">
+            <!-- Distance Delta Validation Card -->
+            <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-emerald-800 text-[11px] flex items-center gap-1">
+                  <span>✓</span>
+                  <span>ตรวจพิกัดดาวเทียมสำเร็จ</span>
+                </span>
+                <span class="font-mono text-[10px] text-emerald-700 font-bold">DELTA: 2.4 M</span>
+              </div>
+
+              <div class="text-[10px] text-emerald-700 space-y-1 font-mono">
+                <div>[Customer_Loc]: ${p.coords}</div>
+                <div>[Delivered_Loc]: 13.736710, 100.560847</div>
+                <div class="font-bold text-[#2BA640] pt-1 border-t border-emerald-200">
+                  ระยะห่าง 2.4 เมตร (เกณฑ์ผ่าน &lt; 50 ม.) ➔ ผ่าน 100%!
+                </div>
+              </div>
+            </div>
+
+            <!-- Receipt Summary -->
+            <div class="p-3 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1 text-[11px]">
+              <div class="flex justify-between text-zinc-500">
+                <span>คำสั่งซื้อ:</span>
+                <span class="font-mono font-bold text-[#0F0F0F]">#${p.orderCode}</span>
+              </div>
+              <div class="flex justify-between text-zinc-500">
+                <span>ผู้รับสินค้า:</span>
+                <span class="font-bold text-[#0F0F0F]">${p.customer}</span>
+              </div>
+              <div class="flex justify-between text-zinc-500">
+                <span>วันเวลาบันทึก:</span>
+                <span class="font-mono text-[#065FD4]">NOW() • วันนี้ 14:38:12</span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-[#065FD4] text-[11px] space-y-1">
+              <div class="font-bold">🔒 บันทึกลง Google Sheets แล้ว</div>
+              <div>สถานะปรับเป็น "Completed" พร้อมประทับตราพิกัด GPS อัตโนมัติ</div>
+            </div>
+
+            <button onclick="simSetStep(1)" class="w-full py-2.5 rounded-xl bg-[#0F0F0F] hover:bg-black text-white font-bold text-xs transition">
+              ← ทดสอบสร้างออร์เดอร์ใหม่
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 7. Interactive Bangkok Map Viewport Canvas Logic
+    // -------------------------------------------------------------
+    let currentMapMode = 'pins';
+    let currentInspectorCoords = { lat: 13.731422, lng: 100.581512, name: 'ทองหล่อ ซอย 10 (สุขุมวิท 55)' };
+    const HQ_COORDS = { lat: 13.746211, lng: 100.534720 }; // Siam HQ
+
+    function setMapMode(mode) {
+      currentMapMode = mode;
+      const btnPins = document.getElementById('modeBtn-pins');
+      const btnHeat = document.getElementById('modeBtn-heatmap');
+      const btnRoute = document.getElementById('modeBtn-route');
+
+      const layerHeat = document.getElementById('heatmapLayer');
+      const layerRoute = document.getElementById('routeLayer');
+
+      // Reset styles
+      [btnPins, btnHeat, btnRoute].forEach(b => {
+        b.className = 'h-8 px-3 rounded-xl font-medium text-[#606060] hover:text-[#0F0F0F] transition';
+      });
+
+      if (mode === 'pins') {
+        btnPins.className = 'h-8 px-3 rounded-xl font-bold bg-white text-[#0F0F0F] shadow-sm transition';
+        layerHeat.classList.add('hidden');
+        layerRoute.classList.add('hidden');
+      } else if (mode === 'heatmap') {
+        btnHeat.className = 'h-8 px-3 rounded-xl font-bold bg-white text-[#0F0F0F] shadow-sm transition';
+        layerHeat.classList.remove('hidden');
+        layerRoute.classList.add('hidden');
+      } else if (mode === 'route') {
+        btnRoute.className = 'h-8 px-3 rounded-xl font-bold bg-white text-[#0F0F0F] shadow-sm transition';
+        layerHeat.classList.add('hidden');
+        layerRoute.classList.remove('hidden');
+      }
+      showToast('เปลี่ยนโหมดแผนที่เป็น: ' + (mode === 'pins' ? 'หมุด' : mode === 'heatmap' ? 'ความหนาแน่น Heatmap' : 'เส้นทางนำทาง'));
+    }
+
+    function handleMapCanvasClick(e) {
+      const svg = document.getElementById('interactiveSvgMap');
+      const rect = svg.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Scale to SVG viewBox 800 x 450
+      const svgX = (clickX / rect.width) * 800;
+      const svgY = (clickY / rect.height) * 450;
+
+      // Approximate translation to Bangkok Lat/Lng
+      // Bangkok center (Siam): 420, 200 -> 13.7462, 100.5347
+      const deltaX = (svgX - 420) / 400; // rough deg
+      const deltaY = (svgY - 200) / 400;
+
+      const calcLat = (13.7462 - deltaY * 0.15).toFixed(6);
+      const calcLng = (100.5347 + deltaX * 0.25).toFixed(6);
+
+      // Move User Pin Marker
+      const userMarker = document.getElementById('userPinMarker');
+      userMarker.setAttribute('transform', 'translate(' + svgX + ',' + svgY + ')');
+
+      // Update Route line
+      const routeLine = document.getElementById('routeLineSvg');
+      routeLine.setAttribute('d', 'M 420 200 L ' + (420 + (svgX - 420)*0.5) + ' 200 L ' + svgX + ' ' + svgY);
+
+      // Update Inspector UI
+      currentInspectorCoords = {
+        lat: parseFloat(calcLat),
+        lng: parseFloat(calcLng),
+        name: 'พิกัดที่ปักเอง (' + svgX.toFixed(0) + ', ' + svgY.toFixed(0) + ')'
+      };
+
+      updateInspectorData(calcLat, calcLng, currentInspectorCoords.name);
+      showToast('ปักหมุดสำเร็จ: ' + calcLat + ', ' + calcLng);
+    }
+
+    function inspectPin(e, name, coordsStr, status, dist, eta) {
+      e.stopPropagation();
+      const parts = coordsStr.split(',');
+      const lat = parseFloat(parts[0].trim());
+      const lng = parseFloat(parts[1].trim());
+
+      currentInspectorCoords = { lat, lng, name };
+      updateInspectorData(lat, lng, name + ' [' + status + ']');
+      showToast('ดูรายละเอียดหมุด: ' + name);
+    }
+
+    function updateInspectorData(lat, lng, addressName) {
+      document.getElementById('inspCoords').innerText = lat + ', ' + lng;
+      document.getElementById('inspAddress').innerText = addressName;
+
+      // Calculate Haversine distance
+      const d = calcHaversineDistance(HQ_COORDS.lat, HQ_COORDS.lng, lat, lng);
+      document.getElementById('inspDistance').innerText = d.toFixed(2) + ' กิโลเมตร';
+
+      const etaMins = Math.max(3, Math.round(d * 3.2));
+      document.getElementById('inspEta').innerText = 'เวลาขับขี่โดยประมาณ: ' + etaMins + ' นาที';
+    }
+
+    function calcHaversineDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    function testLaunchGoogleMaps() {
+      const lat = currentInspectorCoords.lat;
+      const lng = currentInspectorCoords.lng;
+      const url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng) + '&travelmode=driving';
+      window.open(url, '_blank');
+      showToast('เปิด Google Maps ในแท็บใหม่แล้ว!');
+    }
+
+    // -------------------------------------------------------------
+    // 8. Live Device Geolocation API Acquisition
+    // -------------------------------------------------------------
+    function acquireRealDeviceGps() {
+      const btnText = document.getElementById('btnAcquireGpsText');
+      const spinner = document.getElementById('gpsSpinner');
+      const resultEl = document.getElementById('realGpsResult');
+
+      btnText.innerText = 'กำลังเชื่อมต่อดาวเทียม...';
+      spinner.classList.remove('hidden');
+
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            spinner.classList.add('hidden');
+            btnText.innerText = 'ดึงพิกัดสำเร็จ! ✓';
+            const lat = pos.coords.latitude.toFixed(6);
+            const lng = pos.coords.longitude.toFixed(6);
+            const acc = pos.coords.accuracy.toFixed(1);
+            resultEl.innerHTML = '<span class="text-emerald-400 font-bold">พิกัดจริง:</span> ' + lat + ', ' + lng + ' <span class="text-zinc-400">(ความคลาดเคลื่อน ±' + acc + ' ม.)</span>';
+            showToast('ดึงพิกัด GPS จริงสำเร็จ!');
+          },
+          (err) => {
+            spinner.classList.add('hidden');
+            btnText.innerText = 'ใช้พิกัดจำลอง (สิทธิ์ถูกบล็อก)';
+            // Fallback to high precision Bangkok coordinates
+            const fallbackLat = '13.746211';
+            const fallbackLng = '100.534720';
+            resultEl.innerHTML = '<span class="text-amber-400 font-bold">พิกัดจำลอง:</span> ' + fallbackLat + ', ' + fallbackLng + ' <span class="text-zinc-400">(สิทธิ์ GPS เบราว์เซอร์ถูกปฏิเสธ)</span>';
+            showToast('เบราว์เซอร์ไม่อนุญาตสิทธิ์ GPS: สลับใช้พิกัดจำลอง');
+          },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+        );
+      } else {
+        spinner.classList.add('hidden');
+        btnText.innerText = 'ไม่รองรับ GPS';
+        resultEl.innerText = 'เบราว์เซอร์นี้ไม่รองรับ HTML5 Geolocation API';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 9. Interactive Self-Checklist (LocalStorage Persistence)
+    // -------------------------------------------------------------
+    const CHECKLIST_KEY = 'curriculum_ch11_checklist';
+
+    function initChecklist() {
+      const saved = localStorage.getItem(CHECKLIST_KEY);
+      if (saved) {
+        try {
+          const checkedArr = JSON.parse(saved);
+          const checkboxes = document.querySelectorAll('.check-item');
+          checkboxes.forEach((cb, index) => {
+            cb.checked = !!checkedArr[index];
+          });
+        } catch (e) {}
+      }
+      calculateChecklist();
+    }
+
+    function updateChecklist() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const checkedArr = Array.from(checkboxes).map(cb => cb.checked);
+      localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checkedArr));
+      calculateChecklist();
+    }
+
+    function calculateChecklist() {
+      const checkboxes = document.querySelectorAll('.check-item');
+      const total = checkboxes.length;
+      let checked = 0;
+      checkboxes.forEach(cb => {
+        if (cb.checked) checked++;
+      });
+
+      const pct = Math.round((checked / total) * 100);
+      document.getElementById('checklistPercentage').innerText = pct + '%';
+      document.getElementById('checklistProgressBar').style.width = pct + '%';
+      document.getElementById('checklistCount').innerText = 'เสร็จสิ้น ' + checked + ' จาก ' + total + ' ข้อกำหนด';
+
+      const badge = document.getElementById('checklistBadge');
+      if (pct === 100) {
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function resetChecklist() {
+      if (confirm('คุณต้องการรีเซ็ตสถานะการตรวจสอบตนเองของบทที่ 11 ทั้งหมดหรือไม่?')) {
+        localStorage.removeItem(CHECKLIST_KEY);
+        const checkboxes = document.querySelectorAll('.check-item');
+        checkboxes.forEach(cb => cb.checked = false);
+        calculateChecklist();
+        showToast('รีเซ็ตสถานะเช็คลิสต์แล้ว');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 10. Interactive Rubric Calculator (10 Points)
+    // -------------------------------------------------------------
+    function calcRubric() {
+      let total = 0;
+      for (let i = 1; i <= 5; i++) {
+        const val = parseInt(document.querySelector('input[name="rc' + i + '"]:checked').value);
+        total += val;
+        document.getElementById('rubricC' + i + 'Score').innerText = val + ' คะแนน';
+
+        // Update card styles
+        const labels = document.querySelectorAll('input[name="rc' + i + '"]');
+        labels.forEach(input => {
+          const parent = input.closest('label');
+          if (input.checked) {
+            parent.className = 'rubric-opt flex flex-col justify-between p-3 rounded-xl border-2 border-[#0F0F0F] bg-zinc-50 cursor-pointer transition';
+          } else {
+            parent.className = 'rubric-opt flex flex-col justify-between p-3 rounded-xl border border-[#E5E5E5] bg-white cursor-pointer hover:bg-zinc-50 transition';
+          }
+        });
+      }
+
+      document.getElementById('rubricTotal').innerText = total;
+
+      const badge = document.getElementById('rubricBadge');
+      const diag = document.getElementById('rubricDiagnostic');
+
+      if (total >= 9) {
+        badge.className = 'px-4 py-2 rounded-xl bg-emerald-100 text-[#2BA640] font-bold text-xs border border-emerald-300 self-start sm:self-auto';
+        badge.innerText = 'ระดับ: ดีเยี่ยม (Mastered / Grade A)';
+        diag.className = 'p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-[#2BA640] leading-relaxed';
+        diag.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ยอดเยี่ยมมาก! ระบบแผนที่และระบบนำทาง Google Maps ของทีมท่านมีความสมบูรณ์แบบระดับแอปพลิเคชันเชิงพาณิชย์ พร้อมเข้าสู่บทที่ 12 เรื่องระบบ Automation Bots และการออกใบเสร็จรับเงิน PDF อัตโนมัติ';
+      } else if (total >= 7) {
+        badge.className = 'px-4 py-2 rounded-xl bg-blue-100 text-[#065FD4] font-bold text-xs border border-blue-300 self-start sm:self-auto';
+        badge.innerText = 'ระดับ: ดี (Proficient / Grade B)';
+        diag.className = 'p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#065FD4] leading-relaxed';
+        diag.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> ระบบทำงานได้ดีมาก แนะนำให้ตรวจสอบการครอบฟังก์ชัน ENCODEURL() ให้ครบทุกจุด และทดสอบกดนำทางบนสมาร์ตโฟนจริงในพื้นที่สัญญาณอ่อน';
+      } else if (total >= 5) {
+        badge.className = 'px-4 py-2 rounded-xl bg-amber-100 text-[#FB8C00] font-bold text-xs border border-amber-300 self-start sm:self-auto';
+        badge.innerText = 'ระดับ: พอใช้ (Developing / Grade C)';
+        diag.className = 'p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-[#FB8C00] leading-relaxed';
+        diag.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> มีแผนที่แต่ยังขาดกลไก Geotagged Proof ตอนส่งของจริง และยังไม่ได้ตั้งค่า Format Rules สำหรับเปลี่ยนสีหมุดตามสถานะงาน ให้กลับไปทบทวนหัวข้อที่ 3 และ 5';
+      } else {
+        badge.className = 'px-4 py-2 rounded-xl bg-red-100 text-[#FF0000] font-bold text-xs border border-red-300 self-start sm:self-auto';
+        badge.innerText = 'ระดับ: ควรปรับปรุง (Needs Revision)';
+        diag.className = 'p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-[#FF0000] leading-relaxed';
+        diag.innerHTML = '<strong>ข้อเสนอแนะเชิงวิชาการ:</strong> พิกัดหลุดออกนอกประเทศไทย หรือปุ่ม Action ยังไม่สามารถเปิดแอป Google Maps ได้ ให้ตรวจสอบชนิดข้อมูล LatLong และตรวจสิทธิ์การเข้าถึงพิกัด (Permission) อีกครั้ง';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 11. FAQ Accordion Logic
+    // -------------------------------------------------------------
+    function toggleFaq(num) {
+      const ans = document.getElementById('faqAns' + num);
+      const icon = document.getElementById('faqIcon' + num);
+      if (ans.classList.contains('hidden')) {
+        ans.classList.remove('hidden');
+        icon.innerText = '−';
+      } else {
+        ans.classList.add('hidden');
+        icon.innerText = '+';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 12. Copy to Clipboard Utility & Toast
+    // -------------------------------------------------------------
+    function copyFormula(str, btn) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(str).then(() => {
+          showToast('คัดลอกสูตรสำเร็จแล้ว!');
+        });
+      } else {
+        const input = document.createElement('textarea');
+        input.value = str;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('คัดลอกสูตรสำเร็จแล้ว!');
+      }
+
+      if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="text-[#2BA640] font-bold">คัดลอกแล้ว! ✓</span>';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex', 'toast-anim');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex', 'toast-anim');
+      }, 2200);
+    }
+
+    // -------------------------------------------------------------
+    // 13. Social Actions (Like, Subscribe, Comment)
+    // -------------------------------------------------------------
+    let isSubscribed = false;
+    function toggleSubscribe() {
+      const btn = document.getElementById('subBtn');
+      const text = document.getElementById('subBtnText');
+      if (!isSubscribed) {
+        btn.className = 'h-8 px-4 bg-[#F2F2F2] hover:bg-[#E5E5E5] text-[#0F0F0F] text-xs font-bold rounded-full flex items-center gap-1.5 transition';
+        text.innerText = 'ติดตามแล้ว ✓';
+        isSubscribed = true;
+        showToast('ติดตามรายวิชาเรียบร้อยแล้ว');
+      } else {
+        btn.className = 'h-8 px-4 bg-white hover:bg-zinc-200 text-[#0F0F0F] font-bold flex items-center gap-1.5 transition';
+        text.innerText = 'ติดตามรายวิชา';
+        isSubscribed = false;
+      }
+    }
+
+    let isLiked = false;
+    function toggleLike() {
+      const countEl = document.getElementById('likeCount');
+      const iconEl = document.getElementById('likeIcon');
+      let count = parseInt(countEl.innerText);
+      if (!isLiked) {
+        countEl.innerText = count + 1;
+        iconEl.classList.remove('text-zinc-400');
+        iconEl.classList.add('text-[#FF0000]', 'fill-current');
+        isLiked = true;
+        showToast('ถูกใจบทเรียนนี้');
+      } else {
+        countEl.innerText = count - 1;
+        iconEl.classList.add('text-zinc-400');
+        iconEl.classList.remove('text-[#FF0000]', 'fill-current');
+        isLiked = false;
+      }
+    }
+
+    function shareLesson() {
+      copyFormula(window.location.href, null);
+      showToast('คัดลอกลิงก์บทเรียนเรียบร้อย');
+    }
+
+    function postComment() {
+      const input = document.getElementById('commentInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const list = document.getElementById('commentList');
+      const newComment = document.createElement('div');
+      newComment.className = 'flex items-start gap-3 bg-red-50/40 p-4 rounded-2xl border border-red-100 text-xs';
+      newComment.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-[#0F0F0F] text-white flex items-center justify-center font-bold text-[11px] shrink-0 ring-1 ring-red-400">ME</div>
+        <div class="space-y-1 flex-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[#0F0F0F]">นักศึกษา (คุณ)</span>
+            <span class="text-[10px] text-zinc-400">เมื่อสักครู่</span>
+          </div>
+          <p class="text-[#0F0F0F] leading-relaxed">${escapeHtml(text)}</p>
+          <div class="flex items-center gap-3 pt-1 text-zinc-500 text-[11px]">
+            <button class="hover:text-[#0F0F0F] flex items-center gap-1">👍 1</button>
+            <button class="hover:text-[#0F0F0F]">ตอบกลับ</button>
+          </div>
+        </div>
+      `;
+      list.prepend(newComment);
+      input.value = '';
+
+      const totalCount = document.getElementById('commentTotalCount');
+      const badgeCount = document.getElementById('commentBadgeCount');
+      const count = parseInt(totalCount.innerText) + 1;
+      totalCount.innerText = count;
+      badgeCount.innerText = count;
+      showToast('โพสต์ความคิดเห็นแล้ว');
+    }
+
+    function clearComment() {
+      document.getElementById('commentInput').value = '';
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function triggerVoiceSearch() {
+      alert('ระบบค้นหาด้วยเสียงพร้อมใช้งานในโหมดทดสอบ กรุณาพิมพ์คำค้นหาในช่องค้นหา');
+    }
+
+    // -------------------------------------------------------------
+    // 14. Search Shortcut & Execution
+    // -------------------------------------------------------------
+    function performSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (q && window.find) {
+        window.find(q);
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') performSearch();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+      }
+    });
+
+    // -------------------------------------------------------------
+    // 15. DOM Initialization
+    // -------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      updateSimContent();
+      initChecklist();
+      calcRubric();
+    });
+
+    // Run immediately as well
+    updateSimContent();
+    initChecklist();
+    calcRubric();
+  </script>
+</body>
+</html>

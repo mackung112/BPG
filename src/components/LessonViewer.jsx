@@ -11,10 +11,10 @@ for (const path in interactiveModules) {
   COMPONENT_MAP[`[${componentName}]`] = lazy(interactiveModules[path]);
 }
 
-// HTML Embed component — ฝัง .html จาก interactive/<วิชา>/ ผ่าน iframe
+// HTML Embed component — ฝัง .html จาก interactive/<วิชา>/ หรือ public/courses/ ผ่าน iframe
 function HtmlEmbed({ src }) {
   const iframeRef = useRef(null);
-  const [height, setHeight] = useState(800);
+  const [height, setHeight] = useState(850);
 
   useEffect(() => {
     const handleMessage = (e) => {
@@ -26,22 +26,38 @@ function HtmlEmbed({ src }) {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  const updateHeight = () => {
+    try {
+      const doc = iframeRef.current?.contentDocument;
+      if (doc) {
+        const scrollH = Math.max(doc.body?.scrollHeight || 0, doc.documentElement?.scrollHeight || 0);
+        if (scrollH > 300) {
+          setHeight(scrollH + 32);
+        }
+      }
+    } catch {
+      // cross-origin, ใช้ postMessage แทน
+    }
+  };
+
   return (
     <iframe
       ref={iframeRef}
       src={src}
-      className="w-full border-0 rounded-2xl"
-      style={{ height: `${height}px`, minHeight: '400px' }}
+      className="w-full border-0 rounded-2xl shadow-sm bg-white"
+      style={{ height: `${height}px`, minHeight: '600px' }}
       title="Embedded Lesson Content"
-      sandbox="allow-scripts allow-same-origin"
+      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
       onLoad={() => {
+        updateHeight();
         try {
           const doc = iframeRef.current?.contentDocument;
-          if (doc) {
-            setHeight(doc.documentElement.scrollHeight + 32);
+          if (doc && window.ResizeObserver && doc.body) {
+            const ro = new ResizeObserver(() => updateHeight());
+            ro.observe(doc.body);
           }
         } catch {
-          // cross-origin, ใช้ postMessage แทน
+          // cross-origin
         }
       }}
     />
@@ -54,15 +70,26 @@ const HTML_MAP = {};
 for (const path in htmlModules) {
   const fileName = path.split('/').pop().replace('.html', '');
   HTML_MAP[`[html:${fileName}]`] = htmlModules[path];
+  const relativePath = path.replace(/^\.\/interactive\//, '').replace(/\.html$/, '');
+  HTML_MAP[`[html:${relativePath}]`] = htmlModules[path];
 }
 
 
 export default function LessonViewer({ lesson, chapter, onComplete, onNext, onPrev, hasPrev = false, hasNext = true }) {
   if (!lesson.content) return null;
 
+  // ตรวจจับ HTML markers ทั้งจาก static mapping และ direct URL / paths (เช่น [html:/courses/...])
+  const directHtmlMatches = lesson.content.match(/\[html:[^\]]+\]/g) || [];
+  directHtmlMatches.forEach(tag => {
+    if (!HTML_MAP[tag]) {
+      const rawPath = tag.slice(6, -1);
+      HTML_MAP[tag] = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+    }
+  });
+
   // แยกเนื้อหาออกเป็นส่วนๆ ตาม Marker ของ Component และ HTML
   const allKeys = [...Object.keys(COMPONENT_MAP), ...Object.keys(HTML_MAP)];
-  const escapedKeys = allKeys.map(k => k.replace(/\[/g, '\\[').replace(/\]/g, '\\]'));
+  const escapedKeys = allKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const markerPattern = escapedKeys.length > 0 ? new RegExp(`(${escapedKeys.join('|')})`) : /(?!)/;
   const parts = lesson.content.split(markerPattern);
 

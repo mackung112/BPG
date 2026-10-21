@@ -12,7 +12,7 @@ import {
   loadDraftAnswers,
   deleteSuspendedResult
 } from '../../services/examStudentService.js';
-import { useExamTimer } from '../../hooks/exam/useExamTimer.js';
+import { useExamTimer, calculateRemainingSeconds } from '../../hooks/exam/useExamTimer.js';
 import { useAntiCheat } from '../../hooks/exam/useAntiCheat.js';
 import QuestionPalette from '../../components/exam/QuestionPalette.jsx';
 import { supabase } from '../../lib/supabase.js';
@@ -70,6 +70,26 @@ export default function ExamRoom() {
         if (studentId === studentSession.student_id) {
           setExtraTimeMinutes(newTotal);
           showSecurityWarning(`⏰ ครูผู้คุมสอบได้เพิ่มเวลาให้คุณ +${additionalMinutes} นาที (รวมเวลาเพิ่ม ${newTotal} นาที)`);
+        }
+      })
+      .on('broadcast', { event: 'room_time_adjusted' }, (payload) => {
+        const { newTimeLimitMinutes, additionalMinutes } = payload?.payload || {};
+        if (newTimeLimitMinutes) {
+          setSessionInfo(prev => prev ? ({ ...prev, time_limit_minutes: newTimeLimitMinutes }) : prev);
+          showSecurityWarning(`⏰ ครูผู้คุมสอบได้ปรับเวลาสอบของห้องเป็น ${newTimeLimitMinutes} นาที`);
+        } else if (additionalMinutes) {
+          setExtraTimeMinutes(prev => prev + Number(additionalMinutes));
+          showSecurityWarning(`⏰ ครูผู้คุมสอบได้เพิ่มเวลาสอบให้ทุกคนในห้อง +${additionalMinutes} นาที`);
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'exam_sessions',
+        filter: `id=eq.${sessionId}`
+      }, (payload) => {
+        if (payload?.new) {
+          setSessionInfo(prev => ({ ...prev, ...payload.new }));
         }
       })
       .on('broadcast', { event: 'suspension_resolved' }, (payload) => {
@@ -228,19 +248,32 @@ export default function ExamRoom() {
         setAttemptNumber(currentAttempt);
         setIsRetakeMode(currentAttempt > 1 || Boolean(pData.allow_rejoin));
 
-        // In onsite mode, timer follows session start time; in online mode, follows student start time
-        const startTimestamp = (sData.exam_mode === 'onsite' && sData.started_at)
-          ? sData.started_at
-          : (pData.started_at || new Date().toISOString());
-        setExamStartedAt(startTimestamp);
-
-        // Record started_at if null or if onsite session was started newer
-        if (!pData.started_at || (sData.exam_mode === 'onsite' && sData.started_at && (!pData.started_at || new Date(pData.started_at) < new Date(sData.started_at)))) {
+        // Per-Attempt Authoritative Timer:
+        // Use student attempt start time so retakes & fresh starts get their full allotted time.
+        let startTimestamp = pData.started_at;
+        if (!startTimestamp || pData.allow_rejoin || pData.status === 'waiting') {
+          startTimestamp = new Date().toISOString();
           await updateParticipantStatus(sessionId, studentSession.student_id, {
             status: 'testing',
+            allow_rejoin: false,
             started_at: startTimestamp
           });
+        } else if (pData.status !== 'testing') {
+          await updateParticipantStatus(sessionId, studentSession.student_id, {
+            status: 'testing'
+          });
         }
+
+        // Validate remaining time before timer starts to prevent premature auto-submit
+        const durationMin = sData.time_limit_minutes || 60;
+        const initialRem = calculateRemainingSeconds(startTimestamp, durationMin, Number(pData.extra_time_minutes || 0));
+        if (initialRem !== null && initialRem <= 0) {
+          setErrorMsg('เวลาสอบสำหรับรอบนี้หมดลงแล้ว กรุณาติดต่อคุณครูผู้สอนหากต้องการสอบซ่อม');
+          setLoading(false);
+          return;
+        }
+
+        setExamStartedAt(startTimestamp);
 
         // Restore Hybrid Draft: Database draft first, fallback to local cache
         const serverDraft = await loadDraftAnswers(sessionId, studentSession.student_id);
@@ -264,8 +297,12 @@ export default function ExamRoom() {
         setAnswers(restoredAnswers);
         setFlagged(restoredFlagged);
 
-        // Fetch questions (ZERO-LEAK)
-        const qList = await getExamQuestions(sessionId);
+        // Fetch questions (ZERO-LEAK with Seeded Randomization & Subset Sampling)
+        const qList = await getExamQuestions(sessionId, studentSession.student_id, {
+          shuffleQuestions: sData.shuffle_questions !== false,
+          shuffleChoices: sData.shuffle_choices !== false,
+          questionCount: sData.question_count
+        });
         if (!qList || qList.length === 0) {
           setErrorMsg('ไม่พบข้อสอบในชุดนี้ กรุณาติดต่อคุณครูผู้คุมสอบ');
           setLoading(false);

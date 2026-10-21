@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทที่ 4: ภาพเคลื่อนไหวและแบนเนอร์โฆษณาสำหรับเว็บไซต์ (Storyboard &amp; Web Animation) | 31910-2026</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'Inter', 'sans-serif'],
+            body: ['Sarabun', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            tech: ['Chakra Petch', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --bg-page: #f6f4ff;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1edff;
+      --border-tint: #e2d9ff;
+      --text-main: #1e1b4b;
+      --text-muted: #5b5675;
+      --accent-pill-bg: #f3e8ff;
+      --accent-pill-text: #7e22ce;
+    }
+    html.dark {
+      --bg-page: #0b0917;
+      --bg-surface: #141126;
+      --bg-subtle: #1d1836;
+      --border-tint: #2d2552;
+      --text-main: #f5f3ff;
+      --text-muted: #a59ec4;
+      --accent-pill-bg: #2e1065;
+      --accent-pill-text: #e9d5ff;
+    }
+    html.theme-accent {
+      --bg-page: #fdf2f8;
+      --bg-surface: #ffffff;
+      --bg-subtle: #fce7f3;
+      --border-tint: #fbcfe8;
+      --text-main: #4a044e;
+      --text-muted: #86198f;
+      --accent-pill-bg: #ede9fe;
+      --accent-pill-text: #6d28d9;
+    }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Prompt', sans-serif;
+      background-image:
+        radial-gradient(circle at 14% 12%, rgba(124, 58, 237, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 86% 24%, rgba(236, 72, 153, 0.08) 0%, transparent 35%),
+        linear-gradient(to right, rgba(124, 58, 237, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(124, 58, 237, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .surface-card {
+      background-color: var(--bg-surface);
+      border-color: var(--border-tint);
+    }
+    .subtle-box {
+      background-color: var(--bg-subtle);
+      border-color: var(--border-tint);
+    }
+    .code-pill {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--accent-pill-bg);
+      color: var(--accent-pill-text);
+    }
+    @keyframes heroFloatLoop {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .anim-float-loop {
+      animation: heroFloatLoop 2.4s ease-in-out infinite;
+    }
+    @keyframes ctaPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .anim-cta-pulse {
+      animation: ctaPulse 2.4s ease-in-out infinite;
+    }
+    body.reduced-motion-active *,
+    body.reduced-motion-active .anim-float-loop,
+    body.reduced-motion-active .anim-cta-pulse {
+      animation: none !important;
+      transition-duration: 0.01s !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-purple-600 selection:text-white">
+
+  <!-- Sticky Navigation Header with Standard Comfortable Horizontal Margins -->
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/85 dark:bg-[#110e20]/85 border-b border-purple-200/70 dark:border-purple-900/50">
+    <div class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 h-16 flex items-center justify-between gap-3">
+      <a href="#top-hero" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-pink-600 to-amber-500 text-white font-bold flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition">
+          <span class="font-mono text-xs">31910</span>
+        </div>
+        <div>
+          <div class="text-[11px] font-mono uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold">
+            31910-2026 • UNIT 04
+          </div>
+          <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-tight">
+            ภาพเคลื่อนไหวและแบนเนอร์โฆษณาสำหรับเว็บไซต์
+          </div>
+        </div>
+      </a>
+
+      <nav class="hidden xl:flex items-center gap-1 text-xs font-medium">
+        <a href="#sec-objectives" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">🎯 จุดประสงค์</a>
+        <a href="#sec-intro" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">บทนำ: พลัง Web Motion</a>
+        <a href="#sec-part1" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 1: Hero Banner &amp; Storyboard</a>
+        <a href="#sec-part2" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 2: Easing &amp; Smart Animate</a>
+        <a href="#sec-workshops" class="px-2.5 py-1.5 rounded-lg hover:bg-purple-100/70 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-200 transition">ตอนที่ 3: ใบงาน &amp; Checklist</a>
+        <a href="#sec-simulator" class="ml-1 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-sm hover:opacity-95 transition">
+          ⚡ Smart Animate Studio
+        </a>
+      </nav>
+
+      <div class="flex items-center gap-1.5 bg-purple-100/80 dark:bg-purple-950/70 p-1.5 rounded-full border border-purple-200 dark:border-purple-800">
+        <button id="btn-theme-light" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white text-purple-700 shadow-sm transition" title="โหมดสว่าง (Light)">☀️</button>
+        <button id="btn-theme-dark" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition" title="โหมดมืด (Dark)">🌙</button>
+        <button id="btn-theme-accent" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition" title="โหมดสีเน้น (Accent)">🔮</button>
+      </div>
+    </div>
+
+    <div class="xl:hidden max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto px-6 sm:px-10 py-2 border-t border-purple-100 dark:border-purple-900/40 text-xs whitespace-nowrap">
+      <a href="#sec-objectives" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">🎯 จุดประสงค์</a>
+      <a href="#sec-intro" class="px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">บทนำ: Web Motion</a>
+      <a href="#sec-part1" class="px-2.5 py-1 rounded-md bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 font-medium">ตอนที่ 1: Hero &amp; Storyboard</a>
+      <a href="#sec-part2" class="px-2.5 py-1 rounded-md bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-medium">ตอนที่ 2: Easing &amp; Smart Animate</a>
+      <a href="#sec-workshops" class="px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">ตอนที่ 3: ใบงาน 4.1–4.2</a>
+      <a href="#sec-simulator" class="px-2.5 py-1 rounded-md bg-purple-600 text-white font-semibold">⚡ Studio</a>
+    </div>
+  </header>
+
+  <!-- Main Container with Standard Comfortable Margins (max-w-6xl mx-auto px-6 sm:px-10 lg:px-12) -->
+  <main class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 py-10 space-y-20 pb-28">
+
+    <!-- =================================================================== -->
+    <!-- HERO & LEARNING OBJECTIVES                                          -->
+    <!-- =================================================================== -->
+    <section id="top-hero" class="space-y-8">
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-10 shadow-xl space-y-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/90 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300 text-xs font-mono font-semibold">
+            <span>วิชา 31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์ (ท-ป-น: 2-2-3)</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+            <span>ปวส. ชั้นปีที่ 1 เทคโนโลยีธุรกิจดิจิทัล</span>
+          </div>
+          <div class="text-xs font-body text-slate-500 dark:text-slate-400">
+            อาจารย์ผู้สอน: <strong>ครูแม็ค</strong> (แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล วิทยาลัยการอาชีพบ้านโป่ง)
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400">
+            UNIT 04 • WEB ANIMATION PRINCIPLES, STORYBOARD ARCHITECTURE &amp; INTERACTIVE HERO BANNER
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+            บทที่ 4: ภาพเคลื่อนไหวและแบนเนอร์โฆษณาสำหรับเว็บไซต์<br class="hidden sm:inline">
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 dark:from-purple-400 dark:via-pink-400 dark:to-amber-400">
+              (Storyboard Architecture &amp; Figma Smart Animate)
+            </span>
+          </h1>
+          <p class="max-w-3xl text-sm sm:text-base font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+            เปลี่ยนหน้าเว็บไซต์ภาพนิ่งธรรมดา (Static Web) ให้มีชีวิตชีวาและดึงดูดสายตาลูกค้าตั้งแต่ 3 วินาทีแรก เรียนรู้กายวิภาค 4 ชั้นของ Hero Banner การเขียนบทภาพจำลอง (Storyboard 4 คีย์เฟรม) ฟิสิกส์เส้นโค้งความเร่ง (Easing Curves) และการสร้างแบนเนอร์โฆษณาเชิงโต้ตอบด้วย Figma Smart Animate
+          </p>
+        </div>
+
+        <!-- 🎯 จุดประสงค์การเรียนรู้ประจำหน่วยที่ 4 -->
+        <div id="sec-objectives" class="scroll-mt-24 pt-6 border-t border-purple-100 dark:border-purple-900/50 space-y-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🎯</span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+              จุดประสงค์การเรียนรู้ประจำหน่วยที่ 4
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- 1. ด้านความรู้ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">1. ด้านความรู้ (Knowledge)</span>
+                <span class="text-lg">🧠</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-1.5 list-disc pl-4 leading-relaxed">
+                <li>อธิบายบทบาท ประโยชน์ และจิตวิทยาการมองเห็นของภาพเคลื่อนไหวบนเว็บไซต์ (<strong>Web Motion &amp; Cognitive Psychology</strong>) ได้อย่างถูกต้อง</li>
+                <li>ประยุกต์ใช้หลักการเคลื่อนไหวพื้นฐาน (Animation Principles) ได้แก่ จังหวะเวลา (<strong>Timing</strong>), เส้นโค้งการเคลื่อนที่ (<strong>Easing Curves</strong>), และการเน้นสายตา (<strong>Staging &amp; Focal Points</strong>) บน UI ได้</li>
+                <li>อธิบายกลไกทางวิศวกรรมของโปรแกรม Figma ในการตรวจจับความเปลี่ยนแปลงของวัตถุด้วยคุณสมบัติ <strong>Smart Animate</strong> (การจับคู่วัตถุผ่าน Layer Name, Position, Scale, Opacity, Rotation) ได้</li>
+                <li>ตระหนักถึงมาตรฐานการเข้าถึงสำหรับผู้ใช้งานที่มีภาวะไวต่อการมองเห็น (<strong>Reduced Motion &amp; Web Accessibility: WCAG 2.3.3</strong>)</li>
+              </ul>
+            </div>
+
+            <!-- 2. ด้านทักษะปฏิบัติการ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-pink-600 text-white font-mono text-xs font-bold">2. ด้านทักษะปฏิบัติการ (Skill)</span>
+                <span class="text-lg">🛠️</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-2 list-disc pl-4 leading-relaxed">
+                <li><strong>การออกแบบโครงสร้างและ Storyboard:</strong> ออกแบบโครงสร้างภาพแบนเนอร์โฆษณาหลัก (<strong>Hero Banner</strong>) ขนาด Desktop <strong>1440 × 540–600px</strong> และเขียนบทภาพจำลอง (<strong>Storyboard Sheet</strong>) จำนวน 3–4 ช่วงคีย์เฟรม พร้อมระบุระยะเวลา (Timing) และคำอธิบายการเคลื่อนไหวได้ครบถ้วน</li>
+                <li><strong>การสร้างแบนเนอร์เคลื่อนไหวเชิงโต้ตอบ:</strong> ใช้เครื่องมือ <strong>Figma Smart Animate</strong> สร้างชิ้นงานแบนเนอร์โฆษณาภาพเคลื่อนไหวเชิงโต้ตอบ (<strong>Interactive Hero Banner</strong>) ที่มีการเคลื่อนไหวของสินค้า ข้อความ และปุ่ม CTA อย่างนุ่มนวล เป็นธรรมชาติ และแสดงผลจำลองการทำงานบนโหมด Prototype ได้อย่างสมบูรณ์</li>
+              </ul>
+            </div>
+
+            <!-- 3. ด้านจิตพิสัยและจรรยาบรรณวิชาชีพ -->
+            <div class="p-5 rounded-2xl subtle-box border space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-lg bg-teal-600 text-white font-mono text-xs font-bold">3. ด้านจิตพิสัย (Attitude)</span>
+                <span class="text-lg">💎</span>
+              </div>
+              <ul class="text-xs sm:text-sm font-body text-slate-700 dark:text-slate-200 space-y-2 list-disc pl-4 leading-relaxed">
+                <li>มีความละเอียดรอบคอบในการตั้งชื่อเลเยอร์ให้ตรงกันทุกเฟรม เพื่อป้องกันปัญหาแอนิเมชันแตกหรือกระตุก (Glitch)</li>
+                <li>ควบคุมระยะเวลาของแอนิเมชันไม่ให้ช้าเกินไปจนสร้างความรำคาญหรือขัดขวางการเข้าถึงข้อมูลของผู้ใช้งาน</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 🧭 แผนผังโครงสร้างการเรียนรู้ประจำหน่วย -->
+        <div class="pt-6 border-t border-purple-100 dark:border-purple-900/50 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🧭</span>
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                แผนผังโครงสร้างการเรียนรู้ประจำหน่วย
+              </h2>
+            </div>
+            <span class="text-xs font-mono text-purple-600 dark:text-purple-400">คลิกที่แต่ละตอนเพื่อข้ามไปยังหัวข้อที่ต้องการ</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="#sec-part1" class="p-5 rounded-2xl border-2 border-pink-500/40 bg-pink-50/40 dark:bg-pink-950/20 hover:border-pink-500 transition block space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-pink-600 text-white font-mono text-xs font-bold">ตอนที่ 1</span>
+                <span class="font-mono text-xs text-pink-600 dark:text-pink-400 font-bold">Hero &amp; Storyboard →</span>
+              </div>
+              <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                จิตวิทยาการเคลื่อนไหว, กายวิภาค Hero Banner &amp; Storyboard
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>กายวิภาค 4 ชั้นของ Hero Banner (1440×540–600px)</li>
+                <li>ทฤษฎีเวลา 3 วินาทีทองคำ (The 3-Second Motion Rule)</li>
+                <li>การเขียนบทภาพจำลอง (Storyboard Sheet 4 คีย์เฟรม)</li>
+                <li>คู่มือปฏิบัติการเขียน Storyboard บน Figma</li>
+              </ol>
+            </a>
+
+            <a href="#sec-part2" class="p-5 rounded-2xl border-2 border-teal-500/40 bg-teal-50/40 dark:bg-teal-950/20 hover:border-teal-500 transition block space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-teal-600 text-white font-mono text-xs font-bold">ตอนที่ 2</span>
+                <span class="font-mono text-xs text-teal-600 dark:text-teal-400 font-bold">Easing &amp; Smart Animate →</span>
+              </div>
+              <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                ศาสตร์แห่ง Easing Curves &amp; ปฏิบัติการ Figma Smart Animate
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>ฟิสิกส์การเคลื่อนที่: Linear vs Ease-Out vs Ease-In-Out vs Spring</li>
+                <li>กลไกจับคู่วัตถุ Figma Smart Animate Engine (3 กฎเหล็ก)</li>
+                <li>สร้างลำดับเฟรม &amp; ผูกเงื่อนไข After Delay Prototype</li>
+                <li>การออกแบบเพื่อความปลอดภัย (Reduced Motion WCAG 2.3.3)</li>
+              </ol>
+            </a>
+
+            <a href="#sec-workshops" class="p-5 rounded-2xl border-2 border-amber-500/40 bg-amber-50/40 dark:bg-amber-950/20 hover:border-amber-500 transition block space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-600 text-white font-mono text-xs font-bold">ตอนที่ 3</span>
+                <span class="font-mono text-xs text-amber-600 dark:text-amber-400 font-bold">Workshops &amp; Studio →</span>
+              </div>
+              <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                ใบงานปฏิบัติการ 4.1–4.2, Checklist &amp; Smart Animate Studio
+              </h3>
+              <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-1 list-decimal pl-4">
+                <li>ใบงานที่ 4.1: การออกแบบ Storyboard แบนเนอร์โฆษณา</li>
+                <li>ใบงานที่ 4.2: แบนเนอร์ภาพเคลื่อนไหวเชิงโต้ตอบ (Smart Animate)</li>
+                <li>แบบตรวจสอบตนเองก่อนส่งงาน (Student Self-Checklist)</li>
+                <li>สตูดิโอจำลองการเล่นแอนิเมชัน Hero Banner แบบสด</li>
+              </ol>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- บทนำ: พลังของภาพเคลื่อนไหวบนเว็บไซต์ (The Power of Web Motion)        -->
+    <!-- =================================================================== -->
+    <section id="sec-intro" class="scroll-mt-24 space-y-6">
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-9 shadow-xl space-y-6">
+        <div class="space-y-2">
+          <span class="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 font-mono text-xs font-bold uppercase">
+            INTRODUCTION • THE POWER OF WEB MOTION &amp; SCROLL BLINDNESS
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            บทนำ: พลังของภาพเคลื่อนไหวบนเว็บไซต์ (The Power of Web Motion)
+          </h2>
+          <p class="text-sm sm:text-base font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+            ในโลกธุรกิจดิจิทัลที่มีการแข่งขันสูง หน้าเว็บไซต์ที่มีเพียง <strong>“ภาพนิ่งธรรมดา (Static Web)”</strong> มักจะถูกผู้ใช้เลื่อนผ่านไปอย่างรวดเร็ว (<strong>Scroll Blindness</strong>) โดยไม่หยุดอ่าน การนำ <strong>ภาพเคลื่อนไหวบนเว็บไซต์ (Web Motion &amp; Micro-interactions)</strong> เข้ามาเสริมในจุดยุทธศาสตร์ที่สำคัญที่สุดของหน้าแรกอย่าง <strong>“Hero Banner (แบนเนอร์โฆษณาด้านบนสุด)”</strong> จะช่วยสร้างความได้เปรียบทางธุรกิจอย่างมหาศาล:
+          </p>
+        </div>
+
+        <!-- 3 Research Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="p-5 rounded-2xl border-2 border-purple-400/60 bg-purple-50/50 dark:bg-purple-950/25 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-purple-600 dark:text-purple-400">STAT 01 • EYE CAPTURE</span>
+              <span class="text-2xl font-extrabold font-mono text-purple-600">ไวกว่า 3 เท่า</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">1. ดึงดูดสายตาได้ไวกว่า</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              มนุษย์ถูกวิวัฒนาการมาให้ตรวจจับ <strong>“วัตถุที่กำลังเคลื่อนไหว”</strong> ได้ไวกว่าภาพนิ่งถึง 3 เท่า ช่วยหยุดนิ้วของผู้ใช้ไม่ให้รีบเลื่อนผ่าน
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl border-2 border-pink-400/60 bg-pink-50/50 dark:bg-pink-950/25 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-pink-600 dark:text-pink-400">STAT 02 • CTR BOOST</span>
+              <span class="text-2xl font-extrabold font-mono text-pink-600">+30% – 50%</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">2. เพิ่มยอดคลิก (CTR)</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              แบนเนอร์ที่มีภาพเคลื่อนไหวอย่างมีชั้นเชิง สามารถเพิ่มอัตราการคลิกปุ่มสั่งซื้อ (Call-to-Action) ได้สูงกว่าภาพนิ่งเฉลี่ย <strong>30% – 50%</strong>
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl border-2 border-teal-400/60 bg-teal-50/50 dark:bg-teal-950/25 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-teal-600 dark:text-teal-400">STAT 03 • BRAND PERCEPTION</span>
+              <span class="text-2xl font-extrabold font-mono text-teal-600">Premium UI</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white">3. เสริมภาพลักษณ์แบรนด์</h3>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              เว็บไซต์ที่มี Motion นุ่มนวลจะให้ความรู้สึก <strong>“ทันสมัย พรีเมียม และน่าเชื่อถือในระดับสากล”</strong> มากกว่าเว็บทั่วไป
+            </p>
+          </div>
+        </div>
+
+        <!-- Golden Rule Callout Box -->
+        <div class="p-6 rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white space-y-2 shadow-lg">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-mono text-xs font-extrabold">
+            ⭐ กฎทองคำของ Web Animation
+          </div>
+          <h3 class="text-lg sm:text-xl font-extrabold">
+            “Purposeful, Not Decorative” (มีเป้าหมาย ไม่ใช่แค่ประดับสวยงาม)
+          </h3>
+          <p class="text-xs sm:text-sm font-body text-purple-100 leading-relaxed">
+            แอนิเมชันที่ดีบนเว็บไซต์ธุรกิจต้องไม่ใช่การขยับมั่วซั่วจนลายตา แต่ต้องทำหน้าที่ <strong>“ชี้นำสายตาของลูกค้า (Guide Focus) ให้มองเห็นคุณค่าของสินค้า และนำทางไปสู่การกดปุ่มสั่งซื้อ”</strong> เท่านั้น
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 1: การออกแบบ Storyboard และโครงสร้าง Hero Banner             -->
+    <!-- =================================================================== -->
+    <section id="sec-part1" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-pink-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300 text-xs font-mono font-bold">
+          PART 01 • HERO BANNER 4-LAYER ARCHITECTURE, 3-SECOND RULE &amp; STORYBOARD SHEET
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 1: การออกแบบ Storyboard และโครงสร้าง Hero Banner
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          ผ่าโครงสร้าง 4 เลเยอร์ของแบนเนอร์หลักหน้าแรก (1440 × 540–600px) เรียนรู้ทฤษฎีเวลา 3 วินาทีทองคำแบบหน่วงเวลาเหลื่อมกัน (Staggering) และการเขียนบทภาพจำลอง Storyboard 4 คีย์เฟรมบน Figma
+        </p>
+      </div>
+
+      <!-- 1.1 กายวิภาค 4 ชั้นของ Hero Banner (Hero Banner Layer Architecture) -->
+      <div id="sec-1-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-pink-600 dark:text-pink-400">TOPIC 1.1 • 4-LAYER HERO BANNER ARCHITECTURE (1440 × 540–600PX)</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              1.1 กายวิภาค 4 ชั้นของ Hero Banner (Hero Banner Layer Architecture)
+            </h3>
+            <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+              ก่อนสร้างภาพเคลื่อนไหว เราต้องจัดระเบียบโครงสร้างเลเยอร์ของ Hero Banner ขนาดมาตรฐานหน้าจอ Desktop (<code class="font-mono font-bold">1440 × 540–600px</code>) แบ่งออกเป็น <strong>4 ชั้นหลัก</strong> (คลิกปุ่มด้านขวาเพื่อแยกดูทีละชั้นเลเยอร์):
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-layer="all" class="layer-filter-btn px-3 py-1.5 rounded-xl bg-pink-600 text-white font-mono text-xs font-bold shadow-sm transition">แสดงครบ 4 ชั้น</button>
+            <button type="button" data-layer="1" class="layer-filter-btn px-3 py-1.5 rounded-xl subtle-box border font-mono text-xs font-bold transition">Layer 1: พื้นหลัง</button>
+            <button type="button" data-layer="2" class="layer-filter-btn px-3 py-1.5 rounded-xl subtle-box border font-mono text-xs font-bold transition">Layer 2: สินค้า</button>
+            <button type="button" data-layer="3" class="layer-filter-btn px-3 py-1.5 rounded-xl subtle-box border font-mono text-xs font-bold transition">Layer 3: ข้อความ</button>
+            <button type="button" data-layer="4" class="layer-filter-btn px-3 py-1.5 rounded-xl subtle-box border font-mono text-xs font-bold transition">Layer 4: ปุ่ม CTA</button>
+          </div>
+        </div>
+
+        <!-- Interactive 4-Layer Hero Banner Stage -->
+        <div id="hero-layer-stage" class="relative rounded-3xl overflow-hidden border-2 border-purple-300 dark:border-purple-800 p-6 sm:p-10 bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-950 text-white shadow-xl transition-all duration-300">
+          <!-- Layer 1: Background & Atmosphere Radial Glow -->
+          <div id="hl-layer-1" class="pointer-events-none absolute inset-0 transition-opacity duration-300">
+            <div class="absolute right-12 top-6 w-72 h-72 rounded-full bg-pink-500/25 blur-3xl"></div>
+            <div class="absolute left-10 bottom-4 w-64 h-64 rounded-full bg-teal-400/15 blur-3xl"></div>
+            <div class="absolute top-3 left-4 px-2.5 py-0.5 rounded bg-white/10 border border-white/20 font-mono text-[10px] text-purple-200">
+              [Layer 1: Background &amp; Atmosphere Layer • 60% Tone + Radial Gradient]
+            </div>
+          </div>
+
+          <div class="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center pt-4">
+            <!-- Left 7 Cols: Layer 3 (Text) + Layer 4 (Action CTA) -->
+            <div class="md:col-span-7 space-y-5 text-left">
+              <!-- Layer 3: Text & Value Layer -->
+              <div id="hl-layer-3" class="p-4 rounded-2xl border border-dashed border-teal-400/60 bg-white/5 backdrop-blur-sm space-y-2 transition-all duration-300">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-0.5 rounded-full bg-teal-400/20 text-teal-300 font-mono text-xs font-bold">
+                    ✨ NEW ARRIVAL 2026 (Kicker 14–16px)
+                  </span>
+                  <span class="font-mono text-[10px] text-teal-300">[Layer 3: Text &amp; Value]</span>
+                </div>
+                <h4 class="text-2xl sm:text-4xl font-extrabold leading-tight">
+                  คอลเลกชันใหม่ล่าสุด สัมผัสความนุ่มสบายที่ออกแบบมาเพื่อคุณ
+                </h4>
+                <p class="text-xs sm:text-sm font-body text-purple-200 leading-relaxed">
+                  พาดหัวหลัก (H1 Hero Title: 44–56px Bold) และคำโปรยสิทธิประโยชน์ (Sub-headline 2 บรรทัด ขนาด 16–18px)
+                </p>
+              </div>
+
+              <!-- Layer 4: Action Layer -->
+              <div id="hl-layer-4" class="p-4 rounded-2xl border border-dashed border-amber-400/70 bg-white/5 backdrop-blur-sm flex flex-wrap items-center justify-between gap-3 transition-all duration-300">
+                <div class="flex flex-wrap items-center gap-3">
+                  <button type="button" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-pink-500 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg anim-cta-pulse">
+                    🛒 สั่งซื้อสินค้าเลย (Primary CTA)
+                  </button>
+                  <span class="px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-200 font-mono text-xs font-bold">
+                    🔥 ลดทันที 20% เฉพาะสัปดาห์นี้
+                  </span>
+                </div>
+                <span class="font-mono text-[10px] text-amber-300">[Layer 4: Action Layer 10%]</span>
+              </div>
+            </div>
+
+            <!-- Right 5 Cols: Layer 2 (Visual Asset Layer) -->
+            <div class="md:col-span-5 flex justify-center">
+              <div id="hl-layer-2" class="w-full max-w-[270px] p-5 rounded-3xl border-2 border-dashed border-pink-400/70 bg-white/10 backdrop-blur-md text-center space-y-3 transition-all duration-300">
+                <div class="font-mono text-[10px] text-pink-300 font-bold">[Layer 2: Visual Asset Layer]</div>
+                <div class="py-4 anim-float-loop">
+                  <div class="text-6xl">👟</div>
+                  <div class="mt-2 font-mono text-xs font-bold text-white">Product_Shoe.webp</div>
+                </div>
+                <!-- 2-Layer Shadow from Unit 3 -->
+                <div class="w-24 h-2 mx-auto rounded-full bg-black/80 blur-[2px]"></div>
+                <div class="w-36 h-4 mx-auto rounded-full bg-black/35 blur-[8px] -mt-2"></div>
+                <p class="text-[11px] font-body text-purple-200">
+                  รูปสินค้าไดคัทโปร่งใสจากบทที่ 3 พร้อมเงา Contact &amp; Cast Shadow วางบนจุดตัดสายตา 6 คอลัมน์ขวา
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Layer Specification Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-body">
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-purple-600 dark:text-purple-400">Layer 1: Background Layer</div>
+            <div class="font-bold text-slate-900 dark:text-white">ชั้นพื้นหลังและบรรยากาศ</div>
+            <p class="text-slate-600 dark:text-slate-300">สีพื้นหลังคุมโทนแบรนด์ (60%) ใส่แสงเรื่อๆ (Radial Gradient) เพื่อขับเน้นให้จุดที่วางสินค้าสว่างเด่นขึ้น</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-pink-600 dark:text-pink-400">Layer 2: Visual Asset Layer</div>
+            <div class="font-bold text-slate-900 dark:text-white">ชั้นวัตถุสินค้าไดคัท</div>
+            <p class="text-slate-600 dark:text-slate-300">รูปถ่ายสินค้าไดคัทจากหน่วยที่ 3 ที่ลบพื้นหลังแล้วและมีเงาเสมือนจริง 2 ชั้น วางใน 6 คอลัมน์ฝั่งขวา</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-teal-600 dark:text-teal-400">Layer 3: Text &amp; Value Layer</div>
+            <div class="font-bold text-slate-900 dark:text-white">ชั้นข้อความและพาดหัว</div>
+            <p class="text-slate-600 dark:text-slate-300">Kicker (14–16px), พาดหัวหลัก H1 (44–56px Bold คอนทราสต์สูง) และคำโปรย Sub-headline 2 บรรทัด (16–18px)</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-amber-600 dark:text-amber-400">Layer 4: Action Layer</div>
+            <div class="font-bold text-slate-900 dark:text-white">ชั้นปุ่มดำเนินการ (CTA)</div>
+            <p class="text-slate-600 dark:text-slate-300">ปุ่ม Call-to-Action สีเด่นสด 10% พร้อมป้ายข้อเสนอพิเศษกระตุ้นการตัดสินใจคลิก</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.2 กฎ 3 วินาทีทองคำของการเคลื่อนไหว (The 3-Second Motion Rule) -->
+      <div id="sec-1-2" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-teal-600 dark:text-teal-400">TOPIC 1.2 • THE 3-SECOND MOTION RULE &amp; STAGGERED TIMELINE</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              1.2 กฎ 3 วินาทีทองคำของการเคลื่อนไหว (The 3-Second Motion Rule)
+            </h3>
+            <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+              แอนิเมชันของ Hero Banner ควรเล่นจบกระบวนการเปิดตัวภายใน <strong>2.5 ถึง 3 วินาที</strong> โดยใช้เทคนิค <strong>Staggering (การหน่วงเวลาเหลื่อมกัน)</strong> เพื่อชี้นำสายตาทีละจุด:
+            </p>
+          </div>
+
+          <button type="button" id="btn-play-stagger" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-teal-600 to-purple-600 text-white font-mono text-xs font-bold shadow-md hover:opacity-95 transition">
+            ▶ กดเล่นจำลองไทม์ไลน์ 0.0s → 1.5s!
+          </button>
+        </div>
+
+        <!-- 5-Step Staggered Animation Timeline -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3.5 text-xs">
+          <div id="tl-card-0" class="p-4 rounded-2xl border-2 border-teal-500 bg-teal-50/50 dark:bg-teal-950/30 space-y-1.5 transition-all">
+            <span class="px-2.5 py-0.5 rounded bg-teal-600 text-white font-mono font-bold">วินาทีที่ 0.0s</span>
+            <div class="font-extrabold text-slate-900 dark:text-white">1. เริ่มต้น (Init)</div>
+            <p class="font-body text-slate-600 dark:text-slate-300">หน้าเว็บเปิดขึ้นมา ฉากหลังพร้อม แสงเรื่อปรากฏ (Background Fade In)</p>
+          </div>
+
+          <div id="tl-card-1" class="p-4 rounded-2xl subtle-box border space-y-1.5 transition-all">
+            <span class="px-2.5 py-0.5 rounded bg-purple-600 text-white font-mono font-bold">วินาทีที่ 0.3s</span>
+            <div class="font-extrabold text-slate-900 dark:text-white">2. สินค้าเคลื่อนที่</div>
+            <p class="font-body text-slate-600 dark:text-slate-300">ภาพสินค้าลอยขึ้นมาจากด้านล่างพร้อมความนุ่มนวล (Slide &amp; Fade In)</p>
+          </div>
+
+          <div id="tl-card-2" class="p-4 rounded-2xl subtle-box border space-y-1.5 transition-all">
+            <span class="px-2.5 py-0.5 rounded bg-pink-600 text-white font-mono font-bold">วินาทีที่ 0.6s</span>
+            <div class="font-extrabold text-slate-900 dark:text-white">3. พาดหัวเปิดตัว</div>
+            <p class="font-body text-slate-600 dark:text-slate-300">ตัวอักษรพาดหัว H1 และคำโปรยเลื่อนเข้ามาให้อ่านชัดเจน</p>
+          </div>
+
+          <div id="tl-card-3" class="p-4 rounded-2xl subtle-box border space-y-1.5 transition-all">
+            <span class="px-2.5 py-0.5 rounded bg-amber-600 text-white font-mono font-bold">วินาทีที่ 1.0s</span>
+            <div class="font-extrabold text-slate-900 dark:text-white">4. ปุ่มกดปิดการขาย</div>
+            <p class="font-body text-slate-600 dark:text-slate-300">ปุ่มสั่งซื้อ CTA ดีดตัวขึ้นมา (Pop / Scale) ดึงดูดให้คลิกทันที</p>
+          </div>
+
+          <div id="tl-card-4" class="p-4 rounded-2xl subtle-box border space-y-1.5 transition-all">
+            <span class="px-2.5 py-0.5 rounded bg-emerald-600 text-white font-mono font-bold">วินาทีที่ 1.5s+</span>
+            <div class="font-extrabold text-slate-900 dark:text-white">5. Idle Float Loop</div>
+            <p class="font-body text-slate-600 dark:text-slate-300">สถานะค้างสมบูรณ์ ภาพสินค้าลอยขึ้น-ลงอย่างแผ่วเบา (±8–10px)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.3 การเขียนบทภาพจำลอง (Storyboard Sheet Architecture) & 1.4 คู่มือปฏิบัติการ -->
+      <div id="sec-1-3" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-indigo-600 dark:text-indigo-400">TOPIC 1.3 &amp; 1.4 • 4-KEYFRAME STORYBOARD SHEET ARCHITECTURE</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            1.3 การเขียนบทภาพจำลอง (Storyboard Sheet 4 คีย์เฟรม) &amp; 1.4 คู่มือปฏิบัติการบน Figma
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            <strong>Storyboard (สตอรี่บอร์ด)</strong> คือ “พิมพ์เขียวการเคลื่อนไหวที่อธิบายว่า เกิดอะไรขึ้น ในช่วงเวลาใด และเคลื่อนที่อย่างไร” ก่อนลงมือเชื่อมต่อ Prototype จริง:
+          </p>
+        </div>
+
+        <!-- 4-Keyframe Visual Storyboard Sheet -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Keyframe 1 -->
+          <div class="rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden flex flex-col justify-between">
+            <div class="px-3.5 py-2 bg-slate-900 text-white font-mono text-xs flex justify-between">
+              <span class="font-bold">Frame_01_Init</span>
+              <span class="text-teal-300">0.0 วินาที</span>
+            </div>
+            <div class="p-4 h-36 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-950/60 dark:to-indigo-950/60 flex flex-col items-center justify-center text-center relative">
+              <div class="text-xs font-mono text-slate-500 dark:text-slate-300">(ฉากหลังสว่าง แสงเรื่อจางๆ)</div>
+              <div class="mt-2 px-2.5 py-1 rounded border border-dashed border-slate-400 text-[10px] font-mono text-slate-500">
+                👟 สินค้า Opacity 0% (Y: +50px)
+              </div>
+            </div>
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/90 border-t text-[11px] font-mono space-y-1">
+              <div><strong>Timecode:</strong> 0.0s (Initial State)</div>
+              <div><strong>Active:</strong> Background Fade</div>
+              <div><strong>Props:</strong> Product &amp; Text Opacity = 0%</div>
+            </div>
+          </div>
+
+          <!-- Keyframe 2 -->
+          <div class="rounded-2xl border-2 border-purple-400 bg-white dark:bg-slate-900 overflow-hidden flex flex-col justify-between">
+            <div class="px-3.5 py-2 bg-purple-700 text-white font-mono text-xs flex justify-between">
+              <span class="font-bold">Frame_02_HeroReveal</span>
+              <span class="text-amber-300">0.4 วินาที</span>
+            </div>
+            <div class="p-4 h-36 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-950/60 dark:to-indigo-950/60 flex items-center justify-end pr-6 relative">
+              <div class="p-3 rounded-2xl bg-white/90 dark:bg-slate-800 shadow-md text-center">
+                <div class="text-3xl">👟</div>
+                <div class="text-[9px] font-mono font-bold text-purple-600">↑ ลอยขึ้นสู่พิกัดจริง</div>
+              </div>
+            </div>
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/90 border-t text-[11px] font-mono space-y-1">
+              <div><strong>Timecode:</strong> 0.4s (Hero Reveal)</div>
+              <div><strong>Active:</strong> Product_Shoe + Shadow</div>
+              <div><strong>Props:</strong> Y: +50px → 0px, Opacity 100%, Ease-Out</div>
+            </div>
+          </div>
+
+          <!-- Keyframe 3 -->
+          <div class="rounded-2xl border-2 border-pink-400 bg-white dark:bg-slate-900 overflow-hidden flex flex-col justify-between">
+            <div class="px-3.5 py-2 bg-pink-600 text-white font-mono text-xs flex justify-between">
+              <span class="font-bold">Frame_03_ContentIn</span>
+              <span class="text-amber-200">0.8 วินาที</span>
+            </div>
+            <div class="p-4 h-36 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-950/60 dark:to-indigo-950/60 flex items-center justify-between gap-2">
+              <div class="space-y-1 text-left">
+                <div class="text-xs font-extrabold text-slate-900 dark:text-white">พาดหัวสินค้าเด่น H1</div>
+                <div class="text-[10px] text-slate-500">คำอธิบาย 2 บรรทัด</div>
+                <span class="inline-block px-2.5 py-1 rounded bg-pink-600 text-white font-mono text-[10px] font-bold">[ ปุ่มซื้อ CTA ]</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white/90 dark:bg-slate-800 shadow text-2xl">👟</div>
+            </div>
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/90 border-t text-[11px] font-mono space-y-1">
+              <div><strong>Timecode:</strong> 0.8s (Text &amp; CTA)</div>
+              <div><strong>Active:</strong> Headline + Primary CTA</div>
+              <div><strong>Props:</strong> X: -40px → 0px, Opacity 100%, Ease-Out</div>
+            </div>
+          </div>
+
+          <!-- Keyframe 4 -->
+          <div class="rounded-2xl border-2 border-emerald-500 bg-white dark:bg-slate-900 overflow-hidden flex flex-col justify-between shadow-md">
+            <div class="px-3.5 py-2 bg-emerald-600 text-white font-mono text-xs flex justify-between">
+              <span class="font-bold">Frame_04_IdleLoop</span>
+              <span class="text-white">1.5 วินาที+</span>
+            </div>
+            <div class="p-4 h-36 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-950/60 dark:to-indigo-950/60 flex items-center justify-between gap-2">
+              <div class="space-y-1 text-left">
+                <div class="text-xs font-extrabold text-slate-900 dark:text-white">พาดหัวสินค้าเด่น H1</div>
+                <span class="inline-block px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-mono text-[10px] font-bold scale-105">[ ปุ่มซื้อ 104% ]</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-lg text-center anim-float-loop">
+                <div class="text-2xl">👟</div>
+                <div class="text-[9px] font-mono text-emerald-600 font-bold">⬍ ลอย ±8px</div>
+              </div>
+            </div>
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/90 border-t text-[11px] font-mono space-y-1">
+              <div><strong>Timecode:</strong> 1.5s+ (Infinite Loop)</div>
+              <div><strong>Active:</strong> Floating Loop ±8px</div>
+              <div><strong>Props:</strong> Ease-In-Out 1200ms วนลูปอัตโนมัติ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Step Figma Storyboard Setup -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs font-body pt-2">
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400">1. สร้างกระดาน 1600×1200px</span>
+            <p class="text-slate-700 dark:text-slate-200">กด <strong>F</strong> สร้าง Frame ใหญ่ขนาด <code class="font-mono font-bold">1600 × 1200 px</code> ตั้งชื่อว่า <code class="font-mono">Storyboard_Presentation</code></p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="font-mono font-bold text-purple-600 dark:text-purple-400">2. สร้างเฟรมย่อย 16:9 (4 กรอบ)</span>
+            <p class="text-slate-700 dark:text-slate-200">สร้าง Frame ขนาด <code class="font-mono font-bold">640 × 360 px</code> จำนวน 4 กรอบ ตั้งชื่อ <code class="font-mono">Frame_01_Init</code> ถึง <code class="font-mono">Frame_04_IdleLoop</code></p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="font-mono font-bold text-pink-600 dark:text-pink-400">3. จัดวางสถานะวัตถุแต่ละช่วง</span>
+            <p class="text-slate-700 dark:text-slate-200">Frame 01 ซ่อนด้วย <code class="font-mono">Opacity 0%</code> และเลื่อนต่ำลง 50px → Frame 02–03 ดึงกลับพิกัดจริง <code class="font-mono">Opacity 100%</code> → Frame 04 ลอยขึ้น 8px</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">4. ใส่กล่อง Specification Box</span>
+            <p class="text-slate-700 dark:text-slate-200">พิมพ์ตารางใต้แต่ละเฟรมระบุ <strong>Timecode (เวลา)</strong>, <strong>Active Elements</strong> และ <strong>Motion Properties (Easing)</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 2: การสร้างภาพเคลื่อนไหวบนเว็บ (Figma Smart Animate)           -->
+    <!-- =================================================================== -->
+    <section id="sec-part2" class="scroll-mt-24 space-y-12">
+      <div class="border-l-4 border-teal-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 text-xs font-mono font-bold">
+          PART 02 • EASING CURVES PHYSICS, SMART ANIMATE ENGINE &amp; ACCESSIBILITY (WCAG 2.3.3)
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 2: การสร้างภาพเคลื่อนไหวบนเว็บ (Figma Smart Animate)
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          เข้าใจฟิสิกส์การเคลื่อนที่และเส้นโค้งความเร่ง 5 ชนิด (Easing Curves) กฎเหล็กทางวิศวกรรม 3 ข้อของ Figma Smart Animate ขั้นตอนการผูกปฏิสัมพันธ์ After Delay Prototype และการออกแบบเพื่อความปลอดภัย (Reduced Motion)
+        </p>
+      </div>
+
+      <!-- 2.1 ฟิสิกส์การเคลื่อนที่และเส้นโค้งความเร่ง (Easing Curves Physics) -->
+      <div id="sec-2-1" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-teal-600 dark:text-teal-400">TOPIC 2.1 • EASING CURVES PHYSICS IN UI DESIGN</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              2.1 ฟิสิกส์การเคลื่อนที่และเส้นโค้งความเร่ง (Easing Curves Physics)
+            </h3>
+            <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+              ในโลกแห่งความเป็นจริง ไม่มีวัตถุใดที่เคลื่อนที่ด้วย “ความเร็วคงที่ตั้งแต่จุดเริ่มต้นจนหยุดกึ๊กในทันที (Linear Motion)” เพราะธรรมชาติต้องมีแรงเฉื่อย ความเร่ง และแรงเสียดทาน:
+            </p>
+          </div>
+
+          <button type="button" id="btn-race-easing" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-teal-600 to-indigo-600 text-white font-mono text-xs font-bold shadow-md hover:opacity-95 transition">
+            🏁 กดปล่อยตัวทดสอบความเร่งทั้ง 5 เส้นโค้งพร้อมกัน!
+          </button>
+        </div>
+
+        <!-- Interactive 5-Track Easing Race Simulator -->
+        <div class="p-5 sm:p-6 rounded-2xl bg-slate-900 text-white space-y-3.5 font-mono text-xs">
+          <div class="flex items-center justify-between text-slate-400 text-[11px] pb-1 border-b border-slate-700">
+            <span>จุดเริ่มต้น (0%)</span>
+            <span class="text-teal-300 font-bold">สนามทดสอบเปรียบเทียบความเร่ง (Duration: 1000ms)</span>
+            <span>จุดหมายปลายทาง (100%)</span>
+          </div>
+
+          <!-- Track 1: Linear -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-rose-400 font-bold">1. Linear (ความเร็วคงที่ทื่อๆ เหมือนหุ่นยนต์ ❌ ห้ามใช้กับวัตถุ UI)</span>
+              <span class="text-slate-400">cubic-bezier(0, 0, 1, 1)</span>
+            </div>
+            <div class="h-8 rounded-xl bg-slate-800 p-1 relative overflow-hidden">
+              <div class="easing-puck w-20 h-6 rounded-lg bg-rose-500 text-white font-bold flex items-center justify-center text-[10px]" style="transition: transform 1000ms linear;">Linear</div>
+            </div>
+          </div>
+
+          <!-- Track 2: Ease Out -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-emerald-400 font-bold">2. Ease Out (ออกตัวเร็ว แล้วค่อยๆ ชะลอจอดนุ่มนวล ✅ พระเอกงานเปิดตัว Entrance)</span>
+              <span class="text-slate-400">cubic-bezier(0.16, 1, 0.3, 1)</span>
+            </div>
+            <div class="h-8 rounded-xl bg-slate-800 p-1 relative overflow-hidden">
+              <div class="easing-puck w-20 h-6 rounded-lg bg-emerald-500 text-slate-950 font-extrabold flex items-center justify-center text-[10px]" style="transition: transform 1000ms cubic-bezier(0.16, 1, 0.3, 1);">Ease Out ⭐</div>
+            </div>
+          </div>
+
+          <!-- Track 3: Ease In -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-amber-300 font-bold">3. Ease In (ออกตัวช้าๆ แล้วพุ่งตัวเร็วขึ้นช่วงท้าย ✅ ใช้เมื่อวัตถุออกจากจอ Exit)</span>
+              <span class="text-slate-400">cubic-bezier(0.7, 0, 0.84, 0)</span>
+            </div>
+            <div class="h-8 rounded-xl bg-slate-800 p-1 relative overflow-hidden">
+              <div class="easing-puck w-20 h-6 rounded-lg bg-amber-400 text-slate-950 font-bold flex items-center justify-center text-[10px]" style="transition: transform 1000ms cubic-bezier(0.7, 0, 0.84, 0);">Ease In</div>
+            </div>
+          </div>
+
+          <!-- Track 4: Ease In and Out -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-purple-300 font-bold">4. Ease In and Out (ชะลอหัว-ท้าย เร่งตรงกลาง ✅ เหมาะสำหรับ Floating Loop)</span>
+              <span class="text-slate-400">cubic-bezier(0.65, 0, 0.35, 1)</span>
+            </div>
+            <div class="h-8 rounded-xl bg-slate-800 p-1 relative overflow-hidden">
+              <div class="easing-puck w-20 h-6 rounded-lg bg-purple-500 text-white font-bold flex items-center justify-center text-[10px]" style="transition: transform 1000ms cubic-bezier(0.65, 0, 0.35, 1);">In-Out</div>
+            </div>
+          </div>
+
+          <!-- Track 5: Spring / Bouncy -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-pink-300 font-bold">5. Spring / Bouncy (พุ่งเลยจุดหมายเล็กน้อยแล้วเด้งกลับ ✅ เหมาะสำหรับปุ่มกด CTA)</span>
+              <span class="text-slate-400">cubic-bezier(0.34, 1.56, 0.64, 1)</span>
+            </div>
+            <div class="h-8 rounded-xl bg-slate-800 p-1 relative overflow-hidden">
+              <div class="easing-puck w-20 h-6 rounded-lg bg-pink-500 text-white font-bold flex items-center justify-center text-[10px]" style="transition: transform 1000ms cubic-bezier(0.34, 1.56, 0.64, 1);">Bouncy</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Easing Comparison Table -->
+        <div class="overflow-x-auto rounded-2xl border-2 border-teal-200 dark:border-teal-900/60">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-teal-700 text-white">
+                <th class="p-3.5 font-bold">ชนิดของเส้นโค้ง</th>
+                <th class="p-3.5 font-bold">พฤติกรรมการเคลื่อนที่</th>
+                <th class="p-3.5 font-bold">สถานการณ์การใช้งานที่ถูกต้องบน UI</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-teal-100 dark:divide-teal-900/40 font-body">
+              <tr>
+                <td class="p-3.5 font-mono font-bold text-rose-600">1. Linear (ความเร็วคงที่)</td>
+                <td class="p-3.5">ความเร็วคงที่ทื่อๆ ไร้มิติ เหมือนหุ่นยนต์ไร้ชีวิต</td>
+                <td class="p-3.5 text-rose-600 font-semibold">❌ ห้ามใช้กับวัตถุ UI เด็ดขาด (ยกเว้นเฉพาะการหมุนไอคอนโหลดข้อมูล Loading Spin)</td>
+              </tr>
+              <tr class="bg-emerald-50/60 dark:bg-emerald-950/30">
+                <td class="p-3.5 font-mono font-extrabold text-emerald-700 dark:text-emerald-300">2. Ease Out (เร็วแล้วค่อยชะลอ)</td>
+                <td class="p-3.5 font-semibold">ออกตัวเร็ว แล้วค่อยๆ ชะลอความเร็วตอนถึงจุดหมายอย่างนุ่มนวล</td>
+                <td class="p-3.5 font-bold text-emerald-800 dark:text-emerald-200">✅ พระเอกของงานเปิดตัว (Entrance Animation) ใช้เมื่อวัตถุวิ่งเข้ามาบนจอ เช่น ภาพสินค้า, เมนูลิ้นชัก</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-mono font-bold text-amber-600">3. Ease In (ช้าแล้วค่อยเร่ง)</td>
+                <td class="p-3.5">ออกตัวช้าๆ แล้วพุ่งตัวเร็วขึ้นในช่วงสุดท้าย</td>
+                <td class="p-3.5">✅ ใช้สำหรับวัตถุที่กำลังจะออกจากหน้าจอ (Exit) เช่น หน้าต่างแจ้งเตือนที่กดปิดแล้วเลื่อนหายไป</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-mono font-bold text-purple-600">4. Ease In and Out (ชะลอหัว-ท้าย)</td>
+                <td class="p-3.5">ค่อยๆ ออกตัว เร่งเร็วตรงกลาง แล้วค่อยๆ ชะลอหยุด</td>
+                <td class="p-3.5">✅ เหมาะสำหรับการเคลื่อนที่ไปมาระหว่างสองจุด เช่น ภาพสินค้าลอยขึ้น-ลงแบบ Floating Loop</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-mono font-bold text-pink-600">5. Spring / Bouncy (เด้งหยุ่นสมจริง)</td>
+                <td class="p-3.5">พุ่งเลยจุดหมายเล็กน้อยแล้วเด้งกลับ มีความยืดหยุ่นเหมือนสปริง</td>
+                <td class="p-3.5">✅ เหมาะสำหรับปุ่มกด (Buttons) และไอคอนสำเร็จ ทำให้รู้สึกมีชีวิตชีวา สนุกสนาน และสะดุดตา</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Golden Duration Guidelines -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-body">
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-purple-600 dark:text-purple-400">1. Button Hover / Click</div>
+            <div class="text-base font-extrabold text-slate-900 dark:text-white">150ms – 250ms</div>
+            <p class="text-slate-600 dark:text-slate-300">ไมโครแอนิเมชันปุ่มกด ต้องเร็วและตอบสนองทันใจทันทีที่เมาส์ชี้หรือคลิก</p>
+          </div>
+          <div class="p-4 rounded-2xl subtle-box border space-y-1">
+            <div class="font-mono font-bold text-teal-600 dark:text-teal-400">2. Hero Banner Entrance</div>
+            <div class="text-base font-extrabold text-slate-900 dark:text-white">400ms – 600ms</div>
+            <p class="text-slate-600 dark:text-slate-300">แอนิเมชันเปิดตัวแบนเนอร์ นุ่มนวล สบายตา และสายตาผู้ใช้อ่านตามทัน</p>
+          </div>
+          <div class="p-4 rounded-2xl border-2 border-rose-400/70 bg-rose-50/50 dark:bg-rose-950/25 space-y-1">
+            <div class="font-mono font-bold text-rose-600 dark:text-rose-400">3. ข้อห้ามเด็ดขาด ❌</div>
+            <div class="text-base font-extrabold text-rose-700 dark:text-rose-300">ห้ามเกิน 1,000ms (1 วินาที)</div>
+            <p class="text-slate-600 dark:text-slate-300">อย่าทำแอนิเมชันยาวเกิน 1 วินาทีในจุดที่ต้องคลิก เพราะผู้ใช้จะรู้สึกว่าเว็บไซต์อืดอาดและเสียเวลา</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.2 กลไกการทำงานของ Figma Smart Animate Engine (3 กฎเหล็กทางวิศวกรรม) -->
+      <div id="sec-2-2" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-purple-600 dark:text-purple-400">TOPIC 2.2 • FIGMA SMART ANIMATE INTERPOLATION ENGINE</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            2.2 กลไกการทำงานของ Figma Smart Animate Engine (3 กฎเหล็กที่ต้องจำให้ขึ้นใจ)
+          </h3>
+          <p class="text-sm font-body text-slate-600 dark:text-slate-300">
+            <strong>Smart Animate</strong> คือเทคโนโลยีของ Figma ที่คำนวณการเปลี่ยนแปลงระหว่างสองเฟรม (Interpolation: Position, Scale, Opacity, Rotation) ให้อัตโนมัติ โดยมี <strong>กฎเหล็กทางวิศวกรรม 3 ข้อ</strong> ที่หากทำผิดแม้แต่นิดเดียว แอนิเมชันจะไม่ทำงานหรือกระตุกทันที:
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="p-5 rounded-2xl border-2 border-purple-500/60 bg-purple-50/40 dark:bg-purple-950/25 space-y-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-bold">กฎข้อที่ 1 • Exact Layer Name Match</span>
+            <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">1. กฎชื่อเลเยอร์เดียวกัน 100%</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              วัตถุชิ้นเดิมที่ต้องการให้ขยับจาก Frame A ไปยัง Frame B ต้อง <strong>“ตั้งชื่อเลเยอร์ตรงกัน 100%”</strong> เช่น ใน Frame A ชื่อ <code class="font-mono font-bold">Product_Shoe</code> ใน Frame B ก็ต้องชื่อ <code class="font-mono font-bold">Product_Shoe</code> ทุกตัวอักษร (หากชื่อเพี้ยนแม้แต่วรรคเดียว Figma จะมองเป็นคนละชิ้นแล้วใช้ Fade ข้ามกันแทน)
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl border-2 border-teal-500/60 bg-teal-50/40 dark:bg-teal-950/25 space-y-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-teal-600 text-white font-mono text-xs font-bold">กฎข้อที่ 2 • Matching Layer Hierarchy</span>
+            <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">2. กฎลำดับชั้นเลเยอร์เดียวกัน</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              วัตถุต้องอยู่ภายใต้โครงสร้าง <strong>Group หรือ Frame เดียวกัน</strong> ไม่ถูกย้ายเข้าไปซ่อนในโฟลเดอร์อื่นข้ามเฟรม เพื่อให้เอนจินของ Figma จับคู่ต้นทางและปลายทางได้แม่นยำ
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl border-2 border-pink-500/60 bg-pink-50/40 dark:bg-pink-950/25 space-y-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-pink-600 text-white font-mono text-xs font-bold">กฎข้อที่ 3 • Never Delete, Hide with Opacity</span>
+            <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">3. กฎการซ่อนแบบโปร่งแสง (Opacity 0%)</h4>
+            <p class="text-xs font-body text-slate-600 dark:text-slate-300 leading-relaxed">
+              หากใน Frame 1 ยังไม่ต้องการให้ปุ่มหรือข้อความแสดง <strong>อย่ากดลบทิ้งเด็ดขาด!</strong> ให้ปรับค่า <code class="font-mono font-bold">Opacity = 0%</code> หรือเลื่อนพิกัดออกไปนอกกรอบ เพื่อให้ Smart Animate ค่อยๆ เฟดและเลื่อนวัตถุขึ้นมาใน Frame 2
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.3 คู่มือปฏิบัติการผลิต Interactive Animated Hero Banner บน Figma (ทีละขั้น) -->
+      <div id="sec-2-3" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+        <div class="space-y-1.5">
+          <span class="text-xs font-mono font-bold uppercase text-indigo-600 dark:text-indigo-400">TOPIC 2.3 • STEP-BY-STEP FIGMA PROTOTYPE &amp; AFTER DELAY WORKFLOW</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+            2.3 คู่มือปฏิบัติการผลิต Interactive Animated Hero Banner บน Figma (ทีละขั้น)
+          </h3>
+        </div>
+
+        <!-- Visual Prototype Noodle Flow Diagram -->
+        <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-4 overflow-x-auto">
+          <div class="text-xs font-mono font-bold text-amber-400">[แผนผังการเชื่อมโยง Figma Prototype ด้วยคำสั่ง After Delay + Infinite Floating Loop]</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center font-mono text-xs">
+            <div class="p-4 rounded-xl bg-slate-800 border-2 border-sky-400 space-y-1">
+              <div class="text-sky-300 font-bold">1. Hero_State_1 (จุดเริ่มต้นซ่อน)</div>
+              <div class="text-[11px] text-slate-300">• Product_Watch: Opacity 0%, Y +60px</div>
+              <div class="text-[11px] text-slate-300">• H1 &amp; CTA: Opacity 0%, X -40px</div>
+              <div class="pt-1 text-amber-300 font-bold">── After Delay 200ms ──►</div>
+              <div class="text-[10px] text-emerald-300">Smart Animate • Ease Out • 600ms</div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-800 border-2 border-purple-400 space-y-1">
+              <div class="text-purple-300 font-bold">2. Hero_State_2 (วัตถุเลื่อนเข้า)</div>
+              <div class="text-[11px] text-slate-300">• Product_Watch: พิกัดจริง, Opacity 100%</div>
+              <div class="text-[11px] text-slate-300">• H1 &amp; CTA: พิกัดจริง, Opacity 100%</div>
+              <div class="pt-1 text-amber-300 font-bold">── After Delay 600ms ──►</div>
+              <div class="text-[10px] text-emerald-300">Smart Animate • Ease In-Out • 1200ms</div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-800 border-2 border-emerald-400 space-y-1">
+              <div class="text-emerald-300 font-bold">3. Hero_State_3 (ลอย + เน้นปุ่ม)</div>
+              <div class="text-[11px] text-slate-300">• Product_Watch: เลื่อนขึ้นด้านบน 10px</div>
+              <div class="text-[11px] text-slate-300">• ปุ่ม CTA: ขยาย Scale 104%</div>
+              <div class="pt-1 text-pink-300 font-bold">◄── After Delay 1ms วนกลับ State_2</div>
+              <div class="text-[10px] text-emerald-300">Smart Animate • Ease In-Out • 1200ms</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Design Mode & Prototype Mode Steps -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs font-body">
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <h4 class="font-sans font-extrabold text-sm text-purple-700 dark:text-purple-300">🎨 ขั้นตอนการสร้างเลเยอร์ (Design Mode 3 ขั้นตอน)</h4>
+            <ol class="space-y-2 list-decimal pl-4 text-slate-700 dark:text-slate-200 leading-relaxed">
+              <li><strong>สร้างเฟรมหลัก (<code class="font-mono">Hero_State_1</code>):</strong> กด <strong>F</strong> สร้าง Frame ขนาด <code class="font-mono">1440 × 560 px</code> ใส่พื้นหลังแสงเรื่อ นำภาพสินค้าไดคัท (<code class="font-mono">Product_Watch</code>) วางฝั่งขวา แต่ปรับ <code class="font-mono font-bold">Opacity = 0%</code> และเลื่อนลงด้านล่าง <code class="font-mono">60px</code> ส่วนพาดหัว H1 และปุ่ม CTA วางฝั่งซ้าย ปรับ <code class="font-mono font-bold">Opacity = 0%</code> และเลื่อนไปทางซ้าย <code class="font-mono">40px</code></li>
+              <li><strong>โคลนเป็นเฟรมที่สอง (<code class="font-mono">Hero_State_2</code>):</strong> คลิกชื่อ <code class="font-mono">Hero_State_1</code> กด <strong>Ctrl + D</strong> โคลนออกมา ตั้งชื่อ <code class="font-mono">Hero_State_2</code> เลื่อนสินค้า ข้อความพาดหัว และปุ่มกลับมาที่พิกัดจริง และปรับค่า <code class="font-mono font-bold">Opacity = 100%</code></li>
+              <li><strong>โคลนเป็นเฟรมที่สาม (<code class="font-mono">Hero_State_3</code>):</strong> กด <strong>Ctrl + D</strong> โคลนออกมา ตั้งชื่อ <code class="font-mono">Hero_State_3</code> คลิกที่ภาพสินค้าเคาะลูกศรเลื่อนขึ้นด้านบน <code class="font-mono font-bold">10px</code> และปรับขยายขนาดปุ่มสั่งซื้อขึ้นเล็กน้อย (<code class="font-mono font-bold">Scale 104%</code>)</li>
+            </ol>
+          </div>
+
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <h4 class="font-sans font-extrabold text-sm text-teal-700 dark:text-teal-300">⚡ ขั้นตอนการผูกปฏิสัมพันธ์ (Prototype Mode 6 ขั้นตอน)</h4>
+            <ol class="space-y-1.5 list-decimal pl-4 text-slate-700 dark:text-slate-200 leading-relaxed">
+              <li>คลิกแท็บ <strong>Prototype</strong> มุมขวาบนของโปรแกรม Figma</li>
+              <li>ลากเส้นสายฟ้าจาก <code class="font-mono">Hero_State_1</code> → <code class="font-mono">Hero_State_2</code></li>
+              <li>ตั้งค่า: <strong>Trigger = <code class="font-mono">After delay (200ms)</code></strong>, <strong>Animation = <code class="font-mono">Smart Animate</code></strong>, <strong>Easing = <code class="font-mono">Ease out (600ms)</code></strong></li>
+              <li>ลากเส้นสายฟ้าจาก <code class="font-mono">Hero_State_2</code> → <code class="font-mono">Hero_State_3</code> ตั้งค่า: <strong><code class="font-mono">After delay (600ms)</code></strong>, <strong><code class="font-mono">Smart Animate</code></strong>, <strong><code class="font-mono">Ease in and out (1200ms)</code></strong></li>
+              <li>ลากเส้นสายฟ้าจาก <code class="font-mono">Hero_State_3</code> วนกลับมา <code class="font-mono">Hero_State_2</code> ตั้งค่า: <strong><code class="font-mono">After delay (1ms)</code></strong>, <strong><code class="font-mono">Smart Animate</code></strong>, <strong><code class="font-mono">Ease in and out (1200ms)</code></strong> เพื่อสร้างลูปอนันต์ (Infinite Floating Loop)</li>
+              <li>กดปุ่ม <strong>Play (▶)</strong> มุมขวาบน หรือคีย์ลัด <strong><code class="font-mono">Shift + Spacebar</code></strong> เพื่อทดสอบผลงานทันที</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.4 การคำนึงถึงความปลอดภัยและการเข้าถึง (Reduced Motion Accessibility) -->
+      <div id="sec-2-4" class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-lg space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="space-y-1">
+            <span class="text-xs font-mono font-bold uppercase text-amber-600 dark:text-amber-400">TOPIC 2.4 • REDUCED MOTION &amp; WEB ACCESSIBILITY (WCAG 2.3.3)</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              2.4 การคำนึงถึงความปลอดภัยและการเข้าถึง (Reduced Motion Accessibility)
+            </h3>
+          </div>
+
+          <button type="button" id="btn-toggle-reduced-motion" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-mono text-xs font-extrabold shadow hover:bg-amber-400 transition">
+            🛡️ ทดลองเปิดโหมด Reduced Motion (Static Fallback)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-body">
+          <div class="p-4 rounded-2xl subtle-box border space-y-1.5">
+            <div class="font-mono font-bold text-purple-600 dark:text-purple-400">1. Vestibular Disorders</div>
+            <div class="font-bold text-slate-900 dark:text-white">โรคความผิดปกติของระบบการทรงตัว</div>
+            <p class="text-slate-600 dark:text-slate-300">ผู้ใช้บางกลุ่มจะเกิดอาการคลื่นไส้ เวียนศีรษะ หรือบ้านหมุนทันทีเมื่อเห็นวัตถุขนาดใหญ่บนหน้าจอกระตุก หมุนควง หรือเคลื่อนที่เร็วเกินไป</p>
+          </div>
+
+          <div class="p-4 rounded-2xl border-2 border-rose-400/70 bg-rose-50/40 dark:bg-rose-950/25 space-y-1.5">
+            <div class="font-mono font-bold text-rose-600 dark:text-rose-400">2. Photosensitive Seizures ❌</div>
+            <div class="font-bold text-slate-900 dark:text-white">โรคลมชักจากแสงกระพริบ (WCAG 2.3)</div>
+            <p class="text-slate-600 dark:text-slate-300"><strong>ห้ามเด็ดขาด</strong> ไม่ให้ทำแบนเนอร์ที่มีไฟกระพริบหรือสลับสีถี่เกินกว่า <strong>3 ครั้งต่อ 1 วินาที</strong> ตามเกณฑ์มาตรฐานสากล W3C WCAG Guideline 2.3</p>
+          </div>
+
+          <div class="p-4 rounded-2xl subtle-box border space-y-1.5">
+            <div class="font-mono font-bold text-emerald-600 dark:text-emerald-400">3. Prefers-Reduced-Motion</div>
+            <div class="font-bold text-slate-900 dark:text-white">การรองรับโหมดลดการเคลื่อนไหว</div>
+            <p class="text-slate-600 dark:text-slate-300">เบราว์เซอร์ยุคใหม่มีฟังก์ชันให้ผู้ใช้ตั้งค่า “ลดการเคลื่อนไหว” ในระบบปฏิบัติการ เว็บไซต์ที่ดีควรเตรียมเวอร์ชันภาพนิ่ง (Static Fallback) รองรับเสมอ</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ตอนที่ 3: ใบงานปฏิบัติการประจำหน่วยที่ 4 & แบบตรวจสอบตนเองก่อนส่งงาน  -->
+    <!-- =================================================================== -->
+    <section id="sec-workshops" class="scroll-mt-24 space-y-10">
+      <div class="border-l-4 border-amber-500 pl-4 sm:pl-6 space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-xs font-mono font-bold">
+          PART 03 • WORKSHOPS 4.1–4.2 &amp; STUDENT SELF-CHECKLIST
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+          ตอนที่ 3: ใบงานปฏิบัติการประจำหน่วยที่ 4 &amp; แบบตรวจสอบตนเองก่อนส่งงาน
+        </h2>
+        <p class="text-sm font-body text-slate-600 dark:text-slate-300 max-w-3xl">
+          สรุปภารกิจการส่งงานและคะแนนเก็บประจำหน่วยที่ 4 (รวม 10 คะแนน แบ่งเป็น 2 ชิ้นงาน ชิ้นละ 5 คะแนน) พร้อมรายการตรวจสอบความสมบูรณ์ด้วยตนเองก่อนส่งลิงก์ไฟล์ Figma
+        </p>
+      </div>
+
+      <!-- 2 Workshops Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Workshop 4.1 -->
+        <div class="surface-card border-2 border-pink-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-pink-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 4.1</span>
+              <span class="font-mono text-xs font-extrabold text-pink-600 dark:text-pink-400">5 คะแนน</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+              การออกแบบ Storyboard แบนเนอร์โฆษณา
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-2 list-decimal pl-4 leading-relaxed">
+              <li>นำข้อมูลธุรกิจและสินค้าไดคัทจากหน่วยที่ 3 มาวางแนวคิดการโฆษณาบนแบนเนอร์หลักหน้าแรก (<strong>Hero Banner</strong>)</li>
+              <li>สร้างแผ่นนำเสนอ <strong>Storyboard Sheet</strong> บนโปรแกรม Figma ประกอบด้วยเฟรมสัดส่วน 16:9 จำนวน <strong>4 คีย์เฟรม</strong> (<code class="font-mono">Frame 01: Initial</code>, <code class="font-mono">Frame 02: Reveal</code>, <code class="font-mono">Frame 03: Content Entrance</code>, <code class="font-mono">Frame 04: Idle Loop</code>)</li>
+              <li>ใต้แต่ละคีย์เฟรม ต้องมีตารางกำกับข้อมูลเชิงวิศวกรรมชัดเจน: ระบุชื่อวัตถุที่ขยับ, พิกัดตำแหน่ง, ค่า Opacity, ช่วงเวลาไทม์โค้ด (วินาที), และชนิดเส้นโค้ง Easing ที่วางแผนไว้</li>
+              <li>คุมโทนสีและตัวอักษรให้สอดคล้องกับ Style Guide ของร้านค้า</li>
+            </ol>
+          </div>
+          <div class="p-3 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-pink-700 dark:text-pink-300">
+            ชิ้นงานที่ 7: Storyboard แอนิเมชัน Hero Banner 1 แผ่น
+          </div>
+        </div>
+
+        <!-- Workshop 4.2 -->
+        <div class="surface-card border-2 border-teal-500/60 rounded-3xl p-6 shadow-lg flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-teal-600 text-white font-mono text-xs font-bold">📋 ใบงานที่ 4.2</span>
+              <span class="font-mono text-xs font-extrabold text-teal-600 dark:text-teal-400">5 คะแนน</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+              การสร้างแบนเนอร์ภาพเคลื่อนไหวเชิงโต้ตอบ (Smart Animate)
+            </h3>
+            <ol class="text-xs font-body text-slate-600 dark:text-slate-300 space-y-2 list-decimal pl-4 leading-relaxed">
+              <li>พัฒนาแบนเนอร์ Hero Banner ขนาด Desktop กว้าง <strong>1440px สูง 540–600px</strong> ตามที่ร่างไว้ใน Storyboard</li>
+              <li>กำหนดชื่อเลเยอร์ (Layer Name) ในทุกเฟรมให้ตรงกัน 100% ตามกฎของ Smart Animate</li>
+              <li>ทำการผูกปฏิสัมพันธ์ในโหมด <strong>Figma Prototype</strong> โดยใช้คำสั่ง <strong>After Delay</strong> ร่วมกับ <strong>Smart Animate</strong> ให้วัตถุสินค้า ข้อความพาดหัว และปุ่ม CTA ปรากฏตัวขึ้นมาอย่างนุ่มนวล</li>
+              <li>สินค้าต้องมีการวนลูปการเคลื่อนไหวแบบแผ่วเบา (<strong>Floating Loop</strong>) ต่อเนื่องอย่างเป็นธรรมชาติ ไม่กระตุก</li>
+              <li>ทดสอบเปิดเล่นบนโหมด Presentation Preview และแชร์ลิงก์ Figma ที่เปิดสิทธิ์ Can View ส่งตรวจ</li>
+            </ol>
+          </div>
+          <div class="p-3 rounded-xl subtle-box border font-mono text-[11px] font-bold text-center text-teal-700 dark:text-teal-300">
+            ชิ้นงานที่ 8: Interactive Hero Banner บน Figma
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Student Self-Checklist (8 Items) -->
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">PRE-SUBMISSION ANIMATION AUDIT</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              ✅ แบบตรวจสอบตนเองก่อนส่งงาน (Student Self-Checklist)
+            </h3>
+            <p class="text-xs sm:text-sm font-body text-slate-600 dark:text-slate-300">
+              คลิกติ๊กถูกเพื่อตรวจสอบความสมบูรณ์ของ Storyboard และแอนิเมชันก่อนส่งลิงก์ตรวจงาน:
+            </p>
+          </div>
+          <div class="text-right">
+            <div id="u4-chk-label" class="font-mono text-sm font-extrabold text-emerald-600 dark:text-emerald-400">0 / 8 รายการ (0%)</div>
+            <div class="w-44 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden mt-1">
+              <div id="u4-chk-bar" style="width: 0%;" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs font-body">
+          <!-- Group 1: Storyboard Sheet -->
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <div class="font-sans font-extrabold text-sm text-pink-700 dark:text-pink-300">
+              1. การตรวจสอบ Storyboard Sheet (4 คีย์เฟรม)
+            </div>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u4-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>มีเฟรมภาพครบถ้วนทั้ง 4 คีย์เฟรม เรียงลำดับเวลาอย่างถูกต้อง</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u4-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>มีตารางระบุเวลา Timecode (วินาที) และการเปลี่ยนแปลงของคุณสมบัติวัตถุครบทุกเฟรม</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u4-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ลำดับการเคลื่อนไหวเป็นไปตามกฎ 3 วินาทีทองคำ (ไม่ยืดเยื้อ ไม่สับสน)</span>
+            </label>
+          </div>
+
+          <!-- Group 2: Interactive Hero Banner -->
+          <div class="p-5 rounded-2xl subtle-box border space-y-3">
+            <div class="font-sans font-extrabold text-sm text-teal-700 dark:text-teal-300">
+              2. การตรวจสอบ Interactive Hero Banner (Smart Animate)
+            </div>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u4-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ชื่อเลเยอร์ของวัตถุที่เคลื่อนไหวในทุกเฟรมตรงกันสะกดเหมือนกัน 100%</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u4-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>ไม่มีการลบวัตถุทิ้งในเฟรมแรก แต่ใช้การปรับ <code class="font-mono font-bold">Opacity 0%</code> หรือขยับพิกัดออกไปนอกกรอบแทน</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u4-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>เส้นโค้งการเร่งความเร็วเลือกใช้ <code class="font-mono font-bold">Ease-out</code> สำหรับการเปิดตัว และ <code class="font-mono font-bold">Ease-in-out</code> สำหรับการวนลูป (ห้ามใช้ Linear)</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u4-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>แอนิเมชันเปิดตัวทั้งหมดเล่นเสร็จสิ้นภายในเวลาไม่เกิน 2–3 วินาที</span>
+            </label>
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" class="u4-chk mt-0.5 w-4 h-4 accent-emerald-600">
+              <span>เมื่อกดเปิดโหมด Prototype Preview แล้ว ภาพเคลื่อนไหวเล่นได้เองโดยอัตโนมัติอย่างราบรื่น ไม่พบจุดกระตุกหรือแตกของภาพ</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- INTERACTIVE FIGMA SMART ANIMATE PROTOTYPE STUDIO                    -->
+    <!-- =================================================================== -->
+    <section id="sec-simulator" class="scroll-mt-24 space-y-6">
+      <div class="surface-card border-2 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-mono text-xs font-bold">
+              ⚡ FIGMA SMART ANIMATE PROTOTYPE STUDIO (SHIFT + SPACEBAR PREVIEW)
+            </span>
+            <h2 class="text-xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
+              สตูดิโอจำลองการเล่นแอนิเมชัน Hero_State_1 → Hero_State_2 ⇄ Hero_State_3
+            </h2>
+            <p class="text-xs sm:text-sm font-body text-slate-600 dark:text-slate-300">
+              ทดลองคลิกสลับเฟรมด้วยตนเอง หรือกดปุ่ม <strong>“▶ Play After Delay Sequence”</strong> เพื่อดูลำดับแอนิเมชันเปิดตัวและลูปลอยตัวอัตโนมัติ
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-hstate="1" class="hstate-btn px-3.5 py-2 rounded-xl subtle-box border font-mono text-xs font-bold transition">
+              State 1 (Init 0%)
+            </button>
+            <button type="button" data-hstate="2" class="hstate-btn px-3.5 py-2 rounded-xl subtle-box border font-mono text-xs font-bold transition">
+              State 2 (Reveal 100%)
+            </button>
+            <button type="button" data-hstate="3" class="hstate-btn px-3.5 py-2 rounded-xl bg-purple-600 text-white font-mono text-xs font-bold shadow transition">
+              State 3 (Idle Loop)
+            </button>
+            <button type="button" id="btn-play-proto" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-bold shadow transition">
+              ▶ Play After Delay Sequence
+            </button>
+          </div>
+        </div>
+
+        <!-- Animated Hero Banner Preview Stage -->
+        <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-purple-950 to-indigo-950 text-white p-6 sm:p-10 border-2 border-purple-500/50 overflow-hidden relative min-h-[300px] flex items-center">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center w-full relative z-10">
+            <!-- Left Text & CTA (Animated) -->
+            <div id="sim-hero-text" class="md:col-span-7 space-y-4 text-left transition-all duration-700" style="transform: translateX(0px); opacity: 1;">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 font-mono text-xs text-teal-300">
+                <span>⌚ SMART WATCH SERIES X</span>
+                <span id="sim-state-indicator" class="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-bold">Hero_State_3 (Loop)</span>
+              </div>
+              <h3 class="text-2xl sm:text-4xl font-extrabold leading-tight">
+                นวัตกรรมนาฬิกาอัจฉริยะ ดีไซน์หรูหราพร้อมแบตเตอรี่ 14 วัน
+              </h3>
+              <p class="text-xs sm:text-sm font-body text-purple-200">
+                ทดลองสังเกตการเลื่อนเข้าด้วยเส้นโค้ง <code class="font-mono text-amber-300">Ease Out (600ms)</code> และการขยายปุ่ม CTA <code class="font-mono text-amber-300">Scale 104%</code>
+              </p>
+              <div class="pt-1">
+                <button id="sim-hero-cta" type="button" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-pink-500 text-slate-950 font-extrabold text-xs sm:text-sm shadow-xl transition-all duration-500" style="transform: scale(1.04);">
+                  🛒 สั่งซื้อตอนนี้ รับส่วนลด 20%
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Product Watch (Animated) -->
+            <div class="md:col-span-5 flex flex-col items-center justify-center">
+              <div id="sim-hero-product" class="w-44 h-44 rounded-3xl bg-white/10 border border-white/20 backdrop-blur-md flex flex-col items-center justify-center shadow-2xl transition-all duration-700 anim-float-loop" style="transform: translateY(0px); opacity: 1;">
+                <span class="text-6xl">⌚</span>
+                <span class="font-mono text-xs font-bold text-teal-300 mt-2">Product_Watch</span>
+              </div>
+              <div class="w-28 h-2.5 rounded-full bg-black/80 blur-[2px] mt-2"></div>
+              <div class="w-40 h-5 rounded-full bg-black/35 blur-[8px] -mt-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with Standard Comfortable Margins -->
+  <footer class="border-t border-purple-200/60 dark:border-purple-900/40 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+    <div class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>รายวิชา <strong>31910-2026 โปรแกรมกราฟิกสำหรับการออกแบบเว็บไซต์</strong> • บทที่ 4 ภาพเคลื่อนไหวและแบนเนอร์โฆษณาสำหรับเว็บไซต์</div>
+      <div class="font-mono">แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล วิทยาลัยการอาชีพบ้านโป่ง</div>
+    </div>
+  </footer>
+
+  <!-- Interactive JavaScript -->
+  <script>
+    (function () {
+      // 1. Theme Switcher (Light / Dark / Accent)
+      const htmlEl = document.documentElement;
+      const btnLight = document.getElementById('btn-theme-light');
+      const btnDark = document.getElementById('btn-theme-dark');
+      const btnAccent = document.getElementById('btn-theme-accent');
+
+      function setTheme(mode) {
+        htmlEl.classList.remove('dark', 'theme-accent');
+        [btnLight, btnDark, btnAccent].forEach(b => {
+          b.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/50 transition';
+        });
+        if (mode === 'dark') {
+          htmlEl.classList.add('dark');
+          btnDark.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-purple-600 text-white shadow-sm transition';
+        } else if (mode === 'accent') {
+          htmlEl.classList.add('theme-accent');
+          btnAccent.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-pink-600 text-white shadow-sm transition';
+        } else {
+          btnLight.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white text-purple-700 shadow-sm transition';
+        }
+      }
+      btnLight.addEventListener('click', () => setTheme('light'));
+      btnDark.addEventListener('click', () => setTheme('dark'));
+      btnAccent.addEventListener('click', () => setTheme('accent'));
+
+      // 2. Topic 1.1 4-Layer Hero Banner Filter
+      const l1 = document.getElementById('hl-layer-1');
+      const l2 = document.getElementById('hl-layer-2');
+      const l3 = document.getElementById('hl-layer-3');
+      const l4 = document.getElementById('hl-layer-4');
+      document.querySelectorAll('.layer-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-layer');
+          document.querySelectorAll('.layer-filter-btn').forEach(b => {
+            b.className = 'layer-filter-btn px-3 py-1.5 rounded-xl subtle-box border font-mono text-xs font-bold transition';
+          });
+          btn.className = 'layer-filter-btn px-3 py-1.5 rounded-xl bg-pink-600 text-white font-mono text-xs font-bold shadow-sm transition';
+
+          [l1, l2, l3, l4].forEach((el, idx) => {
+            if (!el) return;
+            const num = String(idx + 1);
+            if (target === 'all' || target === num) {
+              el.style.opacity = '1';
+              el.style.transform = target === num ? 'scale(1.02)' : 'scale(1)';
+            } else {
+              el.style.opacity = '0.2';
+              el.style.transform = 'scale(0.98)';
+            }
+          });
+        });
+      });
+
+      // 3. Topic 1.2 Staggered 3-Second Timeline Player
+      const btnPlayStagger = document.getElementById('btn-play-stagger');
+      if (btnPlayStagger) {
+        btnPlayStagger.addEventListener('click', () => {
+          const cards = [0, 1, 2, 3, 4].map(i => document.getElementById('tl-card-' + i));
+          cards.forEach(c => {
+            if (c) c.className = 'p-4 rounded-2xl subtle-box border space-y-1.5 opacity-40 transition-all';
+          });
+          const delays = [0, 350, 700, 1100, 1600];
+          delays.forEach((ms, idx) => {
+            setTimeout(() => {
+              if (cards[idx]) {
+                cards[idx].className = 'p-4 rounded-2xl border-2 border-teal-500 bg-teal-50/70 dark:bg-teal-950/40 shadow-md space-y-1.5 scale-[1.02] transition-all';
+              }
+            }, ms);
+          });
+        });
+      }
+
+      // 4. Topic 2.1 Easing Curves Race Track
+      const btnRace = document.getElementById('btn-race-easing');
+      let raceAtEnd = false;
+      if (btnRace) {
+        btnRace.addEventListener('click', () => {
+          raceAtEnd = !raceAtEnd;
+          document.querySelectorAll('.easing-puck').forEach(puck => {
+            const trackWidth = puck.parentElement.clientWidth - puck.clientWidth - 12;
+            puck.style.transform = raceAtEnd ? ('translateX(' + Math.max(120, trackWidth) + 'px)') : 'translateX(0px)';
+          });
+          btnRace.textContent = raceAtEnd ? '🔄 กดวิ่งกลับจุดเริ่มต้น' : '🏁 กดปล่อยตัวทดสอบความเร่งทั้ง 5 เส้นโค้งพร้อมกัน!';
+        });
+      }
+
+      // 5. Topic 2.4 Reduced Motion Accessibility Toggle
+      const btnReduced = document.getElementById('btn-toggle-reduced-motion');
+      let isReducedMotion = false;
+      if (btnReduced) {
+        btnReduced.addEventListener('click', () => {
+          isReducedMotion = !isReducedMotion;
+          if (isReducedMotion) {
+            document.body.classList.add('reduced-motion-active');
+            btnReduced.textContent = '✅ เปิดโหมด Reduced Motion อยู่ (คลิกเพื่อคืนค่าปกติ)';
+            btnReduced.className = 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-mono text-xs font-extrabold shadow transition';
+          } else {
+            document.body.classList.remove('reduced-motion-active');
+            btnReduced.textContent = '🛡️ ทดลองเปิดโหมด Reduced Motion (Static Fallback)';
+            btnReduced.className = 'px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-mono text-xs font-extrabold shadow hover:bg-amber-400 transition';
+          }
+        });
+      }
+
+      // 6. Student Self-Checklist Progress Bar
+      const chks = document.querySelectorAll('.u4-chk');
+      const chkLabel = document.getElementById('u4-chk-label');
+      const chkBar = document.getElementById('u4-chk-bar');
+      function updateU4Checklist() {
+        const total = chks.length;
+        let done = 0;
+        chks.forEach(c => { if (c.checked) done++; });
+        const pct = Math.round((done / total) * 100);
+        if (chkLabel) chkLabel.textContent = done + ' / ' + total + ' รายการ (' + pct + '%)';
+        if (chkBar) chkBar.style.width = pct + '%';
+      }
+      chks.forEach(c => c.addEventListener('change', updateU4Checklist));
+
+      // 7. Interactive Smart Animate Studio (Hero_State_1 -> Hero_State_2 -> Hero_State_3)
+      const simText = document.getElementById('sim-hero-text');
+      const simProduct = document.getElementById('sim-hero-product');
+      const simCta = document.getElementById('sim-hero-cta');
+      const simInd = document.getElementById('sim-state-indicator');
+      const btnPlayProto = document.getElementById('btn-play-proto');
+
+      function applyHeroState(stateNum) {
+        document.querySelectorAll('.hstate-btn').forEach(b => {
+          if (b.getAttribute('data-hstate') === String(stateNum)) {
+            b.className = 'hstate-btn px-3.5 py-2 rounded-xl bg-purple-600 text-white font-mono text-xs font-bold shadow transition';
+          } else {
+            b.className = 'hstate-btn px-3.5 py-2 rounded-xl subtle-box border font-mono text-xs font-bold transition';
+          }
+        });
+
+        if (stateNum === 1) {
+          simProduct.classList.remove('anim-float-loop');
+          simText.style.opacity = '0';
+          simText.style.transform = 'translateX(-40px)';
+          simProduct.style.opacity = '0';
+          simProduct.style.transform = 'translateY(60px)';
+          simCta.style.transform = 'scale(0.95)';
+          simInd.textContent = 'Hero_State_1 (Init 0%)';
+        } else if (stateNum === 2) {
+          simProduct.classList.remove('anim-float-loop');
+          simText.style.opacity = '1';
+          simText.style.transform = 'translateX(0px)';
+          simProduct.style.opacity = '1';
+          simProduct.style.transform = 'translateY(0px)';
+          simCta.style.transform = 'scale(1)';
+          simInd.textContent = 'Hero_State_2 (Reveal 100%)';
+        } else {
+          simText.style.opacity = '1';
+          simText.style.transform = 'translateX(0px)';
+          simProduct.style.opacity = '1';
+          simProduct.style.transform = 'translateY(-10px)';
+          simProduct.classList.add('anim-float-loop');
+          simCta.style.transform = 'scale(1.04)';
+          simInd.textContent = 'Hero_State_3 (Infinite Loop)';
+        }
+      }
+
+      document.querySelectorAll('.hstate-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          applyHeroState(parseInt(btn.getAttribute('data-hstate'), 10));
+        });
+      });
+
+      if (btnPlayProto) {
+        btnPlayProto.addEventListener('click', () => {
+          applyHeroState(1);
+          setTimeout(() => applyHeroState(2), 300);
+          setTimeout(() => applyHeroState(3), 1050);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
