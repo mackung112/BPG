@@ -210,7 +210,7 @@ export const deleteSuspendedResult = async (sessionId, studentId, attemptNumber)
 export const getStudentResults = async (sessionId, studentId) => {
   const { data, error } = await supabase
     .from('exam_results')
-    .select('*, exam_sessions(title, total_score, question_count, exam_mode, max_attempts, retake_until_pass, passing_percentage, solutions_released, shuffle_questions, shuffle_choices)')
+    .select('*, exam_sessions(title, total_score, question_count, exam_mode, max_attempts, retake_until_pass, passing_percentage, solutions_released)')
     .eq('session_id', sessionId)
     .eq('student_id', studentId)
     .order('submitted_at', { ascending: true });
