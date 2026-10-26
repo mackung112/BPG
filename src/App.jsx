@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Menu, CheckCircle, BookOpen, GraduationCap, Code2, Zap, ArrowRight, X } from 'lucide-react';
-import coursesData from './data';
+import coursesData, { CURRENT_SEMESTER_COURSE_IDS } from './data';
 import { AuthProvider } from './contexts/AuthContext';
 import LoadingFallback, { PageLoadingFallback } from './components/LoadingFallback';
 
@@ -184,6 +184,7 @@ function PageLayout({ children, activePage }) {
 
 function HomeView() {
   const navigate = useNavigate();
+  const [filterCurrentSemester, setFilterCurrentSemester] = useState(true);
 
   const categories = [
     { key: '2', label: 'ปวช.', fullLabel: 'ประกาศนียบัตรวิชาชีพ', accent: 'indigo', gradient: 'from-indigo-600 to-purple-600' },
@@ -253,9 +254,51 @@ function HomeView() {
       </section>
 
       {/* 3️⃣ Layer 3: Courses by Category */}
-      <main id="courses" className="max-w-[1440px] mx-auto px-6 lg:px-12 pb-24 relative z-10 scroll-mt-20 space-y-16">
+      <main id="courses" className="max-w-[1440px] mx-auto px-6 lg:px-12 pb-24 relative z-10 scroll-mt-20 space-y-12">
+        {/* Semester Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-200/80">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-sm font-bold text-zinc-800">
+              ภาคเรียนที่ 2/2569
+            </span>
+            {filterCurrentSemester && (
+              <span className="text-xs bg-indigo-50 text-indigo-700 font-semibold px-2.5 py-0.5 rounded-full border border-indigo-100/80">
+                ซ่อนวิชาที่ไม่ได้สอนเทอมนี้
+              </span>
+            )}
+          </div>
+          <div className="flex items-center bg-zinc-100/80 p-1 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setFilterCurrentSemester(true)}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                filterCurrentSemester
+                  ? 'bg-white text-indigo-700 shadow-sm font-bold'
+                  : 'text-zinc-600 hover:text-zinc-900'
+              }`}
+            >
+              เฉพาะเทอมนี้ (2/2569)
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterCurrentSemester(false)}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                !filterCurrentSemester
+                  ? 'bg-white text-indigo-700 shadow-sm font-bold'
+                  : 'text-zinc-600 hover:text-zinc-900'
+              }`}
+            >
+              วิชาทั้งหมด ({coursesData.length})
+            </button>
+          </div>
+        </div>
+
         {categories.map(cat => {
-          const catCourses = coursesData.filter(c => c.id.charAt(0) === cat.key);
+          const visibleCourses = filterCurrentSemester
+            ? coursesData.filter(c => CURRENT_SEMESTER_COURSE_IDS.includes(c.id))
+            : coursesData;
+          const catCourses = visibleCourses.filter(c => c.id.charAt(0) === cat.key);
           if (catCourses.length === 0) return null;
 
           return (
