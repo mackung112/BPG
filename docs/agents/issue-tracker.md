@@ -28,3 +28,10 @@ Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
 - **Frontier**: scan `.scratch/<effort>/issues/` for files that are open, unblocked, and unclaimed; first by number wins.
 - **Claim**: set `Status: claimed` and save before any work.
 - **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then append a context pointer (gist + link) to the map's Decisions-so-far in `map.md`.
+
+## Automatic Teardown & Cleanup on Completion
+- Markdown issues and specs in `.scratch/` exist strictly for task execution and local tracking.
+- Once the feature is verified, all tests pass, and the task is delivered:
+  - **The entire `.scratch/<feature-slug>/` directory MUST be deleted immediately.**
+  - **Do not commit or preserve completed `.scratch/` directories.**
+  - This guarantees zero context pollution for subsequent agent sessions.
