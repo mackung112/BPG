@@ -15,7 +15,15 @@ const CHAPTER_FILES = [
   '7_31910_0002.html'
 ];
 
-const BASELINE_PATH = path.resolve('.scratch/course-31910-0002-web-integration/content-baselines.json');
+const CHAPTER_BASELINES = {
+  '1_31910_0002.html': 154800,
+  '2_31910_0002.html': 184892,
+  '3_space_31910_0002.html': 199386,
+  '4_focal_point_emphasis_31910_0002.html': 208575,
+  '5_placement_grouping_31910_0002.html': 217678,
+  '6_31910_0002.html': 228062,
+  '7_31910_0002.html': 216157
+};
 
 describe('Ticket 01: E2E Navigation & Bidirectional Chaining Test Suite (Course 31910-0002)', () => {
 
@@ -104,16 +112,13 @@ describe('Ticket 01: E2E Navigation & Bidirectional Chaining Test Suite (Course 
   });
 
   it('Content Non-Regression: Character counts must not decrease (Zero Content Lost)', () => {
-    if (fs.existsSync(BASELINE_PATH)) {
-      const baselines = JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8'));
-      for (const file of CHAPTER_FILES) {
-        const content = fs.readFileSync(path.join(COURSE_DIR, file), 'utf8');
-        const baseline = baselines[file];
-        assert.ok(
-          content.length >= baseline,
-          `${file} content was reduced! Current: ${content.length}, Baseline: ${baseline}`
-        );
-      }
+    for (const file of CHAPTER_FILES) {
+      const content = fs.readFileSync(path.join(COURSE_DIR, file), 'utf8');
+      const baseline = CHAPTER_BASELINES[file];
+      assert.ok(
+        content.length >= baseline,
+        `${file} content was reduced! Current: ${content.length}, Baseline: ${baseline}`
+      );
     }
   });
 
