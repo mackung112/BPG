@@ -18,7 +18,18 @@ export const examAdminService = {
   },
 
   async createExamSession(sessionData, questionsData) {
-    const { data, error } = await supabase.from('exam_sessions').insert([sessionData]).select().single();
+    let payload = { ...sessionData };
+    let { data, error } = await supabase.from('exam_sessions').insert([payload]).select().single();
+    
+    // Auto-fallback if database schema does not have shuffle_questions or shuffle_choices columns
+    if (error && (error.message?.includes('shuffle_') || error.details?.includes('shuffle_'))) {
+      delete payload.shuffle_questions;
+      delete payload.shuffle_choices;
+      const retryResult = await supabase.from('exam_sessions').insert([payload]).select().single();
+      data = retryResult.data;
+      error = retryResult.error;
+    }
+
     if (error) throw error;
 
     const toInsert = questionsData.map((q, idx) => ({
@@ -35,12 +46,28 @@ export const examAdminService = {
   },
 
   async updateExamSession(id, updates) {
-    const { data, error } = await supabase
+    let payload = { ...updates };
+    let { data, error } = await supabase
       .from('exam_sessions')
-      .update(updates)
+      .update(payload)
       .eq('id', id)
       .select()
       .single();
+
+    // Auto-fallback if database schema does not have shuffle_questions or shuffle_choices columns
+    if (error && (error.message?.includes('shuffle_') || error.details?.includes('shuffle_'))) {
+      delete payload.shuffle_questions;
+      delete payload.shuffle_choices;
+      const retryResult = await supabase
+        .from('exam_sessions')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single();
+      data = retryResult.data;
+      error = retryResult.error;
+    }
+
     if (error) throw error;
     return data;
   },
