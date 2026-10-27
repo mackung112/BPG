@@ -25,7 +25,8 @@ import {
   RotateCcw,
   MessageSquare,
   CheckCircle,
-  Send
+  Send,
+  Search
 } from 'lucide-react';
 import QuestionPicker from './QuestionPicker';
 import { useExamControl } from '../../hooks/admin/useExamControl';
@@ -45,6 +46,7 @@ export default function ExamControl() {
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcasting, setBroadcasting] = useState(false);
+  const [sessionSearchQuery, setSessionSearchQuery] = useState('');
 
   // Live Timer & Quick Time Edit State
   const [activeTimeRemaining, setActiveTimeRemaining] = useState(null);
@@ -210,7 +212,7 @@ export default function ExamControl() {
     
     try {
       const sessionPayload = {
-        bank_id: banks.length > 0 ? banks[0].id : null,
+        bank_id: examConfig.primaryBankId || (banks.length > 0 ? banks[0].id : null),
         created_by: user?.id,
         teacher_id: user?.id,
         title: sessionTitle.trim(),
@@ -667,9 +669,32 @@ export default function ExamControl() {
 
           {/* Session List Card */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-200/80">
-            <h2 className="text-base font-bold text-zinc-900 mb-3">รายการห้องสอบ</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-zinc-900">รายการห้องสอบ ({sessions.length})</h2>
+            </div>
+
+            {sessions.length > 3 && (
+              <div className="mb-3 relative">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-zinc-400" />
+                <input
+                  type="text"
+                  placeholder="ค้นหาชื่อการสอบ / รหัสห้อง..."
+                  value={sessionSearchQuery}
+                  onChange={e => setSessionSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-xs border border-zinc-200 rounded-xl focus:border-indigo-500 outline-none"
+                />
+              </div>
+            )}
+
             <div className="space-y-2 max-h-[380px] overflow-x-auto overflow-y-auto pr-1">
-              {sessions.map(s => (
+              {sessions
+                .filter(s => {
+                  if (!sessionSearchQuery.trim()) return true;
+                  const q = sessionSearchQuery.trim().toLowerCase();
+                  return (s.title && s.title.toLowerCase().includes(q)) || 
+                         (s.secret_code && s.secret_code.toLowerCase().includes(q));
+                })
+                .map(s => (
                 <div 
                   key={s.id} 
                   onClick={() => setActiveSession(s)}
@@ -723,6 +748,12 @@ export default function ExamControl() {
 
               {sessions.length === 0 && !loading && (
                 <div className="p-6 text-center text-xs text-zinc-400">ยังไม่มีห้องสอบ</div>
+              )}
+              {sessions.length > 0 && sessionSearchQuery && sessions.filter(s => {
+                const q = sessionSearchQuery.trim().toLowerCase();
+                return (s.title && s.title.toLowerCase().includes(q)) || (s.secret_code && s.secret_code.toLowerCase().includes(q));
+              }).length === 0 && (
+                <div className="p-6 text-center text-xs text-zinc-400">ไม่พบห้องสอบที่ค้นหา</div>
               )}
             </div>
           </div>
@@ -1526,6 +1557,9 @@ export default function ExamControl() {
           onClose={() => setIsPickerOpen(false)} 
           onSave={(config) => {
             setExamConfig(config);
+            if ((!sessionTitle || !sessionTitle.trim()) && config.suggestedTitle) {
+              setSessionTitle(config.suggestedTitle);
+            }
             setIsPickerOpen(false);
           }} 
         />

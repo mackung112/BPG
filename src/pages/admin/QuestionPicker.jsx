@@ -471,11 +471,52 @@ export default function QuestionPicker({ onClose, onSave, banks = [], initialCon
 
     const calculatedTotalScore = Number(totalScore.toFixed(2));
 
+    let primaryBankId = null;
+    let suggestedTitle = '';
+    const usedBankIds = new Set();
+    
+    if (activeTab === 'random') {
+      banks.forEach(b => {
+        if (randomConfigs[b.id]?.count > 0) {
+          usedBankIds.add(b.id);
+          if (!primaryBankId) primaryBankId = b.id;
+        }
+      });
+    } else {
+      finalQuestions.forEach(q => {
+        for (const [bId, qList] of Object.entries(questionsByBank)) {
+          if (qList.some(item => item.id === q.id)) {
+            usedBankIds.add(bId);
+            if (!primaryBankId) primaryBankId = bId;
+            break;
+          }
+        }
+      });
+    }
+
+    if (usedBankIds.size === 1) {
+      const singleBank = banks.find(b => b.id === primaryBankId);
+      if (singleBank) {
+        suggestedTitle = singleBank.title || singleBank.parsedExamTitle || '';
+      }
+    } else if (usedBankIds.size > 1) {
+      const selectedBankObjects = banks.filter(b => usedBankIds.has(b.id));
+      const codes = new Set(selectedBankObjects.map(b => parseBankTitle(b.title).subjectCode).filter(Boolean));
+      if (codes.size === 1) {
+        const code = Array.from(codes)[0];
+        suggestedTitle = `${code} แบบทดสอบ (${targetQuestionCount} ข้อ)`;
+      } else {
+        suggestedTitle = `แบบทดสอบรวม (${targetQuestionCount} ข้อ)`;
+      }
+    }
+
     onSave({
       questions: finalQuestions,
       questionCount: targetQuestionCount,
       totalScore: calculatedTotalScore,
       mode: activeTab,
+      primaryBankId,
+      suggestedTitle,
       summaryText: activeTab === 'random' 
         ? `สุ่มแบบอิสระ ${targetQuestionCount} ข้อ/คน (จากคลัง ${finalQuestions.length} ข้อ, เต็ม ${calculatedTotalScore} คะแนน)`
         : `เลือกเจาะจง ${finalQuestions.length} ข้อ (เต็ม ${calculatedTotalScore} คะแนน)`,

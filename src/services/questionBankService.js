@@ -94,11 +94,34 @@ export const getQuestionsByBankId = async (bankId) => {
 };
 
 export const getAllQuestions = async () => {
-  const { data, error } = await supabase
-    .from('questions')
-    .select('id, bank_id, question_text, choices, correct_answer_index, created_at');
-  if (error) throw error;
-  return data;
+  let allQuestions = [];
+  let from = 0;
+  const pageSize = 1000;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from('questions')
+      .select('id, bank_id, question_text, choices, correct_answer_index, created_at')
+      .range(from, from + pageSize - 1)
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      allQuestions = allQuestions.concat(data);
+      if (data.length < pageSize) {
+        hasMore = false;
+      } else {
+        from += pageSize;
+      }
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allQuestions;
 };
 
 export const createQuestion = async (questionData) => {
