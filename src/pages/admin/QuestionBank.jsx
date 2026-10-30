@@ -253,7 +253,11 @@ export default function QuestionBank() {
       type: 'question',
       item: question,
       title: 'ยืนยันการลบข้อสอบ?',
-      description: `คุณต้องการลบข้อสอบ "${question.question_text}" ออกจากชุดข้อสอบนี้หรือไม่?`,
+      description: (() => {
+        const clean = (question.question_text || '').replace(/<img[^>]*>|!\[.*?\]\(.*?\)/gi, '[รูปภาพ]').replace(/^\[html\]\s*/i, '').trim();
+        const snippet = clean.length > 70 ? clean.substring(0, 70) + '...' : clean;
+        return `คุณต้องการลบข้อสอบ "${snippet}" ออกจากชุดข้อสอบนี้หรือไม่?`;
+      })(),
       loading: false
     });
   };

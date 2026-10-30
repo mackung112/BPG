@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import QuestionRenderer from '../../exam/QuestionRenderer.jsx';
 import { ArrowRightLeft, Copy, MoveRight, X, Check, Loader2, AlertCircle, Plus } from 'lucide-react';
 
 export default function TransferQuestionModal({
@@ -104,9 +105,9 @@ export default function TransferQuestionModal({
           <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
             ข้อสอบที่เลือก:
           </span>
-          <p className="font-medium text-zinc-800 line-clamp-2">
-            {question.question_text}
-          </p>
+          <div className="font-medium text-zinc-800 line-clamp-2">
+            <QuestionRenderer content={question.question_text} compact />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">

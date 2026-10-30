@@ -507,7 +507,8 @@ export function useQuestionBank() {
         bank_id: bankId,
         question_text: q.question_text,
         choices: q.choices,
-        correct_answer_index: q.correct_answer_index
+        correct_answer_index: q.correct_answer_index,
+        image_url: q.image_url || null
       }));
 
       await questionBankService.importQuestions(rowsToInsert);

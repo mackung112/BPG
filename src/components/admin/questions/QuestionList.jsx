@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import QuestionRenderer from '../../exam/QuestionRenderer.jsx';
+import { sampleGiftWithImages } from '../../../utils/giftParser.js';
 import { 
   FileText, 
   Plus, 
@@ -63,12 +65,12 @@ export default function QuestionList({
   };
 
   const handleDownloadTemplate = () => {
-    const txt = "// ตัวอย่างรูปแบบข้อสอบ GIFT (คัดลอกไปแก้แล้วนำเข้าได้ทันที)\nข้อใดคือเมืองหลวงของประเทศไทย?{\n=กรุงเทพมหานคร\n~เชียงใหม่\n~ภูเก็ต\n~ขอนแก่น\n}\n\n1 + 1 มีค่าเท่ากับเท่าไร?{\n=2\n~3\n~4\n~5\n}\n";
+    const txt = sampleGiftWithImages;
     const blob = new Blob(['\uFEFF' + txt], { type: 'text/plain;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', 'question_template.txt');
+    link.setAttribute('download', 'ตัวอย่างข้อสอบ_GIFT_รองรับรูปภาพ.txt');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -199,6 +201,13 @@ export default function QuestionList({
             placeholder="วางข้อความ GIFT หรือลากไฟล์ .txt มาวางที่นี่..."
           />
 
+          <div className="text-[11px] text-purple-700 bg-purple-100/60 p-2.5 rounded-xl flex items-start gap-2 leading-relaxed border border-purple-200/60">
+            <span className="font-bold shrink-0">💡 รองรับรูปภาพ:</span>
+            <span>
+              สามารถใส่แท็ก <code>&lt;img src="URL" height="20"&gt;</code> หรือ Base64 <code>&lt;img src="data:image/..." height="20"&gt;</code> ในโจทย์และตัวเลือกได้ทันที (ในตัวเลือกให้ใส่ Backslash เช่น <code>src\="..."</code>)
+            </span>
+          </div>
+
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setShowImporter(false)}
@@ -265,9 +274,9 @@ export default function QuestionList({
                     <span className="text-[10px] font-bold text-zinc-400 mr-1.5 uppercase">
                       ข้อที่ {idx + 1}
                     </span>
-                    <p className="text-xs font-bold text-zinc-900 leading-relaxed">
-                      {question.question_text}
-                    </p>
+                    <div className="text-xs font-bold text-zinc-900 leading-relaxed">
+                      <QuestionRenderer content={question.question_text} />
+                    </div>
                   </div>
                 </div>
 
@@ -308,7 +317,7 @@ export default function QuestionList({
                       ) : (
                         <div className="w-3.5 h-3.5 rounded-full border border-zinc-300 shrink-0" />
                       )}
-                      <span className="truncate">{choice.text}</span>
+                      <span className="truncate flex-1 min-w-0"><QuestionRenderer content={choice.text} inline /></span>
                     </div>
                   );
                 })}

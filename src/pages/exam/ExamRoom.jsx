@@ -15,6 +15,7 @@ import {
 import { useExamTimer, calculateRemainingSeconds } from '../../hooks/exam/useExamTimer.js';
 import { useAntiCheat } from '../../hooks/exam/useAntiCheat.js';
 import QuestionPalette from '../../components/exam/QuestionPalette.jsx';
+import QuestionRenderer from '../../components/exam/QuestionRenderer.jsx';
 import { supabase } from '../../lib/supabase.js';
 import {
   Clock, ShieldAlert, CheckCircle, Send, Maximize2, Minimize2,
@@ -601,19 +602,19 @@ export default function ExamRoom() {
               </button>
             </div>
 
-            {/* Question Text */}
+            {/* Question Text with GIFT/HTML Image Support */}
             <div className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-relaxed whitespace-pre-wrap">
-              {currentQ.question_text}
+              <QuestionRenderer content={currentQ.question_text} />
             </div>
 
-            {/* Image (if any) */}
-            {currentQ.image_url && (
+            {/* Image (if any, from image_url column, unless already in question_text) */}
+            {currentQ.image_url && !currentQ.question_text?.includes(currentQ.image_url) && (
               <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 max-h-72 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
                 <img src={currentQ.image_url} alt="Question Diagram" className="max-h-72 object-contain" />
               </div>
             )}
 
-            {/* Choices */}
+            {/* Choices with Inline Icon & Image Support */}
             <div className="space-y-3 pt-2">
               {(currentQ.choices || []).map((choice, cIdx) => {
                 const choiceText = typeof choice === 'object' ? choice.text : String(choice);
@@ -630,17 +631,19 @@ export default function ExamRoom() {
                         : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200/80 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold font-mono transition-colors ${
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <span className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold font-mono transition-colors shrink-0 ${
                         isSelected
                           ? 'bg-indigo-600 text-white shadow-xs'
                           : 'bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600'
                       }`}>
                         {String.fromCharCode(65 + cIdx)}
                       </span>
-                      <span>{choiceText}</span>
+                      <span className="flex-1 min-w-0">
+                        <QuestionRenderer content={choiceText} inline />
+                      </span>
                     </div>
-                    {isSelected && <Check className="w-5 h-5 text-indigo-600 dark:text-indigo-400 stroke-[3]" />}
+                    {isSelected && <Check className="w-5 h-5 text-indigo-600 dark:text-indigo-400 stroke-[3] shrink-0 ml-2" />}
                   </button>
                 );
               })}

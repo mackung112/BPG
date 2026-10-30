@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, Plus, Trash2, X, Check, Loader2, AlertCircle } from 'lucide-react';
+import QuestionRenderer from '../../exam/QuestionRenderer.jsx';
+import { hasMedia } from '../../../utils/giftParser.js';
+import { Eye, HelpCircle, Plus, Trash2, X, Check, Loader2, AlertCircle } from 'lucide-react';
 
 export default function QuestionModal({ isOpen, onClose, onSave, editingQuestion }) {
   const [questionText, setQuestionText] = useState('');
@@ -202,6 +204,36 @@ export default function QuestionModal({ isOpen, onClose, onSave, editingQuestion
               ))}
             </div>
           </div>
+
+                    {/* Live Preview when question or choices contain images */}
+          {(hasMedia(questionText) || choices.some(c => hasMedia(c.text))) && (
+            <div className="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-700">
+                <Eye className="w-3.5 h-3.5" />
+                <span>ตัวอย่างการแสดงผลจริง (Live Preview)</span>
+              </div>
+              <div className="bg-white p-3 rounded-xl border border-indigo-100/80 space-y-2">
+                <div className="font-bold text-zinc-900 leading-relaxed text-xs">
+                  <QuestionRenderer content={questionText || 'โจทย์คำถาม...'} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                  {choices.filter(c => c.text.trim()).map((c, i) => (
+                    <div
+                      key={i}
+                      className={`p-2 rounded-lg border text-xs flex items-center gap-2 ${c.is_correct ? "bg-emerald-50 border-emerald-200 text-emerald-900 font-medium" : "bg-zinc-50 border-zinc-200 text-zinc-700"}`}
+                    >
+                      <span className="w-5 h-5 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-mono text-[10px] font-bold shrink-0">
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <QuestionRenderer content={c.text} inline />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-2.5 pt-3 border-t border-zinc-100">
             <button

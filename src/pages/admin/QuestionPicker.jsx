@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import QuestionRenderer from '../../components/exam/QuestionRenderer.jsx';
 import { getAllQuestions, parseBankTitle } from '../../services/questionBankService';
 import * as semesterService from '../../services/semesterService';
 import defaultSubjectsData from '../../data/subjects.json';
@@ -1108,7 +1109,7 @@ export default function QuestionPicker({ onClose, onSave, banks = [], initialCon
                                               </div>
                                               <div className="flex-1 text-xs sm:text-sm text-zinc-800 pt-0.5 min-w-0">
                                                 <span className="font-semibold text-zinc-400 mr-1.5">{idx + 1}.</span>
-                                                <span>{q.question_text}</span>
+                                                <QuestionRenderer content={q.question_text} compact />
                                               </div>
                                               {isSelected && (
                                                 <div className="flex items-center gap-1.5 w-28 shrink-0">

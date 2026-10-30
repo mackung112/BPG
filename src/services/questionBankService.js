@@ -154,9 +154,20 @@ export const deleteQuestion = async (id) => {
 };
 
 export const importQuestions = async (questions) => {
-  const { error } = await supabase
+  let { error } = await supabase
     .from('questions')
     .insert(questions);
+
+  // Fallback if image_url column doesn't exist on questions table
+  if (error && (error.code === '42703' || error.message?.includes('image_url'))) {
+    const stripped = questions.map(({ image_url, ...rest }) => rest);
+    const retryRes = await supabase
+      .from('questions')
+      .insert(stripped);
+    if (retryRes.error) throw retryRes.error;
+    return;
+  }
+
   if (error) throw error;
 };
 
